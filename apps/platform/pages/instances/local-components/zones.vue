@@ -1,4 +1,4 @@
-<!--<template>-->
+<template>
 <!--  <c-card>-->
 <!--    <c-card-header-->
 <!--      title="Choisissez une zone de disponibilité"-->
@@ -21,7 +21,7 @@
 <!--      </div>-->
 <!--    </c-card-body>-->
 <!--  </c-card>-->
-<!--</template>-->
+</template>
 
 <!--<script setup lang="ts">-->
 <!--import CCardHeader from "~/components/card/CCardHeader.vue";-->
