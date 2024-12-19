@@ -5,7 +5,7 @@
     >
     </card-c-card-header>
     <c-card-body>
-      <div class="grid grid-cols-12 w-full mb-8">
+      <div class="grid grid-cols-12 w-full mb-8 gap-4">
         <div class="col-span-3">
           <c-label label="Donner un nom à votre instance" for="instance-name" />
         </div>
@@ -22,7 +22,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-12 w-full">
+      <div class="grid grid-cols-12 gap-4 w-full">
         <div class="col-span-3">
           <c-label label="Choisissez un lieu" for="instance-name" />
         </div>
@@ -33,7 +33,6 @@
           </div>
         </div>
       </div>
-
     </c-card-body>
   </c-card>
 </template>

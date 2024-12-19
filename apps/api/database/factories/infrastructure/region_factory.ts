@@ -1,5 +1,6 @@
 import factory from '@adonisjs/lucid/factories'
 import Region from '#models/infrastructure/region'
+import {ZoneFactory} from "#database/factories/infrastructure/zone_factory";
 
 export const RegionFactory = factory
   .define(Region, ({ faker }) => {
@@ -11,4 +12,5 @@ export const RegionFactory = factory
       updatedAt: faker.date.future(),
     }
   })
+  .relation('zones', () => ZoneFactory)
   .build()
