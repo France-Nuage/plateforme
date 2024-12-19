@@ -21,7 +21,8 @@
               name="slug"
               type="text"
               label="Slug"
-              v-model="formData.id"
+              v-model="organization.id"
+              disabled
             />
           </div>
 
@@ -30,8 +31,8 @@
       </c-card-body>
       <c-card-footer>
         <div class="flex w-full justify-end gap-4">
-          <c-button variant="filled" size="sm">Annuler</c-button>
-          <c-button variant="success" size="sm">Enregistrer</c-button>
+          <c-button variant="filled" size="sm" @click="onCancel">Annuler</c-button>
+          <c-button variant="success" size="sm" @click="onSubmit" :loading="loading">Enregistrer</c-button>
         </div>
       </c-card-footer>
     </c-card>
@@ -61,12 +62,27 @@ import CTextField from "~/components/forms/CTextField.vue";
 import CCardHeader from "~/components/card/CCardHeader.vue";
 import CAlert from "~/components/alert/CAlert.vue";
 
+const { organization } = storeToRefs(useNavigationStore())
+const loading = ref(false)
 const formData = ref({
   name: '',
-  id: ''
 })
+
+onMounted(() => {
+  if (organization.value) {
+    formData.value.name = organization.value.name;
+  }
+})
+
+watch(() => organization.value, (newValue) => {
+  formData.value.name = newValue.name;
+})
+
+const onCancel = () => {
+  formData.value.name = organization.value.name;
+}
+
+const onSubmit = () => {
+  loading.value = true;
+}
 </script>
-
-<style scoped>
-
-</style>

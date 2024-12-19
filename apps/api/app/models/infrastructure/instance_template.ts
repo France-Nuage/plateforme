@@ -1,6 +1,6 @@
 import { BaseModel, belongsTo, column, computed } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
-import { Instance } from '#models/infrastructure/instance'
+import Instance from '#models/infrastructure/instance'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
 export default class InstanceTemplate extends BaseModel {

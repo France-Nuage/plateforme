@@ -12,7 +12,7 @@ export default class FoldersController {
     const user = await auth.getUserOrFail()
     const payload = await request.validateUsing(createFolderValidator)
 
-    return response.created(await FolderService.post({ ...payload }, user))
+    return response.created(await FolderService.create({ ...payload }, user))
   }
 
   /**

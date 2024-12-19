@@ -7,10 +7,12 @@
     <c-dropdown-list class="w-56">
 
       <div class="py-2 flex items-center gap-2">
-        <div class="shrink-0"><c-avatar /></div>
+        <div class="shrink-0">
+          <c-avatar />
+        </div>
         <div>
-          <span class="w-full block text-sm font-semibold">Alexandre CAILLER</span>
-          <span class="text-sm">plop.plop@plop.fr</span>
+          <span class="w-full block text-sm font-semibold">{{ me.firstname }} {{ me.lastname }}</span>
+          <span class="text-sm block">{{ me.email }}</span>
         </div>
       </div>
 
@@ -54,7 +56,6 @@
 </template>
 
 <script setup lang="ts">
-
 import CDropdownButton from "~/components/dropdown/CDropdownButton.vue";
 import CDropdownList from "~/components/dropdown/CDropdownList.vue";
 import CDropdown from "~/components/dropdown/CDropdown.vue";
@@ -62,16 +63,10 @@ import CDropdownItem from "~/components/dropdown/CDropdownItem.vue";
 import CDivider from "~/components/CDivider.vue";
 import CAvatar from "~/components/avatar/CAvatar.vue";
 
-const userNavigation = [
-  { name: 'Your profile', href: '#' },
-  { name: 'Account settings', href: '#' },
-  { name: 'Changelog', href: '#' },
-  { name: 'Support', href: '#' },
-  { name: 'Sign out', href: '#' },
-]
+const { loadMe } = useAuthStore()
+const { me } = storeToRefs(useAuthStore())
+
+onMounted(() => {
+  loadMe()
+})
 </script>
-
-
-<style scoped>
-
-</style>

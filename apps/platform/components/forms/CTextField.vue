@@ -15,10 +15,13 @@
         :required="props.required"
         :placeholder="props.placeholder"
         :readonly="props.readonly"
-        class="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm/6 dark:bg-gray-700 dark:ring-gray-500 dark:text-gray-200"
+        :class="['block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm/6 dark:bg-gray-700 dark:ring-gray-500 dark:text-gray-200', {
+          'dark:text-gray-400 cursor-not-allowed': props.disabled
+        }]"
         v-bind="$attrs"
         :value="props.modelValue"
         @input="onInput"
+        :disabled="props.disabled"
       />
     </div>
     <div v-if="props.description" class="text-gray-500 mt-2 text-sm">{{ props.description }}</div>
@@ -39,6 +42,7 @@ interface Props {
   description?: string;
   modelValue: string;
   readonly?: boolean;
+  disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), { type: 'text' });

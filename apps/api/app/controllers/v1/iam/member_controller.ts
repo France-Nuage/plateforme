@@ -1,7 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import db from '@adonisjs/lucid/services/db'
-import PolicyPolicy from '#policies/iam/policy_policy'
-import MemberPolicy from "#policies/iam/member_policy";
+import IAMMemberPolicy from '#policies/iam/iam_member_policy'
 
 const filterSQLKey = {
   organization: 'organization__id',
@@ -14,7 +13,7 @@ export default class MembersController {
    * Display a list of resource
    */
   async index({ response, params, bouncer, request }: HttpContext) {
-    await bouncer.with(MemberPolicy).authorize('index')
+    await bouncer.with(IAMMemberPolicy).authorize('index')
 
     const page = request.input('page', 1)
     const limit = request.input('limit', 10)
@@ -23,7 +22,7 @@ export default class MembersController {
       .from('member.users as u')
       .join('iam.user_resource_policy_binding as b', 'u.id', 'b.member__id')
       .join('iam.resource_policy as p', 'b.policy__id', 'p.policy__id')
-      .where(`p.${filterSQLKey[params.resource]}`, params.resourceId)
+      .where(`p.${filterSQLKey[params.resource as keyof typeof filterSQLKey]}`, params.resourceId)
       .groupBy('u.email')
       .select('u.email as member')
       .select(db.raw('array_agg(DISTINCT b.role__id) as roles'))
@@ -31,7 +30,7 @@ export default class MembersController {
 
     return response.ok({
       data: {
-        bindings: result.rows,
+        bindings: result.all(),
         // etag: "BwWWja0YfJA=",
         // version: 3,
       },
@@ -53,13 +52,13 @@ export default class MembersController {
    * Show individual record
    */
   async show({ response, params, bouncer }: HttpContext) {
-    await bouncer.with(MemberPolicy).authorize('show')
+    await bouncer.with(IAMMemberPolicy).authorize('show')
 
     const result = await db
       .from('member.users as u')
       .join('iam.user_resource_policy_binding as b', 'u.id', 'b.member__id')
       .join('iam.resource_policy as p', 'b.policy__id', 'p.policy__id')
-      .where(`p.${filterSQLKey[params.resource]}`, params.resourceId)
+      .where(`p.${filterSQLKey[params.resource as keyof typeof filterSQLKey]}`, params.resourceId)
       .andWhere('u.id', params.id)
       .groupBy('u.email')
       .select('u.email as member')

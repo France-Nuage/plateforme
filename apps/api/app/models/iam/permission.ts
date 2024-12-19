@@ -1,7 +1,6 @@
 import { BaseModel, column, manyToMany } from '@adonisjs/lucid/orm'
 import Role from '#models/iam/role'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
-import RolePermission from "#models/iam/role_permission";
 
 export default class Permission extends BaseModel {
   public static table = 'iam.permissions'

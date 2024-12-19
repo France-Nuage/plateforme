@@ -69,7 +69,3 @@ const filteredItems = computed(() => {
   return search.length ? props.items.filter((item) => item.name.toLowerCase().trim().includes(search)) : props.items;
 })
 </script>
-
-<style scoped>
-
-</style>

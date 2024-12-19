@@ -1,6 +1,6 @@
 import factory from '@adonisjs/lucid/factories'
-import Country from '#models/country'
 import { RegionFactory } from '#database/factories/infrastructure/region_factory'
+import Country from '#models/localisation/country'
 
 export const CountryFactory = factory
   .define(Country, ({ faker }) => {

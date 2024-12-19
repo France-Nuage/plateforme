@@ -1,14 +1,17 @@
-import { BaseModel, belongsTo, column, hasOne } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
-import type { BelongsTo, HasOne } from '@adonisjs/lucid/types/relations'
-import { Cluster } from '#models/infrastructure/cluster'
-import { Region } from '#models/infrastructure/region'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import Cluster from '#models/infrastructure/cluster'
+import Region from '#models/infrastructure/region'
 
-export class Zone extends BaseModel {
+export default class Zone extends BaseModel {
   public static table = 'infrastructure.zones'
 
   @column({ isPrimary: true, columnName: 'zone__id' })
   declare id: string
+
+  @column({ columnName: 'region__id' })
+  declare regionId: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -16,9 +19,9 @@ export class Zone extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @belongsTo(() => Cluster)
-  declare clusters: BelongsTo<typeof Cluster>
+  @hasMany(() => Cluster)
+  declare clusters: HasMany<typeof Cluster>
 
-  @hasOne(() => Region)
-  declare region: HasOne<typeof Region>
+  @belongsTo(() => Region, { localKey: 'id', foreignKey: 'regionId' })
+  declare region: BelongsTo<typeof Region>
 }

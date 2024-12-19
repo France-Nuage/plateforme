@@ -7,7 +7,7 @@ export default class extends BaseSeeder {
     const services = await ServiceFactory.createMany(5) // Crée 5 services
 
     for (const service of services) {
-      await VersionFactory.merge({ service__id: service.id }).createMany(3) // 3 versions par service
+      await VersionFactory.merge({ serviceId: service.id }).createMany(3) // 3 versions par service
     }
   }
 }

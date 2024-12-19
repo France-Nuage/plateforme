@@ -21,7 +21,6 @@ export default class IndexSeeder extends BaseSeeder {
   public async run() {
     // IAM
     await this.seed(await import('#database/seeders/iam/permission_seeder'))
-    await this.seed(await import('#database/seeders/iam/role_seeder'))
 
     // SERVICE
     await this.seed(await import('#database/seeders/service/service_seeder'))

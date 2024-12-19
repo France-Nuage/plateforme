@@ -6,22 +6,36 @@ interface UserPayloadInterface {
   password: string;
 }
 
+interface UserInterface {
+  id: string;
+  lastname: string;
+  firstname: string;
+  email: string;
+  object: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
+  state: (): { authenticated: boolean, me: UserInterface | null, routes: any } => ({
     authenticated: false,
-    user: null,
-    loading: false,
+    me: null,
     routes: []
   }),
   actions: {
+    loadMe: async function () {
+      const { $api } = useNuxtApp()
+      return $api().security.me().then(response => {
+        this.me = response
+      })
+    },
     subscribe: async function (payload: UserPayloadInterface): Promise<void> {
       const { $api } = useNuxtApp()
       return $api().security.register(payload).then((data) => {
         if (data.token) {
           const token = useCookie('token');
           token.value = data?.token?.token;
-          this.user = {id: data?.id, email: data?.email}
           this.authenticated = true;
         }
       })
@@ -33,7 +47,6 @@ export const useAuthStore = defineStore('auth', {
           const token = useCookie('token');
 
           token.value = response.data?.token?.token;
-          this.user = { id: response.data?.id, email: response.data?.email }
           this.authenticated = true;
         }
 
@@ -47,6 +60,12 @@ export const useAuthStore = defineStore('auth', {
     resetPassword: async function (payload: { password: string, token: string }): Promise<void> {
       const { $api } = useNuxtApp()
       return $api().security.resetPassword(payload)
+    },
+    update: async function (payload: UserPayloadInterface): Promise<void> {
+      const { $api } = useNuxtApp()
+      return $api().members.patch(this.me.id, payload).then((response) => {
+        this.me = response
+      })
     },
     logUserOut: function () {
       const token = useCookie('token');

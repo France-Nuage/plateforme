@@ -1,11 +1,12 @@
-import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
+// eslint-disable-next-line @unicorn/filename-case
+import { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 
 class RequestQueryBuilder {
   private query: ModelQueryBuilderContract<any>
   private includes: string[] = []
   private includeOnly: string | null = null
   private filters: { [key: string]: any } = {}
-  private sorts: { [key: string]: any } = {}
+  // private sorts: { [key: string]: any } = {}
   private pagination: { page: number | null; perPage: number | null } = {
     page: null,
     perPage: null,
@@ -57,7 +58,7 @@ class RequestQueryBuilder {
    */
   private preloadNestedRelations(
     relationPath: string,
-    query: ModelQueryBuilderContract<any>
+    // query: ModelQueryBuilderContract<any>
   ): void {
     const relations = relationPath.split('.')
 
@@ -67,7 +68,7 @@ class RequestQueryBuilder {
       builder: ModelQueryBuilderContract<any>
     ) => {
       if (nestedRelations.length > 0) {
-        builder.preload(relation, (nestedQuery) => {
+        builder.preload(relation, (nestedQuery: ModelQueryBuilderContract<any>) => {
           preloadRelation(nestedRelations[0], nestedRelations.slice(1), nestedQuery)
         })
       } else {
@@ -161,7 +162,7 @@ class RequestQueryBuilder {
 
   async firstOrFail() {
     this.includes.forEach((relation) => {
-      this.preloadNestedRelations(relation, this.query)
+      this.preloadNestedRelations(relation/*, this.query*/)
     })
 
     // Tenter de trouver le premier enregistrement ou échouer
@@ -171,11 +172,11 @@ class RequestQueryBuilder {
   /**
    * Apply the necessary includes and filters to the query
    */
-  public async apply(): ModelQueryBuilderContract<any> {
+  public async apply(): Promise<ModelQueryBuilderContract<any>> {
     // if (!this.includeOnly) {
     // Apply includes
     this.includes.forEach((relation) => {
-      this.preloadNestedRelations(relation, this.query)
+      this.preloadNestedRelations(relation/*, this.query*/)
     })
     // }
 
@@ -183,8 +184,9 @@ class RequestQueryBuilder {
     this.applyFilters()
 
     if (this.includeOnly) {
-      const result = await this.query.count('* as total')
-      return { count: Number.parseInt(result[0]['$extras']['total']) }
+      console.log('include only are not implemented')
+    //   const result = await this.query.count('* as total')
+    //   return { count: Number.parseInt(result[0]['$extras']['total']) }
     }
 
     if (this.pagination.page && this.pagination.perPage) {

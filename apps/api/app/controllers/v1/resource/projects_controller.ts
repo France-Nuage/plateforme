@@ -2,6 +2,8 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Project from '#models/resource/project'
 import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
 import ProjectPolicy from '#policies/resource/project_policy'
+import { createProjectValidator } from '#validators/v1/resource/project'
+import project_service from '#services/v1/resource/project_service'
 
 export default class ProjectsController {
   /**
@@ -19,13 +21,12 @@ export default class ProjectsController {
   /**
    * Handle form submission for the create action
    */
-  async store({ response, params, request, bouncer }: HttpContext) {
+  async store({ response, request, bouncer, auth }: HttpContext) {
     await bouncer.with(ProjectPolicy).authorize('store')
+    const user = await auth.getUserOrFail()
+    const payload = await request.validateUsing(createProjectValidator)
 
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+    return response.created(await project_service.create(payload, user))
   }
 
   /**

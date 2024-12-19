@@ -1,5 +1,5 @@
-import { BaseModel, column, computed, hasMany, manyToMany } from '@adonisjs/lucid/orm'
-import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, computed, manyToMany } from '@adonisjs/lucid/orm'
+import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import Permission from '#models/iam/permission'
 
 export default class Role extends BaseModel {

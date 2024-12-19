@@ -20,8 +20,8 @@ export default class Version extends BaseModel {
   @column()
   declare description: string
 
-  @column()
-  declare availableAt: string
+  @column.dateTime()
+  declare availableAt: DateTime
 
   @column({ columnName: 'service__id' })
   declare serviceId: string

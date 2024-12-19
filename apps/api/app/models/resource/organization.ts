@@ -2,6 +2,7 @@ import { BaseModel, column, computed, hasMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Folder from '#models/resource/folder'
+import BillingAccount from '#models/billing/billing_account'
 
 export default class Organization extends BaseModel {
   public static table = 'resource.organizations'
@@ -17,12 +18,6 @@ export default class Organization extends BaseModel {
   @column()
   declare name: string
 
-  @column({ columnName: 'environment__id' })
-  declare environmentId: string
-
-  @column({ columnName: 'owner__id' })
-  declare ownerId: number
-
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -31,4 +26,7 @@ export default class Organization extends BaseModel {
 
   @hasMany(() => Folder)
   declare folders: HasMany<typeof Folder>
+
+  @hasMany(() => BillingAccount)
+  declare billingAccounts: HasMany<typeof BillingAccount>
 }

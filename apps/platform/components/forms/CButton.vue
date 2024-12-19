@@ -40,7 +40,7 @@ const variantClasses = {
   danger:
       'rounded-lg text-white bg-red-600 border border-red-700 hover:bg-red-700',
   filled:
-      'rounded-lg bg-zinc-100 border border-gray-200 text-black hover:bg-primary-700',
+      'rounded-lg bg-zinc-100 border border-gray-200 text-black hover:bg-primary-700 dark:border-gray-500 dark:bg-gray-500 dark:text-gray-100',
   outline:
       'rounded-lg text-zinc-700 ring-1 ring-inset ring-zinc-900/10 border-transparent hover:bg-primary-900/2.5 hover:text-zinc-900',
   text: 'text-emerald-500 hover:text-emerald-600',

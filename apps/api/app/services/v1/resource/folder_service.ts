@@ -1,7 +1,7 @@
 import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
 import Folder from '#models/resource/folder'
 import User from '#models/user'
-import Project from '#models/resource/project'
+// import Project from '#models/resource/project'
 import Policy from '#models/iam/policy'
 import Role from '#models/iam/role'
 import Authorization from '#services/authorization'
@@ -13,14 +13,16 @@ export default {
       .applyWhere([['id', '=', id]])
       .firstOrFail()
   },
-  list: async function (includes: Array<string>, user: User) {
+  list: async function (
+    includes: Array<string>
+    // user?: User
+  ) {
     return new RequestQueryBuilder(Folder.query())
       .withIncludes(includes)
       .withPagination(1, 10)
       .apply()
   },
-  create: async function (includes) {},
-  post: async function (body, user: User) {
+  create: async function (body: { [_: string]: string | number | null }, user: User) {
     const folder = await Folder.create(body)
     await Folder.create(body)
     const policy = await Policy.create({
@@ -38,6 +40,6 @@ export default {
 
     return folder
   },
-  update: async function (id, body) {},
-  delete: async function (id) {},
+  // update: async function (id, body) {},
+  // delete: async function (id) {},
 }

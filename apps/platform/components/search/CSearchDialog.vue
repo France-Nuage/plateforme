@@ -1,5 +1,5 @@
 <template>
-  <c-modal v-model="dialogIsOpen">
+  <c-modal v-model="dialogIsOpen" no-header no-footer>
     <div>
       <form action="">
         <c-search-input v-model="searchTerms" />

@@ -34,20 +34,6 @@ export default class extends BaseSchema {
         .inTable('resource.organizations')
     })
 
-    this.schema.createSchema('billing')
-    this.schema.withSchema('billing').createTable('accounts', (table) => {
-      table.uuid('account__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
-      table.string('stripe_customer__id')
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
-
-      table.uuid('organization__id')
-      table
-        .foreign('organization__id')
-        .references('organization__id')
-        .inTable('resource.organizations')
-    })
-
     this.schema.withSchema('resource').createTable('projects', (table) => {
       table.uuid('project__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
       table.string('name')
@@ -55,10 +41,7 @@ export default class extends BaseSchema {
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
 
-      table.uuid('account__id')
       table.uuid('folder__id')
-
-      table.foreign('account__id').references('account__id').inTable('billing.accounts')
       table.foreign('folder__id').references('folder__id').inTable('resource.folders')
     })
 
@@ -411,7 +394,6 @@ export default class extends BaseSchema {
     this.schema.withSchema('infrastructure').dropTable('regions')
     this.schema.dropSchema('infrastructure')
 
-    this.schema.withSchema('billing').dropTable('accounts')
     this.schema.dropSchema('stripe')
   }
 }

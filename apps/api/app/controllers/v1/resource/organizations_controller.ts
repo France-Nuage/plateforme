@@ -16,10 +16,11 @@ export default class OrganizationsController {
   /**
    * Handle form submission for the create action
    */
-  async store({ request, response, bouncer }: HttpContext) {
+  async store({ request, response, bouncer, auth }: HttpContext) {
     await bouncer.with(OrganizationPolicy).authorize('store')
     const payload = await request.validateUsing(createOrganizationValidator)
-    const organization = await OrganizationService.create({ ...payload })
+    const user = await auth.getUserOrFail()
+    const organization = await OrganizationService.create({ ...payload }, user)
 
     return response.created(organization)
   }
@@ -28,7 +29,7 @@ export default class OrganizationsController {
    * Show individual record
    */
   async show({ params, response, bouncer, request, auth }: HttpContext) {
-    await bouncer.with(OrganizationPolicy).authorize('show')
+    await bouncer.with(OrganizationPolicy).authorize('get')
     const user = await auth.getUserOrFail()
     const organization = await OrganizationService.get(params.id, request.qs().includes, user)
 

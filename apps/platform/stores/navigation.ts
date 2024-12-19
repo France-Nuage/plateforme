@@ -1,3 +1,4 @@
+type Resource = { type: 'organization' | 'project' | 'folder', id?: string }
 interface State {
     projects: any,
     project: any,
@@ -5,7 +6,7 @@ interface State {
     organization: any,
     folders: any,
     folder: any,
-    resource: { type: 'organization' | 'project' | 'folder', id: string } | null,
+    resource: Resource | null
 }
 
 export const useNavigationStore = defineStore('navigation', {
@@ -81,7 +82,6 @@ export const useNavigationStore = defineStore('navigation', {
                  * No default project selected mode.
                  */
                 this.project = null
-
                 this.resource = { type: 'folder', id: this.folder.id }
             })
         },
@@ -90,5 +90,29 @@ export const useNavigationStore = defineStore('navigation', {
 
             this.resource = { type: 'project', id: this.project.id }
         },
+        createResource: async function (body: any, resource: Resource) {
+            const { $api } = useNuxtApp()
+            const apis = {
+                organization: $api().organizations,
+                folder: $api().folders,
+                project: $api().projects,
+            }
+
+            return apis[resource.type].post(body).then((response) => {
+                return response
+            })
+        },
+        updateResource: async function (id, body, resource: Resource) {
+            const { $api } = useNuxtApp()
+            const apis = {
+                organization: $api().organizations,
+                folder: $api().folders,
+                project: $api().projects,
+            }
+
+            return apis[resource?.type].patch(id, body).then((response) => {
+                return response
+            })
+        }
     }
 })

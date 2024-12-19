@@ -5,14 +5,14 @@ export default class Token extends BaseModel {
   public static table = 'iam.tokens'
 
   @column({ isPrimary: true })
-  public id: number
+  declare id: number
 
   @column()
-  public email: string
+  declare email: string
 
   @column()
-  public token: string
+  declare token: string
 
   @column.dateTime()
-  public expiresAt: DateTime
+  declare expiresAt: DateTime
 }

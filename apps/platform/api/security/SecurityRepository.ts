@@ -1,5 +1,6 @@
 import { AxiosInstance } from 'axios';
 import routes from './routes';
+import type {ApiResponse} from "~/api/repositories/ApiResponse";
 
 export interface AllowedLoginCredentials {
   username: string;

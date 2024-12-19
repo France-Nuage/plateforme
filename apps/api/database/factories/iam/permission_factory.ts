@@ -4,9 +4,9 @@ import Permission from '#models/iam/permission'
 export const PermissionFactory = factory
   .define(Permission, ({ faker }) => {
     return {
-      service__id: faker.string.uuid(),
-      type__id: faker.string.uuid(),
-      verb__id: faker.string.uuid(),
+      serviceId: faker.string.uuid(),
+      typeId: faker.string.uuid(),
+      verbId: faker.string.uuid(),
     }
   })
   .build()

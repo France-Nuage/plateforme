@@ -11,7 +11,7 @@
                     <img class="size-20 rounded-full" :src="`/images/profil_seb.jpeg`" alt="">
                     <div>
                         <h3 class="text-base/7 font-semibold tracking-tight text-gray-900">Sébastien BERTHOME</h3>
-                        <p class="text-sm/6 font-semibold" style="color: #284ada;">Ex. Opendatasoft / Ledger</p>
+                        <p class="text-sm/6 font-semibold" style="color: #284ada;">Ex. Opendatasoft / </p>
                     </div>
                 </div>
             </li>

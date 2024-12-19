@@ -24,8 +24,8 @@
         </c-card-body>
         <c-card-footer>
           <div class="flex justify-end gap-4 w-full">
-            <c-button variant="filled" size="sm">Annuler</c-button>
-            <c-button variant="success" size="sm">Valider</c-button>
+            <c-button variant="filled" size="sm" @click="onCancel">Annuler</c-button>
+            <c-button variant="success" size="sm" @click="onSubmit" :loading="loading">Valider</c-button>
           </div>
         </c-card-footer>
       </c-card>
@@ -79,12 +79,33 @@ import CCardHeader from "~/components/card/CCardHeader.vue";
 import CThemeSelector from "~/components/CThemeSelector.vue";
 import CAlert from "~/components/alert/CAlert.vue";
 
+const { update } = useAuthStore()
+const { me } = storeToRefs(useAuthStore())
 const formData = ref({
-  lastname: "",
-  firstname: "",
+  lastname: '',
+  firstname: '',
 })
+const loading = ref(false)
+
+onMounted(() => {
+  if (me.value) {
+    formData.value.lastname = me.value.lastname;
+    formData.value.firstname = me.value.firstname;
+  }
+})
+
+watch(() => me.value, (newValue) => {
+  formData.value.lastname = newValue.lastname;
+  formData.value.firstname = newValue.firstname;
+})
+
+const onCancel = () => {
+  formData.value.lastname = me.value.lastname;
+  formData.value.firstname = me.value.firstname;
+}
+
+const onSubmit = () => {
+  loading.value = true;
+  update(formData.value).finally(() => { loading.value = false; })
+}
 </script>
-
-<style scoped>
-
-</style>

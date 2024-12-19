@@ -8,7 +8,6 @@ import env from '#start/env'
 import { authApiClient } from '@adonisjs/auth/plugins/api_client'
 import { snapshot } from '@japa/snapshot'
 import { expectTypeOf } from '@japa/expect-type'
-import {TestUtils} from "@adonisjs/core/test_utils";
 
 /**
  * This file is imported by the "bin/test.ts" entrypoint file

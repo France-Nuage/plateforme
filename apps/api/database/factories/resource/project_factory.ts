@@ -4,12 +4,11 @@ import Project from '#models/resource/project'
 export const ProjectFactory = factory
   .define(Project, ({ faker }) => {
     return {
-      project__id: faker.string.uuid(),
+      id: faker.string.uuid(),
       name: faker.company.catchPhrase(),
       description: faker.lorem.sentence(),
-      organization__id: faker.string.uuid(),
-      createdAt: faker.date.recent(),
-      updatedAt: faker.date.future(),
+      organizationId: faker.string.uuid(),
+      billingAccountId: faker.string.uuid(),
     }
   })
   .build()

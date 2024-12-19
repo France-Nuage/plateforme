@@ -63,16 +63,16 @@
     <c-sidebar>
 
       <c-sidebar-navigation-group>
-        <button class="text-white text-sm text-start flex items-center gap-2" @click="$router.go(-1)">
+        <button class="text-white text-sm text-start flex items-center gap-2" @click="$router.push('/')">
           <Icon :name="`solar:backspace-bold-duotone`" size="1.3rem" style="color: #c1c1c1" />
           <span>Retour</span>
         </button>
       </c-sidebar-navigation-group>
 
       <c-sidebar-navigation-group title="Profile">
-        <c-sidebar-navigation-item title="Préférences" icon="user-circle-bold-duotone" to="/settings/profile/preferences" :active="route.path === '/settings/profile/preferences'" />
-        <c-sidebar-navigation-item title="Token personnel" icon="key-bold-duotone" to="/settings/profile/access-token" :active="route.path === '/settings/profile/access-token'" />
-        <c-sidebar-navigation-item title="Sécurité" icon="lock-keyhole-bold-duotone" to="/settings/profile/security" :active="route.path === '/settings/profile/security'" />
+        <c-sidebar-navigation-item title="Préférences" icon="user-circle-bold-duotone" to="/profile/preferences" :active="route.path === '/profile/preferences'" />
+        <c-sidebar-navigation-item title="Token personnel" icon="key-bold-duotone" to="/profile/access-token" :active="route.path === '/profile/access-token'" />
+        <c-sidebar-navigation-item title="Sécurité" icon="lock-keyhole-bold-duotone" to="/profile/security" :active="route.path === '/profile/security'" />
       </c-sidebar-navigation-group>
 
       <c-sidebar-navigation-group title="Documentations">
@@ -112,11 +112,9 @@ import CSidebar from "~/components/sidebar/CSidebar.vue";
 import CSidebarNavigationItem from "~/components/sidebar/CSidebarNavigationItem.vue";
 import CSidebarNavigationGroup from "~/components/sidebar/CSidebarNavigationGroup.vue";
 import CToastList from "~/components/toast/CToastList.vue";
+
 const sidebarOpen = ref(false)
-
 const route = useRoute()
-const { organizations } = storeToRefs(useOrganizationStore());
-
 const isActive = (term: string) => {
   return route.path.startsWith('/' + term)
 }

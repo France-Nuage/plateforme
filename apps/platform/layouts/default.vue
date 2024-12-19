@@ -112,12 +112,10 @@ import CSidebar from "~/components/sidebar/CSidebar.vue";
 import CSidebarNavigationItem from "~/components/sidebar/CSidebarNavigationItem.vue";
 import CSidebarNavigationGroup from "~/components/sidebar/CSidebarNavigationGroup.vue";
 import CToastList from "~/components/toast/CToastList.vue";
+
 const sidebarOpen = ref(false)
-
 const route = useRoute()
-
 const isActive = (term: string) => {
   return route.path.startsWith('/' + term)
 }
-
 </script>

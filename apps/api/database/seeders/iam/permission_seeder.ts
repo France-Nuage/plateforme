@@ -515,9 +515,9 @@ export default class extends BaseSeeder {
       permissions.map((permission) => {
         const permissionSplited = permission.split('.')
         return {
-          serviceId: permissionSplited[0] || null,
-          typeId: permissionSplited[1] || null,
-          verbId: permissionSplited[2] || null,
+          serviceId: permissionSplited[0],
+          typeId: permissionSplited[1],
+          verbId: permissionSplited[2],
         }
       })
     ).createMany(permissions.length)
