@@ -22,8 +22,6 @@ export const CountryFactory = factory
         pattern: new RegExp(/[0-9]/),
       }),
       flag_svg: `<svg>${faker.lorem.paragraph()}</svg>`,
-      createdAt: faker.date.recent(),
-      updatedAt: faker.date.future(),
     }
   })
   .relation('regions', () => RegionFactory)

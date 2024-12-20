@@ -28,6 +28,8 @@ const IAMPoliciesController = () => import('#controllers/v1/iam/policy_controlle
 const IAMMembersController = () => import('#controllers/v1/iam/member_controller')
 const BillingAccountController = () => import('#controllers/v1/billing/billing_accounts_controller')
 const MembersController = () => import('#controllers/v1/member/members_controller')
+const ZonesController = () => import('#controllers/v1/infrastructure/zones_controller')
+const RegionsController = () => import('#controllers/v1/infrastructure/regions_controller')
 
 router
   .group(() => {
@@ -39,6 +41,8 @@ router
         router.resource('instances', InstancesController)
         router.resource('services', ServicesController)
         router.resource('members', MembersController)
+        router.resource('regions', RegionsController)
+        router.resource('zones', ZonesController)
         router
           .group(() => {
             router.resource('/iam/policies', IAMPoliciesController)
