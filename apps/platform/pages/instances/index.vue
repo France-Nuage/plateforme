@@ -1,22 +1,33 @@
 <template>
   <nuxt-layout>
     <div>
-      <empty-screen />
+      <div v-if="instances.length">
+
+        <c-table name="instances" :data="instances" />
+
+      </div>
+      <empty-screen v-else />
     </div>
   </nuxt-layout>
 </template>
 
 <script setup lang="ts">
 import EmptyScreen from "~/pages/instances/local-components/empty-screen.vue";
+import CTable from "~/components/table/CTable.vue";
 
-const { servers } = storeToRefs(useServerStore());
-// const { loadServers } = useServerStore();
+const { instances } = storeToRefs(useInstanceStore());
+const { loadInstances } = useInstanceStore();
+const interval = ref();
 
 onMounted(() => {
-  // loadServers();
-  // setInterval(() => {
-  //   loadServers();
-  // }, 1000);
+  loadInstances();
+  interval.value = setInterval(() => {
+    loadInstances();
+  }, 5000);
+})
+
+onUnmounted(() => {
+  clearInterval(interval.value);
 })
 </script>
 

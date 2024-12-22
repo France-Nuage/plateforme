@@ -1,34 +1,37 @@
 interface State {
-    regions: Array<any>,
-    region: any,
+    instances: Array<any>,
+    instance: any,
 }
 
-export const useRegionStore = defineStore('region', {
+export const useInstanceStore = defineStore('instance', {
     state: (): State => ({
-        regions: [],
-        region: null,
+        instances: [],
+        instance: null,
     }),
     actions: {
-        loadRegions: async function (queryParams?: any): Promise<void> {
+        loadInstances: async function (queryParams?: any): Promise<void> {
             const { $api } = useNuxtApp()
 
-            return $api().compute.regions.list(queryParams).then((response) => {
-                this.regions = response.data
+            return $api().compute.instances.list(queryParams).then((response) => {
+                this.instances = response.data
                 return response
             })
         },
-        loadRegion: async function (id: string, queryParams?: any): Promise<void> {
+        loadInstance: async function (id: string, queryParams?: any): Promise<void> {
             const { $api } = useNuxtApp()
 
-            $api().compute.regions.get(id).then(({ data }) => {
-                this.region = data
+            return $api().compute.instances.get(id).then((response) => {
+                this.instance = response
+
+                return response
             })
         },
-        createRegion: async function (data) {
+        createInstance: async function (data) {
             const { $api } = useNuxtApp()
 
-            $api().compute.regions.post(data).then(({ data }) => {
-                this.region = data
+            return $api().compute.instances.post(data).then(({ data }) => {
+                this.instance = data
+                return data
             })
         }
     }

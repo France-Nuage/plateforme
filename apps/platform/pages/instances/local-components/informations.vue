@@ -58,9 +58,10 @@ import CSelect from "~/components/forms/select/CSelect.vue";
 import {useRegionStore} from "~/stores/compute/region";
 
 interface Props {
-  modelValue: string;
+  modelValue: any;
 }
 
+const props = defineProps<Props>()
 const regionSelected = ref()
 const instanceName = ref('')
 const zoneSelected = ref()
@@ -71,5 +72,17 @@ onMounted(() => {
   loadRegions({ includes: ['zones'] }).then(response => {
     regionSelected.value = response.data[0];
   })
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+watch(() => regionSelected.value, (value) => {
+  emit('update:modelValue', { ...props.modelValue, regionId: value.id })
+})
+watch(() => instanceName.value, (value) => {
+  emit('update:modelValue', { ...props.modelValue, name: value })
+})
+watch(() => zoneSelected.value, (value) => {
+  emit('update:modelValue', { ...props.modelValue, zoneId: value.id })
 })
 </script>

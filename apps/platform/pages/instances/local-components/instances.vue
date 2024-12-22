@@ -7,8 +7,8 @@
     <c-card-body>
 
       <div class="flex flex-col gap-8">
-        <c-input-range min="2" max="80" unit="vCPU" :step="1" v-model="heartNumber" label="Coeurs" />
-        <c-input-range min="2" max="80" unit="Go" :step="1" v-model="ramNumber" label="Mémoire" />
+        <c-input-range min="2" max="80" unit="vCPU" :step="1" v-model="cores" label="Coeurs" />
+        <c-input-range min="2" max="80" unit="Go" :step="1" v-model="memory" label="Mémoire" />
       </div>
       
     </c-card-body>
@@ -26,10 +26,20 @@ import CAction from "~/components/pannel/CAction.vue";
 import CLabel from "~/components/forms/CLabel.vue";
 import CInputRange from "~/components/forms/CInputRange.vue";
 
-const heartNumber = ref(2);
-const ramNumber = ref(2);
+interface Props {
+  modelValue: any;
+}
+
+const props = defineProps<Props>()
+const cores = ref(2);
+const memory = ref(2);
+
+const emit = defineEmits(['update:modelValue'])
+
+watch(() => cores.value, (value) => {
+  emit('update:modelValue', { ...props.modelValue, cores: value.id })
+})
+watch(() => memory.value, (value) => {
+  emit('update:modelValue', { ...props.modelValue, memory: value })
+})
 </script>
-
-<style scoped>
-
-</style>

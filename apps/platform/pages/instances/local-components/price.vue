@@ -64,7 +64,7 @@
       </dl>
 
       <div class="mt-6">
-        <c-button block>Commander</c-button>
+        <c-button block @click.stop="$emit('click')" :loading="props.loading">Commander</c-button>
       </div>
     </section>
   </div>
@@ -73,4 +73,10 @@
 <script setup lang="ts">
 import { QuestionMarkCircleIcon } from "@heroicons/vue/16/solid";
 import CButton from "~/components/forms/CButton.vue";
+
+interface Props {
+  loading: boolean
+}
+
+const props = defineProps<Props>()
 </script>
