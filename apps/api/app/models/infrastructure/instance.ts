@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import BootDisk from '#models/infrastructure/boot_disk'
 import Node from '#models/infrastructure/node'
+import Project from '#models/resource/project'
 
 export default class Instance extends BaseModel {
   public static table = 'infrastructure.instances'
@@ -15,6 +16,9 @@ export default class Instance extends BaseModel {
 
   @column()
   declare name: string
+
+  @column({ columnName: 'project__id' })
+  declare projectId: string
 
   @column({ columnName: 'node__id' })
   declare nodeId: string
@@ -33,4 +37,7 @@ export default class Instance extends BaseModel {
 
   @belongsTo(() => BootDisk, { foreignKey: 'bootDiskId', localKey: 'id' })
   declare bootDisk: BelongsTo<typeof BootDisk>
+
+  @belongsTo(() => Project, { localKey: 'id', foreignKey: 'projectId' })
+  declare project: BelongsTo<typeof Project>
 }

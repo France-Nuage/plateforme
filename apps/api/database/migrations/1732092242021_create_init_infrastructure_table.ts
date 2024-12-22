@@ -146,11 +146,13 @@ export default class extends BaseSchema {
       table.string('node')
       table.string('pve_vm_id')
       table.uuid('node__id')
+      table.uuid('project__id').notNullable()
       table.uuid('instance_type__id')
       table.uuid('boot_disk__id').notNullable()
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
 
+      table.foreign('project__id').references('project__id').inTable('resource.projects')
       table.foreign('node__id').references('node__id').inTable('infrastructure.nodes')
       table
         .foreign('instance_type__id')
