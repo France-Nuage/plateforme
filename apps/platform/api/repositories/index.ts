@@ -17,3 +17,7 @@ export { AccountBillingRepository } from "./billing/AccountBillingRepository";
 
 // member
 export { MemberRepository } from './member/MemberRepository'
+
+// compute
+export { RegionRepository } from './compute/RegionRepository'
+export { ZoneRepository } from './compute/ZoneRepository'

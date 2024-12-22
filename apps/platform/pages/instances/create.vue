@@ -4,11 +4,11 @@
 
     <div class="grid grid-cols-12 divide-x dark:divide-gray-800">
       <div class="col-span-7 pr-8">
-        <div class="flex flex-col gap-20 mt-8">
+        <div class="flex flex-col gap-8 mt-8">
           <informations v-model="formData.name" />
+          <instances v-model="formData.instance" />
     <!--      <services v-model="formData.service" />-->
 <!--          <zones v-model="formData.zone" />-->
-    <!--      <instances v-model="formData.instance" />-->
         </div>
       </div>
       <div class="col-start-8 col-end-12 pl-8">
@@ -20,11 +20,8 @@
 </template>
 
 <script setup lang="ts">
-import CTitle from "~/components/CTitle.vue";
 import Informations from "~/pages/instances/local-components/informations.vue";
 import Instances from "~/pages/instances/local-components/instances.vue";
-import Services from "~/pages/instances/local-components/services.vue";
-import Zones from "~/pages/instances/local-components/zones.vue";
 import Price from "~/pages/instances/local-components/price.vue";
 
 const formData = ref({

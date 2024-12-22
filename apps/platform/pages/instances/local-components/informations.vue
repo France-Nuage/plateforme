@@ -15,7 +15,7 @@
             required
             name="instance-name"
             type="text"
-            v-model="value"
+            v-model="instanceName"
             placeholder="Nom de l'instance"
             description="Le nom de votre Instance ne peut contenir que des caractères alphanumériques, des points et des tirets."
           />
@@ -28,8 +28,20 @@
         </div>
         <div class="col-span-9">
           <div class="flex gap-4">
-            <c-select id="instance-region" name="instance-region" :collections="[]" v-model="value" placeholder="Région" />
-            <c-select id="instance-zone" name="instance-zone" :collections="[]" v-model="value" placeholder="Zones" />
+            <c-select
+              id="instance-region"
+              name="instance-region"
+              :collections="regions"
+              v-model="regionSelected"
+              placeholder="Région"
+            />
+            <c-select
+              id="instance-zone"
+              name="instance-zone"
+              :collections="regionSelected?.zones || []"
+              v-model="zoneSelected"
+              placeholder="Zones"
+            />
           </div>
         </div>
       </div>
@@ -42,12 +54,22 @@ import CTextField from "~/components/forms/CTextField.vue";
 import CCard from "~/components/card/CCard.vue";
 import CCardBody from "~/components/card/CCardBody.vue";
 import CLabel from "~/components/forms/CLabel.vue";
-import CSelect from "~/components/forms/CSelect.vue";
+import CSelect from "~/components/forms/select/CSelect.vue";
+import {useRegionStore} from "~/stores/compute/region";
 
 interface Props {
   modelValue: string;
 }
 
-const props = defineProps<Props>()
-const value = ref()
+const regionSelected = ref()
+const instanceName = ref('')
+const zoneSelected = ref()
+const { loadRegions } = useRegionStore()
+const { regions } = storeToRefs(useRegionStore())
+
+onMounted(() => {
+  loadRegions({ includes: ['zones'] }).then(response => {
+    regionSelected.value = response.data[0];
+  })
+})
 </script>

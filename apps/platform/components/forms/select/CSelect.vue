@@ -7,7 +7,7 @@
           :name="props.name"
           type="text"
           :placeholder="props.placeholder"
-          v-model="plop"
+          v-model="textFieldValue"
           readonly
           class="cursor-pointer"
         />
@@ -65,7 +65,7 @@ import CTextField from "~/components/forms/CTextField.vue";
 
 interface Props {
   collections: Array<any>;
-  modelValue: string;
+  modelValue: any;
   placeholder: string;
   name: string;
   id: string;
@@ -74,12 +74,14 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 const selectedItem = ref(null)
+const textFieldValue = ref('')
 
 watch(() => props.modelValue, () => {
   selectedItem.value = props.modelValue
 })
 
 watch(selectedItem, () => {
+  textFieldValue.value = selectedItem.value.name
   emit('update:modelValue', selectedItem.value)
 })
 
