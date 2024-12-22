@@ -1,8 +1,8 @@
 import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
-import Instance from '#models/infrastructure/instance'
 import Zone from '#models/infrastructure/zone'
+import Node from "#models/infrastructure/node";
 
 export default class Cluster extends BaseModel {
   public static table = 'infrastructure.clusters'
@@ -19,8 +19,8 @@ export default class Cluster extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @hasMany(() => Instance)
-  declare instances: HasMany<typeof Instance>
+  @hasMany(() => Node)
+  declare nodes: HasMany<typeof Node>
 
   @belongsTo(() => Zone, { localKey: 'id', foreignKey: 'zoneId' })
   declare zone: BelongsTo<typeof Zone>

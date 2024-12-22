@@ -2,6 +2,8 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { CountryFactory } from '#database/factories/localisation/country_factory'
 import { RegionFactory } from '#database/factories/infrastructure/region_factory'
 import { ZoneFactory } from '#database/factories/infrastructure/zone_factory'
+import { ClusterFactory } from '#database/factories/infrastructure/cluster_factory'
+import { NodeFactory } from '#database/factories/infrastructure/node_factory'
 
 export default class extends BaseSeeder {
   public async run() {
@@ -45,5 +47,33 @@ export default class extends BaseSeeder {
         regionId: '00000000-0000-0000-0000-000000000001',
       },
     ]).createMany(2)
+
+    await ClusterFactory.merge([
+      {
+        id: '00000000-0000-0000-0000-000000000005',
+        zoneId: '00000000-0000-0000-0000-000000000003',
+      },
+    ]).createMany(1)
+
+    await NodeFactory.merge([
+      {
+        id: '00000000-0000-0000-0000-000000000006',
+        url: 'https://proxmox-poc-node-1.france-nuage.fr',
+        token: 'PVEAPIToken=root@pam!api=0a253801-d1c0-4e74-964e-da6b61ffe92c',
+        clusterId: '00000000-0000-0000-0000-000000000005',
+      },
+      {
+        id: '00000000-0000-0000-0000-000000000007',
+        url: 'https://proxmox-poc-node-2.france-nuage.fr',
+        token: 'PVEAPIToken=root@pam!api=0a253801-d1c0-4e74-964e-da6b61ffe92c',
+        clusterId: '00000000-0000-0000-0000-000000000005',
+      },
+      {
+        id: '00000000-0000-0000-0000-000000000008',
+        url: 'https://proxmox-poc-node-3.france-nuage.fr',
+        token: 'PVEAPIToken=root@pam!api=0a253801-d1c0-4e74-964e-da6b61ffe92c',
+        clusterId: '00000000-0000-0000-0000-000000000005',
+      },
+    ]).createMany(3)
   }
 }

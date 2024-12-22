@@ -7,7 +7,7 @@ export const InstanceFactory = factory
       id: faker.string.uuid(),
       // name: faker.internet.userName(),
       // node: faker.internet.ipv4(),
-      clusterId: faker.string.uuid(),
+      nodeId: faker.string.uuid(),
     }
   })
   .build()

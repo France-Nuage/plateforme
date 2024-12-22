@@ -9,6 +9,9 @@ export default class Os extends BaseModel {
   @column({ columnName: 'os__id', isPrimary: true })
   declare id: string
 
+  @column()
+  declare name: string
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
