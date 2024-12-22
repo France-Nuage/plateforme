@@ -59,18 +59,21 @@ export default class extends BaseSeeder {
       {
         id: '00000000-0000-0000-0000-000000000006',
         url: 'https://proxmox-poc-node-1.france-nuage.fr',
+        name: 'pve-node1',
         token: 'PVEAPIToken=root@pam!api=0a253801-d1c0-4e74-964e-da6b61ffe92c',
         clusterId: '00000000-0000-0000-0000-000000000005',
       },
       {
         id: '00000000-0000-0000-0000-000000000007',
         url: 'https://proxmox-poc-node-2.france-nuage.fr',
+        name: 'pve-node2',
         token: 'PVEAPIToken=root@pam!api=0a253801-d1c0-4e74-964e-da6b61ffe92c',
         clusterId: '00000000-0000-0000-0000-000000000005',
       },
       {
         id: '00000000-0000-0000-0000-000000000008',
         url: 'https://proxmox-poc-node-3.france-nuage.fr',
+        name: 'pve-node3',
         token: 'PVEAPIToken=root@pam!api=0a253801-d1c0-4e74-964e-da6b61ffe92c',
         clusterId: '00000000-0000-0000-0000-000000000005',
       },

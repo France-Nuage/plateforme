@@ -10,6 +10,12 @@ export default class Instance extends BaseModel {
   @column({ isPrimary: true, columnName: 'instance__id' })
   declare id: string
 
+  @column()
+  declare pveVmId: string
+
+  @column()
+  declare name: string
+
   @column({ columnName: 'node__id' })
   declare nodeId: string
 

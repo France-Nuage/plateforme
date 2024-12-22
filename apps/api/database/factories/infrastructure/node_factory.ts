@@ -8,6 +8,7 @@ export const NodeFactory = factory
       id: faker.string.uuid(),
       url: faker.internet.url(),
       token: faker.string.uuid(),
+      name: faker.string.uuid(),
       clusterId: faker.string.uuid(),
     }
   })

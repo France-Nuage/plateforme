@@ -144,6 +144,7 @@ export default class extends BaseSchema {
       table.uuid('instance__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
       table.string('name')
       table.string('node')
+      table.string('pve_vm_id')
       table.uuid('node__id')
       table.uuid('instance_type__id')
       table.uuid('boot_disk__id').notNullable()

@@ -16,6 +16,9 @@ export default class Node extends BaseModel {
   @column()
   declare url: string
 
+  @column()
+  declare name: string
+
   @column({ columnName: 'cluster__id' })
   declare clusterId: string
 
