@@ -1,7 +1,8 @@
 import { BaseModel, belongsTo, column, computed } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import BootDisk from '#models/infrastructure/boot_disk'
+import Os from '#models/infrastructure/os'
 
 export default class OsVersion extends BaseModel {
   public static table = 'infrastructure.os_versions'
@@ -20,6 +21,9 @@ export default class OsVersion extends BaseModel {
   @column()
   declare version: string
 
+  @column({ columnName: 'os__id' })
+  declare osId: string
+
   @column()
   declare release_date: DateTime
 
@@ -29,6 +33,6 @@ export default class OsVersion extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @belongsTo(() => BootDisk)
-  declare boot_disk: BelongsTo<typeof BootDisk>
+  @belongsTo(() => Os, { foreignKey: 'os__id', localKey: 'id' })
+  declare os: BelongsTo<typeof Os>
 }

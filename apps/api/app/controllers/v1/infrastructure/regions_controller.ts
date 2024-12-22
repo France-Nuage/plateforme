@@ -1,14 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import region_service from '#services/v1/infrastructure/region_service'
+import RegionPolicy from '#policies/infrastructure/region_policy'
 
 export default class RegionsController {
   /**
    * Display a list of resource
    */
-  async index({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+  async index({ response, request, bouncer }: HttpContext) {
+    await bouncer.with(RegionPolicy).authorize('index')
+    return response.ok(await region_service.list(request.qs().includes))
   }
 
   /**
@@ -24,11 +24,9 @@ export default class RegionsController {
   /**
    * Show individual record
    */
-  async show({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+  async show({ response, request, params, bouncer }: HttpContext) {
+    await bouncer.with(RegionPolicy).authorize('show')
+    return response.ok(await region_service.get(params.id, request.qs().includes))
   }
 
   /**

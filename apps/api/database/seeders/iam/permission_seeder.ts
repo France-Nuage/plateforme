@@ -424,6 +424,8 @@ export default class extends BaseSeeder {
       'compute.regionUrlMaps.listEffectiveTags',
       'compute.regionUrlMaps.listTagBindings',
       'compute.regions.*',
+      'compute.regions.list',
+      'compute.regions.get',
       'compute.reservations.get',
       'compute.reservations.list',
       'compute.resourcePolicies.*',
@@ -509,6 +511,8 @@ export default class extends BaseSeeder {
       'compute.zoneOperations.get',
       'compute.zoneOperations.list',
       'compute.zones.*',
+      'compute.zones.get',
+      'compute.zones.list'
     ]
 
     await PermissionFactory.merge(

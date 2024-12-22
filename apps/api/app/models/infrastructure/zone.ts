@@ -10,6 +10,9 @@ export default class Zone extends BaseModel {
   @column({ isPrimary: true, columnName: 'zone__id' })
   declare id: string
 
+  @column()
+  declare name: string
+
   @column({ columnName: 'region__id' })
   declare regionId: string
 

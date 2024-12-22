@@ -1,14 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import zone_service from '#services/v1/infrastructure/zone_service'
+import ZonePolicy from '#policies/infrastructure/zone_policy'
 
 export default class ZonesController {
   /**
    * Display a list of resource
    */
-  async index({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+  async index({ response, request, bouncer }: HttpContext) {
+    await bouncer.with(ZonePolicy).authorize('index')
+    return response.ok(await zone_service.list(request.qs().includes))
   }
 
   /**
@@ -24,11 +24,9 @@ export default class ZonesController {
   /**
    * Show individual record
    */
-  async show({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+  async show({ response, request, params, bouncer }: HttpContext) {
+    await bouncer.with(ZonePolicy).authorize('show')
+    return response.ok(await zone_service.get(params.id, request.qs().includes))
   }
 
   /**
