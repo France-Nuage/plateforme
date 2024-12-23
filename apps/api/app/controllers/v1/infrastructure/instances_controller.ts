@@ -1,54 +1,33 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import axios from 'axios'
+import InstancePolicy from '#policies/infrastructure/instance_policy'
+import instance_service from '#services/v1/infrastructure/instance_service'
+import { createInstanceValidator } from '#validators/v1/infrastructure/instance'
 
 export default class InstancesController {
   /**
    * Display a list of resource
    */
-  async index({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+  async index({ response, params, request, bouncer }: HttpContext) {
+    await bouncer.with(InstancePolicy).authorize('index')
+    return response.ok(await instance_service.list(request.qs().includes))
   }
 
   /**
    * Handle form submission for the create action
    */
-  async store({ response }: HttpContext) {
-    let data = {
-      newid: '289',
-    }
-
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'https://proxmox-cluster.france-nuage.fr/api2/json/nodes/pve-node2/qemu/105/clone',
-      headers: {
-        'CF-Access-Client-Id': '',
-        'CF-Access-Client-Secret': '',
-        'Authorization': '',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      data: data,
-    }
-
-    try {
-      await axios.request(config)
-      return response.created()
-    } catch (e) {
-      return response.badRequest()
-    }
+  async store({ response, request, bouncer }: HttpContext) {
+    await bouncer.with(InstancePolicy).authorize('store')
+    const payload = await request.validateUsing(createInstanceValidator)
+    const instance = await instance_service.create({ ...payload })
+    return response.created(instance)
   }
 
   /**
    * Show individual record
    */
-  async show({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+  async show({ response, params, request, bouncer }: HttpContext) {
+    await bouncer.with(InstancePolicy).authorize('show')
+    return response.ok(await instance_service.get(params.id, request.qs().includes))
   }
 
   /**
@@ -71,13 +50,6 @@ export default class InstancesController {
     })
   }
 }
-
-
-
-
-
-
-
 
 // import { createMachine } from "xstate";
 //

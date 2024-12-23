@@ -1,44 +1,33 @@
 <template>
   <nuxt-layout>
-    <c-heading
-      title="Vos instances"
-      description="Query your data warehouse directly from your database, or third-party APIs using SQL"
-      documentation-url=""
-      to="/instances/create"
-    />
-    <div class="mt-5">
-      <c-empty-state
-        v-if="servers.length === 0"
-        title="Aucune instances"
-        description="Créer votre première instances à partir d'un de nos template"
-      >
-        <ul role="list" class="grid grid-cols-4 gap-6">
-          <c-service-square name="Wordpress" logo="" alt="wordpress" to="/instances/create?template=wordpress" />
-          <c-service-square name="Wordpress" logo="" alt="" to="/instances/create?template=wordpress" />
-          <c-service-square name="Wordpress" logo="" alt="" to="/instances/create?template=wordpress" />
-          <c-service-square name="Wordpress" logo="" alt="" to="/instances/create?template=wordpress" />
-          <c-service-square name="Custom" logo="" alt="" to="/instances/create?template=custom" />
-        </ul>
-      </c-empty-state>
-      <div v-else>
-        {{ servers }}
+    <div>
+      <div v-if="instances.length">
+
+        <c-table name="instances" :data="instances" />
+
       </div>
+      <empty-screen v-else />
     </div>
   </nuxt-layout>
 </template>
 
 <script setup lang="ts">
-import CHeading from "~/components/CHeading.vue";
-import CServiceSquare from "~/components/services/CServiceSquare.vue";
+import EmptyScreen from "~/pages/instances/local-components/empty-screen.vue";
+import CTable from "~/components/table/CTable.vue";
 
-const { servers } = storeToRefs(useServerStore());
-// const { loadServers } = useServerStore();
+const { instances } = storeToRefs(useInstanceStore());
+const { loadInstances } = useInstanceStore();
+const interval = ref();
 
 onMounted(() => {
-  // loadServers();
-  // setInterval(() => {
-  //   loadServers();
-  // }, 1000);
+  loadInstances();
+  interval.value = setInterval(() => {
+    loadInstances();
+  }, 5000);
+})
+
+onUnmounted(() => {
+  clearInterval(interval.value);
 })
 </script>
 

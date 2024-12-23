@@ -1,12 +1,12 @@
 import vine from '@vinejs/vine'
 
-export const createOrganizationValidator = vine.compile(
+export const createPaymentMethodValidator = vine.compile(
   vine.object({
     name: vine.string().trim().minLength(6),
   })
 )
 
-export const updateOrganizationValidator = vine.compile(
+export const updatePaymentMethodValidator = vine.compile(
   vine.object({
     name: vine.string().trim().minLength(6),
   })

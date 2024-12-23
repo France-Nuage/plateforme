@@ -32,7 +32,6 @@ export default class extends BaseSchema {
       table.uuid('folder__id')
       table.uuid('project__id')
       table.string('metric__id')
-      table.string('metric__id')
       table
         .boolean('is_eligible')
         .comment('Indique si le quota est éligible pour une augmentation (TRUE/FALSE).')
