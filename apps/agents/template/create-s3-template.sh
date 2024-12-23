@@ -1,36 +1,32 @@
 #!/bin/bash
 
 # Variables template
-TEMPLATE_ID=1001
-TEMPLATE_NAME="debian12-docker-growthbook-template"
+TEMPLATE_ID=1002
+TEMPLATE_NAME="debian12-docker-s3-template"
 CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
 CLOUD_IMAGE_PATH="/var/lib/vz/images/0/debian-12-genericcloud-amd64.qcow2"
-CI_CUSTOM_USER_SNIPPET_NAME="ci-custom-user-growthbook-snippet.yaml"
+CI_CUSTOM_USER_SNIPPET_NAME="ci-custom-user-s3-snippet.yaml"
 CI_CUSTOM_USER_SNIPPET_PATH="/var/lib/vz/snippets/${CI_CUSTOM_USER_SNIPPET_NAME}"
 STORAGE_POOL=$(pvesm status | grep -i ceph | awk '{print $1}')
 SNIPPETS_STORAGE="local"
 BRIDGE="vmbr0"
 TEMPLATE_DEFAULT_GATEWAY=$(ip route show default | awk '/default/ {print $3}')
-TEMPLATE_DEFAULT_IP=$(echo $TEMPLATE_DEFAULT_GATEWAY | sed 's/\.[0-9]\+$/\.11/')
+TEMPLATE_DEFAULT_IP=$(echo $TEMPLATE_DEFAULT_GATEWAY | sed 's/\.[0-9]\+$/\.12/')
 TEMPLATE_DEFAULT_CIDR="${TEMPLATE_DEFAULT_IP}$(ip addr show | awk '/inet / && !/127.0.0.1/ {print $2}' | grep -o '/[0-9]*' | head -n 1)"
 VM_USER="france-nuage"
 SSH_PUBLIC_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDngnLZX5rwOc9OHB0dHrOU2Is97O/O76SmKhfiFCiqNcWm+Gs0ngD2ZUiE7wi5sN9CwKX7b/13NFE6gRClIc6iiMEyBhezQQiTp7yVT25x1W4DJCOb6gM64kZ3CSuxztcgN2uHYeAhs6L4ItHI2NuTpBdyKsHc9UkgiRh6F13ZYbHNp5HITz3g05IY+dWpFEiXotNSLaD891gvoQEZjBsFcqXAHrDfb71hEhVlT9AtoLOhfS1wZN1J4wYE0C5Tvf/woPLVHl2FtCcBWxWO/OIg/RV1bvqfQ0cK1je9oAWJpvqn8pglXyNzPSBufhEMaYCPY2kGxZ71BlrHtnIkw9nS8KND3EzJO5uyUjnSbEl7aJmmEjLlOllRHDQ34Jiaki96Rlyvcvpq4xEt/AIPQp/sK+Dd4z9cKuEk22vSVIXpCmbuwzAaORRS2m/gIrux+OZxH68qAncBvYwnZv+l4IfRbGHLRmCcPi48uNPFd49goO2P+LXlAeSp/RQ/iLqc/2B6U4tZyWiluCY/2FzS/9rV79ShkgQ/dCnhjALXWPEh806tu45gb+owHCcNQ/6k2AhgjVEBpUJZsjce2s7JlvhD6c0CnPRJXTdzKAIy3k0AHNzX4kZNA1jBX1oQKe8gdGPbMs6OV9/5SGpBAELfhR+gxtXVQUpvjuZk5K2rxS3pZQ== ssh@france-nuage.fr"
 
 # Variables docker compose
-DOCKER_APP_NAME="growthbook"
+DOCKER_APP_NAME="minio"
 DOCKER_APP_PATH="${DOCKER_APP_PATH:-/home/${VM_USER}/docker/${DOCKER_APP_NAME}}"
 DOCKER_COMPOSE_PATH="${APP_DOCKER_COMPOSE_PATH:-${DOCKER_APP_PATH}/docker-compose.yaml}"
 
-APP_DOMAIN="${APP_DOMAIN:-france-nuage.fr}"
-APP_UI_PORT="${APP_UI_PORT:-3000}"
-APP_API_PORT="${APP_API_PORT:-3100}"
+MINIO_ROOT_USER="${MINIO_ROOT_USER:-$(openssl rand -base64 32)}"
+MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD:-$(openssl rand -base64 32)}"
+MINIO_DATA_VOLUME="${DOCKER_APP_PATH}/volume/data"
 
-MONGO_USER="${MONGO_USER:-$(openssl rand -base64 32)}"
-MONGO_PASSWORD="${MONGO_PASSWORD:-$(openssl rand -base64 32)}"
-MONGODB_DATA_VOLUME="${DOCKER_APP_PATH}/volume/mongodata"
-
-GROWTHBOOK_JWT_SECRET="${GROWTHBOOK_JWT_SECRET:-$(openssl rand -base64 32)}"
-GROWTHBOOK_UPLOADS_VOLUME="${DOCKER_APP_PATH}/volume/uploads"
+APP_UI_PORT="${APP_UI_PORT:-9000}"
+APP_API_PORT="${APP_API_PORT:-9001}"
 
 # Étape 0 : Vérifier la présence d'un stockage CEPH
 if [[ -z "$STORAGE_POOL" ]]; then
@@ -75,7 +71,7 @@ qm set "$TEMPLATE_ID" --serial0 socket --vga serial0
 qm set "$TEMPLATE_ID" --ipconfig0 ip=$TEMPLATE_DEFAULT_CIDR,gw=$TEMPLATE_DEFAULT_GATEWAY
 qm set "$TEMPLATE_ID" --name "$TEMPLATE_NAME"
 qm set "$TEMPLATE_ID" --cpu x86-64-v2-AES
-qm resize "$TEMPLATE_ID" scsi0 +5G # Espace insuffisant pour growthbook
+qm resize "$TEMPLATE_ID" scsi0 +10G # Espace insuffisant pour S3
 
 # Créer le fichier de script cloud-init incluant docker-compose
 echo "Création du fichier cloud-init avec Docker et docker-compose..."
@@ -94,28 +90,19 @@ write_files:
     permissions: '0644'
     content: |
       services:
-        growthbook:
-          depends_on:
-            - mongo
+        minio:
+          command: server /data --console-address ":9001"
+          container_name: minio
           environment:
-            - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/growthbook?authSource=admin
-            - APP_ORIGIN=https://growthbook-ui.${APP_DOMAIN}
-            - API_HOST=https://growthbook-api.${APP_DOMAIN}
-            - JWT_SECRET=${GROWTHBOOK_JWT_SECRET}
-          image: growthbook/growthbook:latest
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+          image: minio/minio
           ports:
-            - '${APP_UI_PORT}:3000'
-            - '${APP_API_PORT}:3100'
+            - '${APP_API_PORT}:9000'
+            - '${APP_UI_PORT}:9001'
           restart: always
           volumes:
-            - ${GROWTHBOOK_UPLOADS_VOLUME}:/usr/local/src/app/packages/back-end/uploads
-        mongo:
-          environment:
-            - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
-            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
-          image: mongo:latest
-          volumes:
-            - ${MONGODB_DATA_VOLUME}:/data/db
+            - ${MINIO_DATA_VOLUME}:/data
 
   - path: /etc/systemd/system/docker-compose-${DOCKER_APP_NAME}.service
     permissions: '0644'
@@ -161,8 +148,8 @@ runcmd:
   # Préparation des répertoires
   - mkdir -p ${DOCKER_APP_PATH}
   - chown -R ${VM_USER}:${VM_USER} ${DOCKER_APP_PATH}
-  - mkdir -p ${GROWTHBOOK_UPLOADS_VOLUME} ${MONGODB_DATA_VOLUME}
-  - chown -R ${VM_USER}:${VM_USER} ${GROWTHBOOK_UPLOADS_VOLUME} ${MONGODB_DATA_VOLUME}
+  - mkdir -p ${MINIO_DATA_VOLUME}
+  - chown -R ${VM_USER}:${VM_USER} ${MINIO_DATA_VOLUME}
   
   # Configuration du service
   - systemctl daemon-reload
