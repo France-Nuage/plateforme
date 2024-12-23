@@ -5,7 +5,7 @@ TEMPLATE_ID=1000
 TEMPLATE_NAME="debian12-docker-default-template"
 CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
 CLOUD_IMAGE_PATH="/var/lib/vz/images/0/debian-12-genericcloud-amd64.qcow2"
-CI_CUSTOM_USER_SNIPPET_PATH="/var/lib/vz/snippets/ci-custom-user-snippet.yaml"
+CI_CUSTOM_USER_SNIPPET_PATH="/var/lib/vz/snippets/ci-custom-user-default-snippet.yaml"
 STORAGE_POOL=$(pvesm status | grep -i ceph | awk '{print $1}')
 SNIPPETS_STORAGE="local"
 BRIDGE="vmbr0"
@@ -57,6 +57,7 @@ qm set "$TEMPLATE_ID" --boot c --bootdisk scsi0
 qm set "$TEMPLATE_ID" --serial0 socket --vga serial0
 qm set "$TEMPLATE_ID" --ipconfig0 ip=$TEMPLATE_DEFAULT_CIDR,gw=$TEMPLATE_DEFAULT_GATEWAY
 qm set "$TEMPLATE_ID" --name "$TEMPLATE_NAME"
+qm set "$TEMPLATE_ID" --cpu x86-64-v2-AES
 
 # Créer un fichier de script cloud-init pour installer Docker
 echo "Création d'un fichier de script cloud-init pour installer Docker..."
