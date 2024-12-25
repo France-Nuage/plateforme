@@ -12,7 +12,8 @@ import {
   PermissionRepository,
   RegionRepository,
   ZoneRepository,
-  InstanceRepository
+  InstanceRepository,
+  PricingRepository,
 } from './repositories';
 import type { AxiosInstance } from 'axios';
 
@@ -25,6 +26,9 @@ const repositories: any = (client: AxiosInstance, config: Record<any, any>) => (
     regions: RegionRepository(client, config),
     zones: ZoneRepository(client, config),
     instances: InstanceRepository(client, config),
+  },
+  billing: {
+    pricing: PricingRepository(client, config),
   },
   members: MemberRepository(client, config),
   security: SecurityRepository(client, config),

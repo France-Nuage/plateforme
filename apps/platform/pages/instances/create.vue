@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="col-start-8 col-end-12 pl-8">
-        <price @click="handleClick" :loading="loading" />
+        <price @click="handleClick" :loading="loading" :price="priceObject" />
       </div>
     </div>
   </nuxt-layout>
@@ -25,14 +25,14 @@ import Price from "~/pages/instances/local-components/price.vue";
 
 const infos = ref({})
 const configurations = ref({})
-const { createInstance } = useInstanceStore()
+const { createInstance, getForecastPrice } = useInstanceStore()
 const loading = ref(false)
 const router = useRouter()
+const { price: priceObject } = storeToRefs(useInstanceStore())
 
 const handleClick = () => {
-
   loading.value = true
-  createInstance({ ...infos.value, ...configurations.value  })
+  createInstance({ ...infos.value, ...configurations.value })
     .then(() => {
       router.push('/instances')
     })
@@ -40,4 +40,10 @@ const handleClick = () => {
       loading.value = false
     })
 }
+
+watch(() => [infos.value, configurations.value], (value) => {
+  if ('zoneId' in value[0] && 'cpu' in value[1] && 'ram' in value[1]) {
+    getForecastPrice({ ...infos.value, ...configurations.value })
+  }
+})
 </script>

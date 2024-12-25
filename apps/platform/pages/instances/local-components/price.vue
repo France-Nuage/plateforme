@@ -29,25 +29,26 @@
         </div>
       </div>
     </div>
+
     <section aria-labelledby="summary-heading" class="mt-16 rounded-lg bg-gray-50 px-4 py-6 sm:p-6 lg:col-span-5 lg:mt-0 lg:p-8">
       <h2 id="summary-heading" class="text-lg font-medium text-gray-900 dark:text-gray-200">Order summary</h2>
 
-      <dl class="mt-6 space-y-4">
+      <dl v-if="props.price?.cpu" class="mt-6 space-y-4">
         <div class="flex items-center justify-between">
-          <dt class="text-sm text-gray-600 dark:text-gray-400">Subtotal</dt>
-          <dd class="text-sm font-medium text-gray-900 dark:text-gray-200">€99.00</dd>
+          <dt class="text-sm text-gray-600 dark:text-gray-400">CPU</dt>
+          <dd class="text-sm font-medium text-gray-900 dark:text-gray-200">€ {{ formatPrice(props.price?.cpu) }} /h</dd>
         </div>
-        <div class="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 pt-4">
+        <div v-if="props.price?.ram" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 pt-4">
           <dt class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-            <span>Shipping estimate</span>
+            <span>Memory</span>
             <a href="#" class="ml-2 shrink-0 text-gray-400 hover:text-gray-500">
               <span class="sr-only">Learn more about how shipping is calculated</span>
               <QuestionMarkCircleIcon class="size-5" aria-hidden="true" />
             </a>
           </dt>
-          <dd class="text-sm font-medium text-gray-900 dark:text-gray-200">€5.00</dd>
+          <dd class="text-sm font-medium text-gray-900 dark:text-gray-200">€ {{ formatPrice(props.price?.ram) }} /h</dd>
         </div>
-        <div class="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 pt-4">
+        <div v-if="props.price?.totalHourlyPrice.amount" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 pt-4">
           <dt class="flex text-sm text-gray-600 dark:text-gray-400">
             <span>Tax estimate</span>
             <a href="#" class="ml-2 shrink-0 text-gray-400 hover:text-gray-500">
@@ -55,11 +56,11 @@
               <QuestionMarkCircleIcon class="size-5" aria-hidden="true" />
             </a>
           </dt>
-          <dd class="text-sm font-medium text-gray-900 dark:text-gray-200">€8.32</dd>
+          <dd class="text-sm font-medium text-gray-900 dark:text-gray-200">€ {{ formatPrice((props.price?.totalHourlyPrice.amount * 24 * 30) * 0.2) }}</dd>
         </div>
-        <div class="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 pt-4">
+        <div v-if="props.price?.totalHourlyPrice.amount" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 pt-4">
           <dt class="text-base font-medium text-gray-900 dark:text-gray-200">Total</dt>
-          <dd class="text-base font-medium text-gray-900 dark:text-gray-200">€112.32</dd>
+          <dd class="text-base font-medium text-gray-900 dark:text-gray-200">€ {{ formatPrice(props.price?.totalHourlyPrice.amount * 24 * 30) }}</dd>
         </div>
       </dl>
 
@@ -75,8 +76,13 @@ import { QuestionMarkCircleIcon } from "@heroicons/vue/16/solid";
 import CButton from "~/components/forms/CButton.vue";
 
 interface Props {
-  loading: boolean
+  loading: boolean;
+  price: { totalHourlyPrice: { amount: number }; cpu?: number; ram?: number; disk?: number } | null;
 }
 
 const props = defineProps<Props>()
+
+const formatPrice = (price: number) => {
+  return price.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
 </script>

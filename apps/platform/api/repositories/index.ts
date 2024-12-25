@@ -14,6 +14,7 @@ export { ServiceRepository } from "./service/ServiceRepository";
 
 // account billing
 export { AccountBillingRepository } from "./billing/AccountBillingRepository";
+export { PricingRepository } from "./billing/PricingRepository";
 
 // member
 export { MemberRepository } from './member/MemberRepository'

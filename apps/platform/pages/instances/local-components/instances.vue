@@ -7,8 +7,8 @@
     <c-card-body>
 
       <div class="flex flex-col gap-8">
-        <c-input-range min="2" max="80" unit="vCPU" :step="1" v-model="cores" label="Coeurs" />
-        <c-input-range min="2" max="80" unit="Go" :step="1" v-model="memory" label="Mémoire" />
+        <c-input-range min="2" max="80" unit="vCPU" :step="1" v-model="cpu" label="Coeurs" />
+        <c-input-range min="2" max="80" unit="Go" :step="1" v-model="ram" label="Mémoire" />
       </div>
       
     </c-card-body>
@@ -31,15 +31,12 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const cores = ref(2);
-const memory = ref(2);
+const cpu = ref(2);
+const ram = ref(2);
 
 const emit = defineEmits(['update:modelValue'])
 
-watch(() => cores.value, (value) => {
-  emit('update:modelValue', { ...props.modelValue, cores: value.id })
-})
-watch(() => memory.value, (value) => {
-  emit('update:modelValue', { ...props.modelValue, memory: value })
+watch(() => [cpu.value, ram.value], (value) => {
+  emit('update:modelValue', { ...props.modelValue, cpu: parseInt(value[0]), ram: parseInt(value[1]) })
 })
 </script>

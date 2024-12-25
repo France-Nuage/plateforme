@@ -16,24 +16,24 @@ interface OrganizationResource {
 
 type PatchOrganizationData = Partial<OrganizationResource> | { resultCode: string };
 
-export const AccountBillingRepository = function (client: any, config: Record<any, any>) {
+export const PricingRepository = function (client: any, config: Record<any, any>) {
   return {
     list: async (params?: AllowedParams<any, null, null>): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : '';
-      return client(`/account-billings${apiCallParams}`, { method: 'GET' });
+      return client(`/pricing${apiCallParams}`, { method: 'GET' });
     },
     get: async (
-      accountBillingId: string,
+      pricingId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : '';
-      return client(`/account-billings/${accountBillingId}${apiCallParams}`);
+      return client(`/pricing/${pricingId}${apiCallParams}`);
     },
     post: async (body: PostOrganizationData): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/account-billings`, {  method: 'POST', body });
+      return client(`/pricing`, {  method: 'POST', body });
     },
-    patch: async (accountBillingId: string, body: PatchOrganizationData): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/account-billings/${accountBillingId}`, {  method: 'PUT', body });
+    patch: async (pricingId: string, body: PatchOrganizationData): Promise<ApiResponse<OrganizationResource>> => {
+      return client(`/pricing/${pricingId}`, {  method: 'PUT', body });
     },
   };
 };

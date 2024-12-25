@@ -47,4 +47,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const value = ref(0)
+const emit = defineEmits(['update:modelValue'])
+
+watch(value, (newValue) => {
+  emit('update:modelValue', newValue)
+})
 </script>
