@@ -12,3 +12,11 @@ export const updateInstanceValidator = vine.compile(
     // name: vine.string().trim().minLength(6),
   })
 )
+
+export const getInstanceCurrentPriceValidator = vine.compile(
+  vine.object({
+    zoneId: vine.string().uuid(),
+    cpu: vine.number(),
+    ram: vine.number(),
+  })
+)

@@ -1,7 +1,10 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import InstancePolicy from '#policies/infrastructure/instance_policy'
 import instance_service from '#services/v1/infrastructure/instance_service'
-import { createInstanceValidator } from '#validators/v1/infrastructure/instance'
+import {
+  createInstanceValidator,
+  getInstanceCurrentPriceValidator,
+} from '#validators/v1/infrastructure/instance'
 
 export default class InstancesController {
   /**
@@ -48,6 +51,12 @@ export default class InstancesController {
       params: params,
       request: request,
     })
+  }
+
+  async getPrice({ response, request }: HttpContext) {
+    const payload = await request.validateUsing(getInstanceCurrentPriceValidator)
+
+    return response.ok(await instance_service.getCurrentPrice({ ...payload }))
   }
 }
 

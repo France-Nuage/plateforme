@@ -28,6 +28,9 @@ export default class IndexSeeder extends BaseSeeder {
     // INFRASTRUCTURE
     await this.seed(await import('#database/seeders/infrastructure/infrastructure_seeder'))
 
+    // BILLING
+    await this.seed(await import('#database/seeders/billing/price_seeder'))
+
     // QUOTA
   }
 }

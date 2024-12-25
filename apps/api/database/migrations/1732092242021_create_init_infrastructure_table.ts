@@ -105,16 +105,6 @@ export default class extends BaseSchema {
         .inTable('infrastructure.instance_types')
     })
 
-    this.schema.withSchema('infrastructure').createTable('pricing_versions', (table) => {
-      table
-        .uuid('pricing_version__id', { primaryKey: true })
-        .defaultTo(this.raw('uuid_generate_v4()'))
-      table.decimal('price_per_vcpu', 10, 2).notNullable()
-      table.decimal('price_per_gb_ram', 10, 2).notNullable()
-      table.string('region').notNullable()
-      table.date('effective_date').notNullable()
-      table.timestamps(true)
-    })
 
     this.schema.withSchema('infrastructure').createTable('boot_disks', (table) => {
       table.uuid('boot_disk__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))

@@ -2,7 +2,8 @@ import axios from 'axios'
 import Zone from '#models/infrastructure/zone'
 import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
 import Instance from '#models/infrastructure/instance'
-import Folder from "#models/resource/folder";
+import Folder from '#models/resource/folder'
+import Price from '#models/billing/price'
 
 const getNextVMID = async (url: string, token: string) => {
   try {
@@ -27,7 +28,7 @@ const createVM = async (
       `${config.url}/api2/json/nodes/${config.nodeName}/qemu`,
       {
         ...options,
-        vmid: parseInt(config.vmid),
+        vmid: Number.parseInt(config.vmid),
       },
       {
         headers: {
@@ -41,7 +42,7 @@ const createVM = async (
       `${config.url}/api2/json/nodes/${config.nodeName}/qemu`,
       {
         ...options,
-        vmid: parseInt(config.vmid),
+        vmid: Number.parseInt(config.vmid),
       },
       {
         headers: {
@@ -95,5 +96,27 @@ export default {
       pveVmId: vmid,
       nodeId: node.id,
     })
+  },
+  getCurrentPrice: async (options: { zoneId: string; cpu: number; ram: number }) => {
+    const pricingList = await Price.query()
+      .where('zone__id', options.zoneId)
+      .andWhereIn('resource_type', ['CPU', 'RAM'])
+
+    const currentPriceRam = pricingList.find((price) => price.resourceType === 'RAM')
+    const currentPriceCpu = pricingList.find((price) => price.resourceType === 'CPU')
+
+    if (!currentPriceRam || !currentPriceCpu) {
+      return 0
+    }
+
+    const ramPricing = currentPriceRam.pricePerUnit * options.ram
+    const cpuPricing = currentPriceCpu.pricePerUnit * options.cpu
+
+    return {
+      cpu: cpuPricing,
+      ram: ramPricing,
+      totalHourlyPrice: { amount: ramPricing + cpuPricing },
+      totalMounthlyPrice: { amount: (ramPricing + cpuPricing) * 24 * 30 },
+    }
   },
 }

@@ -30,6 +30,7 @@ const BillingAccountController = () => import('#controllers/v1/billing/billing_a
 const MembersController = () => import('#controllers/v1/member/members_controller')
 const ZonesController = () => import('#controllers/v1/infrastructure/zones_controller')
 const RegionsController = () => import('#controllers/v1/infrastructure/regions_controller')
+const PricingController = () => import('#controllers/v1/billing/price_controller')
 
 router
   .group(() => {
@@ -38,11 +39,17 @@ router
         router.resource('folders', FoldersController)
         router.resource('organizations', OrganizationsController)
         router.resource('projects', ProjectsController)
-        router.resource('instances', InstancesController)
+        router
+          .group(() => {
+            router.resource('instances', InstancesController)
+            router.post('price', [InstancesController, 'getPrice'])
+          })
+          .prefix('compute')
         router.resource('services', ServicesController)
         router.resource('members', MembersController)
         router.resource('regions', RegionsController)
         router.resource('zones', ZonesController)
+        router.resource('pricing', PricingController)
         router
           .group(() => {
             router.resource('/iam/policies', IAMPoliciesController)
