@@ -1,6 +1,6 @@
 <template>
-  <div class="overflow-x-auto">
-    <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-transparent">
+  <div>
+    <div class="rounded-lg border border-gray-200 dark:border-transparent">
       <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
         <thead class="bg-gray-50">
         <tr>
@@ -9,7 +9,10 @@
             v-for="(header, i) in headers"
             :key="`${header.key}${i}`"
           >
-            <span>{{ header.label }}</span>
+            <div v-if="header.key === 'select'">
+              <c-checkbox v-model:model-value="selectRowAll" :value="selectRowAll" :name="`table_${name}_checkbox_all`" />
+            </div>
+            <span v-else>{{ header.label }}</span>
           </th>
         </tr>
         </thead>
@@ -22,10 +25,12 @@
             class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-normal sm:pl-6  text-gray-900 dark:text-gray-400"
             v-for="(header, i) in headers"
             :key="`${header.key}-${i}`"
-            style="vertical-align: baseline;"
           >
-            <div @click="() => instance?.attrs.onClickRow ? $emit('clickRow', { id: entity.id, name: props.name }) : router.push(`/${props.name}/${entity.id}`)">
-              <slot :name="`col-${header.key}`" :entity="entity" :key="header.key">
+            <div v-if="header.key === 'select'">
+              <c-checkbox v-model="selectRows" :value="entity.id" :name="`table_${name}_checkbox`" />
+            </div>
+            <div v-else @click="() => instance?.attrs.onClickRow ? $emit('clickRow', { id: entity.id, name: props.name }) : router.push(`/${props.name}/${entity.id}`)">
+              <slot :name="`col-${header.key}`" :entity="entity" :key="header.key" :value="_.get(entity, header.key) || '-'">
                 {{ _.get(entity, header.key) || '-' }}
               </slot>
             </div>
@@ -39,6 +44,7 @@
 
 <script lang="ts" setup>
 import _ from 'lodash'
+import CCheckbox from "~/components/forms/checkbox/CCheckbox.vue";
 
 // todo: implements all supports of this documentation: https://bootstrap-vue.org/docs/components/table#table
 interface Props {
@@ -53,5 +59,15 @@ const headers = computed(() => props.headers || props.data && [...new Set(props.
 const instance = ref(getCurrentInstance())
 defineOptions({
   inheritAttrs: false
+})
+
+const selectRowAll = ref(false)
+const selectRows = ref([])
+watch(selectRowAll, (value) => {
+  if (value) {
+    selectRows.value = props.data.map(_ => _.id)
+  } else {
+    selectRows.value = []
+  }
 })
 </script>

@@ -20,6 +20,9 @@ const getCurrentComponent = computed(() => {
     'project': SettingProject
   }
 
+
+  console.log(resource.value?.type && _[resource.value?.type])
+
   return resource.value?.type && _[resource.value?.type]
 })
 </script>

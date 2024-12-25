@@ -5,5 +5,5 @@
 </template>
 
 <script setup lang="ts">
-import {Menu} from "@headlessui/vue";
+import { Menu } from "@headlessui/vue";
 </script>

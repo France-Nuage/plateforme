@@ -13,7 +13,7 @@
               id="name"
               name="name"
               type="text"
-              label="Organization name"
+              label="Folder name"
               v-model="formData.name"
             />
             <c-text-field
@@ -21,7 +21,7 @@
               name="slug"
               type="text"
               label="Slug"
-              v-model="organization.id"
+              v-model="folder.id"
               disabled
             />
           </div>
@@ -40,12 +40,12 @@
     <c-card>
       <c-card-header title="Zone de danger"  />
       <c-card-body>
-        <c-alert title="Request for organization deletion" variant="danger">
+        <c-alert title="Request for folder deletion" variant="danger">
           <div class="mb-3">
-            Deleting your organization is permanent and cannot be undone. Your data will be deleted within 30 days, except we may retain some metadata and logs for longer where required or permitted by law.
+            Deleting your folder is permanent and cannot be undone. Your data will be deleted within 30 days, except we may retain some metadata and logs for longer where required or permitted by law.
           </div>
 
-          <c-button variant="danger" size="sm">Request to delete organization</c-button>
+          <c-button variant="danger" size="sm">Request to delete instance</c-button>
         </c-alert>
       </c-card-body>
     </c-card>
@@ -62,24 +62,24 @@ import CTextField from "~/components/forms/CTextField.vue";
 import CCardHeader from "~/components/card/CCardHeader.vue";
 import CAlert from "~/components/alert/CAlert.vue";
 
-const { organization } = storeToRefs(useNavigationStore())
+const { folder } = storeToRefs(useNavigationStore())
 const loading = ref(false)
 const formData = ref({
   name: '',
 })
 
 onMounted(() => {
-  if (organization.value) {
-    formData.value.name = organization.value.name;
+  if (folder.value) {
+    formData.value.name = folder.value.name;
   }
 })
 
-watch(() => organization.value, (newValue) => {
+watch(() => folder.value, (newValue) => {
   formData.value.name = newValue.name;
 })
 
 const onCancel = () => {
-  formData.value.name = organization.value.name;
+  formData.value.name = folder.value.name;
 }
 
 const onSubmit = () => {

@@ -21,7 +21,7 @@
 import { TabGroup, TabPanels, TabPanel } from '@headlessui/vue'
 import CTabList from "~/components/tabs/CTabList.vue";
 import CTab from "~/components/tabs/CTab.vue";
-import General from "~/pages/settings/organizations/[id]/local-components/general.vue";
+import General from "~/pages/settings/organizations/local-components/general.vue";
 
 const { organization } = storeToRefs(useNavigationStore())
 </script>
