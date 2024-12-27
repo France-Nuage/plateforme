@@ -31,6 +31,7 @@ const MembersController = () => import('#controllers/v1/member/members_controlle
 const ZonesController = () => import('#controllers/v1/infrastructure/zones_controller')
 const RegionsController = () => import('#controllers/v1/infrastructure/regions_controller')
 const PricingController = () => import('#controllers/v1/billing/price_controller')
+const PaymentMethodController = () => import('#controllers/v1/payment/payment_methods_controller')
 
 router
   .group(() => {
@@ -39,17 +40,25 @@ router
         router.resource('folders', FoldersController)
         router.resource('organizations', OrganizationsController)
         router.resource('projects', ProjectsController)
+        router.resource('services', ServicesController)
+        router.resource('members', MembersController)
+        router.resource('regions', RegionsController)
+        router.resource('zones', ZonesController)
+        router.resource('pricing', PricingController)
+        router.resource('payment-methods', PaymentMethodController)
+
+        router
+          .group(() => {
+            router.resource('accounts', BillingAccountController)
+          })
+          .prefix('billing')
+
         router
           .group(() => {
             router.resource('instances', InstancesController)
             router.post('price', [InstancesController, 'getPrice'])
           })
           .prefix('compute')
-        router.resource('services', ServicesController)
-        router.resource('members', MembersController)
-        router.resource('regions', RegionsController)
-        router.resource('zones', ZonesController)
-        router.resource('pricing', PricingController)
         router
           .group(() => {
             router.resource('/iam/policies', IAMPoliciesController)

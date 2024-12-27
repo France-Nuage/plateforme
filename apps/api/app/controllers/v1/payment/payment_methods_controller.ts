@@ -1,5 +1,8 @@
 import { Stripe } from 'stripe'
 import env from '#start/env'
+import Folder from '#models/resource/folder'
+import { HttpContext } from '@adonisjs/core/http'
+import PaymentProfile from '#models/billing/payment_profile'
 
 export default class PaymentsController {
   private stripe
@@ -18,13 +21,25 @@ export default class PaymentsController {
   /**
    * @param customer_id
    */
-  public async store(customer_id: string): Promise<any> {
+  public async store({ response }: HttpContext): Promise<any> {
+    const customer = await this.stripe.customers.create()
+
+    if (!customer) {
+      response.notFound('An error occured')
+    }
+
+    try {
+      await PaymentProfile.create({ stripeCustomerId: customer.id })
+    } catch (e) {
+      await this.stripe.customers.del(customer.id)
+    }
+
     const setupIntent = await this.stripe.setupIntents.create({
       payment_method_types: ['card'],
-      customer: customer_id,
+      customer: customer.id,
     })
 
-    return { clientSecret: setupIntent.client_secret }
+    return response.ok({ clientSecret: setupIntent.client_secret })
   }
 
   /**

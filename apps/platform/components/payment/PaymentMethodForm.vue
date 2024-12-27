@@ -2,7 +2,7 @@
   <div>
     <div id="paymentForm"></div>
     <c-alert v-if="error" :title="error" variant="danger" />
-    <button @click="handleSubmit">plop</button>
+<!--    <button @click="handleSubmit">plop</button>-->
   </div>
 </template>
 
@@ -18,11 +18,11 @@ const error = ref(null)
 
 const { $api } = useNuxtApp()
 const emit = defineEmits(['close'])
-const { organization } = storeToRefs(useOrganizationStore());
+const { organization } = storeToRefs(useNavigationStore());
 
 const initialize = () => {
-  $api().paymentMethods.post({ organization__id: organization.value.id }).then((data) => {
-    elements.value = stripe.value.elements({ appearance, clientSecret: data.clientSecret });
+  $api().payment.methods.post({ organization__id: organization.value.id }).then((data) => {
+    elements.value = stripe.value.elements({ clientSecret: data.clientSecret });
     paymentElements.value = elements.value.create('payment');
     paymentElements.value.mount(document.getElementById('paymentForm'));
   });

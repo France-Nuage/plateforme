@@ -7,13 +7,14 @@ import {
   MemberRepository,
   ServiceRepository,
   FolderRepository,
-  AccountBillingRepository,
+  BillingAccountRepository,
   RoleRepository,
   PermissionRepository,
   RegionRepository,
   ZoneRepository,
   InstanceRepository,
   PricingRepository,
+  PaymentMethodRepository
 } from './repositories';
 import type { AxiosInstance } from 'axios';
 
@@ -29,6 +30,10 @@ const repositories: any = (client: AxiosInstance, config: Record<any, any>) => (
   },
   billing: {
     pricing: PricingRepository(client, config),
+    accounts: BillingAccountRepository(client, config)
+  },
+  payment: {
+    methods: PaymentMethodRepository(client, config),
   },
   members: MemberRepository(client, config),
   security: SecurityRepository(client, config),
@@ -36,7 +41,6 @@ const repositories: any = (client: AxiosInstance, config: Record<any, any>) => (
   projects: ProjectRepository(client, config),
   services: ServiceRepository(client, config),
   folders: FolderRepository(client, config),
-  accountBillings: AccountBillingRepository(client, config),
   roles: RoleRepository(client, config),
   permissions: PermissionRepository(client, config),
 });

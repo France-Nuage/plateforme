@@ -13,7 +13,7 @@ export { PermissionRepository } from "./iam/PermissionRepository";
 export { ServiceRepository } from "./service/ServiceRepository";
 
 // account billing
-export { AccountBillingRepository } from "./billing/AccountBillingRepository";
+export { BillingAccountRepository } from "./billing/BillingAccountRepository";
 export { PricingRepository } from "./billing/PricingRepository";
 
 // member
@@ -23,3 +23,6 @@ export { MemberRepository } from './member/MemberRepository'
 export { RegionRepository } from './compute/RegionRepository'
 export { ZoneRepository } from './compute/ZoneRepository'
 export { InstanceRepository } from './compute/InstanceRepository'
+
+// payment
+export { PaymentMethodRepository } from './payment/PaymentMethodRepository'

@@ -23,7 +23,6 @@ export default class BillingAccountController {
   async store({ response, request, bouncer }: HttpContext) {
     await bouncer.with(BillingPolicy).authorize('store')
     const payload = await request.validateUsing(createAccountValidator)
-
     const account = await billing_account_service.create(payload)
 
     return response.created(account)

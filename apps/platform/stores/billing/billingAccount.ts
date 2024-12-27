@@ -1,4 +1,4 @@
-export const useAccountStore = defineStore('billingAccount', {
+export const useBillingAccountStore = defineStore('billingAccount', {
     state: () => ({
         billingAccounts: [],
         billingAccount: null
@@ -7,21 +7,21 @@ export const useAccountStore = defineStore('billingAccount', {
         loadBillingAccounts: async (): Promise<void> => {
             const { $api } = useNuxtApp()
 
-            $api().billingAccounts.list().then(({ data }) => {
+            $api().billing.accounts.list().then(({ data }) => {
                 this.billingAccounts = data.data
             })
         },
         loadBillingAccount: async (id: string): Promise<void> => {
             const { $api } = useNuxtApp()
 
-            $api().billingAccounts.get(id).then(({ data }) => {
+            $api().billing.accounts.get(id).then(({ data }) => {
                 this.billingAccount = data
             })
         },
         createBillingAccount: async function (data) {
             const { $api } = useNuxtApp()
 
-            return $api().billingAccounts.post(data).then(({ data }) => {
+            return $api().billing.accounts.post(data).then(({ data }) => {
                 this.billingAccount = data
             })
         }

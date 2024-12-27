@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import Organization from '#models/resource/organization'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Project from '#models/resource/project'
+import PaymentProfile from '#models/billing/payment_profile'
 
 export default class BillingAccount extends BaseModel {
   public static table = 'billing.accounts'
@@ -16,7 +17,7 @@ export default class BillingAccount extends BaseModel {
   declare id: string
 
   @column()
-  declare displayName: string
+  declare name: string
 
   @column()
   declare open: boolean
@@ -38,4 +39,7 @@ export default class BillingAccount extends BaseModel {
 
   @hasMany(() => Project)
   declare project: HasMany<typeof Project>
+
+  @belongsTo(() => PaymentProfile)
+  declare paymentProfile: BelongsTo<typeof PaymentProfile>
 }

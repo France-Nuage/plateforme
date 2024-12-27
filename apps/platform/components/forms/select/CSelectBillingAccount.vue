@@ -47,7 +47,10 @@
           </ListboxOption>
           <div class="mb-2 mx-2">
             <c-dropdown-divider />
-            <div :class="['hover:bg-gray-100 hover:dark:bg-gray-800 hover:outline-none', 'block px-3 py-1 text-sm/6 text-gray-900 rounded-lg dark:text-gray-400 cursor-pointer']">
+            <div
+                @click="$router.push('/billings/accounts/new/information')"
+              :class="['hover:bg-gray-100 hover:dark:bg-gray-800 hover:outline-none', 'block px-3 py-1 text-sm/6 text-gray-900 rounded-lg dark:text-gray-400 cursor-pointer']"
+            >
               + Ajouter un compte de facturation
             </div>
           </div>
