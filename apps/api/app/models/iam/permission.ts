@@ -20,7 +20,7 @@ export default class Permission extends BaseModel {
   @column({ isPrimary: true, columnName: 'verb__id' })
   declare verbId: string
 
-  @manyToMany(() => Role,{
+  @manyToMany(() => Role, {
     pivotTable: 'iam.role__permission',
     localKey: 'id',
     pivotForeignKey: 'permission__id',

@@ -1,6 +1,5 @@
 import { Stripe } from 'stripe'
 import env from '#start/env'
-import Folder from '#models/resource/folder'
 import { HttpContext } from '@adonisjs/core/http'
 import PaymentProfile from '#models/billing/payment_profile'
 

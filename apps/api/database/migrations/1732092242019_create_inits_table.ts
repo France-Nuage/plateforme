@@ -45,7 +45,8 @@ export default class extends BaseSchema {
       table.foreign('folder__id').references('folder__id').inTable('resource.folders')
     })
 
-    this.schema.withSchema('iam').createTable('services', (table) => {
+    this.schema.createSchema('catalog')
+    this.schema.withSchema('catalog').createTable('services', (table) => {
       table.string('service__id', 63).primary()
       table.string('description')
     })
@@ -64,7 +65,7 @@ export default class extends BaseSchema {
       table
         .string('service__id', 63)
         .references('service__id')
-        .inTable('iam.services')
+        .inTable('catalog.services')
         .onDelete('cascade')
         .onUpdate('cascade')
       table.string('description')
@@ -82,7 +83,7 @@ export default class extends BaseSchema {
       table
         .string('service__id', 63)
         .references('service__id')
-        .inTable('iam.services')
+        .inTable('catalog.services')
         .onDelete('restrict')
         .onUpdate('cascade')
       table
@@ -106,7 +107,7 @@ export default class extends BaseSchema {
       table
         .string('service__id')
         .references('service__id')
-        .inTable('iam.services')
+        .inTable('catalog.services')
         .onDelete('restrict')
         .onUpdate('cascade')
       table.string('description')
@@ -188,25 +189,25 @@ export default class extends BaseSchema {
       table.unique(['policy__id', 'member__id', 'service__id'])
     })
 
-    this.schema.createSchema('service')
-    this.schema.withSchema('service').createTable('services', (table) => {
-      table.uuid('service__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
-      table.string('name')
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
-    })
+    // this.schema.createSchema('service')
+    // this.schema.withSchema('service').createTable('services', (table) => {
+    //   table.uuid('service__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
+    //   table.string('name')
+    //   table.timestamp('created_at', { useTz: true })
+    //   table.timestamp('updated_at', { useTz: true })
+    // })
 
-    this.schema.withSchema('service').createTable('versions', (table) => {
-      table.uuid('version__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
-      table.string('name')
-      table.string('description')
-      table.timestamp('available_at')
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
-
-      table.uuid('service__id')
-      table.foreign('service__id').references('service__id').inTable('service.services')
-    })
+    // this.schema.withSchema('service').createTable('versions', (table) => {
+    //   table.uuid('version__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
+    //   table.string('name')
+    //   table.string('description')
+    //   table.timestamp('available_at')
+    //   table.timestamp('created_at', { useTz: true })
+    //   table.timestamp('updated_at', { useTz: true })
+    //
+    //   table.uuid('service__id')
+    //   table.foreign('service__id').references('service__id').inTable('service.services')
+    // })
 
     this.schema.createSchema('localisation')
     this.schema.withSchema('localisation').createTable('countries', (table) => {
