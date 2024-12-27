@@ -1,5 +1,5 @@
 import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
-import Service from '#models/iam/service'
+import Service from '#models/catalog/service'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
 export default class Type extends BaseModel {

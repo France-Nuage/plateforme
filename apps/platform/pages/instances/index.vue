@@ -1,6 +1,7 @@
 <template>
   <nuxt-layout>
-    <div v-if="instances.length">
+    <empty-screen v-if="!loading && !instances.length" />
+    <div v-else>
 
       <div class="mb-8 flex justify-between">
         <h1>Liste de vos instances</h1>
@@ -28,11 +29,17 @@
 
             </c-dropdown-button>
             <c-dropdown-list>
-              <c-dropdown-item>Plus d'information</c-dropdown-item>
+              <c-dropdown-item @click="$router.push(`/instances/${entity.id}`)">Plus d'information</c-dropdown-item>
               <c-dropdown-divider />
-              <c-dropdown-item>Démarrer</c-dropdown-item>
-              <c-dropdown-item>redémarrer</c-dropdown-item>
-              <c-dropdown-item>éteindre</c-dropdown-item>
+              <c-dropdown-item icon="solar:power-bold">
+                Démarrer
+              </c-dropdown-item>
+              <c-dropdown-item icon="solar:restart-bold">
+                Redémarrer
+              </c-dropdown-item>
+              <c-dropdown-item icon="solar:bell-off-bold-duotone">
+                Éteindre
+              </c-dropdown-item>
             </c-dropdown-list>
           </c-dropdown>
 
@@ -41,7 +48,6 @@
       </c-table>
 
     </div>
-    <empty-screen v-else />
   </nuxt-layout>
 </template>
 
@@ -59,6 +65,7 @@ import CPulsingDotLoader from "~/components/loader/CPulsingDotLoader.vue";
 const { instances } = storeToRefs(useInstanceStore());
 const { loadInstances } = useInstanceStore();
 const interval = ref();
+const loading = ref(false);
 const headers = [
   { key: 'select', label: 'Nom' },
   { key: 'status', label: 'Status' },
@@ -74,7 +81,10 @@ const loadInstancesFromStore = () => {
 }
 
 onMounted(() => {
-  loadInstancesFromStore();
+  loading.value = true;
+  loadInstancesFromStore().finally(() => {
+    loading.value = false;
+  });
   interval.value = setInterval(() => {
     loadInstancesFromStore();
   }, 5000);

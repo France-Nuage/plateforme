@@ -2,7 +2,7 @@ import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Role from '#models/iam/role'
 import User from '#models/user'
-import Service from '#models/iam/service'
+import Service from '#models/catalog/service'
 import Policy from '#models/iam/policy'
 
 export default class Binding extends BaseModel {
