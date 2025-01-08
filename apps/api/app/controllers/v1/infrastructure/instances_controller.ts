@@ -5,6 +5,10 @@ import {
   createInstanceValidator,
   getInstanceCurrentPriceValidator,
 } from '#validators/v1/infrastructure/instance'
+import Node from '#models/infrastructure/node'
+import Instance from '#models/infrastructure/instance'
+import axios from 'axios'
+import { proxmoxApi } from '../../../utils/ProxmoxHelper.js'
 
 export default class InstancesController {
   /**
@@ -46,7 +50,58 @@ export default class InstancesController {
   /**
    * Delete record
    */
-  async destroy({ response, params, request }: HttpContext) {
+  async destroy({ response, params, request, bouncer }: HttpContext) {
+    const instance = await Instance.findOrFail(params.node_id)
+    const node = await Node.findOrFail(instance.nodeId)
+    await proxmoxApi.node.qemu.destroy({
+      url: node.url,
+      token: node.token,
+      nodeName: node.name,
+      vmid: instance.pveVmId,
+    })
+
+    instance.status = 'DELETING'
+    await instance.save()
+
+    return response.notImplemented({
+      params: params,
+      request: request,
+    })
+  }
+
+  /**
+   * Start instance
+   */
+  async start({ response, params, request, bouncer }: HttpContext) {
+    const instance = await Instance.findOrFail(params.node_id)
+    const node = await Node.findOrFail(instance.nodeId)
+
+    await proxmoxApi.node.qemu.status.change({
+      url: node.url,
+      token: node.token,
+      nodeName: node.name,
+      vmid: instance.pveVmId,
+      status: 'start',
+    })
+    instance.status = 'STAGING'
+    await instance.save()
+
+    return response.notImplemented({
+      params: params,
+      request: request,
+    })
+  }
+
+  /**
+   * Stop instance
+   */
+  async stop({ response, params, request }: HttpContext) {
+    const instance = await Instance.findOrFail(params.node_id)
+    const node = await Node.find(instance.nodeId)
+    await proxmoxApi.node.qemu.status.change(node, instance.pveVmId, 'stop')
+
+    instance.status = 'STOPPING'
+    await instance.save()
     return response.notImplemented({
       params: params,
       request: request,

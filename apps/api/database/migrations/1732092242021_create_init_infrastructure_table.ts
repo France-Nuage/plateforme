@@ -105,7 +105,6 @@ export default class extends BaseSchema {
         .inTable('infrastructure.instance_types')
     })
 
-
     this.schema.withSchema('infrastructure').createTable('boot_disks', (table) => {
       table.uuid('boot_disk__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
       table.string('os').notNullable()
@@ -138,6 +137,11 @@ export default class extends BaseSchema {
       table.uuid('node__id')
       table.uuid('project__id').notNullable()
       table.uuid('instance_type__id')
+      table
+        .enum('status', ['PROVISIONING', 'STAGING', 'RUNNING', 'STOPPING', 'TERMINATED'])
+        .comment(
+          'See this documentation : https://cloud.google.com/compute/docs/instances/instance-life-cycle?hl=fr'
+        )
       table.uuid('boot_disk__id').notNullable()
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
