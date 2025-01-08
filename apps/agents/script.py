@@ -3,6 +3,7 @@ import platform
 import socket
 import psutil
 import requests
+import subprocess
 
 API_URL = "http://localhost:3333/api/v1/servers"
 
@@ -20,9 +21,21 @@ def get_server_info():
     return info
 
 def list_installed_packages():
-    # This function should return a list of installed packages
-    # Implementation will vary depending on the package manager (e.g., apt, yum, etc.)
-    return ["example-package1", "example-package2"]
+    try:
+        # Use dpkg-query to list installed packages
+        result = subprocess.run(
+            ["dpkg-query", "-W", "-f=${binary:Package}\n"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        # Split the output into a list of packages
+        packages = result.stdout.splitlines()
+        return packages
+    except subprocess.CalledProcessError as e:
+        print(f"Error while listing packages: {e.stderr}")
+        return []
 
 def send_info_to_api(info):
     response = requests.post(API_URL, json=info)
