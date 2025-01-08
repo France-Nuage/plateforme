@@ -59,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
     debug!("Connecting to database...");
     let connect_options = config
             .database_url
-            .parse::<PgConnectOptions>()?  // .try_into() ou .parse() suivant la version
+            .parse::<PgConnectOptions>()?
             .application_name(&format!("{}-{worker_version}-{worker_name}", crate_name!()));
 
         // Création du pool de connexions
@@ -75,16 +75,18 @@ async fn main() -> anyhow::Result<()> {
 
         let p = pool.clone();
 
-        get_vm_instances(p).await.unwrap();
-
-//         for record in records {
-//             if let Some(node) = &record.node {
-//                 if let Some(pve_vm_id) = record.pve_vm_id {
-//                     let p = pool.clone();
-//                 }
-//             }
-//         }
-
+//         get_vm_instances(p).await.unwrap();
+        println!("Getting VM instances...");
+        tokio::spawn(async move {
+            match get_vm_instances(p).await {
+                Ok(records) => {
+                    println!("Got {} instances", records.len());
+                    // Vous pouvez ici traiter chaque instance sans bloquer la boucle
+                    // p.ex: for record in records { ... }
+                }
+                Err(e) => eprintln!("Failed to get VM instances: {}", e),
+            }
+        });
     }
 
     Ok(())

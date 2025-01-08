@@ -63,10 +63,7 @@ export default class InstancesController {
     instance.status = 'DELETING'
     await instance.save()
 
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+    return response.created(instance)
   }
 
   /**
@@ -86,10 +83,7 @@ export default class InstancesController {
     instance.status = 'STAGING'
     await instance.save()
 
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+    return response.created(instance)
   }
 
   /**
@@ -102,10 +96,7 @@ export default class InstancesController {
 
     instance.status = 'STOPPING'
     await instance.save()
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+    return response.created(instance)
   }
 
   async getPrice({ response, request }: HttpContext) {

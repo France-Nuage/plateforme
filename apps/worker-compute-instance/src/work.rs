@@ -2,6 +2,7 @@ use uuid::Uuid;
 use sqlx::{query_as, PgPool};
 use strum::VariantNames;
 use sqlx::Type;
+use tokio::time::{sleep, Duration};
 
 #[derive(Debug)]
 struct Node {
@@ -15,13 +16,12 @@ struct Node {
 pub struct InstanceRecord {
     id: Uuid,
     pve_vm_id: Option<i32>,
-    status: Option<StatusFsm>,  // <-- On stocke l'enum
+    status: Option<StatusFsm>,
     node: Option<Node>,
 }
 
-// On déclare l'enum comme Type SQL.
 #[derive(Debug, Clone, Copy, strum::Display, VariantNames, Type)]
-#[sqlx(type_name = "text")] // ou "varchar", selon le type dans votre DB
+#[sqlx(type_name = "text")]
 pub enum StatusFsm {
     #[strum(serialize = "PROVISIONING")]
     PROVISIONING,
@@ -38,7 +38,6 @@ pub async fn get_vm_instances(pool: PgPool) -> Result<Vec<InstanceRecord>, Box<d
 
     struct RecordSQLResult {
         id: Uuid,
-        // On lit directement un Option<StatusFsm>
         status: Option<StatusFsm>,
         pve_vm_id: Option<i32>,
         node_id: Option<Uuid>,
@@ -47,7 +46,6 @@ pub async fn get_vm_instances(pool: PgPool) -> Result<Vec<InstanceRecord>, Box<d
         node_token: Option<String>,
     }
 
-    // query_as! avec l'annotation "status?: StatusFsm"
     let records_raw = query_as!(
         RecordSQLResult,
         r#"
@@ -85,11 +83,15 @@ pub async fn get_vm_instances(pool: PgPool) -> Result<Vec<InstanceRecord>, Box<d
             InstanceRecord {
                 id: raw.id,
                 pve_vm_id: raw.pve_vm_id,
-                status: raw.status, // c'est déjà Option<StatusFsm>
+                status: raw.status,
                 node,
             }
         })
         .collect::<Vec<InstanceRecord>>();
+
+
+    println!("Processing {} records", records.len());
+    sleep(Duration::from_millis(8)).await;
 
     for record in &records {
         if let Some(node) = &record.node {
@@ -124,4 +126,12 @@ pub async fn process_instance_from_status(
         }
     }
     Ok(())
+}
+
+pub async fn retrieve_vm_status_from_hypervisor(
+    node: &Node,
+    pve_vm_id: i32,
+) -> Result<StatusFsm, Box<dyn std::error::Error>> {
+    println!("Retrieving status for VM {} on node {}", pve_vm_id, node.name);
+    Ok(StatusFsm::PROVISIONING)
 }
