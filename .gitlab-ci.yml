@@ -1,5 +1,17 @@
 stages:
+  - test
   - build
 
 include:
   - local: 'apps/api/.gitlab-ci.yml'
+
+# Sanity check to allow merge if there is no pipeline at all on a Merge request
+# Please refer here : https://gitlab.com/gitlab-org/gitlab/-/issues/334281
+sanity:
+  stage: test
+  script:
+    - echo "Sanity check passed, please refer to this issue https://gitlab.com/gitlab-org/gitlab/-/issues/334281 for more infos."
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_PIPELINE_TRIGGERED == null
+      when: always
+    - when: never
