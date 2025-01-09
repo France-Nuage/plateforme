@@ -16,6 +16,6 @@ build:
     - docker tag $DOCKER_IMAGE $LATEST_IMAGE
     # Push the Docker image with both tags (commit short SHA and latest)
     - docker push $DOCKER_IMAGE
-    - docker push $LATEST_IMAGE
+    - docker push $LATEST_IMAGE 
   rules:
     - if: ($CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "test-ci") && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")
