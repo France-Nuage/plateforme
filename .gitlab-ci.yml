@@ -22,6 +22,4 @@ build:
     - docker push $LATEST_IMAGE
   rules:
     - if: ($CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "test-ci") && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")
-      changes:
-        - apps/api/**  # Trigger only when files in the API directory are modified
-    - when: never  # Do not run for other sources like API or webhooks
+    - when: never  # Do not run for other cases
