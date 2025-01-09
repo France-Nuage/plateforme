@@ -10,8 +10,7 @@ include:
 sanity_check_at_the_end:
   stage: sanity
   script:
-    - echo "Sanity check passed, please refer to this issue https://gitlab.com/gitlab-org/gitlab/-/issues/334281 for more infos."
+    - echo "Running sanity check..."
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_PIPELINE_ID == 1
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ! $CI_MERGE_REQUEST_FIRST_COMMIT_SHA' #This variable is only available for the first pipeline of an MR. If it doesn't exist, it means a pipeline has already run for that MR.
       when: always
-    - when: never
