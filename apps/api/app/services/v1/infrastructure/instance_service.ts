@@ -2,7 +2,6 @@ import axios from 'axios'
 import Zone from '#models/infrastructure/zone'
 import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
 import Instance from '#models/infrastructure/instance'
-import Folder from '#models/resource/folder'
 import Price from '#models/billing/price'
 
 const getNextVMID = async (url: string, token: string) => {
@@ -80,7 +79,7 @@ export default {
     const node = zone.clusters[0].nodes[0]
 
     const vmid = await getNextVMID(node.url, node.token)
-    const vm = await createVM(
+    await createVM(
       {
         vmid,
         nodeName: node.name,

@@ -18,7 +18,7 @@ import { middleware } from '#start/kernel'
 //   // route.use(throttle)
 // })
 
-const ServicesController = () => import('#controllers/v1/services/services_controller')
+const ServicesController = () => import('#controllers/v1/catalog/services_controller')
 const OrganizationsController = () => import('#controllers/v1/resource/organizations_controller')
 const ProjectsController = () => import('#controllers/v1/resource/projects_controller')
 const FoldersController = () => import('#controllers/v1/resource/folders_controller')

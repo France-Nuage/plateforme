@@ -1,5 +1,4 @@
 import Price from '#models/billing/price'
-import {Database} from "@adonisjs/lucid/database";
 
 export default {
   getCurrentPrice: async (options: { zoneId: string; cpu: number; ram: number }) => {
@@ -36,7 +35,5 @@ export default {
     if (prices.length === 0) {
       // Si aucun tarif trouvé (cas théorique), on ignore ou on loggue une erreur
     }
-
-
   },
 }
