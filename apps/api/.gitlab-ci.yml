@@ -10,7 +10,6 @@ build:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
-    - echo "$LATEST_IMAGE"
     # Build the Docker image from the root, specify the Dockerfile in apps/api
     - docker build -f apps/api/Dockerfile -t $DOCKER_IMAGE .
     # Tag the image as 'latest'
