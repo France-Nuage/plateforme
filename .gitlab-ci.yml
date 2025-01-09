@@ -7,7 +7,7 @@ include:
 
 # Sanity check to allow merge if there is no pipeline at all on a Merge request
 # Please refer here : https://gitlab.com/gitlab-org/gitlab/-/issues/334281
-sanity-check-at-the-end:
+sanity_check_at_the_end:
   stage: sanity
   script:
     - echo "Sanity check passed, please refer to this issue https://gitlab.com/gitlab-org/gitlab/-/issues/334281 for more infos."
