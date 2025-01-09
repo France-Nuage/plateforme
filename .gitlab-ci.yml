@@ -1,6 +1,5 @@
 stages:
   - build
-  - sanity # Have to be placed at the last stage !
 
 include:
   - local: 'apps/api/.gitlab-ci.yml'
