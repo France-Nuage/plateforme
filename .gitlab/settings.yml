@@ -1,6 +1,0 @@
-merge_requests:
-  # Only require pipeline success if a pipeline exists
-  require_pipeline_success_if_present: true
-  
-  # Other optional but recommended settings
-  require_all_discussions_resolved: true
