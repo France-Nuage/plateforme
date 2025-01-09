@@ -19,4 +19,4 @@ build:
     - docker push $LATEST_IMAGE
   rules:
     - if: ($CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "test-ci") && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")
-    - when: manual # On autorise l'execution manuelle
+    - when: never
