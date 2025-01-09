@@ -4,13 +4,3 @@ stages:
 
 include:
   - local: 'apps/api/.gitlab-ci.yml'
-
-# Sanity check to allow merge if there is no pipeline at all on a Merge request
-# Please refer here : https://gitlab.com/gitlab-org/gitlab/-/issues/334281
-sanity_check_at_the_end:
-  stage: sanity
-  script:
-    - echo "Running sanity check..."
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_FIRST_COMMIT_SHA == null' #This variable is only available for the first pipeline of an MR. If it doesn't exist, it means a pipeline has already run for that MR.
-      when: always
