@@ -5,8 +5,8 @@ build:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/website/apps/api-$CI_COMMIT_BRANCH:$CI_COMMIT_SHORT_SHA
-    LATEST_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/website/apps/api-$CI_COMMIT_BRANCH:latest
+    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/website/apps/api:$CI_COMMIT_SHORT_SHA
+    LATEST_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/website/apps/api:$CI_COMMIT_BRANCH-latest
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
