@@ -1,49 +1,56 @@
 #!/bin/bash
 
 # Variables template
-TEMPLATE_ID=1002
-TEMPLATE_NAME="debian12-docker-s3-template"
+TEMPLATE_ID=1003
+TEMPLATE_NAME="debian12-docker-mimir-template"
 CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
 CLOUD_IMAGE_PATH="/var/lib/vz/images/0/debian-12-genericcloud-amd64.qcow2"
-CI_CUSTOM_USER_SNIPPET_NAME="ci-custom-user-s3-snippet.yaml"
+CI_CUSTOM_USER_SNIPPET_NAME="ci-custom-user-mimir-snippet.yaml"
 CI_CUSTOM_USER_SNIPPET_PATH="/var/lib/vz/snippets/${CI_CUSTOM_USER_SNIPPET_NAME}"
 STORAGE_POOL=$(pvesm status | grep -i ceph | awk '{print $1}')
 SNIPPETS_STORAGE="local"
 BRIDGE="vmbr0"
 TEMPLATE_DEFAULT_GATEWAY=$(ip route show default | awk '/default/ {print $3}')
-TEMPLATE_DEFAULT_IP=$(echo $TEMPLATE_DEFAULT_GATEWAY | sed 's/\.[0-9]\+$/\.12/')
+TEMPLATE_DEFAULT_IP=$(echo $TEMPLATE_DEFAULT_GATEWAY | sed 's/\.[0-9]\+$/\.13/')
 TEMPLATE_DEFAULT_CIDR="${TEMPLATE_DEFAULT_IP}$(ip addr show | awk '/inet / && !/127.0.0.1/ {print $2}' | grep -o '/[0-9]*' | head -n 1)"
 VM_USER="france-nuage"
 SSH_PUBLIC_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDngnLZX5rwOc9OHB0dHrOU2Is97O/O76SmKhfiFCiqNcWm+Gs0ngD2ZUiE7wi5sN9CwKX7b/13NFE6gRClIc6iiMEyBhezQQiTp7yVT25x1W4DJCOb6gM64kZ3CSuxztcgN2uHYeAhs6L4ItHI2NuTpBdyKsHc9UkgiRh6F13ZYbHNp5HITz3g05IY+dWpFEiXotNSLaD891gvoQEZjBsFcqXAHrDfb71hEhVlT9AtoLOhfS1wZN1J4wYE0C5Tvf/woPLVHl2FtCcBWxWO/OIg/RV1bvqfQ0cK1je9oAWJpvqn8pglXyNzPSBufhEMaYCPY2kGxZ71BlrHtnIkw9nS8KND3EzJO5uyUjnSbEl7aJmmEjLlOllRHDQ34Jiaki96Rlyvcvpq4xEt/AIPQp/sK+Dd4z9cKuEk22vSVIXpCmbuwzAaORRS2m/gIrux+OZxH68qAncBvYwnZv+l4IfRbGHLRmCcPi48uNPFd49goO2P+LXlAeSp/RQ/iLqc/2B6U4tZyWiluCY/2FzS/9rV79ShkgQ/dCnhjALXWPEh806tu45gb+owHCcNQ/6k2AhgjVEBpUJZsjce2s7JlvhD6c0CnPRJXTdzKAIy3k0AHNzX4kZNA1jBX1oQKe8gdGPbMs6OV9/5SGpBAELfhR+gxtXVQUpvjuZk5K2rxS3pZQ== ssh@france-nuage.fr"
 
 # Variables docker compose
-DOCKER_APP_NAME="minio"
+DOCKER_APP_NAME="mimir"
 DOCKER_APP_PATH="${DOCKER_APP_PATH:-/home/${VM_USER}/docker/${DOCKER_APP_NAME}}"
 DOCKER_COMPOSE_PATH="${DOCKER_COMPOSE_PATH:-${DOCKER_APP_PATH}/docker-compose.yaml}"
 
-S3_ROOT_USER="${S3_ROOT_USER:-$1}" # Get value from first script argument
-S3_ROOT_PASSWORD="${S3_ROOT_PASSWORD:-$2}" # Get value from second script argument
-S3_DATA_VOLUME="${DOCKER_APP_PATH}/volume/data"
+MIMIR_CONFIG_VOLUME="${DOCKER_APP_PATH}/volume/config"
+MIMIR_CONFIG_FILE="${MIMIR_CONFIG_FILE:-${MIMIR_CONFIG_VOLUME}/mimir.yml}"
 
-APP_UI_PORT="${APP_UI_PORT:-9001}"
-APP_API_PORT="${APP_API_PORT:-9000}"
+APP_PORT="${APP_PORT:-9009}"
 TEMPLATE_DEFAULT_FQDN="${DOCKER_APP_NAME}.france-nuage.fr"
 
-# Étape 0 : Vérifications prérequis
+S3_ROOT_USER="${S3_ROOT_USER:-$1}" # Get value from first script argument
+S3_ROOT_PASSWORD="${S3_ROOT_PASSWORD:-$2}" # Get value from second script argument
+S3_HOSTNAME="${S3_HOSTNAME:-$3}" # Get value from third script argument
+S3_API_PORT="${S3_API_PORT:-$4}" # Get value from fourth script argument
+CF_ACCESS_CLIENT_ID="${CF_ACCESS_CLIENT_ID:-$5}"
+CF_ACCESS_CLIENT_SECRET="${CF_ACCESS_CLIENT_SECRET:-$6}"
+
 # Fonction pour afficher un message d'erreur et quitter
 afficher_erreur() {
     echo "Erreur : $1 doit être défini et non vide."
-    echo "Syntaxe attendue : ./script.sh <S3_ROOT_USER> <S3_ROOT_PASSWORD>"
+    echo "Syntaxe attendue : ./script.sh <S3_ROOT_USER> <S3_ROOT_PASSWORD> <S3_HOSTNAME> <S3_API_PORT> <CF_ACCESS_CLIENT_ID> <CF_ACCESS_CLIENT_SECRET>"
     exit 1
 }
 
-# Vérification de la définition des variables
+# Vérification des variables
 [[ -z "$S3_ROOT_USER" ]] && afficher_erreur "S3_ROOT_USER"
 [[ -z "$S3_ROOT_PASSWORD" ]] && afficher_erreur "S3_ROOT_PASSWORD"
+[[ -z "$S3_HOSTNAME" ]] && afficher_erreur "S3_HOSTNAME"
+[[ -z "$S3_API_PORT" ]] && afficher_erreur "S3_API_PORT"
+[[ -z "$CF_ACCESS_CLIENT_ID" ]] && afficher_erreur "CF_ACCESS_CLIENT_ID"
+[[ -z "$CF_ACCESS_CLIENT_SECRET" ]] && afficher_erreur "CF_ACCESS_CLIENT_SECRET"
 
 echo "Toutes les variables sont correctement définies."
 
-# Vérification de la présence d'un stockage CEPH
 if [[ -z "$STORAGE_POOL" ]]; then
     echo "Erreur : Aucun stockage Ceph trouvé. Veuillez vérifier votre configuration de stockage."
     exit 1
@@ -87,7 +94,7 @@ qm set "$TEMPLATE_ID" --ipconfig0 ip=$TEMPLATE_DEFAULT_CIDR,gw=$TEMPLATE_DEFAULT
 qm set "$TEMPLATE_ID" --name "$TEMPLATE_NAME"
 qm set "$TEMPLATE_ID" --cpu x86-64-v2-AES
 qm set "$TEMPLATE_ID" --agent enabled=1
-qm resize "$TEMPLATE_ID" scsi0 +10G # Espace insuffisant pour S3
+qm resize "$TEMPLATE_ID" scsi0 +2G # Espace insuffisant pour mimir
 
 # Créer le fichier de script cloud-init incluant docker-compose
 echo "Création du fichier cloud-init avec Docker et docker-compose..."
@@ -101,23 +108,37 @@ users:
       - ${SSH_PUBLIC_KEY}
 
 write_files:
+  - path: ${MIMIR_CONFIG_FILE}
+    permissions: '0644'
+    content: |
+      multitenancy_enabled: true
+      server:
+        http_listen_port: 9009
+      blocks_storage:
+        backend: s3
+        s3:
+          endpoint: ${S3_HOSTNAME}:${S3_API_PORT}
+          bucket_name: mimir
+          access_key_id: ${S3_ROOT_USER}
+          secret_access_key: ${S3_ROOT_PASSWORD}
+        http_config:
+          headers:
+            CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}
+            CF-Access-Client-Secret: ${CF_ACCESS_CLIENT_SECRET}
   - path: ${DOCKER_COMPOSE_PATH}
     permissions: '0644'
     content: |
       services:
-        minio:
-          command: server /data --console-address ":${APP_UI_PORT}"
-          container_name: minio
-          environment:
-            MINIO_ROOT_PASSWORD: ${S3_ROOT_PASSWORD}
-            MINIO_ROOT_USER: ${S3_ROOT_USER}
-          image: minio/minio
+        mimir:
+          command:
+            - '-config.file=/etc/mimir/mimir.yml'
+          container_name: mimir
+          image: grafana/mimir
           ports:
-            - '${APP_API_PORT}:9000'
-            - '${APP_UI_PORT}:9001'
+            - '${APP_PORT}:9009'
           restart: always
           volumes:
-            - ${S3_DATA_VOLUME}:/data
+            - '${MIMIR_CONFIG_VOLUME}:/etc/mimir'
 
   - path: /etc/systemd/system/docker-compose-${DOCKER_APP_NAME}.service
     permissions: '0644'
@@ -153,7 +174,7 @@ runcmd:
   - echo "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \$(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
   - apt-get update
   - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin qemu-guest-agent
-
+  
   # Configuration agent Qemu
   - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
@@ -167,8 +188,8 @@ runcmd:
   # Préparation des répertoires
   - mkdir -p ${DOCKER_APP_PATH}
   - chown -R ${VM_USER}:${VM_USER} ${DOCKER_APP_PATH}
-  - mkdir -p ${S3_DATA_VOLUME}
-  - chown -R ${VM_USER}:${VM_USER} ${S3_DATA_VOLUME}
+  - mkdir -p ${MIMIR_CONFIG_VOLUME}
+  - chown -R ${VM_USER}:${VM_USER} ${MIMIR_CONFIG_VOLUME}
   
   # Configuration du service
   - systemctl daemon-reload

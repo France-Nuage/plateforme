@@ -58,6 +58,7 @@ qm set "$TEMPLATE_ID" --serial0 socket --vga serial0
 qm set "$TEMPLATE_ID" --ipconfig0 ip=$TEMPLATE_DEFAULT_CIDR,gw=$TEMPLATE_DEFAULT_GATEWAY
 qm set "$TEMPLATE_ID" --name "$TEMPLATE_NAME"
 qm set "$TEMPLATE_ID" --cpu x86-64-v2-AES
+qm set "$TEMPLATE_ID" --agent enabled=1
 
 # Créer un fichier de script cloud-init pour installer Docker
 echo "Création d'un fichier de script cloud-init pour installer Docker..."
@@ -66,7 +67,6 @@ cat << EOF > $CI_CUSTOM_USER_SNIPPET_PATH
 users:
   - name: ${VM_USER}
     gecos: "${VM_USER}"
-    sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     ssh-authorized-keys:
       - ${SSH_PUBLIC_KEY}
@@ -78,9 +78,13 @@ runcmd:
   - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   - echo "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \$(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
   - apt-get update
-  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin qemu-guest-agent
   - usermod -aG docker ${VM_USER}
   - systemctl enable --now docker
+    
+  # Configuration agent Qemu
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
 EOF
 
 # Configurer les bon droits sur le snippet
