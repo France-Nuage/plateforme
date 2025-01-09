@@ -1,6 +1,6 @@
 stages:
   - build
-  - sanity
+  - sanity # Have to be placed at the last stage !
 
 include:
   - local: 'apps/api/.gitlab-ci.yml'
@@ -12,5 +12,5 @@ sanity_check_at_the_end:
   script:
     - echo "Running sanity check..."
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ! $CI_MERGE_REQUEST_FIRST_COMMIT_SHA' #This variable is only available for the first pipeline of an MR. If it doesn't exist, it means a pipeline has already run for that MR.
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" && ! $CI_MERGE_REQUEST_FIRST_COMMIT_SHA) #This variable is only available for the first pipeline of an MR. If it doesn't exist, it means a pipeline has already run for that MR.
       when: always
