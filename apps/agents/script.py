@@ -5,13 +5,12 @@ Todo:
 3 - push dans mimir
 """
 
-import os
 import platform
 import socket
 import subprocess
+import time
 
 import psutil
-import requests
 
 API_URL = "http://localhost:3333/api/v1/servers"
 
@@ -47,11 +46,22 @@ def list_installed_packages():
         print(f"Error while listing packages: {e.stderr}")
         return []
 
-#TODO :  def send_info_to_api(info):
-"""
-def send_info_to_api(info):
-    response = requests.post(API_URL, json=info)
-    return response.status_code
-"""
+
+# TODO :  def send_info_to_api(info):
+def monitor_changes(interval=5):
+    previous_stats = get_server_info()
+    while True:
+        time.sleep(interval)
+        current_stats = get_server_info()
+        for key in current_stats:
+            if current_stats[key] != previous_stats[key]:
+                print(f"{key} changed from {previous_stats[key]} to {current_stats[key]}")
+                return current_stats
+                #TODO : send_info_to_api(current_stats)
+
+        previous_stats = current_stats
 
 
+if __name__ == "__main__":
+    pass
+    # check if
