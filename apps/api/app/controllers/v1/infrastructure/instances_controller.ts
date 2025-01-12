@@ -14,7 +14,7 @@ export default class InstancesController {
   /**
    * Display a list of resource
    */
-  async index({ response, params, request, bouncer }: HttpContext) {
+  async index({ response, request, bouncer }: HttpContext) {
     await bouncer.with(InstancePolicy).authorize('index')
     return response.ok(await instance_service.list(request.qs().includes))
   }

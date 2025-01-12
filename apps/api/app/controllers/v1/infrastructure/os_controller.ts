@@ -5,9 +5,16 @@ export default class OSController {
   async index({ response, request, bouncer }: HttpContext) {
     await bouncer.with(OSPolicy).authorize('index')
 
+    return response.notImplemented({
+      request: request,
+    })
   }
 
   async show({ response, request, bouncer }: HttpContext) {
     await bouncer.with(OSPolicy).authorize('show')
+
+    return response.notImplemented({
+      request: request,
+    })
   }
 }

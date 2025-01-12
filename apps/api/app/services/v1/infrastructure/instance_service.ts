@@ -2,7 +2,6 @@ import axios from 'axios'
 import Zone from '#models/infrastructure/zone'
 import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
 import Instance from '#models/infrastructure/instance'
-import Folder from '#models/resource/folder'
 import Price from '#models/billing/price'
 import { proxmoxApi } from '../../../utils/ProxmoxHelper.js'
 
