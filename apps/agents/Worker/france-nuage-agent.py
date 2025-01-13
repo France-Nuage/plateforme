@@ -11,8 +11,9 @@ import subprocess
 import time
 
 import psutil
+import requests
 
-API_URL = "http://localhost:3333/api/v1/servers"
+API_URL = "http://localhost:3333/api/v1/infrastructure/metrics"
 
 
 def get_server_info():
@@ -47,7 +48,7 @@ def list_installed_packages():
         return []
 
 
-# TODO :  def send_info_to_api(info):
+
 def monitor_changes(interval=5):
     previous_stats = get_server_info()
     while True:
@@ -55,7 +56,8 @@ def monitor_changes(interval=5):
         current_stats = get_server_info()
         for key in current_stats:
             if current_stats[key] != previous_stats[key]:
-                print(f"{key} changed from {previous_stats[key]} to {current_stats[key]}")
+                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {key}: {current_stats[key]}")
+                requests.post(API_URL, json=current_stats)
                 return current_stats
                 #TODO : send_info_to_api(current_stats)
 
@@ -63,5 +65,4 @@ def monitor_changes(interval=5):
 
 
 if __name__ == "__main__":
-    pass
-    # check if
+    monitor_changes()
