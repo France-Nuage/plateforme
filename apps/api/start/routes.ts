@@ -32,7 +32,7 @@ const ZonesController = () => import('#controllers/v1/infrastructure/zones_contr
 const RegionsController = () => import('#controllers/v1/infrastructure/regions_controller')
 const PricingController = () => import('#controllers/v1/billing/price_controller')
 const PaymentMethodController = () => import('#controllers/v1/payment/payment_methods_controller')
-
+const MetricsController = () => import('#controllers/v1/infrastructure/metrics_controller')
 router
   .group(() => {
     router
@@ -46,6 +46,7 @@ router
         router.resource('zones', ZonesController)
         router.resource('pricing', PricingController)
         router.resource('payment-methods', PaymentMethodController)
+        router.resource('infrastructures', MetricsController) // Fixing spelling error ('ressource' -> 'resource')
 
         router
           .group(() => {
@@ -79,5 +80,6 @@ router
     router.post('/auth/reset-password-request', [AuthController, 'resetPasswordRequest'])
     router.get('/auth/reset-password-token/:token', [AuthController, 'resetPasswordToken'])
     router.post('/auth/reset-password', [AuthController, 'resetPassword'])
+    router.get('/infrastructure/metrics', [MetricsController, 'index'])
   })
   .prefix('api/v1')
