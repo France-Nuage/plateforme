@@ -57,7 +57,10 @@ def monitor_changes(interval=5):
         for key in current_stats:
             if current_stats[key] != previous_stats[key]:
                 print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {key}: {current_stats[key]}")
-                requests.post(API_URL, json=current_stats)
+                try:
+                    requests.post(API_URL, json=current_stats)
+                except requests.exceptions.RequestException as e:
+                    print(f"Error while sending info to API: {e}")
                 return current_stats
                 #TODO : send_info_to_api(current_stats)
 
