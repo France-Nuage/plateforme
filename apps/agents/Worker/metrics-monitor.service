@@ -1,0 +1,13 @@
+[Unit]
+Description=Metrics Monitor Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /path/to/plateforme/apps/agents/template/script.py
+WorkingDirectory=/path/to/plateforme/apps/agents/template
+Restart=always
+User=root[Unit]
+Description=Metrics Monitor Service
+After=network.target
+
+
