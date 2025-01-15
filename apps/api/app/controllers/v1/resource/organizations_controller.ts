@@ -1,5 +1,5 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import { createOrganizationValidator } from '#validators/v1/resource/organization'
+import type {HttpContext} from '@adonisjs/core/http'
+import {createOrganizationValidator} from '#validators/v1/resource/organization'
 import OrganizationService from '#services/v1/resource/organization_service'
 import OrganizationPolicy from '#policies/resource/organization_policy'
 

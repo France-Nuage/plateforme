@@ -1,5 +1,5 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import { createFolderValidator } from '#validators/v1/resource/folder'
+import type {HttpContext} from '@adonisjs/core/http'
+import {createFolderValidator} from '#validators/v1/resource/folder'
 import FolderService from '#services/v1/resource/folder_service'
 import FolderPolicy from '#policies/resource/folder_policy'
 
