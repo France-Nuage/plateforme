@@ -1,12 +1,12 @@
 [Unit]
-Description=Service pour mon script Python
+Description=Metrics Monitoring Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/user/scripts/france-nuage-agent.py
+ExecStart=/opt/france-nuage-agent/venv/bin/python /opt/france-nuage-agent/france-nuage-agent.py
 Restart=always
 User=wessim
-WorkingDirectory=/home/user/scripts
+WorkingDirectory=/opt/france-nuage-agent
 
 [Install]
 WantedBy=multi-user.target
