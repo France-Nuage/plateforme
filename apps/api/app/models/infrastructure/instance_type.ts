@@ -1,5 +1,5 @@
-import { BaseModel, column, computed } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
+import {BaseModel, column, computed} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
 
 export default class InstanceType extends BaseModel {
   public static table = 'infrastructure.instance_types'

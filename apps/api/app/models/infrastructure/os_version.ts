@@ -1,7 +1,6 @@
-import { BaseModel, belongsTo, column, computed } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
-import BootDisk from '#models/infrastructure/boot_disk'
+import {BaseModel, belongsTo, column, computed} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
+import type {BelongsTo} from '@adonisjs/lucid/types/relations'
 import Os from '#models/infrastructure/os'
 
 export default class OsVersion extends BaseModel {

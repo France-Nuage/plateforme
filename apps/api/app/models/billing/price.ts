@@ -1,7 +1,7 @@
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
+import {BaseModel, belongsTo, column} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
 import Zone from '#models/infrastructure/zone'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type {BelongsTo} from '@adonisjs/lucid/types/relations'
 
 export default class Price extends BaseModel {
   public static table = 'billing.prices'

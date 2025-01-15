@@ -1,4 +1,4 @@
-import type { HttpContext } from '@adonisjs/core/http'
+import type {HttpContext} from '@adonisjs/core/http'
 import {
   createUserValidator,
   loginUserValidator,
@@ -6,8 +6,8 @@ import {
   resetPasswordValidator,
 } from '#validators/v1/iam/user'
 import User from '#models/user'
-import { randomBytes } from 'node:crypto'
-import { DateTime } from 'luxon'
+import {randomBytes} from 'node:crypto'
+import {DateTime} from 'luxon'
 import Token from '#models/iam/token'
 import Env from '#start/env'
 import mail from '@adonisjs/mail/services/main'

@@ -1,7 +1,7 @@
-import { HttpContext } from '@adonisjs/core/http'
+import {HttpContext} from '@adonisjs/core/http'
 import MemberPolicy from '#policies/member/member_policy'
 import User from '#models/user'
-import { updateUserValidator } from '#validators/v1/iam/user'
+import {updateUserValidator} from '#validators/v1/iam/user'
 
 export default class MembersController {
   /**

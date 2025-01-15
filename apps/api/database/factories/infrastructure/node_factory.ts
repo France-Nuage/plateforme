@@ -1,5 +1,5 @@
 import factory from '@adonisjs/lucid/factories'
-import { InstanceFactory } from '#database/factories/infrastructure/instance_factory'
+import {InstanceFactory} from '#database/factories/infrastructure/instance_factory'
 import Node from '#models/infrastructure/node'
 
 export const NodeFactory = factory

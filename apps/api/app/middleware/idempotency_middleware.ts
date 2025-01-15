@@ -1,7 +1,7 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import type { NextFn } from '@adonisjs/core/types/http'
+import type {HttpContext} from '@adonisjs/core/http'
+import type {NextFn} from '@adonisjs/core/types/http'
 import redis from '@adonisjs/redis/services/main'
-import { randomUUID } from 'node:crypto'
+import {randomUUID} from 'node:crypto'
 
 export default class IdempotencyMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {

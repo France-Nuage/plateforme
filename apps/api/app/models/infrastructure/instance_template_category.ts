@@ -1,7 +1,7 @@
-import { BaseModel, column, computed, hasMany } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
+import {BaseModel, column, computed, hasMany} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
 import InstanceTemplate from '#models/infrastructure/instance_template'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import type {HasMany} from '@adonisjs/lucid/types/relations'
 
 export default class InstanceTemplateCategory extends BaseModel {
   public static table = 'infrastructure.instance_template_category'

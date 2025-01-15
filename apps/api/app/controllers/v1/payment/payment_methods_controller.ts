@@ -1,6 +1,6 @@
-import { Stripe } from 'stripe'
+import {Stripe} from 'stripe'
 import env from '#start/env'
-import { HttpContext } from '@adonisjs/core/http'
+import {HttpContext} from '@adonisjs/core/http'
 import PaymentProfile from '#models/billing/payment_profile'
 
 export default class PaymentsController {

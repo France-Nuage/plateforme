@@ -1,4 +1,4 @@
-import { test } from '@japa/runner'
+import {test} from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import organization_service from '#services/v1/resource/organization_service'
 import User from '#models/user'

@@ -9,7 +9,9 @@ Accepted
 On nous apprend toujours dans les écoles Française qu'une API Rest doit avoir une façons de récupérer sa donnée.
 
 ### Cas numéro 1 :
-Imaginons que nous souhaitons récupérer la liste des projets d'une organization : 
+
+Imaginons que nous souhaitons récupérer la liste des projets d'une organization :
+
 ```
 GET 'http://localhost:3333/api/v1/organizations/<<organization__id>>'
 GET 'http://localhost:3333/api/v1/organizations/<<organization__id>>/folders'
@@ -19,7 +21,7 @@ GET 'http://localhost:3333/api/v1/organizations/<<organization__id>>/folders/<<f
 
 Dans notre exemple, nous devons effectué 4 requêtes depuis notre Front ce qui est assez lourd en terme de gestion.
 Nous devons réfléchir à un système qui nous permet de récupérer les données que nous souhaitons en une seul requête
-qui nous retourne un JSON avec un ensemble de resource imbriquer de cette manière : 
+qui nous retourne un JSON avec un ensemble de resource imbriquer de cette manière :
 
 ```json
 // http://localhost:3333/api/v1/organizations/<<organization__id>>
@@ -32,7 +34,7 @@ qui nous retourne un JSON avec un ensemble de resource imbriquer de cette maniè
       "name": "France Nuage",
       "projects": [] // here we obtain our data
     }
-  ] 
+  ]
 }
 ```
 
@@ -41,6 +43,7 @@ qui nous retourne un JSON avec un ensemble de resource imbriquer de cette maniè
 ### Solutions
 
 #### GraphQL
+
 #### jsonAPI
 
 ### Solution choisie
@@ -48,5 +51,3 @@ qui nous retourne un JSON avec un ensemble de resource imbriquer de cette maniè
 Mise en place
 
 ## Consequences
-
-

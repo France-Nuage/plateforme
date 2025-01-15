@@ -1,24 +1,27 @@
-import { SecurityRepository } from './security';
+import {SecurityRepository} from "./security";
 import {
-  OrganizationRepository,
-  ProjectRepository,
-  IAMMemberRepository,
-  IAMPolicyRepository,
-  MemberRepository,
-  ServiceRepository,
-  FolderRepository,
-  BillingAccountRepository,
-  RoleRepository,
-  PermissionRepository,
-  RegionRepository,
-  ZoneRepository,
-  InstanceRepository,
-  PricingRepository,
-  PaymentMethodRepository
-} from './repositories';
-import type { AxiosInstance } from 'axios';
+    BillingAccountRepository,
+    FolderRepository,
+    IAMMemberRepository,
+    IAMPolicyRepository,
+    InstanceRepository,
+    MemberRepository,
+    OrganizationRepository,
+    PaymentMethodRepository,
+    PermissionRepository,
+    PricingRepository,
+    ProjectRepository,
+    RegionRepository,
+    RoleRepository,
+    ServiceRepository,
+    ZoneRepository,
+} from "./repositories";
+import type {AxiosInstance} from "axios";
 
-const repositories: any = (client: AxiosInstance, config: Record<any, any>) => ({
+const repositories: any = (
+  client: AxiosInstance,
+  config: Record<any, any>,
+) => ({
   iam: {
     members: IAMMemberRepository(client, config),
     policies: IAMPolicyRepository(client, config),
@@ -30,7 +33,7 @@ const repositories: any = (client: AxiosInstance, config: Record<any, any>) => (
   },
   billing: {
     pricing: PricingRepository(client, config),
-    accounts: BillingAccountRepository(client, config)
+    accounts: BillingAccountRepository(client, config),
   },
   payment: {
     methods: PaymentMethodRepository(client, config),

@@ -1,7 +1,7 @@
-import { BaseModel, column, computed, hasMany } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
+import {BaseModel, column, computed, hasMany} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
 import OsVersion from '#models/infrastructure/os_version'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import type {HasMany} from '@adonisjs/lucid/types/relations'
 
 export default class BootDisk extends BaseModel {
   public static table = 'infrastructure.boot_disks'

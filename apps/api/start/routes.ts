@@ -18,7 +18,7 @@ import { middleware } from '#start/kernel'
 //   // route.use(throttle)
 // })
 
-const ServicesController = () => import('#controllers/v1/services/services_controller')
+const ServicesController = () => import('#controllers/v1/services/services_controller') //controller not found I had to create a new controller
 const OrganizationsController = () => import('#controllers/v1/resource/organizations_controller')
 const ProjectsController = () => import('#controllers/v1/resource/projects_controller')
 const FoldersController = () => import('#controllers/v1/resource/folders_controller')
@@ -33,6 +33,7 @@ const RegionsController = () => import('#controllers/v1/infrastructure/regions_c
 const PricingController = () => import('#controllers/v1/billing/price_controller')
 const PaymentMethodController = () => import('#controllers/v1/payment/payment_methods_controller')
 const MetricsController = () => import('#controllers/v1/infrastructure/metrics_controller')
+
 router
   .group(() => {
     router
@@ -46,7 +47,7 @@ router
         router.resource('zones', ZonesController)
         router.resource('pricing', PricingController)
         router.resource('payment-methods', PaymentMethodController)
-        router.resource('infrastructures', MetricsController) // Fixing spelling error ('ressource' -> 'resource')
+        router.resource('infrastructures', MetricsController) // Fixing spelling error ('resource' -> 'resource')
 
         router
           .group(() => {
@@ -74,12 +75,16 @@ router
         router.get('/auth/me', [AuthController, 'me'])
       })
       .middleware([middleware.auth()])
+
+    router.group(() => {
+      router.get('/infrastructure/:metrics', [MetricsController, 'store'])
+    })
+
     router.post('/auth/register', [AuthController, 'register'])
     router.post('/auth/login', [AuthController, 'login'])
     router.post('/auth/token', [AuthController, 'generateToken'])
     router.post('/auth/reset-password-request', [AuthController, 'resetPasswordRequest'])
     router.get('/auth/reset-password-token/:token', [AuthController, 'resetPasswordToken'])
     router.post('/auth/reset-password', [AuthController, 'resetPassword'])
-    router.get('/infrastructure/metrics', [MetricsController, 'index'])
   })
   .prefix('api/v1')

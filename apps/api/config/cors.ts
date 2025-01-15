@@ -1,4 +1,4 @@
-import { defineConfig } from '@adonisjs/cors'
+import {defineConfig} from '@adonisjs/cors'
 
 /**
  * Configuration options to tweak the CORS policy. The following

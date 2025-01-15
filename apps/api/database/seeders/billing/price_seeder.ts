@@ -1,5 +1,5 @@
-import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import { PriceFactory } from '#database/factories/billing/price_factory'
+import {BaseSeeder} from '@adonisjs/lucid/seeders'
+import {PriceFactory} from '#database/factories/billing/price_factory'
 
 export default class extends BaseSeeder {
   public async run() {

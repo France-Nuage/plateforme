@@ -1,5 +1,5 @@
 import env from '#start/env'
-import { defineConfig, services } from '@adonisjs/ally'
+import {defineConfig, services} from '@adonisjs/ally'
 
 const allyConfig = defineConfig({
   google: services.google({

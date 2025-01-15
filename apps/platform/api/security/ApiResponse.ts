@@ -1,7 +1,7 @@
 export interface SecurityResponse {
   config: Record<string, unknown>;
   data: {
-    token_type: 'Bearer';
+    token_type: "Bearer";
     expires_in: number;
     access_token: string;
     refresh_token: string;

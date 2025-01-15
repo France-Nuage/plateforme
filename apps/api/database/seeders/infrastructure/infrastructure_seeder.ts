@@ -1,9 +1,9 @@
-import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import { CountryFactory } from '#database/factories/localisation/country_factory'
-import { RegionFactory } from '#database/factories/infrastructure/region_factory'
-import { ZoneFactory } from '#database/factories/infrastructure/zone_factory'
-import { ClusterFactory } from '#database/factories/infrastructure/cluster_factory'
-import { NodeFactory } from '#database/factories/infrastructure/node_factory'
+import {BaseSeeder} from '@adonisjs/lucid/seeders'
+import {CountryFactory} from '#database/factories/localisation/country_factory'
+import {RegionFactory} from '#database/factories/infrastructure/region_factory'
+import {ZoneFactory} from '#database/factories/infrastructure/zone_factory'
+import {ClusterFactory} from '#database/factories/infrastructure/cluster_factory'
+import {NodeFactory} from '#database/factories/infrastructure/node_factory'
 
 export default class extends BaseSeeder {
   public async run() {

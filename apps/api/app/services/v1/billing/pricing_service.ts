@@ -1,5 +1,4 @@
 import Price from '#models/billing/price'
-import {Database} from "@adonisjs/lucid/database";
 
 export default {
   getCurrentPrice: async (options: { zoneId: string; cpu: number; ram: number }) => {
@@ -23,7 +22,7 @@ export default {
       total: ramPricing + cpuPricing,
     }
   },
-  getPriceForPeriod: async (zoneId: string, period: { start: string, end: string }) => {
+  getPriceForPeriod: async (zoneId: string, period: { start: string; end: string }) => {
     const prices = await Price.query()
       .where('zone', zoneId)
       // .where('resource_type', resourceType)
@@ -36,7 +35,5 @@ export default {
     if (prices.length === 0) {
       // Si aucun tarif trouvé (cas théorique), on ignore ou on loggue une erreur
     }
-
-
   },
 }

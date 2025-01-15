@@ -1,7 +1,7 @@
 import BasePolicy from '#policies/BasePolicy'
 import authorization from '#services/authorization'
 import User from '#models/user'
-import { AuthorizerResponse } from '@adonisjs/bouncer/types'
+import {AuthorizerResponse} from '@adonisjs/bouncer/types'
 
 export default class IAMMemberPolicy extends BasePolicy {
   /**

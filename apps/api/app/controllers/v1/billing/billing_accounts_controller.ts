@@ -1,6 +1,6 @@
-import { HttpContext } from '@adonisjs/core/http'
+import {HttpContext} from '@adonisjs/core/http'
 import BillingPolicy from '#policies/billing/billing_policy'
-import { createAccountValidator } from '#validators/v1/billing/account'
+import {createAccountValidator} from '#validators/v1/billing/account'
 import billing_account_service from '#services/v1/billing/billing_account_service'
 
 export default class BillingAccountController {

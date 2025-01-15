@@ -1,8 +1,8 @@
-import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
+import {BaseModel, belongsTo, column, hasMany} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
 import BillingAccount from '#models/billing/billing_account'
 import Folder from '#models/resource/folder'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type {BelongsTo, HasMany} from '@adonisjs/lucid/types/relations'
 
 export default class PaymentProfile extends BaseModel {
   public static table = 'billing.payment_profile'

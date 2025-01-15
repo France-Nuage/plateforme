@@ -1,4 +1,4 @@
-import type { HttpContext } from '@adonisjs/core/http'
+import type {HttpContext} from '@adonisjs/core/http'
 import db from '@adonisjs/lucid/services/db'
 import IAMMemberPolicy from '#policies/iam/iam_member_policy'
 

@@ -1,6 +1,6 @@
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import {BaseModel, column, hasMany} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
+import type {HasMany} from '@adonisjs/lucid/types/relations'
 import OsVersion from '#models/infrastructure/os_version'
 
 export default class Os extends BaseModel {

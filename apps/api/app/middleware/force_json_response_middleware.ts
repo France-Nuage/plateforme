@@ -1,5 +1,5 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import type { NextFn } from '@adonisjs/core/types/http'
+import type {HttpContext} from '@adonisjs/core/http'
+import type {NextFn} from '@adonisjs/core/types/http'
 
 /**
  * Updating the "Accept" header to always accept "application/json" response

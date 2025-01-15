@@ -1,6 +1,6 @@
-import { BaseModel, belongsTo, column, computed } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import {BaseModel, belongsTo, column, computed} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
+import type {BelongsTo} from '@adonisjs/lucid/types/relations'
 import Folder from '#models/resource/folder'
 import BillingAccount from '#models/billing/billing_account'
 

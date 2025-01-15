@@ -1,4 +1,4 @@
-import { HttpContext } from '@adonisjs/core/http'
+import {HttpContext} from '@adonisjs/core/http'
 
 export default class PriceController {
   async index({ request, response }: HttpContext) {

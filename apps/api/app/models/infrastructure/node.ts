@@ -1,7 +1,7 @@
-import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
+import {BaseModel, belongsTo, column, hasMany} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
 import Cluster from '#models/infrastructure/cluster'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type {BelongsTo, HasMany} from '@adonisjs/lucid/types/relations'
 import Instance from '#models/infrastructure/instance'
 
 export default class Node extends BaseModel {

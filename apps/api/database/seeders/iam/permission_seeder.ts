@@ -1,9 +1,9 @@
-import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import { ServiceFactory } from '#database/factories/iam/service_factory'
-import { VerbFactory } from '#database/factories/iam/verb_factory'
-import { TypeFactory } from '#database/factories/iam/type_factory'
-import { PermissionFactory } from '#database/factories/iam/permission_factory'
-import { RoleFactory } from '#database/factories/iam/role_factory'
+import {BaseSeeder} from '@adonisjs/lucid/seeders'
+import {ServiceFactory} from '#database/factories/iam/service_factory'
+import {VerbFactory} from '#database/factories/iam/verb_factory'
+import {TypeFactory} from '#database/factories/iam/type_factory'
+import {PermissionFactory} from '#database/factories/iam/permission_factory'
+import {RoleFactory} from '#database/factories/iam/role_factory'
 
 export default class extends BaseSeeder {
   public async run() {

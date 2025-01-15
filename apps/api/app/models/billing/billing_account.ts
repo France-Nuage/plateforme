@@ -1,7 +1,7 @@
-import { BaseModel, belongsTo, column, computed, hasMany } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
+import {BaseModel, belongsTo, column, computed, hasMany} from '@adonisjs/lucid/orm'
+import {DateTime} from 'luxon'
 import Organization from '#models/resource/organization'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type {BelongsTo, HasMany} from '@adonisjs/lucid/types/relations'
 import Project from '#models/resource/project'
 import PaymentProfile from '#models/billing/payment_profile'
 

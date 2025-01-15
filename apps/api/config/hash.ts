@@ -1,4 +1,4 @@
-import { defineConfig, drivers } from '@adonisjs/core/hash'
+import {defineConfig, drivers} from '@adonisjs/core/hash'
 
 const hashConfig = defineConfig({
   default: 'scrypt',

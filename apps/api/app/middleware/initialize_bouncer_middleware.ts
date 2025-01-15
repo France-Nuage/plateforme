@@ -1,9 +1,9 @@
-import { policies } from '#policies/main'
+import {policies} from '#policies/main'
 import * as abilities from '#abilities/main'
 
-import { Bouncer } from '@adonisjs/bouncer'
-import type { HttpContext } from '@adonisjs/core/http'
-import type { NextFn } from '@adonisjs/core/types/http'
+import {Bouncer} from '@adonisjs/bouncer'
+import type {HttpContext} from '@adonisjs/core/http'
+import type {NextFn} from '@adonisjs/core/types/http'
 
 /**
  * Init bouncer middleware is used to create a bouncer instance

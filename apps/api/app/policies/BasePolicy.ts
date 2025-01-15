@@ -1,6 +1,6 @@
-import { BasePolicy as BouncerBasePolicy } from '@adonisjs/bouncer'
-import { inject } from '@adonisjs/core'
-import { HttpContext } from '@adonisjs/core/http'
+import {BasePolicy as BouncerBasePolicy} from '@adonisjs/bouncer'
+import {inject} from '@adonisjs/core'
+import {HttpContext} from '@adonisjs/core/http'
 
 @inject()
 export default class BasePolicy extends BouncerBasePolicy {
