@@ -1,0 +1,12 @@
+[Unit]
+Description=Service pour mon script Python
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/user/scripts/france-nuage-agent.py
+Restart=always
+User=wessim
+WorkingDirectory=/home/user/scripts
+
+[Install]
+WantedBy=multi-user.target
