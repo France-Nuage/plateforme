@@ -1,0 +1,8 @@
+Package: france-nuage-agennt
+Version: 1.0
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: Wessim Harmel wessim.harmel1@gmail.com
+Depends: python3, python3-venv, python3-pip, systemd
+Description: Script That Sends metrics of the server to the api
