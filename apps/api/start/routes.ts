@@ -8,9 +8,9 @@
 */
 
 import router from '@adonisjs/core/services/router'
-import {middleware} from '#start/kernel'
+import { middleware } from '#start/kernel'
 import AutoSwagger from 'adonis-autoswagger'
-import swagger from 'Config/swagger'
+import swagger from '#config/swagger'
 // import transmit from '@adonisjs/transmit/services/main'
 
 // transmit.registerRoutes((route) => {
@@ -36,13 +36,15 @@ const PricingController = () => import('#controllers/v1/billing/price_controller
 const PaymentMethodController = () => import('#controllers/v1/payment/payment_methods_controller')
 const MetricsController = () => import('#controllers/v1/infrastructure/metrics_controller')
 
-Route.get('/swagger', async () => {
-  return AutoSwagger.docs(Route.toJSON(), swagger)
+router.get('/swagger', async () => {
+  return AutoSwagger.default.docs(router.toJSON(), swagger)
 })
 
 // Renders Swagger-UI and passes YAML-output of /swagger
-Route.get('/docs', async () => {
-  return AutoSwagger.ui('/swagger', swagger)
+router.get('/docs', async () => {
+  return AutoSwagger.default.ui('/swagger', swagger)
+  // return AutoSwagger.default.scalar("/swagger"); to use Scalar instead
+  // return AutoSwagger.default.rapidoc("/swagger", "view"); to use RapiDoc instead (pass "view" default, or "read" to change the render-style)
 })
 router
   .group(() => {
