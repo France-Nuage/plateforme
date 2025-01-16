@@ -8,7 +8,9 @@
 */
 
 import router from '@adonisjs/core/services/router'
-import { middleware } from '#start/kernel'
+import {middleware} from '#start/kernel'
+import AutoSwagger from 'adonis-autoswagger'
+import swagger from 'Config/swagger'
 // import transmit from '@adonisjs/transmit/services/main'
 
 // transmit.registerRoutes((route) => {
@@ -34,6 +36,14 @@ const PricingController = () => import('#controllers/v1/billing/price_controller
 const PaymentMethodController = () => import('#controllers/v1/payment/payment_methods_controller')
 const MetricsController = () => import('#controllers/v1/infrastructure/metrics_controller')
 
+Route.get('/swagger', async () => {
+  return AutoSwagger.docs(Route.toJSON(), swagger)
+})
+
+// Renders Swagger-UI and passes YAML-output of /swagger
+Route.get('/docs', async () => {
+  return AutoSwagger.ui('/swagger', swagger)
+})
 router
   .group(() => {
     router
