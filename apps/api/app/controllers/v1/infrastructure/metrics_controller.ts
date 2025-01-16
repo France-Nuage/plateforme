@@ -55,10 +55,13 @@ export default class MetricsController {
 
     try {
       // Push data to Mimir
-      const mimirUrl = 'https://mimir-instance/api/v1/push' // Replace with your Mimir URL
+      const mimirUrl = 'https://mimir.france-nuage.fr/api/v1/push' // Replace with your Mimir URL
       const mimirResponse = await axios.post(mimirUrl, formattedMetrics, {
         headers: {
           'Content-Type': 'application/json',
+          'CF-Access-Client-Id': '660f2b1a527c459d67f10d906a756cde.access',
+          'CF-Access-Client-Secret':
+            '9c5f1d4ded17d862e58da190d6237e36f16e1e82d9bace732db957c4ec599852',
         },
       })
 
