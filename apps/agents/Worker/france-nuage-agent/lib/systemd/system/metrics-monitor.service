@@ -5,7 +5,7 @@ After=network.target
 [Service]
 ExecStart=/opt/france-nuage-agent/venv/bin/python /opt/france-nuage-agent/france-nuage-agent.py
 Restart=always
-User=wessim
+User=metric_user
 WorkingDirectory=/opt/france-nuage-agent
 
 [Install]
