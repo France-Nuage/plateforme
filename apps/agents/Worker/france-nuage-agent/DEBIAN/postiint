@@ -18,6 +18,16 @@ fi
 # Modifier les permissions pour que l'utilisateur ait accès au répertoire
 chown -R metric_user:france_nuage /opt/france-nuage-agent
 
+# Créer et activer l'environnement virtuel
+python3 -m venv /opt/france-nuage-agent/venv
+source /opt/france-nuage-agent/venv/bin/activate
+
+# Installer les dépendances Python
+pip install -r /opt/france-nuage-agent/requirements.txt
+
+# Désactiver l'environnement virtuel
+deactivate
+
 # Activer et démarrer le service
 systemctl daemon-reload
 systemctl enable metrics-monitor.service

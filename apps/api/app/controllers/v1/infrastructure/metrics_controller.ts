@@ -1,4 +1,4 @@
-import type {HttpContext} from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http'
 import axios from 'axios' // Import HTTP client
 
 export default class MetricsController {
