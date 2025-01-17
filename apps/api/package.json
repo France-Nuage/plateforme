@@ -45,10 +45,14 @@
     "@swc/core": "1.7.26",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.7.5",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.7",
     "eslint": "^9.12.0",
     "hot-hook": "^0.3.1",
     "pino-pretty": "^11.2.2",
     "prettier": "^3.3.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "typescript": "~5.6"
   },
   "dependencies": {
@@ -73,6 +77,7 @@
     "luxon": "^3.5.0",
     "mjml": "^4.15.3",
     "pg": "^8.13.1",
+    "protobufjs": "^7.4.0",
     "reflect-metadata": "^0.2.2",
     "snappy": "^7.2.2",
     "stripe": "^17.4.0",

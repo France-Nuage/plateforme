@@ -10,7 +10,7 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
 import AutoSwagger from 'adonis-autoswagger'
-import swagger from '#config/swagger'
+import swagger from '#config/swaggerConfig'
 // import transmit from '@adonisjs/transmit/services/main'
 
 // transmit.registerRoutes((route) => {
@@ -89,7 +89,7 @@ router
       .middleware([middleware.auth()])
 
     router.group(() => {
-      router.get('/infrastructure/metrics', [MetricsController, 'store'])
+      router.post('/infrastructure/metrics', [MetricsController, 'store'])
     })
 
     router.post('/auth/register', [AuthController, 'register'])
