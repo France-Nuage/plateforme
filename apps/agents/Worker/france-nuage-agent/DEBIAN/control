@@ -1,8 +1,9 @@
-Package: france-nuage-agennt
+Package: france-nuage-agent
 Version: 1.0
-Section: utils
+Section: base
 Priority: optional
 Architecture: all
+Depends: python3, python3-psutil, python3-requests
 Maintainer: Wessim Harmel wessim.harmel1@gmail.com
-Depends: python3, python3-venv, python3-pip, systemd
-Description: Script That Sends metrics of the server to the api
+Description: France Nuage Agent
+ This package contains the France Nuage Agent script.

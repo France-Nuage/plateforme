@@ -1,5 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import axios from 'axios' // Import HTTP client
+import Env from '#start/env'
+import snappy from 'snappy'
 
 export default class MetricsController {
   /**
@@ -33,35 +35,36 @@ export default class MetricsController {
     }
 
     // Format data for Mimir (Prometheus Remote Write format)
-    const formattedMetrics = {
-      metrics: [
-        {
-          labels: {
-            __name__: 'system_metrics',
-            ip_address: data.ip_address,
-            hostname: data.hostname,
-            os: data.os,
-            os_version: data.os_version,
+    const formattedMetrics = snappy.compress(
+      Buffer.from(
+        JSON.stringify([
+          {
+            labels: {
+              __name__: 'system_metrics',
+              ip_address: data.ip_address,
+              hostname: data.hostname,
+              os: data.os,
+              os_version: data.os_version,
+            },
+            samples: [
+              { name: 'total_memory', value: data.total_memory },
+              { name: 'cpu_count', value: data.cpu_count },
+              { name: 'disk_space', value: data.disk_space },
+              { name: 'installed_packages', value: JSON.stringify(data.installed_packages) },
+            ],
           },
-          samples: [
-            { name: 'total_memory', value: data.total_memory },
-            { name: 'cpu_count', value: data.cpu_count },
-            { name: 'disk_space', value: data.disk_space },
-            { name: 'installed_packages', value: JSON.stringify(data.installed_packages) },
-          ],
-        },
-      ],
-    }
-
+        ])
+      )
+    )
+    console.log(formattedMetrics)
     try {
       // Push data to Mimir
       const mimirUrl = 'https://mimir.france-nuage.fr/api/v1/push' // Replace with your Mimir URL
       const mimirResponse = await axios.post(mimirUrl, formattedMetrics, {
         headers: {
           'Content-Type': 'application/json',
-          'CF-Access-Client-Id': '660f2b1a527c459d67f10d906a756cde.access',
-          'CF-Access-Client-Secret':
-            '9c5f1d4ded17d862e58da190d6237e36f16e1e82d9bace732db957c4ec599852',
+          'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
+          'CF-Access-Client-Secret': Env.get('CLOUDFLARE_CLIENT_SECRET'),
         },
       })
 

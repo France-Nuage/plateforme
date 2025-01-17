@@ -89,7 +89,7 @@ router
       .middleware([middleware.auth()])
 
     router.group(() => {
-      router.get('/infrastructure/:metrics', [MetricsController, 'store'])
+      router.get('/infrastructure/metrics', [MetricsController, 'store'])
     })
 
     router.post('/auth/register', [AuthController, 'register'])

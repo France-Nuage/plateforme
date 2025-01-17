@@ -74,6 +74,7 @@
     "mjml": "^4.15.3",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
+    "snappy": "^7.2.2",
     "stripe": "^17.4.0",
     "ts-node-maintained": "^10.9.4"
   },

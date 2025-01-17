@@ -1,0 +1,13 @@
+[Unit]
+Description=France Nuage Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -u /opt/france-nuage-agent/france-nuage-agent.py
+Restart=always
+User=france-nuage-agent
+Group=france-nuage-agent
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
