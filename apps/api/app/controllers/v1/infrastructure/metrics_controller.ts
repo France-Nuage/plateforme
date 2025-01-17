@@ -1,4 +1,4 @@
-import type {HttpContext} from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http'
 import axios from 'axios' // Import HTTP client
 import Env from '#start/env'
 import snappy from 'snappy'
@@ -8,7 +8,7 @@ export default class MetricsController {
   /**
    * Handle the POST request to receive and push metrics
    */
-  async store({request, response}: HttpContext) {
+  async store({ request, response }: HttpContext) {
     // Receive metrics data from the external agent
     const data = request.only([
       'ip_address',
@@ -32,7 +32,7 @@ export default class MetricsController {
       !data.os_version ||
       !data.installed_packages
     ) {
-      return response.badRequest({error: 'Invalid data received'})
+      return response.badRequest({ error: 'Invalid data received' })
     }
 
     // Format data for Mimir (Prometheus Remote Write format)
@@ -54,11 +54,10 @@ export default class MetricsController {
         })
       )
     )*/
+    const root = await protobuf.load('plop.proto')
+    const write_request = root.lookupType("prometheus.WriteRequest")
 
-
-    protobuf.load("plop.proto")
-
-    const writeRequest = protobuf.WriteRequest.create({
+    const writeRequest = write_request.create({
       timeseries: [
         {
           labels: [
@@ -73,16 +72,14 @@ export default class MetricsController {
           ],
         },
       ],
-    )
+    })
 
-      console.log(writeRequest)
-
-
+    // chatgpt example : https://chatgpt.com/share/678a6cd1-1074-800e-9cc8-bd1481713dac
     // 2) Encoder en binaire (Protobuf)
-    const messageBuffer = protobuf.WriteRequest.encode(writeRequest).finish()
+    const messageBuffer = write_request.encode(writeRequest).finish()
 
     // 3) Compresser avec Snappy
-    const compressed = snappy.compress(messageBuffer)
+    const compressed = await snappy.compress(messageBuffer)
 
     try {
       // Push data to Mimir
@@ -94,16 +91,15 @@ export default class MetricsController {
           'Content-Type': 'application/x-protobuf',
           'Content-Encoding': 'snappy',
           'X-Prometheus-Remote-Write-Version': '0.1.0',
-          // 'X-Scope-OrgID': 'org-id-example',
         },
-      })
+      }.catch()
 
-      console.log('Metrics pushed successfully:', mimirResponse.data)
+      console.log('Metrics pushed successfully:', mimirResponse)
 
       // Respond to the external agent
       return response.ok({
         message: 'Metrics received and pushed successfully',
-        pushedData: formattedMetrics,
+        pushedData: compressed,
       })
     } catch (error) {
       console.error('Error pushing metrics:', error.message)
