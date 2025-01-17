@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+# Stop and disable the service if it is loaded
+if systemctl is-active --quiet france-nuage-agent.service; then
+    systemctl stop france-nuage-agent.service
+    systemctl disable france-nuage-agent.service
+fi
+
+# Remove the user and group if they exist
+if id "france-nuage-agent" &>/dev/null; then
+    userdel france-nuage-agent
+fi
+
+if getent group france-nuage-agent &>/dev/null; then
+    groupdel france-nuage-agent
+fi
