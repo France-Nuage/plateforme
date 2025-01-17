@@ -1,13 +1,14 @@
-import type { HttpContext } from '@adonisjs/core/http'
+import type {HttpContext} from '@adonisjs/core/http'
 import axios from 'axios' // Import HTTP client
 import Env from '#start/env'
 import snappy from 'snappy'
+import protobuf from 'protobufjs'
 
 export default class MetricsController {
   /**
    * Handle the POST request to receive and push metrics
    */
-  async store({ request, response }: HttpContext) {
+  async store({request, response}: HttpContext) {
     // Receive metrics data from the external agent
     const data = request.only([
       'ip_address',
@@ -31,40 +32,69 @@ export default class MetricsController {
       !data.os_version ||
       !data.installed_packages
     ) {
-      return response.badRequest({ error: 'Invalid data received' })
+      return response.badRequest({error: 'Invalid data received'})
     }
 
     // Format data for Mimir (Prometheus Remote Write format)
-    const formattedMetrics = snappy.compress(
+    /* const formattedMetrics = await snappy.compress(
       Buffer.from(
-        JSON.stringify([
-          {
-            labels: {
-              __name__: 'system_metrics',
-              ip_address: data.ip_address,
-              hostname: data.hostname,
-              os: data.os,
-              os_version: data.os_version,
-            },
-            samples: [
-              { name: 'total_memory', value: data.total_memory },
-              { name: 'cpu_count', value: data.cpu_count },
-              { name: 'disk_space', value: data.disk_space },
-              { name: 'installed_packages', value: JSON.stringify(data.installed_packages) },
-            ],
-          },
-        ])
+        JSON.stringify({
+          "timeseries": [
+            {
+              "labels": [
+                {"name": "__name__", "value": "http_requests_total"},
+                {"name": "method", "value": "GET"},
+                {"name": "status", "value": "200"}
+              ],
+              "samples": [
+                {"value": 42, "timestamp": 1673945600000}
+              ]
+            }
+          ]
+        })
       )
+    )*/
+
+
+    protobuf.load("plop.proto")
+
+    const writeRequest = protobuf.WriteRequest.create({
+      timeseries: [
+        {
+          labels: [
+            { name: '__name__', value: 'my_app_requests_total' },
+            { name: 'instance', value: 'test' },
+          ],
+          samples: [
+            {
+              value: 42,
+              timestamp: Date.now(),
+            },
+          ],
+        },
+      ],
     )
-    console.log(formattedMetrics)
+
+      console.log(writeRequest)
+
+
+    // 2) Encoder en binaire (Protobuf)
+    const messageBuffer = protobuf.WriteRequest.encode(writeRequest).finish()
+
+    // 3) Compresser avec Snappy
+    const compressed = snappy.compress(messageBuffer)
+
     try {
       // Push data to Mimir
       const mimirUrl = 'https://mimir.france-nuage.fr/api/v1/push' // Replace with your Mimir URL
-      const mimirResponse = await axios.post(mimirUrl, formattedMetrics, {
+      const mimirResponse = await axios.post(mimirUrl, compressed, {
         headers: {
-          'Content-Type': 'application/json',
           'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
           'CF-Access-Client-Secret': Env.get('CLOUDFLARE_CLIENT_SECRET'),
+          'Content-Type': 'application/x-protobuf',
+          'Content-Encoding': 'snappy',
+          'X-Prometheus-Remote-Write-Version': '0.1.0',
+          // 'X-Scope-OrgID': 'org-id-example',
         },
       })
 

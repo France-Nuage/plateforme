@@ -1,7 +1,7 @@
 import { BaseCommand } from '@adonisjs/core/ace'
 import { CommandOptions } from '@adonisjs/core/types/ace'
 import AutoSwagger from 'adonis-autoswagger'
-import swagger from '#config/swagger'
+import swagger from '#config/swaggerConfig'
 export default class DocsGenerate extends BaseCommand {
   static commandName = 'docs:generate'
 
