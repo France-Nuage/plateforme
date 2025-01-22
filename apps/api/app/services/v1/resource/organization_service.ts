@@ -7,6 +7,7 @@ import Role from '#models/iam/role'
 
 export default {
   get: async function (id: string, includes: Array<string>, user: User) {
+    console.log('user', user)
     return new RequestQueryBuilder(Organization.query())
       .withIncludes(includes)
       .applyWhere([['id', '=', id]])

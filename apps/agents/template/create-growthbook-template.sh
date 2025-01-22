@@ -19,11 +19,12 @@ SSH_PUBLIC_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDngnLZX5rwOc9OHB0dHrOU2Is9
 # Variables docker compose
 DOCKER_APP_NAME="growthbook"
 DOCKER_APP_PATH="${DOCKER_APP_PATH:-/home/${VM_USER}/docker/${DOCKER_APP_NAME}}"
-DOCKER_COMPOSE_PATH="${APP_DOCKER_COMPOSE_PATH:-${DOCKER_APP_PATH}/docker-compose.yaml}"
+DOCKER_COMPOSE_PATH="${DOCKER_COMPOSE_PATH:-${DOCKER_APP_PATH}/docker-compose.yaml}"
 
 APP_DOMAIN="${APP_DOMAIN:-france-nuage.fr}"
 APP_UI_PORT="${APP_UI_PORT:-3000}"
 APP_API_PORT="${APP_API_PORT:-3100}"
+TEMPLATE_DEFAULT_FQDN="${DOCKER_APP_NAME}.france-nuage.fr"
 
 MONGO_USER="${MONGO_USER:-$(openssl rand -base64 32)}"
 MONGO_PASSWORD="${MONGO_PASSWORD:-$(openssl rand -base64 32)}"
@@ -75,6 +76,7 @@ qm set "$TEMPLATE_ID" --serial0 socket --vga serial0
 qm set "$TEMPLATE_ID" --ipconfig0 ip=$TEMPLATE_DEFAULT_CIDR,gw=$TEMPLATE_DEFAULT_GATEWAY
 qm set "$TEMPLATE_ID" --name "$TEMPLATE_NAME"
 qm set "$TEMPLATE_ID" --cpu x86-64-v2-AES
+qm set "$TEMPLATE_ID" --agent enabled=1
 qm resize "$TEMPLATE_ID" scsi0 +5G # Espace insuffisant pour growthbook
 
 # Créer le fichier de script cloud-init incluant docker-compose
@@ -84,7 +86,6 @@ cat << EOF > $CI_CUSTOM_USER_SNIPPET_PATH
 users:
   - name: ${VM_USER}
     gecos: "${VM_USER}"
-    sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     ssh-authorized-keys:
       - ${SSH_PUBLIC_KEY}
@@ -150,7 +151,11 @@ runcmd:
   - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   - echo "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \$(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
   - apt-get update
-  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin qemu-guest-agent
+
+  # Configuration agent Qemu
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
   
   # Configuration Docker
   - usermod -aG docker ${VM_USER}

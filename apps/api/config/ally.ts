@@ -1,13 +1,6 @@
-import env from '#start/env'
-import {defineConfig, services} from '@adonisjs/ally'
+import { defineConfig } from '@adonisjs/ally'
 
-const allyConfig = defineConfig({
-  google: services.google({
-    clientId: env.get('GOOGLE_CLIENT_ID'),
-    clientSecret: env.get('GOOGLE_CLIENT_SECRET'),
-    callbackUrl: '',
-  }),
-})
+const allyConfig = defineConfig({})
 
 export default allyConfig
 

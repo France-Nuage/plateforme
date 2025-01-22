@@ -79,7 +79,7 @@ export default {
     const node = zone.clusters[0].nodes[0]
 
     const vmid = await getNextVMID(node.url, node.token)
-    const vm = await createVM(
+    await createVM(
       {
         vmid,
         nodeName: node.name,
