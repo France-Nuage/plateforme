@@ -3,11 +3,11 @@ Description=France Nuage Agent
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 -u /opt/france-nuage-agent/france-nuage-agent.py
+ExecStart=/usr/bin/node /opt/france-nuage-agent/france-nuage-agent.js
 Restart=always
 User=france-nuage-agent
 Group=france-nuage-agent
-Environment=PYTHONUNBUFFERED=1
+Environment=NODE_ENV=production
 
 [Install]
 WantedBy=multi-user.target

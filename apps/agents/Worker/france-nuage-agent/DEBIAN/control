@@ -3,7 +3,7 @@ Version: 1.0
 Section: base
 Priority: optional
 Architecture: all
-Depends: python3, python3-psutil, python3-requests
+Depends: nodejs (>= 14.0.0), npm
 Maintainer: Wessim Harmel wessim.harmel1@gmail.com
 Description: France Nuage Agent
  This package contains the France Nuage Agent script.
