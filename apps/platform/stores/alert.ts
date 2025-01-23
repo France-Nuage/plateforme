@@ -1,11 +1,11 @@
 interface Alert {
   id?: number;
-  type?: 'success' | 'danger' | 'warning';
+  type?: "success" | "danger" | "warning";
   title: string;
   description?: string;
 }
 
-export const useAlerts = defineStore('alerts', {
+export const useAlerts = defineStore("alerts", {
   state: (): { alerts: Array<Alert> } => ({
     alerts: [],
   }),

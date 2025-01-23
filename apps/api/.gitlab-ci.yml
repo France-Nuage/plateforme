@@ -1,5 +1,47 @@
+cache:
+  paths:
+    - apps/api/node_modules/
+    - node_modules/
+
 api_build:
   stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:$CI_COMMIT_SHORT_SHA
+    LATEST_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:$CI_COMMIT_BRANCH-latest
+  script:
+    - docker build -f apps/api/Dockerfile -t $DOCKER_IMAGE .
+
+api_test:
+  stage: test
+  image: node:22.11.0
+  services:
+    - postgres:15
+    - redis:latest
+  variables:
+    POSTGRES_DB: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_HOST_AUTH_METHOD: trust
+    REDIS_HOST: redis
+  before_script:
+    - cd apps/api
+    - cp $API_ENV_FILE_LOCAL .env
+    - source .env
+  script:
+    - export DB_USER=$POSTGRES_USER DB_PASSWORD=$POSTGRES_PASSWORD DB_DATABASE=$POSTGRES_DB DB_HOST=postgres DB_PORT=5432
+    - env
+    - npm install
+    - node ace migration:run
+#    - node ace db:seed
+    - node ace test
+  allow_failure: true
+
+api_push_image:
+  stage: deployment
   image: docker:latest
   services:
     - docker:dind
@@ -10,14 +52,39 @@ api_build:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
-    # Build the Docker image from the root, specify the Dockerfile in apps/api
     - docker build -f apps/api/Dockerfile -t $DOCKER_IMAGE .
-    # Tag the image as 'latest'
     - docker tag $DOCKER_IMAGE $LATEST_IMAGE
-    # Push the Docker image with both tags (commit short SHA and latest)
     - docker push $DOCKER_IMAGE
-    - docker push $LATEST_IMAGE 
-  rules:
-    - if: ($CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "test-ci") && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")
+    - docker push $LATEST_IMAGE
+  only:
+    - master
+    - staging
 
+api_db_migrate_prod:
+  stage: migrate
+  image: node:22.11.0
+  before_script:
+    - cd apps/api
+    - cp $API_ENV_FILE_PRODUCTION .env
+    - source .env
+  script:
+    - npm install
+    - node ace migration:run --force
+  when: manual
+  only:
+    - master
+
+api_db_migrate_staging:
+  stage: migrate
+  image: node:22.11.0
+  before_script:
+    - cd apps/api
+    - cp $API_ENV_FILE_STAGING .env
+    - source .env
+  script:
+    - npm install
+    - node ace migration:run --force
+  when: manual
+  only:
+    - staging
 

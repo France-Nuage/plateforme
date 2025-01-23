@@ -16,59 +16,77 @@ interface UserInterface {
   createdAt: string;
 }
 
-
-export const useAuthStore = defineStore('auth', {
-  state: (): { authenticated: boolean, me: UserInterface | null, routes: any } => ({
+export const useAuthStore = defineStore("auth", {
+  state: (): {
+    authenticated: boolean;
+    me: UserInterface | null;
+    routes: any;
+  } => ({
     authenticated: false,
     me: null,
-    routes: []
+    routes: [],
   }),
   actions: {
     loadMe: async function () {
-      const { $api } = useNuxtApp()
-      return $api().security.me().then(response => {
-        this.me = response
-      })
+      const { $api } = useNuxtApp();
+      return $api()
+        .security.me()
+        .then((response) => {
+          this.me = response;
+        });
     },
     subscribe: async function (payload: UserPayloadInterface): Promise<void> {
-      const { $api } = useNuxtApp()
-      return $api().security.register(payload).then((data) => {
-        if (data.token) {
-          const token = useCookie('token');
-          token.value = data?.token?.token;
-          this.authenticated = true;
-        }
-      })
+      const { $api } = useNuxtApp();
+      return $api()
+        .security.register(payload)
+        .then((data) => {
+          if (data.token) {
+            const token = useCookie("token");
+            token.value = data?.token?.token;
+            this.authenticated = true;
+          }
+        });
     },
     authenticate: async function ({ email, password }: UserPayloadInterface) {
-      const { $api } = useNuxtApp()
-      return $api().security.login({ email, password }).then((response) => {
-        if (response.data.token) {
-          const token = useCookie('token');
+      const { $api } = useNuxtApp();
+      return $api()
+        .security.login({ email, password })
+        .then((response) => {
+          if (response.data.token) {
+            const token = useCookie("token");
 
-          token.value = response.data?.token?.token;
-          this.authenticated = true;
-        }
+            token.value = response.data?.token?.token;
+            this.authenticated = true;
+          }
 
-        return response;
-      })
+          return response;
+        });
     },
-    resetPasswordRequest: async function ({ email }: { email: string }): Promise<void> {
-      const { $api } = useNuxtApp()
-      return $api().security.resetPasswordRequest({ email: email })
+    resetPasswordRequest: async function ({
+      email,
+    }: {
+      email: string;
+    }): Promise<void> {
+      const { $api } = useNuxtApp();
+      return $api().security.resetPasswordRequest({ email: email });
     },
-    resetPassword: async function (payload: { password: string, token: string }): Promise<void> {
-      const { $api } = useNuxtApp()
-      return $api().security.resetPassword(payload)
+    resetPassword: async function (payload: {
+      password: string;
+      token: string;
+    }): Promise<void> {
+      const { $api } = useNuxtApp();
+      return $api().security.resetPassword(payload);
     },
     update: async function (payload: UserPayloadInterface): Promise<void> {
-      const { $api } = useNuxtApp()
-      return $api().members.patch(this.me.id, payload).then((response) => {
-        this.me = response
-      })
+      const { $api } = useNuxtApp();
+      return $api()
+        .members.patch(this.me.id, payload)
+        .then((response) => {
+          this.me = response;
+        });
     },
     logUserOut: function () {
-      const token = useCookie('token');
+      const token = useCookie("token");
       this.authenticated = false;
       token.value = null;
     },
