@@ -33,34 +33,13 @@ api_test:
     - source .env
   script:
     - export DB_USER=$POSTGRES_USER DB_PASSWORD=$POSTGRES_PASSWORD DB_DATABASE=$POSTGRES_DB DB_HOST=postgres DB_PORT=5432
-    - env
     - npm install
     - node ace migration:run
 #    - node ace db:seed
     - node ace test
   allow_failure: true
 
-api_push_image:
-  stage: deployment
-  image: docker:latest
-  services:
-    - docker:dind
-  variables:
-    DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:$CI_COMMIT_SHORT_SHA
-    LATEST_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:$CI_COMMIT_BRANCH-latest
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
-  script:
-    - docker build -f apps/api/Dockerfile -t $DOCKER_IMAGE .
-    - docker tag $DOCKER_IMAGE $LATEST_IMAGE
-    - docker push $DOCKER_IMAGE
-    - docker push $LATEST_IMAGE
-  only:
-    - master
-    - staging
-
-api_db_migrate_prod:
+api_db_migrate_production:
   stage: migrate
   image: node:22.11.0
   before_script:
@@ -86,5 +65,25 @@ api_db_migrate_staging:
     - node ace migration:run --force
   when: manual
   only:
+    - staging
+
+api_push_image:
+  stage: deployment
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:$CI_COMMIT_SHORT_SHA
+    LATEST_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:$CI_COMMIT_BRANCH-latest
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+  script:
+    - docker build -f apps/api/Dockerfile -t $DOCKER_IMAGE .
+    - docker tag $DOCKER_IMAGE $LATEST_IMAGE
+    - docker push $DOCKER_IMAGE
+    - docker push $LATEST_IMAGE
+  only:
+    - master
     - staging
 
