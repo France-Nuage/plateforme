@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr" style="margin: 0; padding: 0;">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ajout à une organisation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!--[if mso]>
+    <style type="text/css">
+      body,
+      table,
+      td {
+        font-family: Arial, Helvetica, sans-serif !important;
+      }
+    </style>
+  <![endif]-->
+  <style>
+    /* Styles généraux */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f6f9fc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+        "Segoe UI Symbol";
+      color: #525f7f;
+    }
+    a {
+      text-decoration: none;
+    }
+    h1, h2, h3, h4, p {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td align="center" bgcolor="#f6f9fc" style="padding: 30px 10px;">
+        <!-- Conteneur principal -->
+        <table
+          border="0"
+          cellpadding="0"
+          cellspacing="0"
+          width="480"
+          style="background-color: #ffffff; border-radius: 6px;"
+        >
+          <!-- En-tête -->
+          <tr>
+            <td
+              align="left"
+              style="
+                padding: 20px;
+                font-size: 24px;
+                font-weight: 600;
+                color: #32325d;
+              "
+            >
+              <!-- Logo / Texte d'en-tête -->
+              <!-- Remplacez la source de l'image par votre logo -->
+              <img
+                src="https://stripe.com/img/logo.svg"
+                alt="Logo de l'entreprise"
+                width="120"
+                style="border: 0; display: block;"
+              />
+            </td>
+          </tr>
+
+          <!-- Corps du mail -->
+          <tr>
+            <td align="left" style="padding: 0 20px 20px;">
+              <h2
+                style="
+                  margin-top: 0;
+                  font-size: 20px;
+                  font-weight: 600;
+                  color: #32325d;
+                  margin-bottom: 20px;
+                  line-height: 1.4;
+                "
+              >
+                Vous avez été ajouté à une resource
+              </h2>
+
+              <p style="margin-bottom: 20px; line-height: 1.6;">
+                Bonjour {{user_fullname}},
+              </p>
+
+              <p style="margin-bottom: 20px; line-height: 1.6;">
+                Nous avons le plaisir de vous informer que vous venez d’être ajouté
+                à {{resource_label}} <strong>{{resource_name}}</strong>.
+              </p>
+
+              <p style="margin-bottom: 20px; line-height: 1.6;">
+                Vous pouvez désormais accéder à votre nouvel espace de travail
+                et collaborer avec les autres membres de l’équipe.
+              </p>
+
+              <!-- Bouton d'action principal (facultatif) -->
+              <table border="0" cellspacing="0" cellpadding="0" style="margin: 20px 0;">
+                <tr>
+                  <td align="center" bgcolor="#1A4CE5" style="border-radius: 4px;">
+                    <a
+                      href="{{url}}"
+                      target="_blank"
+                      style="
+                        display: inline-block;
+                        padding: 0.5rem 0.75rem;
+                        color: #ffffff;
+                        font-size: 16px;
+                        text-decoration: none;
+                        border-radius: 4px;
+                        background-color: #1A4CE5;
+                        font-weight: 500;
+                      "
+                    >
+                      Accéder à {{resource_label}}
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin-bottom: 20px; line-height: 1.6;">
+                Si vous n’êtes pas à l’origine de cette invitation,
+                vous pouvez ignorer ce message.
+              </p>
+
+              <p style="margin-bottom: 20px; line-height: 1.6;">
+                Bien cordialement, <br />
+                L’équipe France Nuage
+              </p>
+            </td>
+          </tr>
+
+          <!-- Pied de page -->
+          <tr>
+            <td
+              align="center"
+              style="
+                padding: 20px;
+                font-size: 14px;
+                line-height: 1.5;
+                color: #aab7c4;
+                border-top: 1px solid #e6ebf1;
+              "
+            >
+              <p style="margin: 0;">
+                © 2025 France-Nuage. Tous droits réservés.
+              </p>
+              <p style="margin-top: 5px; margin-bottom: 0;">
+                [Adresse de l’entreprise]
+              </p>
+            </td>
+          </tr>
+        </table>
+        <!-- Fin du conteneur principal -->
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

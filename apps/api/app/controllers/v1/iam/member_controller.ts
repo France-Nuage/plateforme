@@ -1,6 +1,16 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import db from '@adonisjs/lucid/services/db'
 import IAMMemberPolicy from '#policies/iam/iam_member_policy'
+import { createMemberValidator } from '#validators/v1/iam/member'
+import Policy from '#models/iam/policy'
+import User from '#models/user'
+import Role from '#models/iam/role'
+import Binding from '#models/iam/binding'
+import mail from '@adonisjs/mail/services/main'
+import env from '#start/env'
+import Organization from '#models/resource/organization'
+import Folder from '#models/resource/folder'
+import Project from '#models/resource/project'
 
 const filterSQLKey = {
   organization: 'organization__id',
@@ -41,11 +51,77 @@ export default class MembersController {
   /**
    * Handle form submission for the create action
    */
-  async store({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
+  async store({ response, params, request, bouncer, resources }: HttpContext) {
+    await bouncer.with(IAMMemberPolicy).authorize('index')
+
+    const payload = await request.validateUsing(createMemberValidator)
+    const trx = await db.transaction()
+    const user = await User.findByOrFail({ email: payload.email })
+
+    let bodyCreatePolicy = {}
+    const resourceIdentifier = {
+      organization: {
+        modelId: 'organizationId',
+        label: "l'organisation",
+        model: Organization,
+      },
+      folder: { modelId: 'folderId', label: 'la filial', model: Folder },
+      project: { modelId: 'projectId', label: 'le projet', model: Project },
+    }
+
+    resources.forEach((resource) => {
+      if (resource.type)
+        bodyCreatePolicy = Object.assign(bodyCreatePolicy, {
+          [resourceIdentifier[resource.type].modelId]: resource.id,
+        })
     })
+    try {
+      const policy = await Policy.create(bodyCreatePolicy, { client: trx })
+
+      for (const item of payload.roles) {
+        const role = await Role.findOrFail(item)
+
+        await Binding.create(
+          {
+            roleId: role.id,
+            memberId: user.id,
+            policyId: policy.id,
+          },
+          {
+            client: trx,
+          }
+        )
+      }
+      await trx.commit()
+    } catch (error) {
+      await trx.rollback()
+
+      return response.badRequest({
+        message: error.message,
+      })
+    }
+
+    const resource = await resourceIdentifier[
+      params.resource as keyof typeof resourceIdentifier
+    ].model.findOrFail(params.resourceId)
+
+    await mail.send((message) => {
+      message
+        .to(user.email)
+        .subject(
+          `Vous avez été à rejoindre ${resourceIdentifier[params.resource as keyof typeof resourceIdentifier].label}`
+        )
+        .htmlView('emails/invited_to_join_resource', {
+          url: `${env.get('API_URL')}/api/v1/${params.resource}/${params.resourceId}`,
+          email: payload.email,
+          resource_label:
+            resourceIdentifier[params.resource as keyof typeof resourceIdentifier].label,
+          resource_name: resource.name,
+          user_fullname: user.firstname + ' ' + user.lastname,
+        })
+    })
+
+    return response.created({ ok: 'ok' })
   }
 
   /**

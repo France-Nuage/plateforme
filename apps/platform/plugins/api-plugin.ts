@@ -8,7 +8,7 @@ export default defineNuxtPlugin((app) => {
   const route = app._route
   const router = useRouter()
   const client = $fetch.create({
-    baseURL: 'http://localhost:3333/api/v1',
+    baseURL: config.public.apiUrl + '/api/v1',
     timeout: 5000,
     retry: 0,
     retryDelay: 5000,
