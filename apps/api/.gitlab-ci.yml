@@ -62,6 +62,7 @@ api_db_migrate_staging:
     - source .env
   script:
     - env
+    - cat .env
     - npm install
     - node ace migration:run
   when: manual
