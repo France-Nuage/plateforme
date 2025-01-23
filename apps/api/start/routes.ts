@@ -76,7 +76,7 @@ router
     router
       .group(() => {
         router.post('/metrics', [MetricsController, 'store'])
-        router.post('/metrics/get_utulisation/', [MetricsController, 'getUtilisation'])
+        router.post('/metrics/get_utilisation/', [MetricsController, 'getUtilisation'])
       })
       .prefix('infrastructure')
     router.post('/auth/register', [AuthController, 'register'])
