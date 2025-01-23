@@ -55,9 +55,9 @@ export default class MetricsController {
       )
     )*/
     const root = await protobuf.load('plop.proto')
-    const write_request = root.lookupType("prometheus.WriteRequest")
+    const writeRequestType = root.lookupType('prometheus.WriteRequest')
 
-    const writeRequest = write_request.create({
+    const writeRequest = writeRequestType.create({
       timeseries: [
         {
           labels: [
@@ -75,11 +75,11 @@ export default class MetricsController {
     })
 
     // chatgpt example : https://chatgpt.com/share/678a6cd1-1074-800e-9cc8-bd1481713dac
-    // 2) Encoder en binaire (Protobuf)
-    const messageBuffer = write_request.encode(writeRequest).finish()
+    // 2) Encoder en binary (Protobuf)
+    const messageBuffer = writeRequestType.encode(writeRequest).finish()
 
-    // 3) Compresser avec Snappy
-    const compressed = await snappy.compress(messageBuffer)
+    // 3) Compresses avec Snappy
+    const compressed = await snappy.compress(Buffer.from(messageBuffer))
 
     try {
       // Push data to Mimir
@@ -92,7 +92,9 @@ export default class MetricsController {
           'Content-Encoding': 'snappy',
           'X-Prometheus-Remote-Write-Version': '0.1.0',
         },
-      }.catch()
+      })
+
+      console.log('Metrics pushed successfully:', mimirResponse)
 
       console.log('Metrics pushed successfully:', mimirResponse)
 
@@ -109,5 +111,9 @@ export default class MetricsController {
         details: error.message,
       })
     }
+  }
+
+  async getUtilisation({ response }: HttpContext) {
+    return response.ok('Hello, World')
   }
 }

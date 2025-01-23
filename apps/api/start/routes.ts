@@ -17,7 +17,7 @@ import { middleware } from '#start/kernel'
 //   // Add a throttle middleware to other transmit routes
 //   // route.use(throttle)
 // })
-
+const MetricsController = () => import('#controllers/v1/infrastructure/metrics_controller')
 const ServicesController = () => import('#controllers/v1/catalog/services_controller')
 const OrganizationsController = () => import('#controllers/v1/resource/organizations_controller')
 const ProjectsController = () => import('#controllers/v1/resource/projects_controller')
@@ -73,6 +73,12 @@ router
         router.get('/auth/me', [AuthController, 'me'])
       })
       .middleware([middleware.auth()])
+    router
+      .group(() => {
+        router.post('/metrics', [MetricsController, 'store'])
+        router.post('/metrics/get_utulisation/', [MetricsController, 'getUtilisation'])
+      })
+      .prefix('infrastructure')
     router.post('/auth/register', [AuthController, 'register'])
     router.post('/auth/login', [AuthController, 'login'])
     router.post('/auth/token', [AuthController, 'generateToken'])
