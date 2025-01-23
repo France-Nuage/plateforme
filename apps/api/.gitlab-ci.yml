@@ -61,13 +61,14 @@ api_db_migrate_staging:
     - cp $API_ENV_FILE_STAGING .env
     - source .env
   script:
+    - env
     - npm install
-    - node ace migration:run --force
+    - node ace migration:run
   when: manual
   only:
     - staging
 
-api_push_image:
+api_deploy:
   stage: deployment
   image: docker:latest
   services:
