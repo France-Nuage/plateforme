@@ -39,6 +39,20 @@ api_test:
     - node ace test
   allow_failure: true
 
+api_db_migrate_staging:
+  stage: migrate
+  image: node:22.11.0
+  before_script:
+    - cd apps/api
+    - cp $API_ENV_FILE_STAGING .env
+    - source .env
+  script:
+    - npm install
+    - node ace migration:run
+  when: manual
+  only:
+    - staging
+
 api_db_migrate_production:
   stage: migrate
   image: node:22.11.0
@@ -52,22 +66,6 @@ api_db_migrate_production:
   when: manual
   only:
     - master
-
-api_db_migrate_staging:
-  stage: migrate
-  image: node:22.11.0
-  before_script:
-    - cd apps/api
-    - cp $API_ENV_FILE_STAGING .env
-    - source .env
-  script:
-    - env
-    - cat .env
-    - npm install
-    - node ace migration:run
-  when: manual
-  only:
-    - staging
 
 api_deploy_staging:
   stage: deployment
