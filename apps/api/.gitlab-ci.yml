@@ -39,6 +39,23 @@ api_test:
     - node ace test
   allow_failure: true
 
+api_db_migrate_staging:
+  stage: migrate
+  image: node:22.11.0
+  before_script:
+    - cd apps/api
+    - cp $API_ENV_FILE_STAGING .env
+    - source .env
+  script:
+    - env
+    - cat .env
+    - export DB_HOST=db.tuwpvrpsafokduobdcne.supabase.co DB_PORT=5432 DB_USER=postgres DB_PASSWORD=q0PSa3DuYPAGGZqT DB_DATABASE=postgres
+    - npm install
+    - node ace migration:run
+  when: manual
+#  only:
+#    - staging
+
 api_db_migrate_production:
   stage: migrate
   image: node:22.11.0
@@ -52,22 +69,6 @@ api_db_migrate_production:
   when: manual
   only:
     - master
-
-api_db_migrate_staging:
-  stage: migrate
-  image: node:22.11.0
-  before_script:
-    - cd apps/api
-    - cp $API_ENV_FILE_STAGING .env
-    - source .env
-  script:
-    - env
-    - cat .env
-    - npm install
-    - node ace migration:run
-  when: manual
-  only:
-    - staging
 
 api_deploy_staging:
   stage: deployment
@@ -100,4 +101,3 @@ api_deploy_prod:
     - docker push $DOCKER_IMAGE
   only:
     - master
-
