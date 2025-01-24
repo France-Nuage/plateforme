@@ -1,6 +1,18 @@
+import fs from 'fs';
+import util from 'util';
 import { ServerInfoCollector } from "./ServerInfoCollector";
 import { QuotasManager } from "./QuotasManager";
 import { ApiSender } from "./ApiSender";
+
+const logFile = fs.createWriteStream('/var/log/myapp.log', { flags: 'a' });
+const logStdout = process.stdout;
+
+console.log = function (message: any) {
+    logFile.write(util.format(message) + '\n');
+    logStdout.write(util.format(message) + '\n');
+};
+
+console.error = console.log;
 
 const serverInfoEndpoint = "http://localhost:3333/api/v1/infrastructure/metrics";
 const quotasEndpoint = "http://localhost:3333/api/v1/infrastructure/metrics/get_utilisation/";
@@ -19,6 +31,6 @@ async function sendData() {
     await quotasSender.send(quotasInfo);
 }
 
-// Send data immediately and then every 15 minutes
+// Send data immediately and then every 5 seconds
 sendData();
-setInterval(sendData, 900000);
+setInterval(sendData, 5000);
