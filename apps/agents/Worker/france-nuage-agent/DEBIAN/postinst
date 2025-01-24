@@ -9,7 +9,7 @@ fi
 if ! getent passwd france-nuage-agent > /dev/null 2>&1; then
     useradd -r -s /usr/sbin/nologin -g france-nuage-agent france-nuage-agent
 fi
-
+npm i
 # Reload systemd manager configuration
 systemctl daemon-reload
 
