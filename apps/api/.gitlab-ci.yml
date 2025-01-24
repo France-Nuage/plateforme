@@ -49,7 +49,6 @@ api_db_migrate_staging:
   script:
     - env
     - cat .env
-    - export DB_HOST=aws-0-eu-west-3.pooler.supabase.com DB_PORT=6543 DB_USER=postgres.tuwpvrpsafokduobdcne DB_PASSWORD=q0PSa3DuYPAGGZqT DB_DATABASE=postgres
     - npm install
     - node ace migration:run
   when: manual
