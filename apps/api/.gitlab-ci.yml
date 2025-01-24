@@ -47,13 +47,11 @@ api_db_migrate_staging:
     - cp $API_ENV_FILE_STAGING .env
     - source .env
   script:
-    - env
-    - cat .env
     - npm install
     - node ace migration:run
   when: manual
-#  only:
-#    - staging
+  only:
+    - staging
 
 api_db_migrate_production:
   stage: migrate
