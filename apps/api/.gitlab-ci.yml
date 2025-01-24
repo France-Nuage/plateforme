@@ -1,7 +1,7 @@
-cache:
-  paths:
-    - apps/api/node_modules/
-    - node_modules/
+#cache:
+#  paths:
+#    - apps/api/node_modules/
+#    - node_modules/
 
 api_build:
   stage: build
