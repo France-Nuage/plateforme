@@ -3,7 +3,8 @@ Description=France Nuage Agent
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/node /opt/france-nuage-agent/france-nuage-agent.js
+ExecStart=/usr/bin/node /opt/france-nuage-agent/dist/france-nuage-agent.js
+WorkingDirectory=/opt/france-nuage-agent/dist
 Restart=always
 User=france-nuage-agent
 Group=france-nuage-agent
