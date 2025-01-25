@@ -1,5 +1,8 @@
 stages:
   - build
+  - test
+  - migrate
+  - deployment
 
 include:
   - local: 'apps/api/.gitlab-ci.yml'

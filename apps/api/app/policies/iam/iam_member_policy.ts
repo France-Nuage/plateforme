@@ -30,4 +30,16 @@ export default class IAMMemberPolicy extends BasePolicy {
       this.resources
     )
   }
+
+  store(user: User): AuthorizerResponse {
+
+    return authorization.check([
+      'resourcemanager.projects.setIamPolicy',
+      'resourcemanager.organizations.setIamPolicy',
+      'resourcemanager.folders.setIamPolicy',
+    ],
+      user,
+      this.resources)
+
+  }
 }
