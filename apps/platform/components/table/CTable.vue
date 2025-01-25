@@ -29,7 +29,7 @@
             <div v-if="header.key === 'select'">
               <c-checkbox v-model="selectRows" :value="entity.id" :name="`table_${name}_checkbox`" />
             </div>
-            <div v-else @click="() => instance?.attrs.onClickRow ? $emit('clickRow', { id: entity.id, name: props.name }) : router.push(`/${props.name}/${entity.id}`)">
+            <div v-else @click="() => instance?.attrs.onClickRow ? $emit('clickRow', { value: entity }) : router.push(`/${props.name}/${entity.id}`)">
               <slot :name="`col-${header.key}`" :entity="entity" :key="header.key" :value="_.get(entity, header.key) || '-'">
                 {{ _.get(entity, header.key) || '-' }}
               </slot>

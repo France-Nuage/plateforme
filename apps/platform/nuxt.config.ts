@@ -36,6 +36,16 @@ export default defineNuxtConfig({
     },
   },
 
+  runtimeConfig: {
+    // Private keys are only available on the server
+    apiUrl: process.env.API_URL,
+
+    // Public keys are exposed to the client
+    public: {
+      apiUrl: process.env.API_URL,
+    },
+  },
+
   hooks: {
     'pages:extend' (pages) {
       function setMiddleware (pages: any) {
