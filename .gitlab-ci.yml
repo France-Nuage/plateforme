@@ -1,7 +1,7 @@
 stages:
-  - migrate
   - build
   - test
+  - migrate
   - deployment
 
 include:
