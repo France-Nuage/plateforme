@@ -1,7 +1,7 @@
-#cache:
-#  paths:
-#    - apps/api/node_modules/
-#    - node_modules/
+cache:
+  paths:
+    - apps/api/node_modules/
+    - node_modules/
 
 api_build:
   stage: build
@@ -37,7 +37,7 @@ api_test:
     - export DB_USER=$POSTGRES_USER DB_PASSWORD=$POSTGRES_PASSWORD DB_DATABASE=$POSTGRES_DB DB_HOST=postgres DB_PORT=5432
     - npm install
     - node ace migration:run
-#    - node ace db:seed
+    #    - node ace db:seed
     - node ace test
   allow_failure: true
 
