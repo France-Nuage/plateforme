@@ -3,7 +3,7 @@ import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Type from '#models/iam/type'
 
 export default class Service extends BaseModel {
-  public static table = 'iam.services'
+  public static table = 'catalog.services'
 
   @column({ isPrimary: true, columnName: 'service__id' })
   declare id: string
