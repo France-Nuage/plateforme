@@ -11,6 +11,8 @@ api_build:
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:$CI_COMMIT_SHORT_SHA
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
     - docker build -f apps/api/Dockerfile -t $DOCKER_IMAGE .
     - docker push $DOCKER_IMAGE
