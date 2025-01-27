@@ -20,7 +20,7 @@
 
       <c-dropdown-item>
         <template #default v-slot="{ active }">
-          <nuxt-link class="h-full w-full block" to="/profile/preferences">Your profile</nuxt-link>
+          <nuxt-link class="h-full w-full block" to="/profile/preferences">Votre profile</nuxt-link>
         </template>
       </c-dropdown-item>
 
@@ -30,21 +30,21 @@
 <!--        </template>-->
 <!--      </c-dropdown-item>-->
 
-      <c-divider class="-mx-2 my-2" />
+<!--      <c-divider class="-mx-2 my-2" />-->
 
-      <c-dropdown-item>
-        <template #default v-slot="{ active }">
-          <nuxt-link to="/" class="h-full w-full block">Changelog</nuxt-link>
-        </template>
-      </c-dropdown-item>
+<!--      <c-dropdown-item>-->
+<!--        <template #default v-slot="{ active }">-->
+<!--          <nuxt-link to="/" class="h-full w-full block">Changelog</nuxt-link>-->
+<!--        </template>-->
+<!--      </c-dropdown-item>-->
 
-      <c-dropdown-item>
-        <template #default v-slot="{ active }">
-          <nuxt-link to="/" class="h-full w-full block">Support</nuxt-link>
-        </template>
-      </c-dropdown-item>
+<!--      <c-dropdown-item>-->
+<!--        <template #default v-slot="{ active }">-->
+<!--          <nuxt-link to="/" class="h-full w-full block">Support</nuxt-link>-->
+<!--        </template>-->
+<!--      </c-dropdown-item>-->
 
-      <c-divider class="-mx-2 my-2" />
+<!--      <c-divider class="-mx-2 my-2" />-->
 
       <c-dropdown-item>
         <template #default v-slot="{ active }">

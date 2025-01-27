@@ -10,7 +10,7 @@
 <!--    <div v-else>Aucun serveur pour le moment</div>-->
 <!---->
 <!--    <c-button class="mt-8" @click="createServer({ name: '' })" size="sm">Ajouter un serveur</c-button>-->
-  plop
+    Bienvenue sur France-Nuage
   </nuxt-layout>
 </template>
 
