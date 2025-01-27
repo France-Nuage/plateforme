@@ -9,21 +9,21 @@ fi
 if ! getent passwd france-nuage-agent > /dev/null 2>&1; then
     sudo useradd -r -s /usr/sbin/nologin -g france-nuage-agent france-nuage-agent
 fi
-
+echo "User and group created"
 # Create the log directory and set permissions
 LOG_DIR="/var/log/france-nuage-agent"
 LOG_FILE="$LOG_DIR/metrics.logs"
-mkdir -p $LOG_DIR
-touch $LOG_FILE
-chown france-nuage-agent:france-nuage-agent $LOG_DIR $LOG_FILE
-chmod 755 $LOG_DIR
-chmod 644 $LOG_FILE
+sudo mkdir -p $LOG_DIR
+sudo touch $LOG_FILE
+sudo chown france-nuage-agent:france-nuage-agent $LOG_DIR $LOG_FILE
+sudo chmod 755 $LOG_DIR
+sudo chmod 644 $LOG_FILE
 
 npm i
 
 # Reload systemd manager configuration
-systemctl daemon-reload
+sudo systemctl daemon-reload
 
 # Enable and start the service
-systemctl enable france-nuage-agent.service
-systemctl start france-nuage-agent.service
+sudo systemctl enable france-nuage-agent.service
+sudo systemctl start france-nuage-agent.service
