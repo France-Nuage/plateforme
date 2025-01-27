@@ -27,8 +27,8 @@ console.error = function (message: any) {
     logStdout.write(util.format(message) + '\n');
 };
 //change the endpoint to the correct one and their ports
-const serverInfoEndpoint = "http://localhost:42559/api/v1/infrastructure/metrics";
-const quotasEndpoint = "http://localhost:42559/api/v1/infrastructure/metrics/get_utilisation/";
+const serverInfoEndpoint = "http://localhost:42153/api/v1/infrastructure/metrics";
+const quotasEndpoint = "http://localhost:42153/api/v1/infrastructure/metrics/get_utilisation/";
 
 console.log('Initializing ServerInfoCollector and QuotasManager...');
 const serverInfoCollector = new ServerInfoCollector();
