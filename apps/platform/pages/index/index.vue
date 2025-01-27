@@ -1,7 +1,7 @@
 <template>
   <nuxt-layout>
     <h1 class="text-3xl font-bold underline">
-      Hello world!
+      Bienvenue sur France Nuage !
     </h1>
   </nuxt-layout>
 </template>

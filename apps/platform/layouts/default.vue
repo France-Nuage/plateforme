@@ -64,21 +64,21 @@
 
       <c-sidebar-navigation-group title="Général">
         <c-sidebar-navigation-item title="Tableau de bord" icon="home-2-bold-duotone" to="/dashboard" :active="route.path === '/dashboard'" />
-        <c-sidebar-navigation-item title="Équipes" icon="users-group-rounded-bold-duotone" to="/teams" :active="route.path === '/teams'" />
-        <c-sidebar-navigation-item title="Plan & facturation" icon="bill-list-bold-duotone" to="/billings" :active="route.path === '/billings'" />
+<!--        <c-sidebar-navigation-item title="Équipes" icon="users-group-rounded-bold-duotone" to="/teams" :active="route.path === '/teams'" />-->
+<!--        <c-sidebar-navigation-item title="Plan & facturation" icon="bill-list-bold-duotone" to="/billings" :active="route.path === '/billings'" />-->
         <c-sidebar-navigation-item title="Paramètres" icon="settings-bold-duotone" to="/settings" :active="route.path === '/settings'" />
       </c-sidebar-navigation-group>
 
 <!--      v-if="project"-->
       <c-sidebar-navigation-group v-if="$route.query.project">
         <c-sidebar-navigation-item title="Instances" icon="server-2-bold-duotone" to="/instances" :active="isActive('instances')" />
-        <c-sidebar-navigation-item title="Services" icon="bag-5-bold-duotone" to="/services" :active="isActive('services')" />
+<!--        <c-sidebar-navigation-item title="Services" icon="bag-5-bold-duotone" to="/services" :active="isActive('services')" />-->
       </c-sidebar-navigation-group>
 
-      <c-sidebar-navigation-group class="Documentations">
-        <c-sidebar-navigation-item title="Guides" icon="square-bottom-up-line-duotone" to="/instances" :active="isActive('/documentation/guides')" />
-        <c-sidebar-navigation-item title="Api référence" icon="square-bottom-up-line-duotone" to="/services" :active="isActive('/documentation/api')" />
-      </c-sidebar-navigation-group>
+<!--      <c-sidebar-navigation-group class="Documentations">-->
+<!--        <c-sidebar-navigation-item title="Guides" icon="square-bottom-up-line-duotone" to="/instances" :active="isActive('/documentation/guides')" />-->
+<!--        <c-sidebar-navigation-item title="Api référence" icon="square-bottom-up-line-duotone" to="/services" :active="isActive('/documentation/api')" />-->
+<!--      </c-sidebar-navigation-group>-->
 
     </c-sidebar>
 

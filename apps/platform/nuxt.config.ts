@@ -46,6 +46,12 @@ export default defineNuxtConfig({
     },
   },
 
+  routeRules: {
+    "/": {
+      redirect: "/dashboard",
+    },
+  },
+
   hooks: {
     'pages:extend' (pages) {
       function setMiddleware (pages: any) {
