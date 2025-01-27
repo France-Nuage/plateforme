@@ -18,7 +18,10 @@ console.log = function (message: any) {
     logStdout.write(util.format(message) + '\n');
 };
 
-console.error = console.log;
+console.error = function (message: any) {
+    logFile.write(util.format(message) + '\n');
+    logStdout.write(util.format(message) + '\n');
+};
 
 const serverInfoEndpoint = "http://localhost:3333/api/v1/infrastructure/metrics";
 const quotasEndpoint = "http://localhost:3333/api/v1/infrastructure/metrics/get_utilisation/";
@@ -39,4 +42,4 @@ async function sendData() {
 
 // Send data immediately and then every 5 seconds
 sendData();
-setInterval(sendData, 5000);
+setInterval(sendData, 20000);
