@@ -4,9 +4,7 @@ import { ServerInfoCollector } from "./ServerInfoCollector";
 import { QuotasManager } from "./QuotasManager";
 import { ApiSender } from "./ApiSender";
 
-const logFile = fs.createWriteStream('/var/log/myapp.log', { flags: 'a' });
-const logStdout = process.stdout;
-
+const logFile = fs.createWriteStream('/tmp/france-nuage-agent.log', { flags: 'a' });const logStdout = process.stdout;
 console.log = function (message: any) {
     logFile.write(util.format(message) + '\n');
     logStdout.write(util.format(message) + '\n');
