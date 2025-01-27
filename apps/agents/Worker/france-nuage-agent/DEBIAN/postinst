@@ -11,7 +11,7 @@ if ! getent passwd france-nuage-agent > /dev/null 2>&1; then
 fi
 
 # Create the log directory and set permissions
-LOG_DIR="../opt/france-nuage-agent/dist/var/log/france-nuage-agent"
+LOG_DIR="/var/log/france-nuage-agent"
 LOG_FILE="$LOG_DIR/metrics.logs"
 mkdir -p $LOG_DIR
 touch $LOG_FILE
