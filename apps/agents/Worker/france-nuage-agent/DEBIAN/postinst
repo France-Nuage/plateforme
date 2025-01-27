@@ -19,7 +19,16 @@ sudo chown france-nuage-agent:france-nuage-agent $LOG_DIR $LOG_FILE
 sudo chmod 755 $LOG_DIR
 sudo chmod 644 $LOG_FILE
 
-npm i
+cd /opt/france-nuage-agent
+# Clear npm cache
+npm cache clean --force
+# Install npm dependencies
+if ! npm install; then
+    echo "npm install failed"
+    exit 1
+else
+    echo "npm install succeeded"
+fi
 
 # Reload systemd manager configuration
 sudo systemctl daemon-reload
@@ -27,3 +36,4 @@ sudo systemctl daemon-reload
 # Enable and start the service
 sudo systemctl enable france-nuage-agent.service
 sudo systemctl start france-nuage-agent.service
+echo "Post-installation script completed successfully"

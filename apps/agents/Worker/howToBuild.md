@@ -12,7 +12,9 @@
 3. execute `tsc` in the /opt/france-nuage-agent/src folder
 4. in the production environment, execute (modify the version number) :
 ```bash
-fpm -s dir -t deb -n france-nuage-agent -v X.X.X     --prefix /   ./france-nuage-agent/opt/france-nuage-agent/dist/=/opt/france-nuage-agent/dist/     ./france-nuage-agent/usr/lib/systemd/
-system/france-nuage-agent.service=/etc/systemd/system/france-nuage-agent.service    ./france-nuage-agent/DEBIAN/
+ fpm -s dir -t deb -n france-nuage-agent -v 1.1.18     --prefix /     
+ --after-install ./france-nuage-agent/DEBIAN/postinst     
+ --before-remove ./france-nuage-agent/DEBIAN/prerm  
+    ./france-nuage-agent/opt/france-nuage-agent/dist/=./france-nuage-agent/opt/france-nuage-agent/dist/     ./france-nuage-agent/usr/lib/systemd/system/=/usr/lib/systemd/system/
 ```
 5. install the package with `dpkg -i france-nuage-agent_X.X.X_all.deb`
