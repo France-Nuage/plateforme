@@ -3,11 +3,11 @@ set -e
 
 # Create a new group and user for the service if they don't exist
 if ! getent group france-nuage-agent > /dev/null 2>&1; then
-    groupadd -r france-nuage-agent
+    sudo groupadd -r france-nuage-agent
 fi
 
 if ! getent passwd france-nuage-agent > /dev/null 2>&1; then
-    useradd -r -s /usr/sbin/nologin -g france-nuage-agent france-nuage-agent
+    sudo useradd -r -s /usr/sbin/nologin -g france-nuage-agent france-nuage-agent
 fi
 
 # Create the log directory and set permissions

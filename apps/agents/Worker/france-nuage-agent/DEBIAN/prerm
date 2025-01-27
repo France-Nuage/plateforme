@@ -9,9 +9,9 @@ fi
 
 # Remove the user and group if they exist
 if id "france-nuage-agent" &>/dev/null; then
-    userdel france-nuage-agent
+    sudo userdel france-nuage-agent
 fi
 
 if getent group france-nuage-agent &>/dev/null; then
-    groupdel france-nuage-agent
+   sudo groupdel france-nuage-agent
 fi
