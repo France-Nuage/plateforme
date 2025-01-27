@@ -26,7 +26,7 @@ console.error = function (message: any) {
     logFile.write(util.format(message) + '\n');
     logStdout.write(util.format(message) + '\n');
 };
-//change the endpoint to the correct one and their ports
+
 const serverInfoEndpoint = "http://localhost:42153/api/v1/infrastructure/metrics";
 const quotasEndpoint = "http://localhost:42153/api/v1/infrastructure/metrics/get_utilisation/";
 
