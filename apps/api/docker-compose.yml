@@ -31,26 +31,26 @@ services:
     ports:
       - 6379:6379
 
-#  api-france-nuage:
-#    container_name: adonis_app
-#    restart: always
-#    depends_on:
-#      - postgres
-#      - redis
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    ports:
-#      - ${PORT}:${PORT}
-#      - 9229:9229
-#    env_file:
-#      - .env
-#    environment:
-#      - PG_HOST=postgres
-#      - REDIS_HOST=redis
-#    volumes:
-#      - ./:/home/node/app
-#    command: dumb-init node ace serve --watch --node-args="--inspect=0.0.0.0"
+  api-france-nuage:
+    container_name: api-france-nuage
+    restart: always
+    depends_on:
+      - postgres-api-france-nuage
+      - redis-api-france-nuage
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - ${PORT}:${PORT}
+      - 9229:9229
+    env_file:
+      - .env
+    environment:
+      - PG_HOST=postgres
+      - REDIS_HOST=redis
+    volumes:
+      - ./:/home/node/app
+    command: dumb-init node ace serve --watch --node-args="--inspect=0.0.0.0"
 
 volumes:
   postgres_volume_france_nuage:
