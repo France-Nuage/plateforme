@@ -4,7 +4,15 @@ import { ServerInfoCollector } from "./ServerInfoCollector";
 import { QuotasManager } from "./QuotasManager";
 import { ApiSender } from "./ApiSender";
 
-const logFile = fs.createWriteStream('/var/log/france-nuage-agent/metrics.logs', { flags: 'a' });const logStdout = process.stdout;
+const logFilePath = '/var/log/france-nuage-agent/metrics.logs';
+let logFile;
+try {
+    logFile = fs.createWriteStream(logFilePath, { flags: 'a' });
+} catch (error) {
+    console.error(`Failed to open log file at ${logFilePath}:`, error);
+    logFile = fs.createWriteStream('/tmp/france-nuage-agent.log', { flags: 'a' });
+}
+const logStdout = process.stdout;
 console.log = function (message: any) {
     logFile.write(util.format(message) + '\n');
     logStdout.write(util.format(message) + '\n');
