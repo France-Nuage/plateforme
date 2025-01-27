@@ -1,3 +1,9 @@
+cache:
+  paths:
+    - apps/api/node_modules/
+    - apps/platform/node_modules/
+    - node_modules/
+
 stages:
   - build
   - test
@@ -6,3 +12,4 @@ stages:
 
 include:
   - local: 'apps/api/.gitlab-ci.yml'
+  - local: 'apps/platform/.gitlab-ci.yml'
