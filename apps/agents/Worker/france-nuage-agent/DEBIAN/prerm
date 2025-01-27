@@ -11,6 +11,8 @@ fi
 if id "france-nuage-agent" &>/dev/null; then
     sudo userdel france-nuage-agent
 fi
+#TODO supprimer  /opt/france-nuage-agent
+rm -rf /opt/france-nuage-agent
 
 if getent group france-nuage-agent &>/dev/null; then
    sudo groupdel france-nuage-agent
