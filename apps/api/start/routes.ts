@@ -32,6 +32,7 @@ const ZonesController = () => import('#controllers/v1/infrastructure/zones_contr
 const RegionsController = () => import('#controllers/v1/infrastructure/regions_controller')
 const PricingController = () => import('#controllers/v1/billing/price_controller')
 const PaymentMethodController = () => import('#controllers/v1/payment/payment_methods_controller')
+const RolesController = () => import('#controllers/v1/iam/roles_controller')
 
 router
   .group(() => {
@@ -47,6 +48,11 @@ router
         router.resource('pricing', PricingController)
         router.resource('payment-methods', PaymentMethodController)
 
+        router
+          .group(() => {
+            router.resource('roles', RolesController)
+          })
+          .prefix('iam')
         router
           .group(() => {
             router.resource('accounts', BillingAccountController)

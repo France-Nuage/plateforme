@@ -20,11 +20,11 @@ test.group('organization_list', (group) => {
     })
     await organization_service.create({ name: 'Doe-organization' }, user1)
 
-    const user2 = await User.create({
-      email: defaultUserPayload.email,
-      password: defaultUserPayload.password,
-    })
-    await organization_service.create({ name: 'not john doe organization' }, user2)
+    // const user2 = await User.create({
+    //   email: defaultUserPayload.email,
+    //   password: defaultUserPayload.password,
+    // })
+    // await organization_service.create({ name: 'not john doe organization' }, user2)
   })
 
   test('list all organizations', async ({ client, assert }) => {

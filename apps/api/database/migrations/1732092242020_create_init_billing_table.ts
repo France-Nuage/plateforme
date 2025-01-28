@@ -9,6 +9,7 @@ export default class extends BaseSchema {
         .uuid('payment_profile__id', { primaryKey: true })
         .defaultTo(this.raw('uuid_generate_v4()'))
       table.string('stripe_customer_id')
+      table.uuid('folder__id')
       table.timestamps(true)
 
       table

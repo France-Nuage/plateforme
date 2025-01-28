@@ -3,6 +3,9 @@
 
     <div v-if="resource" class="flex flex-col gap-4">
       <h1 class="mb-2">Autorisation pour {{ resource.type }} {{ navigationStore.$state[resource.type].name  }}</h1>
+
+      <add-member />
+
       <c-table
         name="organization_member"
         :headers="headers"
@@ -20,7 +23,6 @@
 
     <show-member ref="memberDrawer" />
 
-
   </nuxt-layout>
 </template>
 
@@ -28,6 +30,8 @@
 import CTable from "~/components/table/CTable.vue";
 import CBadge from "~/components/badge/CBadge.vue";
 import ShowMember from "~/pages/teams/local-components/showMember.vue";
+import CButton from "~/components/forms/CButton.vue";
+import AddMember from "~/pages/teams/local-components/addMember.vue";
 
 const { resource } = storeToRefs(useNavigationStore())
 const navigationStore = useNavigationStore()
@@ -40,8 +44,8 @@ const headers = [
   { key: "roles", label: "Rôles" },
 ]
 
-const clickOnRow = () => {
-  console.log(drawerRef)
+const clickOnRow = (item) => {
+  console.log(drawerRef, item.value.member)
 }
 
 const isOpen = ref(false)

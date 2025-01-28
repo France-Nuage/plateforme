@@ -186,7 +186,7 @@ export default class extends BaseSchema {
         .onDelete('cascade')
         .onUpdate('cascade')
 
-      table.unique(['policy__id', 'member__id', 'service__id'])
+      table.unique(['policy__id', 'member__id'])
     })
 
     // this.schema.createSchema('service')

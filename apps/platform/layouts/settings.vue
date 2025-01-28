@@ -71,14 +71,14 @@
 
       <c-sidebar-navigation-group title="Profile">
         <c-sidebar-navigation-item title="Préférences" icon="user-circle-bold-duotone" to="/profile/preferences" :active="route.path === '/profile/preferences'" />
-        <c-sidebar-navigation-item title="Token personnel" icon="key-bold-duotone" to="/profile/access-token" :active="route.path === '/profile/access-token'" />
+<!--        <c-sidebar-navigation-item title="Token personnel" icon="key-bold-duotone" to="/profile/access-token" :active="route.path === '/profile/access-token'" />-->
         <c-sidebar-navigation-item title="Sécurité" icon="lock-keyhole-bold-duotone" to="/profile/security" :active="route.path === '/profile/security'" />
       </c-sidebar-navigation-group>
 
-      <c-sidebar-navigation-group title="Documentations">
-        <c-sidebar-navigation-item title="Guides" icon="square-bottom-up-line-duotone" to="/instances" :active="isActive('/documentation/guides')" />
-        <c-sidebar-navigation-item title="Api référence" icon="square-bottom-up-line-duotone" to="/services" :active="isActive('/documentation/api')" />
-      </c-sidebar-navigation-group>
+<!--      <c-sidebar-navigation-group title="Documentations">-->
+<!--        <c-sidebar-navigation-item title="Guides" icon="square-bottom-up-line-duotone" to="/instances" :active="isActive('/documentation/guides')" />-->
+<!--        <c-sidebar-navigation-item title="Api référence" icon="square-bottom-up-line-duotone" to="/services" :active="isActive('/documentation/api')" />-->
+<!--      </c-sidebar-navigation-group>-->
 
     </c-sidebar>
 
