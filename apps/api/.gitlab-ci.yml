@@ -14,7 +14,7 @@ api_build:
 
 api_test:
   stage: test
-  image: node:22.11.0
+  image: node:22.13.1
   services:
     - postgres:15
     - redis:latest
@@ -38,7 +38,7 @@ api_test:
 
 api_db_migrate_staging:
   stage: migrate
-  image: node:22.11.0
+  image: node:22.13.1
   before_script:
     - cd apps/api
     - cp $API_ENV_FILE_STAGING .env
@@ -52,7 +52,7 @@ api_db_migrate_staging:
 
 api_db_migrate_production:
   stage: migrate
-  image: node:22.11.0
+  image: node:22.13.1
   before_script:
     - cd apps/api
     - cp $API_ENV_FILE_PRODUCTION .env
