@@ -25,7 +25,7 @@ services:
 
   redis-api-france-nuage:
     container_name: redis-api-france-nuage
-    image: redis:7-alpine
+    image: redis:6-alpine
     volumes:
       - redis_volume_france_nuage:/data
     ports:
