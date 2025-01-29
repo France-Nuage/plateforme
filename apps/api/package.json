@@ -46,7 +46,7 @@
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.7.5",
     "eslint": "^9.12.0",
-    "hot-hook": "^0.3.1",
+    "hot-hook": "^0.4.0",
     "pino-pretty": "^11.2.2",
     "prettier": "^3.3.3",
     "typescript": "~5.6"
