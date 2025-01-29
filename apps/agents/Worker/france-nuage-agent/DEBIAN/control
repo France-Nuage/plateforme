@@ -1,9 +1,0 @@
-Package: france-nuage-agent
-Version: 1.0
-Section: base
-Priority: optional
-Architecture: all
-Depends: nodejs (>= 14.0.0), npm
-Maintainer: Wessim Harmel wessim.harmel1@gmail.com
-Description: France Nuage Agent
- This package contains the France Nuage Agent script.

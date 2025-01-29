@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  france-nuage-agent:
+    container_name: france-nuage-agent
+    build:
+      context: ./opt/france-nuage-agent # Chemin vers le dossier contenant le Dockerfile
+      dockerfile: Dockerfile            # Nom du Dockerfile (assurez-vous qu'il existe ici)
+    ports:
+      - "3333:3333"
+    restart: always
+    environment:
+      NODE_ENV: production
+    volumes:
+      - ./opt/france-nuage-agent/src:/app/src # Optionnel : montage en local
