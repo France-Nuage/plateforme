@@ -78,14 +78,14 @@
   },
   "hotHook": {},
   "overrides": {
-    "strtok3": "8.0.1"
+    "strtok3": "9.1.1"
   },
   "resolutions": {
-    "strtok3": "8.0.1"
+    "strtok3": "9.1.1"
   },
   "pnpm": {
     "overrides": {
-      "strtok3": "8.0.1"
+      "strtok3": "9.1.1"
     }
   },
   "prettier": "@adonisjs/prettier-config"
