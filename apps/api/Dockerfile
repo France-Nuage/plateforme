@@ -8,7 +8,7 @@ COPY ./package.json ./package-lock.json ./turbo.json ./
 
 # Copy workspace files (apps and packages)
 COPY ./apps ./apps
-COPY ./packages ./packages
+#COPY ./packages ./packages
 
 # Install all dependencies (including dev dependencies) in the build stage
 RUN npm install
