@@ -1,5 +1,5 @@
 {
-  "name": "with-vue-nuxt",
+  "name": "@france-nuage/monorepo",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -8,7 +8,6 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "@japa/api-client": "^2.0.4",
     "prettier": "^3.2.5",
     "turbo": "^2.2.3"
   },
