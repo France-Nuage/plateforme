@@ -3,6 +3,7 @@ import Zone from '#models/infrastructure/zone'
 import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
 import Instance from '#models/infrastructure/instance'
 import Price from '#models/billing/price'
+import { proxmoxApi } from '../../../utils/ProxmoxHelper.js'
 
 const getNextVMID = async (url: string, token: string) => {
   try {
@@ -15,41 +16,6 @@ const getNextVMID = async (url: string, token: string) => {
   } catch (e) {
     throw new Error('Could not get next VMID')
     // throw new Error(e)
-  }
-}
-
-const createVM = async (
-  config: { vmid: string; nodeName: string; token: string; url: string },
-  options: { name: string; [_: string]: string | number | boolean }
-) => {
-  try {
-    const response = await axios.post(
-      `${config.url}/api2/json/nodes/${config.nodeName}/qemu`,
-      {
-        ...options,
-        vmid: Number.parseInt(config.vmid),
-      },
-      {
-        headers: {
-          Authorization: config.token,
-        },
-      }
-    )
-    return response.data.data
-  } catch (e) {
-    console.log(
-      `${config.url}/api2/json/nodes/${config.nodeName}/qemu`,
-      {
-        ...options,
-        vmid: Number.parseInt(config.vmid),
-      },
-      {
-        headers: {
-          Authorization: config.token,
-        },
-      }
-    )
-    throw new Error(e)
   }
 }
 
@@ -79,7 +45,7 @@ export default {
     const node = zone.clusters[0].nodes[0]
 
     const vmid = await getNextVMID(node.url, node.token)
-    await createVM(
+    await proxmoxApi.node.qemu.create(
       {
         vmid,
         nodeName: node.name,
