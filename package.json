@@ -12,12 +12,12 @@
     "prettier": "^3.2.5",
     "turbo": "^2.2.3"
   },
-  "packageManager": "npm@10.5.0",
+  "packageManager": "npm@10.9.2",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "volta": {
-    "node": "22.11.0"
+    "node": "22.13.1"
   }
 }
