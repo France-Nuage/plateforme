@@ -33,6 +33,7 @@ const RegionsController = () => import('#controllers/v1/infrastructure/regions_c
 const PricingController = () => import('#controllers/v1/billing/price_controller')
 const PaymentMethodController = () => import('#controllers/v1/payment/payment_methods_controller')
 const RolesController = () => import('#controllers/v1/iam/roles_controller')
+const QemuController = () => import('#controllers/internal/qemu_controller')
 
 router
   .group(() => {
@@ -62,6 +63,8 @@ router
         router
           .group(() => {
             router.resource('instances', InstancesController)
+            router.post('instances/:id/start', [InstancesController, 'start'])
+            router.post('instances/:id/stop', [InstancesController, 'stop'])
             router.post('price', [InstancesController, 'getPrice'])
           })
           .prefix('compute')
@@ -87,3 +90,12 @@ router
     router.post('/auth/reset-password', [AuthController, 'resetPassword'])
   })
   .prefix('api/v1')
+
+router
+  .group(() => {
+    router.get('hypervisor/nodes/:node_id/qemu/:qemu_id/status/current', [
+      QemuController,
+      'currentStatus',
+    ])
+  })
+  .prefix('api/internal')
