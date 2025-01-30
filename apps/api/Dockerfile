@@ -1,5 +1,5 @@
 # Build Stage
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /usr/src/app
 
@@ -8,7 +8,7 @@ COPY ./package.json ./package-lock.json ./turbo.json ./
 
 # Copy workspace files (apps and packages)
 COPY ./apps ./apps
-COPY ./packages ./packages
+#COPY ./packages ./packages
 
 # Install all dependencies (including dev dependencies) in the build stage
 RUN npm install
@@ -17,7 +17,7 @@ RUN npm install
 RUN npx turbo run build --filter=api
 
 # Production Stage
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /usr/src/app
 
