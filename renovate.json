@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "autoApprove": true,
+  "rangeStrategy": "auto",
+  "labels": ["source::renovate"],
+  "automergeType": "branch",
+  "baseBranches": ["master"],
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["docker-compose", "dockerfile", "gitlabci", "gitlabci-include"],
+      "automerge": false
+    }
+  ]  
+}
