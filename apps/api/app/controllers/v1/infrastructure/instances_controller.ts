@@ -1,10 +1,10 @@
-import type { HttpContext } from '@adonisjs/core/http'
+import type {HttpContext} from '@adonisjs/core/http'
 import InstancePolicy from '#policies/infrastructure/instance_policy'
 import instance_service from '#services/v1/infrastructure/instance_service'
-import {
-  createInstanceValidator,
-  getInstanceCurrentPriceValidator,
-} from '#validators/v1/infrastructure/instance'
+import {createInstanceValidator, getInstanceCurrentPriceValidator,} from '#validators/v1/infrastructure/instance'
+import {proxmoxApi} from '../../../utils/ProxmoxHelper.js'
+import Node from '#models/infrastructure/node'
+import Instance, {Status} from '#models/infrastructure/instance'
 
 export default class InstancesController {
   /**
@@ -46,11 +46,59 @@ export default class InstancesController {
   /**
    * Delete record
    */
-  async destroy({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
+  async destroy({ response, params }: HttpContext) {
+    const instance = await Instance.findOrFail(params.node_id)
+    const node = await Node.findOrFail(instance.nodeId)
+    await proxmoxApi.node.qemu.destroy({
+      url: node.url,
+      token: node.token,
+      nodeName: node.name,
+      vmid: instance.pveVmId,
     })
+
+    instance.status = Status.Deleting
+    await instance.save()
+
+    return response.ok(instance)
+  }
+
+  /**
+   * Start instance
+   */
+  async start({ response, params }: HttpContext) {
+    const instance = await Instance.findOrFail(params.node_id)
+    const node = await Node.findOrFail(instance.nodeId)
+
+    await proxmoxApi.node.qemu.status.change({
+      url: node.url,
+      token: node.token,
+      nodeName: node.name,
+      vmid: instance.pveVmId,
+      status: 'start',
+    })
+    instance.status = Status.Staging
+    await instance.save()
+
+    return response.ok(instance)
+  }
+
+  /**
+   * Stop instance
+   */
+  async stop({ response, params }: HttpContext) {
+    const instance = await Instance.findOrFail(params.node_id)
+    const node = await Node.findOrFail(instance.nodeId)
+    await proxmoxApi.node.qemu.status.change({
+      url: node.url,
+      token: node.token,
+      nodeName: node.name,
+      vmid: instance.pveVmId,
+      status: 'stop',
+    })
+
+    instance.status = Status.Stopping
+    await instance.save()
+    return response.ok(instance)
   }
 
   async getPrice({ response, request }: HttpContext) {
@@ -59,87 +107,3 @@ export default class InstancesController {
     return response.ok(await instance_service.getCurrentPrice({ ...payload }))
   }
 }
-
-// import { createMachine } from "xstate";
-//
-// export const machine = createMachine({
-//   context: {},
-//   id: "status",
-//   initial: "Init",
-//   states: {
-//     Init: {
-//       on: {
-//         created: {
-//           target: "Created",
-//         },
-//       },
-//       description:
-//         "The initial state where the status is not yet created. The only transition from this state is to the Created state.",
-//     },
-//     Created: {
-//       on: {
-//         running: {
-//           target: "Running",
-//         },
-//         stop: {
-//           target: "Stop",
-//         },
-//         restart: {
-//           target: "Restart",
-//         },
-//         delete: {
-//           target: "Delete",
-//         },
-//       },
-//       description:
-//         "The created state where the status is set up. It can transition to Running, Stop, or Restart.",
-//     },
-//     Running: {
-//       on: {
-//         stop: {
-//           target: "Stop",
-//         },
-//         restart: {
-//           target: "Restart",
-//         },
-//         delete: {
-//           target: "Delete",
-//         },
-//       },
-//       description:
-//         "The running state where the status is actively executing. It can transition to Stop, Restart, or remain in Running.",
-//     },
-//     Stop: {
-//       on: {
-//         delete: {
-//           target: "Delete",
-//         },
-//         restart: {
-//           target: "Restart",
-//         },
-//       },
-//       description:
-//         "The stop state where the status is halted. It cannot transition to any other state.",
-//     },
-//     Restart: {
-//       on: {
-//         running: {
-//           target: "Running",
-//         },
-//         stop: {
-//           target: "Stop",
-//         },
-//         delete: {
-//           target: "Delete",
-//         },
-//       },
-//       description:
-//         "The restart state where the status is reset and can transition to Running or Stop.",
-//     },
-//     Delete: {
-//       type: "final",
-//       description:
-//         "The restart state where the status is reset and can transition to Running or Stop.",
-//     },
-//   },
-// }).withConfig({});
