@@ -8,7 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
-import { middleware } from '#start/kernel'
+import {middleware} from '#start/kernel'
 // import transmit from '@adonisjs/transmit/services/main'
 
 // transmit.registerRoutes((route) => {
@@ -85,6 +85,7 @@ router
     router
       .group(() => {
         router.post('/metrics', [MetricsController, 'store'])
+        router.post('/metrics/get_utilisation/', [MetricsController, 'getUtilisation'])
       })
       .prefix('infrastructure')
     router.post('/auth/register', [AuthController, 'register'])
