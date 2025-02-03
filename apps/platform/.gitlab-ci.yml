@@ -1,6 +1,6 @@
 test-e2e:
   stage: test
-  image: mcr.microsoft.com/playwright:v1.50.0-noble
+  image: mcr.microsoft.com/playwright:v1.50.1-noble
   before_script:
     - cd apps/platform
   script:
