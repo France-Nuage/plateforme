@@ -9,6 +9,8 @@ services:
     restart: always
     environment:
       NODE_ENV: production
+      INTERVAL: 10000 #TO interval in milliseconds
       API_URL:
       CF_ID:
       CF_SECRET:
+
