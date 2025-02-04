@@ -83,7 +83,7 @@ export default class MetricsController {
 
     try {
       // Push data to Mimir
-      const mimirUrl = 'https://mimir.france-nuage.fr/api/v1/push' // Replace with your Mimir URL
+      const mimirUrl = Env.get('MIMIR_URL') + '/api/v1/push'
       const mimirResponse = await axios.post(mimirUrl, compressed, {
         headers: {
           'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
