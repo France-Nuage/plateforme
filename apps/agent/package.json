@@ -10,8 +10,7 @@
     "dev": "tsc --watch",
     "lint": "eslint src/**/*.ts",
     "test": "jest",
-    "clean": "rimraf dist",
-    "prepare": "npm run build"
+    "clean": "rimraf dist"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -27,7 +26,8 @@
     "@types/node": "^22.10.7",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
-    "disk-space": "^1.1.0"
+    "disk-space": "^1.1.0",
+    "typescript": "^5.7.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

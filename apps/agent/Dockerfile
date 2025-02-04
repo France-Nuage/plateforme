@@ -31,7 +31,7 @@ COPY ./apps/agent/package*.json ./apps/agent/
 COPY --from=build /usr/src/app/apps/agent/dist ./dist
 
 # Install only production dependencies (omit dev dependencies)
-RUN npm install --omit=dev --production
+RUN npm install --omit=dev --ignore-scripts
 
 
 # Use non-root user for better security
