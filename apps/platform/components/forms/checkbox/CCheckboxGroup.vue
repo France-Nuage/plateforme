@@ -5,11 +5,11 @@
 </template>
 
 <script>
-import { provide, ref } from 'vue';
+import { provide, ref } from "vue";
 
 export default {
   props: {
-    modelValue: Array
+    modelValue: Array,
   },
   setup(props, { emit }) {
     const selected = ref(props.modelValue || []);
@@ -21,12 +21,12 @@ export default {
       } else {
         selected.value.splice(index, 1);
       }
-      emit('update:modelValue', selected.value);
+      emit("update:modelValue", selected.value);
     };
 
-    provide('checkboxGroup', { selected, updateValue });
+    provide("checkboxGroup", { selected, updateValue });
 
     return { selected };
-  }
+  },
 };
 </script>

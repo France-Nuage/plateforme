@@ -1,5 +1,5 @@
 import { HttpContext } from '@adonisjs/core/http'
-import { proxmoxApi } from '../../utils/ProxmoxHelper.js'
+import { proxmoxApi } from '#utils/proxmox_helper'
 import Node from '#models/infrastructure/node'
 
 export default class QemuController {

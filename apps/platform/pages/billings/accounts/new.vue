@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import CBreadcrumb from "~/components/breadcrumb/CBreadcrumb.vue";
 const pages = ref([
-  { name: 'Information', href: '#', current: true },
-  { name: 'Payment', href: '#', current: false }
+  { name: "Information", href: "#", current: true },
+  { name: "Payment", href: "#", current: false },
 ]);
 </script>

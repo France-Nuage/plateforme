@@ -1,7 +1,9 @@
 <template>
   <div class="px-4 pt-6 sm:px-6">
     <div class="flex items-center justify-between">
-      <DialogTitle class="text-lg font-semibold text-white">{{ props.title }}</DialogTitle>
+      <DialogTitle class="text-lg font-semibold text-white">{{
+        props.title
+      }}</DialogTitle>
     </div>
     <div v-if="props.description" class="mt-2">
       <p class="text-sm text-gray-400 leading-6" v-html="props.description" />
@@ -17,5 +19,5 @@ interface Props {
   description?: string;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 </script>

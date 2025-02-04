@@ -1,10 +1,13 @@
-import type {HttpContext} from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http'
 import InstancePolicy from '#policies/infrastructure/instance_policy'
 import instance_service from '#services/v1/infrastructure/instance_service'
-import {createInstanceValidator, getInstanceCurrentPriceValidator,} from '#validators/v1/infrastructure/instance'
-import {proxmoxApi} from '../../../utils/ProxmoxHelper.js'
+import {
+  createInstanceValidator,
+  getInstanceCurrentPriceValidator,
+} from '#validators/v1/infrastructure/instance'
+import { proxmoxApi } from '#utils/proxmox_helper'
 import Node from '#models/infrastructure/node'
-import Instance, {Status} from '#models/infrastructure/instance'
+import Instance, { Status } from '#models/infrastructure/instance'
 
 export default class InstancesController {
   /**

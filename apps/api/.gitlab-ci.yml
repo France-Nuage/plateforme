@@ -95,4 +95,3 @@ api_deploy_prod:
     - docker push $DOCKER_IMAGE
   only:
     - master
-

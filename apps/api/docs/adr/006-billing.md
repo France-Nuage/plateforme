@@ -1,18 +1,17 @@
 Organizations :
 GET https://cloudbilling.googleapis.com/v1/{parent=organizations/*}/billingAccounts (https://cloud.google.com/billing/docs/reference/rest/v1/organizations.billingAccounts/list)
 POST https://cloudbilling.googleapis.com/v1/{parent=organizations/*}/billingAccounts
-  body (https://cloud.google.com/billing/docs/reference/rest/v1/billingAccounts#BillingAccount)
+body (https://cloud.google.com/billing/docs/reference/rest/v1/billingAccounts#BillingAccount)
 
-
-Projects : 
+Projects :
 GET https://cloudbilling.googleapis.com/v1/{name=projects/*}/billingInfo (https://cloud.google.com/billing/docs/reference/rest/v1/projects/getBillingInfo)
 PUT https://cloudbilling.googleapis.com/v1/{name=projects/*}/billingInfo (https://cloud.google.com/billing/docs/reference/rest/v1/projects/updateBillingInfo)
-  BODY : https://cloud.google.com/billing/docs/reference/rest/v1/ProjectBillingInfo
+BODY : https://cloud.google.com/billing/docs/reference/rest/v1/ProjectBillingInfo
 
 Sub account :
 GET https://cloudbilling.googleapis.com/v1/{parent=billingAccounts/*}/subAccounts (https://cloud.google.com/billing/docs/reference/rest/v1/billingAccounts.subAccounts/list)
-  RESPONSE : https://cloud.google.com/billing/docs/reference/rest/v1/ListBillingAccountsResponse
-    https://cloud.google.com/billing/docs/reference/rest/v1/billingAccounts#BillingAccount
+RESPONSE : https://cloud.google.com/billing/docs/reference/rest/v1/ListBillingAccountsResponse
+https://cloud.google.com/billing/docs/reference/rest/v1/billingAccounts#BillingAccount
 
 ![img_1.png](img_1.png)
 

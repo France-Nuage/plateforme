@@ -1,4 +1,4 @@
-import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
+import RequestQueryBuilder from '#utils/request_query_builder'
 // import User from '#models/user'
 import Account from '#models/billing/billing_account'
 

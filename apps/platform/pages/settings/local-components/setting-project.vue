@@ -1,5 +1,7 @@
 <template>
-  <h1 class="text-3xl font-semibold mb-8 dark:text-gray-300">{{ project.name }}</h1>
+  <h1 class="text-3xl font-semibold mb-8 dark:text-gray-300">
+    {{ project.name }}
+  </h1>
 
   <TabGroup>
     <c-tab-list>
@@ -18,10 +20,10 @@
 </template>
 
 <script setup lang="ts">
-import { TabGroup, TabPanels, TabPanel } from '@headlessui/vue'
+import { TabGroup, TabPanels, TabPanel } from "@headlessui/vue";
 import CTabList from "~/components/tabs/CTabList.vue";
 import CTab from "~/components/tabs/CTab.vue";
 import General from "~/pages/settings/projects/local-components/general.vue";
 
-const { project } = storeToRefs(useNavigationStore())
+const { project } = storeToRefs(useNavigationStore());
 </script>

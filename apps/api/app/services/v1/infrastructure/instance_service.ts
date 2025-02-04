@@ -1,9 +1,9 @@
 import axios from 'axios'
 import Zone from '#models/infrastructure/zone'
-import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
+import RequestQueryBuilder from '#utils/request_query_builder'
 import Instance from '#models/infrastructure/instance'
 import Price from '#models/billing/price'
-import { proxmoxApi } from '../../../utils/ProxmoxHelper.js'
+import { proxmoxApi } from '#utils/proxmox_helper'
 
 const getNextVMID = async (url: string, token: string) => {
   try {

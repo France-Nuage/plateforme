@@ -1,9 +1,6 @@
 <template>
   <c-card>
-    <card-c-card-header
-      title="Informations"
-    >
-    </card-c-card-header>
+    <card-c-card-header title="Informations"> </card-c-card-header>
     <c-card-body>
       <div class="grid grid-cols-12 w-full mb-8 gap-4">
         <div class="col-span-3">
@@ -55,34 +52,43 @@ import CCard from "~/components/card/CCard.vue";
 import CCardBody from "~/components/card/CCardBody.vue";
 import CLabel from "~/components/forms/CLabel.vue";
 import CSelect from "~/components/forms/select/CSelect.vue";
-import {useRegionStore} from "~/stores/compute/region";
+import { useRegionStore } from "~/stores/compute/region";
 
 interface Props {
   modelValue: any;
 }
 
-const props = defineProps<Props>()
-const regionSelected = ref()
-const instanceName = ref('')
-const zoneSelected = ref()
-const { loadRegions } = useRegionStore()
-const { regions } = storeToRefs(useRegionStore())
+const props = defineProps<Props>();
+const regionSelected = ref();
+const instanceName = ref("");
+const zoneSelected = ref();
+const { loadRegions } = useRegionStore();
+const { regions } = storeToRefs(useRegionStore());
 
 onMounted(() => {
-  loadRegions({ includes: ['zones'] }).then(response => {
+  loadRegions({ includes: ["zones"] }).then((response) => {
     regionSelected.value = response.data[0];
-  })
-})
+  });
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(["update:modelValue"]);
 
-watch(() => regionSelected.value, (value) => {
-  emit('update:modelValue', { ...props.modelValue, regionId: value.id })
-})
-watch(() => instanceName.value, (value) => {
-  emit('update:modelValue', { ...props.modelValue, name: value })
-})
-watch(() => zoneSelected.value, (value) => {
-  emit('update:modelValue', { ...props.modelValue, zoneId: value.id })
-})
+watch(
+  () => regionSelected.value,
+  (value) => {
+    emit("update:modelValue", { ...props.modelValue, regionId: value.id });
+  },
+);
+watch(
+  () => instanceName.value,
+  (value) => {
+    emit("update:modelValue", { ...props.modelValue, name: value });
+  },
+);
+watch(
+  () => zoneSelected.value,
+  (value) => {
+    emit("update:modelValue", { ...props.modelValue, zoneId: value.id });
+  },
+);
 </script>

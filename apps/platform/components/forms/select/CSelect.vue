@@ -18,7 +18,7 @@
         leave-to-class="opacity-0"
       >
         <ListboxOptions
-            class="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm"
+          class="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm"
         >
           <ListboxOption
             v-for="collection in props.collections"
@@ -33,7 +33,8 @@
               ]"
             >
               <span
-                :class="[selected ? 'font-medium' : 'font-normal',
+                :class="[
+                  selected ? 'font-medium' : 'font-normal',
                   'block truncate',
                 ]"
               >
@@ -59,8 +60,8 @@ import {
   ListboxButton,
   ListboxOptions,
   ListboxOption,
-} from '@headlessui/vue'
-import { CheckIcon } from '@heroicons/vue/20/solid'
+} from "@headlessui/vue";
+import { CheckIcon } from "@heroicons/vue/20/solid";
 import CTextField from "~/components/forms/CTextField.vue";
 
 interface Props {
@@ -71,19 +72,22 @@ interface Props {
   id: string;
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
-const selectedItem = ref(null)
-const textFieldValue = ref('')
+const props = defineProps<Props>();
+const emit = defineEmits(["update:modelValue"]);
+const selectedItem = ref(null);
+const textFieldValue = ref("");
 
-watch(() => props.modelValue, () => {
-  selectedItem.value = props.modelValue
-})
+watch(
+  () => props.modelValue,
+  () => {
+    selectedItem.value = props.modelValue;
+  },
+);
 
 watch(selectedItem, () => {
-  textFieldValue.value = selectedItem.value.name
-  emit('update:modelValue', selectedItem.value)
-})
+  textFieldValue.value = selectedItem.value.name;
+  emit("update:modelValue", selectedItem.value);
+});
 
-const plop = ''
+const plop = "";
 </script>

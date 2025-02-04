@@ -1,7 +1,6 @@
 <template>
   <nuxt-layout name="authentification" title="Rénitialisation du mot de passe">
     <form class="space-y-6" @submit.prevent="onSubmit">
-
       <c-text-field
         v-model.trim="formData.password"
         id="password"
@@ -18,7 +17,7 @@
         autocomplete="password"
         name="confirm-password"
         type="password"
-          label="Confirmer votre mot de passe"
+        label="Confirmer votre mot de passe"
       />
 
       <div>
@@ -35,33 +34,30 @@ import CTextField from "~/components/forms/CTextField.vue";
 import CButton from "~/components/forms/CButton.vue";
 
 const formData = ref({
-  password: '',
-})
+  password: "",
+});
 
-const router = useRouter()
-const route = useRoute()
-const confirmPassword = ref('')
-const loading = ref(false)
+const router = useRouter();
+const route = useRoute();
+const confirmPassword = ref("");
+const loading = ref(false);
 const { resetPassword } = useAuthStore();
 
 const onSubmit = () => {
-
-  if (confirmPassword.value === formData.value.password)
-  {
-    loading.value = true
+  if (confirmPassword.value === formData.value.password) {
+    loading.value = true;
     resetPassword({
       password: formData.value.password,
       token: route.query.token,
-    }).then(() => {
-      router.push('/auth/login')
     })
-    .finally(() => {
-      loading.value = false
-    });
+      .then(() => {
+        router.push("/auth/login");
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
-}
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

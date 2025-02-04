@@ -1,6 +1,4 @@
-<script setup lang="ts">
-
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div>
@@ -8,10 +6,8 @@
     <main>
       <slot />
     </main>
-    <Footer/>
+    <Footer />
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
