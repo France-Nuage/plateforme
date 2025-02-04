@@ -10,6 +10,7 @@ export enum Status {
   Staging = 'STAGING',
   Running = 'RUNNING',
   Stopping = 'STOPPING',
+  Stopped = 'STOPPED',
   Terminated = 'TERMINATED',
   Deleting = 'DELETING',
   Deleted = 'DELETED',
@@ -57,7 +58,7 @@ export default class Instance extends BaseModel {
   @beforeUpdate()
   public static async validate(instance: Instance) {
     if (instance.$dirty.status !== undefined) {
-      const fromStatus = instance.$attributes.status as Status
+      const fromStatus = instance.$original.status as Status
       const toStatus = instance.$dirty.status as Status
 
       if (!Instance.fsm[fromStatus]?.includes(toStatus)) {
@@ -70,7 +71,8 @@ export default class Instance extends BaseModel {
     [Status.Provisioning]: [Status.Staging, Status.Terminated],
     [Status.Staging]: [Status.Running, Status.Terminated],
     [Status.Running]: [Status.Stopping, Status.Terminated, Status.Deleting],
-    [Status.Stopping]: [Status.Terminated],
+    [Status.Stopping]: [Status.Stopped, Status.Terminated],
+    [Status.Stopped]: [Status.Running, Status.Deleting],
     [Status.Terminated]: [Status.Running, Status.Deleting],
     [Status.Deleting]: [Status.Deleted],
     [Status.Deleted]: [],

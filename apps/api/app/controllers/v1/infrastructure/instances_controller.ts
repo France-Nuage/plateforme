@@ -4,6 +4,8 @@ import instance_service from '#services/v1/infrastructure/instance_service'
 import {
   createInstanceValidator,
   getInstanceCurrentPriceValidator,
+  queryInstancesValidator,
+  updateInstanceValidator,
 } from '#validators/v1/infrastructure/instance'
 import { proxmoxApi } from '#utils/proxmox_helper'
 import Node from '#models/infrastructure/node'
@@ -15,7 +17,9 @@ export default class InstancesController {
    */
   async index({ response, request, bouncer }: HttpContext) {
     await bouncer.with(InstancePolicy).authorize('index')
-    return response.ok(await instance_service.list(request.qs().includes))
+    const validated = await queryInstancesValidator.validate(request.qs())
+
+    return response.ok(await instance_service.list(validated))
   }
 
   /**
@@ -39,11 +43,12 @@ export default class InstancesController {
   /**
    * Handle form submission for the edit action
    */
-  async update({ response, params, request }: HttpContext) {
-    return response.notImplemented({
-      params: params,
-      request: request,
-    })
+  async update({ response, params, request, bouncer }: HttpContext) {
+    await bouncer.with(InstancePolicy).authorize('update')
+    const instance = await instance_service.get(params.id, request.qs().includes)
+    const payload = await request.validateUsing(updateInstanceValidator)
+    const updated = await instance_service.update(instance, payload)
+    return response.ok(updated)
   }
 
   /**
