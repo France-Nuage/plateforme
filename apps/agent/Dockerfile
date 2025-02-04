@@ -1,40 +1,41 @@
-FROM node:18.19-slim AS builder
+# Build Stage
+FROM node:22-alpine AS build
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Installation des dépendances
-COPY package*.json ./
-COPY tsconfig.json ./
-RUN npm ci
-RUN npm install -g typescript
+# Copy monorepo root files (package.json, package-lock.json, turbo.json)
+COPY ./package.json ./package-lock.json ./turbo.json ./
 
-# Build de l'application
-COPY src ./src
-RUN npm run build
+# Copy workspace files (apps and packages)
+COPY ./apps ./apps
+#COPY ./packages ./packages
 
-# Production stage
-FROM node:18.19-slim
+# Install all dependencies (including dev dependencies) in the build stage
+RUN npm install
 
-WORKDIR /app
+# Build the app (specific to the "agent" app in the monorepo)
+RUN npx turbo run build --filter=agent
 
-# Création d'un utilisateur non-root
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nodeuser
+# Production Stage
+FROM node:22-alpine
 
-# Configuration de l'environnement
-ENV NODE_ENV=production
+WORKDIR /usr/src/app
 
-# Copie des fichiers nécessaires uniquement
-COPY package*.json ./
-RUN npm ci --only=production
-COPY --from=builder /app/dist ./dist
+# Copy the root package.json and package-lock.json to the production image
+COPY ./package.json ./package-lock.json ./
 
-# Changement d'utilisateur pour plus de sécurité
-USER nodeuser
+# Copy the app-specific package.json files (if needed for production dependencies)
+COPY ./apps/agent/package*.json ./apps/agent/
 
-# Healthcheck (optionnel mais recommandé)
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD node -e "process.exit(1)"
+# Copy the built files from the build stage
+COPY --from=build /usr/src/app/apps/agent/dist ./dist
 
-# Point d'entrée de l'application
+# Install only production dependencies (omit dev dependencies)
+RUN npm install --omit=dev --production
+
+
+# Use non-root user for better security
+USER node
+
+# Start the application
 CMD ["node", "dist/france-nuage-agent.js"]
