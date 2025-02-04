@@ -1,14 +1,25 @@
-# Utiliser une image Node.js comme base
-FROM node:18
+FROM node:18.19-slim AS builder
 
-# Installer TypeScript globalement
-RUN npm install -g typescript
-
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier les fichiers de configuration
-COPY package*.json tsconfig.json ./
+# Installation des dépendances
+COPY package*.json ./
+COPY tsconfig.json ./
+RUN npm ci
+RUN npm install -g typescript
+
+# Build de l'application
+COPY src ./src
+RUN npm run build
+
+# Production stage
+FROM node:18.19-slim
+
+WORKDIR /app
+
+# Création d'un utilisateur non-root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodeuser
 
 # Installer les dépendances
 # Build Stage
@@ -25,6 +36,8 @@ COPY ./apps ./apps
 
 # Install all dependencies (including dev dependencies) in the build stage
 RUN npm install
+# Configuration de l'environnement
+ENV NODE_ENV=production
 
 # Copier les fichiers sources
 COPY src ./src
@@ -41,17 +54,26 @@ COPY ./package.json ./package-lock.json ./
 
 # Copy the app-specific package.json files (if needed for production dependencies)
 COPY ./apps/agent/package*.json ./apps/agent/
+# Copie des fichiers nécessaires uniquement
+COPY package*.json ./
+RUN npm ci --only=production
+COPY --from=builder /app/dist ./dist
 
 # Compiler les fichiers TypeScript en JavaScript
 RUN tsc
 # Copy the built files from the build stage
 COPY --from=build /usr/src/app/apps/agent/dist ./dist
+# Changement d'utilisateur pour plus de sécurité
+USER nodeuser
 
 # Exposer le port si nécessaire (ajustez selon votre app)
 EXPOSE 3333
 # Install only production dependencies (omit dev dependencies)
 RUN npm install typescript -g
 RUN npm install --omit=dev --ignore-scripts
+# Healthcheck (optionnel mais recommandé)
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD node -e "process.exit(1)"
 
 # Démarrer l'application (ajustez si le point d'entrée est différent)
 
@@ -59,4 +81,5 @@ RUN npm install --omit=dev --ignore-scripts
 USER node
 
 # Start the application
+# Point d'entrée de l'application
 CMD ["node", "dist/france-nuage-agent.js"]
