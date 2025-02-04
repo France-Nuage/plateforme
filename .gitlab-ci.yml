@@ -13,3 +13,4 @@ stages:
 include:
   - local: 'apps/api/.gitlab-ci.yml'
   - local: 'apps/platform/.gitlab-ci.yml'
+  - local: 'apps/worker-vm-status/.gitlab-ci.yml'

@@ -20,10 +20,10 @@ const getNextVMID = async (url: string, token: string) => {
 }
 
 export default {
-  list: async function (includes: Array<string>) {
+  list: async function ({ includes, page, perPage }: { includes?: Array<string>; page?: number; perPage?: number }) {
     return new RequestQueryBuilder(Instance.query())
       .withIncludes(includes)
-      .withPagination(1, 10)
+      .withPagination(page, perPage)
       .apply()
   },
   get: async function (id: string, includes: Array<string>) {
@@ -61,6 +61,9 @@ export default {
       pveVmId: vmid,
       nodeId: node.id,
     })
+  },
+  update: async function (instance: Instance, data: Partial<Instance>) {
+    return instance.merge(data).save()
   },
   getCurrentPrice: async (options: { zoneId: string; cpu: number; ram: number }) => {
     const pricingList = await Price.query()
