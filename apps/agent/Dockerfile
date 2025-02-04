@@ -31,6 +31,7 @@ COPY ./apps/agent/package*.json ./apps/agent/
 COPY --from=build /usr/src/app/apps/agent/dist ./dist
 
 # Install only production dependencies (omit dev dependencies)
+RUN npm install typescript -g
 RUN npm install --omit=dev --ignore-scripts
 
 
