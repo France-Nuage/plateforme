@@ -1,4 +1,4 @@
-import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
+import RequestQueryBuilder from '#utils/request_query_builder'
 import Zone from '#models/infrastructure/zone'
 
 export default {

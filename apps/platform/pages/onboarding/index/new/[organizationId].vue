@@ -3,7 +3,6 @@
     <c-card-header title="Créer un compte" />
     <c-card-body>
       <div class="flex flex-col gap-8">
-
         <div class="grid grid-cols-12 w-full">
           <c-label label="Nom" for="name" class="col-span-3" />
           <c-text-field
@@ -16,16 +15,21 @@
             description="Le nom d'un compte est semblable à un nom d'une entreprise."
           />
         </div>
-
       </div>
     </c-card-body>
     <c-card-footer>
       <div>
-        <c-button size="sm" variant="filled" @click="router.go(-1)">Annulé</c-button>
+        <c-button size="sm" variant="filled" @click="router.go(-1)"
+          >Annulé</c-button
+        >
       </div>
       <div class="flex items-center gap-4">
-        <small class="text-gray-600 dark:text-gray-400">Vous pouvez renommer le nom du compte plus tard</small>
-        <c-button size="sm" @click="onSubmit" :loading="loading">Créer un compte</c-button>
+        <small class="text-gray-600 dark:text-gray-400"
+          >Vous pouvez renommer le nom du compte plus tard</small
+        >
+        <c-button size="sm" @click="onSubmit" :loading="loading"
+          >Créer un compte</c-button
+        >
       </div>
     </c-card-footer>
   </c-card>
@@ -40,19 +44,18 @@ import CCard from "~/components/card/CCard.vue";
 import CTextField from "~/components/forms/CTextField.vue";
 import CLabel from "~/components/forms/CLabel.vue";
 
-const { createAccount } = useAccountStore()
-const { loadOrganization } = useOrganizationStore()
+const { createAccount } = useAccountStore();
+const { loadOrganization } = useOrganizationStore();
 const { organization } = storeToRefs(useOrganizationStore());
-const route = useRoute()
+const route = useRoute();
 const router = useRouter();
 const formData = ref({
   name: "",
-})
-
+});
 
 onMounted(() => {
-  loadOrganization(route.params.organizationId)
-})
+  loadOrganization(route.params.organizationId);
+});
 
 const loading = ref(false);
 
@@ -60,10 +63,10 @@ const onSubmit = () => {
   loading.value = true;
   createAccount({ ...formData.value, organization__id: organization.value.id })
     .then((response) => {
-      router.push('/')
+      router.push("/");
     })
     .finally(() => {
       loading.value = false;
-    })
-}
+    });
+};
 </script>

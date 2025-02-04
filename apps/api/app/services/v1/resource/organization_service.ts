@@ -1,4 +1,4 @@
-import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
+import RequestQueryBuilder from '#utils/request_query_builder'
 import Organization from '#models/resource/organization'
 import User from '#models/user'
 import Policy from '#models/iam/policy'

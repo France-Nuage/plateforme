@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Project from '#models/resource/project'
-import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
+import RequestQueryBuilder from '#utils/request_query_builder'
 import ProjectPolicy from '#policies/resource/project_policy'
 import { createProjectValidator } from '#validators/v1/resource/project'
 import project_service from '#services/v1/resource/project_service'

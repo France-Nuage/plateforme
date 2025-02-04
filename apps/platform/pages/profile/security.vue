@@ -5,26 +5,46 @@
         <c-card-header title="Rénitialisation de mot de passe" />
         <c-card-body>
           <div class="grid grid-cols-12 gap-4">
-
             <div class="col-span-3">
               <c-label label="Nouveau mot de passe" for="password" />
             </div>
             <div class="col-span-9">
-              <c-text-field id="password" required name="password" type="password" v-model="formData.newPassword" />
+              <c-text-field
+                id="password"
+                required
+                name="password"
+                type="password"
+                v-model="formData.newPassword"
+              />
             </div>
 
             <div class="col-span-3">
-              <c-label label="Mot de passe actuel" for="currentPassword" description="Pour modifier votre mot de passe, nous avons besoin de votre mot de passe actuel." />
+              <c-label
+                label="Mot de passe actuel"
+                for="currentPassword"
+                description="Pour modifier votre mot de passe, nous avons besoin de votre mot de passe actuel."
+              />
             </div>
             <div class="col-span-9">
-              <c-text-field id="currentPassword" required name="currentPassword" type="password" v-model="formData.currentPassword" />
+              <c-text-field
+                id="currentPassword"
+                required
+                name="currentPassword"
+                type="password"
+                v-model="formData.currentPassword"
+              />
             </div>
-
           </div>
         </c-card-body>
         <c-card-footer>
           <div class="flex justify-end gap-4 w-full">
-            <c-button variant="success" size="sm" @click="onSubmit" :loading="loading">Valider</c-button>
+            <c-button
+              variant="success"
+              size="sm"
+              @click="onSubmit"
+              :loading="loading"
+              >Valider</c-button
+            >
           </div>
         </c-card-footer>
       </c-card>
@@ -42,14 +62,14 @@ import CButton from "~/components/forms/CButton.vue";
 import CCardFooter from "~/components/card/CCardFooter.vue";
 
 const formData = ref({
-  newPassword: '',
-  currentPassword: '',
-})
+  newPassword: "",
+  currentPassword: "",
+});
 
-const { } = useAuthStore()
-const loading = ref(false)
+const {} = useAuthStore();
+const loading = ref(false);
 
 const onSubmit = async () => {
-  loading.value = true
-}
+  loading.value = true;
+};
 </script>

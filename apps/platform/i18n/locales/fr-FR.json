@@ -80,14 +80,10 @@
   },
   "settings": {
     "organizations": {
-      "root": {
-
-      }
+      "root": {}
     },
     "profile": {
-      "preferences": {
-
-      }
+      "preferences": {}
     }
   }
 }
