@@ -1,8 +1,22 @@
-test-e2e:
-  stage: test
-  image: mcr.microsoft.com/playwright:v1.50.1-noble
+.test-e2e: &e2e-test
+  stage: post-deployment
+  image: mcr.microsoft.com/playwright:v1.50.0-noble
   before_script:
     - cd apps/platform
   script:
     - npm ci --ignore-scripts
     - npx playwright test
+
+staging-test-e2e:
+  <<: *e2e-test
+  variables:
+    BASE_URL: $PLATFORM_STAGING_URL
+  only:
+    - staging
+
+production-test-e2e:
+  <<: *e2e-test
+  variables:
+    BASE_URL: $PLATFORM_PRODUCTION_URL
+  only:
+    - master
