@@ -20,7 +20,15 @@ const getNextVMID = async (url: string, token: string) => {
 }
 
 export default {
-  list: async function ({ includes, page, perPage }: { includes?: Array<string>; page?: number; perPage?: number }) {
+  list: async function ({
+    includes,
+    page,
+    perPage,
+  }: {
+    includes?: Array<string>
+    page?: number
+    perPage?: number
+  }) {
     return new RequestQueryBuilder(Instance.query())
       .withIncludes(includes)
       .withPagination(page, perPage)
