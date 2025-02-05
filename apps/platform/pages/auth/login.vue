@@ -45,7 +45,12 @@
           </div>
 
           <div>
-            <c-button type="submit" block :loading="loading">
+            <c-button
+              type="submit"
+              block
+              :loading="loading"
+              data-id="login-submit"
+            >
               Se connecter
             </c-button>
           </div>
