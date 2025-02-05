@@ -5,12 +5,46 @@ cache:
     - node_modules/
 
 stages:
+  - install
+  - code-style
   - build
   - test
   - migrate
   - deployment
 
 include:
-  - local: 'apps/api/.gitlab-ci.yml'
-  - local: 'apps/platform/.gitlab-ci.yml'
-  - local: 'apps/worker-vm-status/.gitlab-ci.yml'
+  - local: "apps/api/.gitlab-ci.yml"
+  - local: "apps/platform/.gitlab-ci.yml"
+  - local: "apps/worker-vm-status/.gitlab-ci.yml"
+
+install:
+  image: node:22
+  stage: install
+  script:
+    - npm install
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .npm-cache
+      - .turbo
+  artifacts:
+    paths:
+      - node_modules/
+      - .npm-cache
+      - .turbo
+
+eslint:
+  image: node:22
+  stage: code-style
+  dependencies:
+    - install
+  script:
+    - npm run lint
+
+prettier:
+  image: node:22
+  stage: code-style
+  dependencies:
+    - install
+  script:
+    - npm run format:check

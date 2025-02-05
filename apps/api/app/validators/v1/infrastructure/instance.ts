@@ -1,5 +1,5 @@
 import vine from '@vinejs/vine'
-import {Status} from "#models/infrastructure/instance"
+import { Status } from '#models/infrastructure/instance'
 
 export const createInstanceValidator = vine.compile(
   vine.object({
