@@ -4,5 +4,5 @@ test-e2e:
   before_script:
     - cd apps/platform
   script:
-    - npm ci
+    - npm ci --ignore-scripts
     - npx playwright test

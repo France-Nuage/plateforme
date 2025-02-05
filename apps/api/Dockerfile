@@ -31,7 +31,7 @@ COPY ./apps/api/package*.json ./apps/api/
 COPY --from=build /usr/src/app/apps/api/build ./build
 
 # Install only production dependencies (omit dev dependencies)
-RUN npm install --omit=dev --production
+RUN npm install --omit=dev --production --ignore-scripts
 
 # Expose the API's port
 EXPOSE 3000
