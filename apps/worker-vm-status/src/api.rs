@@ -9,12 +9,12 @@ pub use endpoints::*;
 pub trait ApiOperationQuery {
     /// The base url under which the API is available
     fn base_url(&self) -> String {
-        std::env::var("FRANCE_NUAGE_API_URL").unwrap_or(String::from("http://localhost:3333"))
+        std::env::var("API_URL").unwrap_or(String::from("http://localhost:3333"))
     }
 
     /// The access_token for authenticating against the API
     fn access_token(&self) -> String {
-        std::env::var("FRANCE_NUAGE_API_TOKEN").expect("Missing env var FRANCE_NUAGE_API_TOKEN")
+        std::env::var("API_TOKEN").expect("Missing env var API_TOKEN")
     }
 }
 

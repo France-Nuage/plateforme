@@ -56,8 +56,8 @@ mod tests {
             .with_body(r#"{"id":"079ce056-f5a0-4b87-bec1-d34b3c14acb5","name":"Plopzfe","nodeId":"00000000-0000-0000-0000-000000000007","bootDiskId":null,"createdAt":"2024-12-24T13:19:37.061+00:00","updatedAt":"2025-02-02T12:37:18.406+00:00","pveVmId":"105","projectId":null,"status":"STOPPED"}"#)
             .create();
 
-        std::env::set_var("FRANCE_NUAGE_API_URL", server.url());
-        std::env::set_var("FRANCE_NUAGE_API_TOKEN", "fak3_acc3ss_t0k3n");
+        std::env::set_var("API_URL", server.url());
+        std::env::set_var("API_TOKEN", "fak3_acc3ss_t0k3n");
 
         let client = reqwest::Client::new();
         let query = UpdateComputeInstanceQuery {

@@ -1,0 +1,89 @@
+services:
+  control-plane:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: development
+    container_name: control-plane
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      # Application
+      NODE_ENV: development
+      APP_KEY: vUfHvIvSHtNNsRYrD-PfTm1pUc1L_4zd
+      TZ: UTC
+      HOST: 0.0.0.0
+      PORT: 3333
+      API_URL: http://localhost:3333
+      PLATFORM_URL: http://localhost:3001
+      STRIPE_SECRET_KEY: plop
+      # Database
+      DB_DATABASE: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      # Redis
+      REDIS_HOST: redis
+    ports:
+      - "3333:3333"
+    volumes:
+      - ./apps/api:/usr/src/app/apps/api
+      - /usr/src/app/apps/api/node_modules
+
+  platform:
+    build:
+      context: ./apps/platform
+    container_name: platform
+    environment:
+      API_URL: http://localhost:3333
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/platform:/usr/src/app
+      - /usr/src/app/node_modules
+
+  postgres:
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    volumes:
+      - france_nuage_postgres:/var/lib/postgresql/data
+
+  redis:
+    container_name: redis
+    image: redis:7-alpine
+    volumes:
+      - france_nuage_redis:/data
+    ports:
+      - "6379:6379"
+
+  web:
+    build:
+      context: ./apps/web
+    container_name: web
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./apps/platform:/usr/src/app
+      - /usr/src/app/node_modules
+
+  worker-vm-status:
+    build:
+      context: apps/worker-vm-status
+    container_name: worker
+    depends_on:
+      - control-plane
+    environment:
+      API_URL: http://control-plane:3333
+      API_TOKEN:
+    restart: always
+
+volumes:
+  france_nuage_postgres:
+  france_nuage_redis:
