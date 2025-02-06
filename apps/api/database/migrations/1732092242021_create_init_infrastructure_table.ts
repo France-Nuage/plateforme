@@ -156,11 +156,18 @@ export default class extends BaseSchema {
 
   async down() {
     this.schema.withSchema('infrastructure').dropTable('instances')
+    this.schema.withSchema('infrastructure').dropTable('os_versions')
+    this.schema.withSchema('infrastructure').dropTable('os')
+    this.schema.withSchema('infrastructure').dropTable('boot_disks')
+    this.schema.withSchema('infrastructure').dropTable('instance_types__zones')
+    this.schema.withSchema('infrastructure').dropTable('instance_templates')
+    this.schema.withSchema('infrastructure').dropTable('instance_template_categories')
+    this.schema.withSchema('infrastructure').dropTable('instance_types')
+    this.schema.withSchema('infrastructure').dropTable('nodes')
+    this.schema.withSchema('infrastructure').dropTable('instances')
     this.schema.withSchema('infrastructure').dropTable('clusters')
     this.schema.withSchema('infrastructure').dropTable('zones')
     this.schema.withSchema('infrastructure').dropTable('regions')
     this.schema.dropSchema('infrastructure')
-
-    this.schema.dropSchema('stripe')
   }
 }

@@ -20,6 +20,6 @@ export default class extends BaseSchema {
   }
 
   async down() {
-    this.schema.withSchema('billing').dropTable('price')
+    this.schema.withSchema('billing').dropTable('prices')
   }
 }
