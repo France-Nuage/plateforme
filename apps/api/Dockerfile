@@ -16,6 +16,21 @@ RUN npm install
 # Build the app (specific to the "api" app in the monorepo)
 RUN npx turbo run build --filter=api
 
+# Development Stage
+FROM node:22-alpine AS development
+
+RUN mkdir -p /usr/src/app/apps
+
+COPY ./apps/api /usr/src/app/apps/api
+
+WORKDIR /usr/src/app/apps/api
+
+RUN npm install
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
+
 # Production Stage
 FROM node:22-alpine
 

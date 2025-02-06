@@ -65,8 +65,8 @@ mod tests {
             .with_body(r#"{"status":"STOPPED"}"#)
             .create();
 
-        std::env::set_var("FRANCE_NUAGE_API_URL", server.url());
-        std::env::set_var("FRANCE_NUAGE_API_TOKEN", "fak3_acc3ss_t0k3n");
+        std::env::set_var("API_URL", server.url());
+        std::env::set_var("API_TOKEN", "fak3_acc3ss_t0k3n");
 
         let client = reqwest::Client::new();
         let query = InstanceHypervisorStatusQuery::from_instance(&instance);
