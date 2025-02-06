@@ -1,5 +1,4 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import db from '@adonisjs/lucid/services/db'
 
 export default class extends BaseSchema {
   async up() {
@@ -13,11 +12,11 @@ export default class extends BaseSchema {
       table.dropColumn('permission__id')
     })
 
-    await db.from('iam.role__permission').delete()
-    await db.from('iam.permissions').delete()
-    await db.from('iam.verbs').delete()
-    await db.from('catalog.services').delete()
-    await db.from('iam.types').delete()
+    this.db.from('iam.role__permission').delete()
+    this.db.from('iam.permissions').delete()
+    this.db.from('iam.verbs').delete()
+    this.db.from('catalog.services').delete()
+    this.db.from('iam.types').delete()
 
     this.schema.withSchema('iam').table('permissions', (table) => {
       table.string('permission__id', 255)
@@ -37,7 +36,7 @@ export default class extends BaseSchema {
       table.unique(['role__id', 'permission__id'])
     })
 
-    await db
+    this.db
       .table('iam.verbs')
       .multiInsert([
         { verb__id: 'abort' },
@@ -153,7 +152,7 @@ export default class extends BaseSchema {
         { verb__id: 'write' },
         { verb__id: '*' },
       ])
-    await db
+    this.db
       .table('catalog.services')
       .multiInsert([
         { service__id: '*' },
@@ -162,8 +161,9 @@ export default class extends BaseSchema {
         { service__id: 'compute' },
         { service__id: 'resourcemanager' },
         { service__id: 'observability' },
+        { service__id: 'cloudassets' },
       ])
-    await db.table('iam.types').multiInsert([
+    this.db.table('iam.types').multiInsert([
       { type__id: '*', service__id: 'iam' },
       { type__id: 'operations', service__id: 'iam' },
       { type__id: '*', service__id: 'compute' },
@@ -546,7 +546,7 @@ export default class extends BaseSchema {
       'compute.zones.list',
     ]
 
-    await db.table('iam.permissions').multiInsert(
+    this.db.table('iam.permissions').multiInsert(
       permissions.map((permission) => {
         const permissionSplit = permission.split('.')
         return {
@@ -558,7 +558,7 @@ export default class extends BaseSchema {
       })
     )
 
-    await db.table('iam.roles').multiInsert([
+    this.db.table('iam.roles').multiInsert([
       { role__id: 'roles/compute.admin', service__id: 'compute' },
       { role__id: 'roles/iam.admin', service__id: 'iam' },
       { role__id: 'roles/resourcemanager.organizationAdmin', service__id: 'resourcemanager' },
@@ -572,7 +572,7 @@ export default class extends BaseSchema {
       { role__id: 'roles/resourcemanager.folderCreator', service__id: 'resourcemanager' },
     ])
 
-    await db.table('iam.role__permission').multiInsert([
+    this.db.table('iam.role__permission').multiInsert([
       {
         role__id: 'roles/resourcemanager.organizationAdmin',
         permission__id: 'resourcemanager.organizations.get',
