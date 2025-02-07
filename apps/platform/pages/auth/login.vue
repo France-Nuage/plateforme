@@ -2,7 +2,10 @@
   <nuxt-layout name="authentification" title="Se connecter">
     <p class="mt-2 text-sm/6 text-gray-500">
       Pas encore membre ? {{ " " }}
-      <nuxt-link to="/auth/subscribe" class="font-semibold text-primary"
+      <nuxt-link
+        to="/auth/subscribe"
+        class="font-semibold text-primary"
+        data-id="subscribe-link"
         >Inscriver vous !</nuxt-link
       >
     </p>
@@ -37,6 +40,7 @@
               <nuxt-link
                 to="/auth/forgot-password"
                 class="font-semibold text-primary"
+                data-pw="forgot-password-link"
                 >Mot de passe oublié ?</nuxt-link
               >
             </div>
@@ -49,7 +53,7 @@
               type="submit"
               block
               :loading="loading"
-              data-id="login-submit"
+              data-pw="login-submit"
             >
               Se connecter
             </c-button>
