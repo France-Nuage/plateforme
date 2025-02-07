@@ -10,10 +10,4 @@ export default class extends BaseSchema {
         )
     })
   }
-
-  async down() {
-    this.schema.withSchema('infrastructure').table('instances', (table) => {
-      table.dropColumn('status')
-    })
-  }
 }

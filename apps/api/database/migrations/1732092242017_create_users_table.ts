@@ -16,9 +16,4 @@ export default class extends BaseSchema {
       table.timestamp('updated_at').nullable()
     })
   }
-
-  async down() {
-    this.schema.withSchema('member').dropTable(this.tableName)
-    this.schema.dropSchema('member')
-  }
 }
