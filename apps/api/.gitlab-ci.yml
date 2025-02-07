@@ -34,7 +34,6 @@ api_test:
     - node ace migration:run
     #    - node ace db:seed
     - node ace test
-  allow_failure: true
 
 api_db_migrate_staging:
   stage: migrate
@@ -95,4 +94,3 @@ api_deploy_prod:
     - docker push $DOCKER_IMAGE
   only:
     - master
-

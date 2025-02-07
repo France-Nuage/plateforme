@@ -11,5 +11,3 @@ Accepted
 ### Solutions
 
 ## Consequences
-
-

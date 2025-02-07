@@ -1,4 +1,5 @@
 import vine from '@vinejs/vine'
+import { Status } from '#models/infrastructure/instance'
 
 export const createInstanceValidator = vine.compile(
   vine.object({
@@ -7,9 +8,17 @@ export const createInstanceValidator = vine.compile(
   })
 )
 
+export const queryInstancesValidator = vine.compile(
+  vine.object({
+    includes: vine.array(vine.string()).optional(),
+    page: vine.number().min(1).optional(),
+    perPage: vine.number().min(1).max(100).optional(),
+  })
+)
+
 export const updateInstanceValidator = vine.compile(
   vine.object({
-    // name: vine.string().trim().minLength(6),
+    status: vine.enum(Status).optional(),
   })
 )
 

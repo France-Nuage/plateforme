@@ -2,10 +2,13 @@
   <div class="">
     <c-alert title="Aucun moyen de paiments" variant="information">
       <div class="mb-3">
-        Vous n'avez aucun moyen de paiement enregistrer, vous devez en ajouter un si vous voulez utiliser nos services.
+        Vous n'avez aucun moyen de paiement enregistrer, vous devez en ajouter
+        un si vous voulez utiliser nos services.
       </div>
 
-      <c-button variant="information" size="sm">Ajouter un moyen de paiements</c-button>
+      <c-button variant="information" size="sm"
+        >Ajouter un moyen de paiements</c-button
+      >
     </c-alert>
 
     <div class="mt-4">
@@ -20,6 +23,4 @@ import CButton from "~/components/forms/CButton.vue";
 import CTable from "~/components/table/CTable.vue";
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

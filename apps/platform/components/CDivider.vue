@@ -2,10 +2,6 @@
   <hr class="dark:border-gray-600" />
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts"></script>
 
-</script>
-
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import CTabList from "~/components/tabs/CTabList.vue";
 import CTab from "~/components/tabs/CTab.vue";
-import { TabGroup, TabPanels, TabPanel } from '@headlessui/vue'
+import { TabGroup, TabPanels, TabPanel } from "@headlessui/vue";
 import Quotas from "~/pages/billings/local-components/Quotas.vue";
 import Billings from "~/pages/billings/local-components/Billings.vue";
 </script>

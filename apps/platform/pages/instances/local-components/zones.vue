@@ -1,26 +1,26 @@
 <template>
-<!--  <c-card>-->
-<!--    <c-card-header-->
-<!--      title="Choisissez une zone de disponibilité"-->
-<!--      description="Une zone de disponibilité fait référence à l'emplacement géographique dans lequel votre Instance est créée."-->
-<!--    />-->
-<!--    <c-card-body>-->
-<!--      <div class="grid grid-cols-12 w-full">-->
-<!--        <div class="col-span-3"></div>-->
-<!--        <div class="col-span-9">-->
-<!--          <fieldset aria-label="Server service">-->
-<!--            <RadioGroup v-model="selected" class="space-y-4" name="zones_radio_group" id="zones_radio_group">-->
-<!--              <ul role="list" class="grid grid-cols-4 gap-6">-->
-<!--                <RadioGroupOption as="template" v-for="zone in zones" :key="zone.name" :value="zone" :aria-label="zone.name" :aria-description="`${zone.ram}`" v-slot="{ active, checked }">-->
-<!--                  <c-zone-square :name="zone.name" :logo="zone.logo" :active="checked" alt="" />-->
-<!--                </RadioGroupOption>-->
-<!--              </ul>-->
-<!--            </RadioGroup>-->
-<!--          </fieldset>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </c-card-body>-->
-<!--  </c-card>-->
+  <!--  <c-card>-->
+  <!--    <c-card-header-->
+  <!--      title="Choisissez une zone de disponibilité"-->
+  <!--      description="Une zone de disponibilité fait référence à l'emplacement géographique dans lequel votre Instance est créée."-->
+  <!--    />-->
+  <!--    <c-card-body>-->
+  <!--      <div class="grid grid-cols-12 w-full">-->
+  <!--        <div class="col-span-3"></div>-->
+  <!--        <div class="col-span-9">-->
+  <!--          <fieldset aria-label="Server service">-->
+  <!--            <RadioGroup v-model="selected" class="space-y-4" name="zones_radio_group" id="zones_radio_group">-->
+  <!--              <ul role="list" class="grid grid-cols-4 gap-6">-->
+  <!--                <RadioGroupOption as="template" v-for="zone in zones" :key="zone.name" :value="zone" :aria-label="zone.name" :aria-description="`${zone.ram}`" v-slot="{ active, checked }">-->
+  <!--                  <c-zone-square :name="zone.name" :logo="zone.logo" :active="checked" alt="" />-->
+  <!--                </RadioGroupOption>-->
+  <!--              </ul>-->
+  <!--            </RadioGroup>-->
+  <!--          </fieldset>-->
+  <!--        </div>-->
+  <!--      </div>-->
+  <!--    </c-card-body>-->
+  <!--  </c-card>-->
 </template>
 
 <!--<script setup lang="ts">-->

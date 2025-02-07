@@ -15,11 +15,7 @@
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <li
-        v-for="(item, key) in alerts.list"
-        :key="key"
-        class="w-full"
-      >
+      <li v-for="(item, key) in alerts.list" :key="key" class="w-full">
         <c-toast-item
           :title="item.title"
           :description="item.description"
@@ -33,5 +29,5 @@
 <script setup lang="ts">
 import CToastItem from "~/components/toast/CToastItem.vue";
 
-const alerts = useAlerts()
+const alerts = useAlerts();
 </script>

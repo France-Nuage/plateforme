@@ -105,7 +105,6 @@ export default class extends BaseSchema {
         .inTable('infrastructure.instance_types')
     })
 
-
     this.schema.withSchema('infrastructure').createTable('boot_disks', (table) => {
       table.uuid('boot_disk__id', { primaryKey: true }).defaultTo(this.raw('uuid_generate_v4()'))
       table.string('os').notNullable()

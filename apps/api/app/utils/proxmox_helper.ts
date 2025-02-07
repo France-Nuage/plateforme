@@ -1,4 +1,5 @@
 import axios from 'axios'
+import env from '#start/env'
 
 export const proxmoxApi = {
   node: {
@@ -86,7 +87,9 @@ export const proxmoxApi = {
               `${url}/api2/json/nodes/${nodeName}/qemu/${vmid}/status/current`,
               {
                 headers: {
-                  Authorization: token,
+                  'Authorization': token,
+                  'CF-Access-Client-Id': env.get('CLOUDFLARE_ACCESS_CLIENT_ID'),
+                  'CF-Access-Client-Secret': env.get('CLOUDFLARE_ACCESS_CLIENT_SECRET'),
                 },
               }
             )
