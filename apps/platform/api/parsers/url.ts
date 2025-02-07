@@ -5,29 +5,29 @@
  * @param value
  * @param path
  */
-function flattenWithObjectQueryParams(value, path = '') {
-  if (typeof value === 'object' && !Array.isArray(value)) {
+function flattenWithObjectQueryParams(value, path = "") {
+  if (typeof value === "object" && !Array.isArray(value)) {
     return Object.entries(value)
       .filter(([, value]) => !!value)
       .map(([key, value]) => {
         return flattenWithObjectQueryParams(
           value,
-          path.length === 0 ? key : `${path}[${key}]`
-        )
+          path.length === 0 ? key : `${path}[${key}]`,
+        );
       })
-      .flat()
+      .flat();
   }
 
   if (Array.isArray(value)) {
     return value
       .filter((subValue) => !!subValue)
       .map((subValue) => {
-        return flattenWithObjectQueryParams(subValue, `${path}`)
+        return flattenWithObjectQueryParams(subValue, `${path}`);
       })
-      .flat()
+      .flat();
   }
 
-  return [{ key: path, value }]
+  return [{ key: path, value }];
 }
 
 /**
@@ -36,27 +36,27 @@ function flattenWithObjectQueryParams(value, path = '') {
  */
 function arrayOfObjectToString(array) {
   const keyValueObject = array.reduce((acc, { key, value }) => {
-    if (!value) return acc
+    if (!value) return acc;
     if (key in acc) {
-      acc[key] += `,${value}`
+      acc[key] += `,${value}`;
     } else {
-      acc[key] = value
+      acc[key] = value;
     }
-    return acc
-  }, {})
+    return acc;
+  }, {});
   return Object.entries(keyValueObject)
     .map(([key, value]) => `${key}=${value}`)
-    .join('&')
+    .join("&");
 }
 
 export const parseUri = (params = {}) => {
-  if (typeof params === 'string') {
-    return params
+  if (typeof params === "string") {
+    return params;
   }
 
   // rename filters to filter
-  params.filter = params.filter || params.filters || {}
-  delete params.filters
+  params.filter = params.filter || params.filters || {};
+  delete params.filters;
 
-  return '?' + arrayOfObjectToString(flattenWithObjectQueryParams(params))
-}
+  return "?" + arrayOfObjectToString(flattenWithObjectQueryParams(params));
+};

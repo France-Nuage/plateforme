@@ -1,8 +1,10 @@
 <template>
   <nuxt-layout>
-
     <div v-if="resource" class="flex flex-col gap-4">
-      <h1 class="mb-2">Autorisation pour {{ resource.type }} {{ navigationStore.$state[resource.type].name  }}</h1>
+      <h1 class="mb-2">
+        Autorisation pour {{ resource.type }}
+        {{ navigationStore.$state[resource.type].name }}
+      </h1>
 
       <add-member />
 
@@ -22,7 +24,6 @@
     </div>
 
     <show-member ref="memberDrawer" />
-
   </nuxt-layout>
 </template>
 
@@ -33,24 +34,24 @@ import ShowMember from "~/pages/teams/local-components/showMember.vue";
 import CButton from "~/components/forms/CButton.vue";
 import AddMember from "~/pages/teams/local-components/addMember.vue";
 
-const { resource } = storeToRefs(useNavigationStore())
-const navigationStore = useNavigationStore()
-const { members } = storeToRefs(useResourceIAMStore())
-const { loadMembers } = useResourceIAMStore()
-const drawerRef = useTemplateRef('memberDrawer')
+const { resource } = storeToRefs(useNavigationStore());
+const navigationStore = useNavigationStore();
+const { members } = storeToRefs(useResourceIAMStore());
+const { loadMembers } = useResourceIAMStore();
+const drawerRef = useTemplateRef("memberDrawer");
 
 const headers = [
   { key: "member", label: "Utilisateur" },
   { key: "roles", label: "Rôles" },
-]
+];
 
 const clickOnRow = (item) => {
-  console.log(drawerRef, item.value.member)
-}
+  console.log(drawerRef, item.value.member);
+};
 
-const isOpen = ref(false)
+const isOpen = ref(false);
 
 onMounted(() => {
-  loadMembers()
-})
+  loadMembers();
+});
 </script>

@@ -10,16 +10,15 @@ import CBreadcrumb from "~/components/breadcrumb/CBreadcrumb.vue";
 const { organization } = storeToRefs(useOrganizationStore());
 
 const pages = computed(() => {
-  let organizationLabel = 'Créer une organisation'
+  let organizationLabel = "Créer une organisation";
 
   if (organization.value) {
     organizationLabel += ` : (${organization.value.name})`;
   }
 
   return [
-    { name: organizationLabel, href: '#', current: true },
-    { name: 'Créer un compte', href: '#', current: true },
-  ]
+    { name: organizationLabel, href: "#", current: true },
+    { name: "Créer un compte", href: "#", current: true },
+  ];
 });
-
 </script>

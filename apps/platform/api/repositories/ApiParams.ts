@@ -3,7 +3,7 @@ interface Filter<F> {
   value: string | number;
 }
 
-export type Order = '+' | '-';
+export type Order = "+" | "-";
 
 interface Sort<S> {
   fieldName: S;

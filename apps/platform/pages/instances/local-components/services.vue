@@ -9,10 +9,28 @@
         <div class="col-span-3"></div>
         <div class="col-span-9">
           <fieldset aria-label="Server service">
-            <RadioGroup v-model="selected" class="space-y-4" name="zones_radio_group" id="zones_radio_group">
+            <RadioGroup
+              v-model="selected"
+              class="space-y-4"
+              name="zones_radio_group"
+              id="zones_radio_group"
+            >
               <ul role="list" class="grid grid-cols-4 gap-6">
-                <RadioGroupOption as="template" v-for="service in services" :key="service.name" :value="service" :aria-label="service.name" :aria-description="`${service.name}`" v-slot="{ active, checked }">
-                  <c-service-square :active="checked" :name="service.name" logo="" :alt="service.name" />
+                <RadioGroupOption
+                  as="template"
+                  v-for="service in services"
+                  :key="service.name"
+                  :value="service"
+                  :aria-label="service.name"
+                  :aria-description="`${service.name}`"
+                  v-slot="{ active, checked }"
+                >
+                  <c-service-square
+                    :active="checked"
+                    :name="service.name"
+                    logo=""
+                    :alt="service.name"
+                  />
                 </RadioGroupOption>
               </ul>
             </RadioGroup>
@@ -27,26 +45,24 @@
 import CCard from "~/components/card/CCard.vue";
 import CCardHeader from "~/components/card/CCardHeader.vue";
 import CCardBody from "~/components/card/CCardBody.vue";
-import { RadioGroup, RadioGroupOption } from '@headlessui/vue'
+import { RadioGroup, RadioGroupOption } from "@headlessui/vue";
 import CServiceSquare from "~/components/services/CServiceSquare.vue";
 
-const selected = ref()
+const selected = ref();
 const services = [
   {
-    name: 'Wordpress',
+    name: "Wordpress",
   },
   {
-    name: 'Penpot',
+    name: "Penpot",
   },
   {
-    name: 'Grafana',
+    name: "Grafana",
   },
   {
-    name: 'Custom',
-  }
-]
+    name: "Custom",
+  },
+];
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

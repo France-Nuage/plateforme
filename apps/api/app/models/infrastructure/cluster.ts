@@ -2,7 +2,7 @@ import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Zone from '#models/infrastructure/zone'
-import Node from "#models/infrastructure/node";
+import Node from '#models/infrastructure/node'
 
 export default class Cluster extends BaseModel {
   public static table = 'infrastructure.clusters'

@@ -12,8 +12,8 @@
 </template>
 
 <script lang="ts" setup>
-import KPISection from './local-components/KPISection.vue';
-import Comparative from './local-components/Comparative.vue';
+import KPISection from "./local-components/KPISection.vue";
+import Comparative from "./local-components/Comparative.vue";
 import HeroSection from "~/pages/index/local-components/HeroSection.vue";
 import MetricsSection from "~/pages/index/local-components/MetricsSection.vue";
 import CTASection from "~/pages/index/local-components/CTASection.vue";

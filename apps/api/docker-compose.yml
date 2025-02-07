@@ -16,9 +16,9 @@ services:
         max-size: '10m'
         max-file: '5'
       driver: json-file
-    command: [ "postgres", "-c", "log_statement=all", "-c", "log_destination=stderr" ]
+    command: ['postgres', '-c', 'log_statement=all', '-c', 'log_destination=stderr']
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d avis-de-deces -U admin" ]
+      test: ['CMD-SHELL', 'pg_isready -d avis-de-deces -U admin']
       interval: 5s
       timeout: 5s
       retries: 5

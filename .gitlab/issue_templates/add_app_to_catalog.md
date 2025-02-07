@@ -1,8 +1,9 @@
 ## 📝 Demande d'ajout d'une application au catalogue
 
 ### Informations de base
-- **Nom de l'application** : 
-- **URL du repository** : 
+
+- **Nom de l'application** :
+- **URL du repository** :
 - **Description de l'application** :
 
 ### Critères d'évaluation
@@ -21,6 +22,7 @@
   - [ ] Les mainteneurs sont-ils prêts à **être recommandés** pour du consulting/développement spécifique, avec une commission d'apporteur d'affaires ?
 
 ### Notes additionnelles
+
 - **Commentaires** :
 - **Autres informations** :
 

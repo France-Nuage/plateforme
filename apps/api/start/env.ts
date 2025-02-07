@@ -17,7 +17,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   APP_KEY: Env.schema.string(),
   PLATFORM_URL: Env.schema.string(),
   HOST: Env.schema.string({ format: 'host' }),
-  LOG_LEVEL: Env.schema.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']),
+  LOG_LEVEL: Env.schema.enum.optional(['fatal', 'error', 'warn', 'info', 'debug', 'trace']),
   API_URL: Env.schema.string(),
 
   /*
@@ -43,22 +43,22 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring the mail package
   |----------------------------------------------------------
   */
-  BREVO_API_KEY: Env.schema.string(),
-  SMTP_HOST: Env.schema.string(),
-  SMTP_PORT: Env.schema.number(),
-  SMTP_USER: Env.schema.string(),
-  SMTP_PASSWORD: Env.schema.string(),
+  BREVO_API_KEY: Env.schema.string.optionalWhen(process.env.NODE_ENV !== 'production'),
+  SMTP_HOST: Env.schema.string.optional(),
+  SMTP_PORT: Env.schema.number.optional(),
+  SMTP_USER: Env.schema.string.optionalWhen(process.env.NODE_ENV !== 'production'),
+  SMTP_PASSWORD: Env.schema.string.optionalWhen(process.env.NODE_ENV !== 'production'),
 
   /*
   |----------------------------------------------------------
   | Variables for configuring the drive package
   |----------------------------------------------------------
   */
-  DRIVE_DISK: Env.schema.enum(['fs', 'r2'] as const),
-  R2_KEY: Env.schema.string(),
-  R2_SECRET: Env.schema.string(),
-  R2_BUCKET: Env.schema.string(),
-  R2_ENDPOINT: Env.schema.string(),
+  DRIVE_DISK: Env.schema.enum.optional(['fs', 'r2'] as const),
+  R2_KEY: Env.schema.string.optionalWhen(process.env.DRIVE_DISK !== 'r2'),
+  R2_SECRET: Env.schema.string.optionalWhen(process.env.DRIVE_DISK !== 'r2'),
+  R2_BUCKET: Env.schema.string.optionalWhen(process.env.DRIVE_DISK !== 'r2'),
+  R2_ENDPOINT: Env.schema.string.optionalWhen(process.env.DRIVE_DISK !== 'r2'),
 
   /*
  |----------------------------------------------------------
@@ -68,7 +68,15 @@ export default await Env.create(new URL('../', import.meta.url), {
   STRIPE_SECRET_KEY: Env.schema.string(),
 
   REDIS_HOST: Env.schema.string({ format: 'host' }),
-  REDIS_PORT: Env.schema.number(),
+  REDIS_PORT: Env.schema.number.optional(),
   REDIS_PASSWORD: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the Cloudflare authentication headers
+  |----------------------------------------------------------
+  */
+  CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
+  CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
   MIMIR_URL: Env.schema.string(),
 })

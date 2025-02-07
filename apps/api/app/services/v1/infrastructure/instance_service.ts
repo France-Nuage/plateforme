@@ -1,9 +1,9 @@
 import axios from 'axios'
 import Zone from '#models/infrastructure/zone'
-import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
+import RequestQueryBuilder from '#utils/request_query_builder'
 import Instance from '#models/infrastructure/instance'
 import Price from '#models/billing/price'
-import { proxmoxApi } from '../../../utils/ProxmoxHelper.js'
+import { proxmoxApi } from '#utils/proxmox_helper'
 
 const getNextVMID = async (url: string, token: string) => {
   try {
@@ -20,10 +20,18 @@ const getNextVMID = async (url: string, token: string) => {
 }
 
 export default {
-  list: async function (includes: Array<string>) {
+  list: async function ({
+    includes,
+    page,
+    perPage,
+  }: {
+    includes?: Array<string>
+    page?: number
+    perPage?: number
+  }) {
     return new RequestQueryBuilder(Instance.query())
       .withIncludes(includes)
-      .withPagination(1, 10)
+      .withPagination(page, perPage)
       .apply()
   },
   get: async function (id: string, includes: Array<string>) {
@@ -61,6 +69,9 @@ export default {
       pveVmId: vmid,
       nodeId: node.id,
     })
+  },
+  update: async function (instance: Instance, data: Partial<Instance>) {
+    return instance.merge(data).save()
   },
   getCurrentPrice: async (options: { zoneId: string; cpu: number; ram: number }) => {
     const pricingList = await Price.query()

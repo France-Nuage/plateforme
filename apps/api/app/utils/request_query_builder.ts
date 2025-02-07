@@ -1,4 +1,3 @@
-// eslint-disable-next-line @unicorn/filename-case
 import { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 
 class RequestQueryBuilder {
@@ -57,7 +56,7 @@ class RequestQueryBuilder {
    * @param query
    */
   private preloadNestedRelations(
-    relationPath: string,
+    relationPath: string
     // query: ModelQueryBuilderContract<any>
   ): void {
     const relations = relationPath.split('.')
@@ -162,7 +161,7 @@ class RequestQueryBuilder {
 
   async firstOrFail() {
     this.includes.forEach((relation) => {
-      this.preloadNestedRelations(relation/*, this.query*/)
+      this.preloadNestedRelations(relation /*, this.query*/)
     })
 
     // Tenter de trouver le premier enregistrement ou échouer
@@ -176,7 +175,7 @@ class RequestQueryBuilder {
     // if (!this.includeOnly) {
     // Apply includes
     this.includes.forEach((relation) => {
-      this.preloadNestedRelations(relation/*, this.query*/)
+      this.preloadNestedRelations(relation /*, this.query*/)
     })
     // }
 
@@ -185,8 +184,8 @@ class RequestQueryBuilder {
 
     if (this.includeOnly) {
       console.log('include only are not implemented')
-    //   const result = await this.query.count('* as total')
-    //   return { count: Number.parseInt(result[0]['$extras']['total']) }
+      //   const result = await this.query.count('* as total')
+      //   return { count: Number.parseInt(result[0]['$extras']['total']) }
     }
 
     if (this.pagination.page && this.pagination.perPage) {

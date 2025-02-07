@@ -1,4 +1,4 @@
-```md
+````md
 # MonProjetAdonis
 
 Bienvenue dans **API**, une application construite avec le framework [AdonisJS](https://adonisjs.com/). Ce document vous guidera pas à pas pour l'installation, la configuration et l'exécution de ce projet.
@@ -30,12 +30,16 @@ Avant de commencer, assurez-vous que les outils suivants sont installés sur vot
    ```bash
    npm i -g @adonisjs/cli
    ```
+````
+
 4. **Base de données** :
-  - Nous utilisons Postgresql
+
+- Nous utilisons Postgresql
 
 ## Installation
 
 1. **Cloner le dépôt** :
+
    ```bash
    git clone git@gitlab.com:getnobullshit/france-nuage/plateforme.git
    cd plateforme/apps/api
@@ -53,6 +57,7 @@ Avant de commencer, assurez-vous que les outils suivants sont installés sur vot
    cp .env.example .env
    ```
 2. Dans le fichier `.env`, mettez à jour les variables de configuration de la base de données :
+
    ```env
    DB_CONNECTION=postgres
    DB_HOST=127.0.0.1
@@ -61,6 +66,7 @@ Avant de commencer, assurez-vous que les outils suivants sont installés sur vot
    DB_PASSWORD=root
    DB_DATABASE=mon_projet_adonis
    ```
+
    Ajustez ces valeurs selon votre configuration (MySQL, PostgreSQL, etc.).
 
 3. **Migration de la base de données** :
@@ -76,7 +82,7 @@ Avant de commencer, assurez-vous que les outils suivants sont installés sur vot
 Démarrez le serveur de développement AdonisJS :
 
 ```bash
-docker compose up && 
+docker compose up &&
 node ace serve --hmr
 ```
 
@@ -109,4 +115,7 @@ Ce projet est sous licence [MIT](LICENSE). Vous êtes libre de l’utiliser, le 
 ---
 
 Merci d’avoir lu ce README. Si vous avez des questions, n’hésitez pas à [ouvrir une issue](https://github.com/mon-utilisateur/MonProjetAdonis/issues) sur ce dépôt !
+
+```
+
 ```

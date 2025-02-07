@@ -1,7 +1,7 @@
 import User from '#models/user'
 import { AuthorizerResponse } from '@adonisjs/bouncer/types'
 import authorization from '#services/authorization'
-import BasePolicy from '#policies/BasePolicy'
+import BasePolicy from '#policies/base_policy'
 
 export default class ProjectPolicy extends BasePolicy {
   /**

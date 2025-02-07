@@ -3,13 +3,13 @@
 </template>
 
 <script setup lang="ts">
-import ApexCharts from 'apexcharts'
+import ApexCharts from "apexcharts";
 
 interface Props {
-  data: Array<any>
+  data: Array<any>;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const generateDayWiseTimeSeries = (baseval, count, yrange) => {
   var i = 0;
@@ -24,11 +24,11 @@ const generateDayWiseTimeSeries = (baseval, count, yrange) => {
     i++;
   }
   return series;
-}
+};
 
 var data = generateDayWiseTimeSeries(new Date("22 Apr 2017").getTime(), 12, {
   min: 10000,
-  max: 20000
+  max: 20000,
 });
 
 var options1 = {
@@ -39,59 +39,62 @@ var options1 = {
     foreColor: "#ccc",
     toolbar: {
       autoSelected: "pan",
-      show: false
-    }
+      show: false,
+    },
   },
   colors: ["#2DB26F"],
   stroke: {
-    width: 3
+    width: 3,
   },
   grid: {
     borderColor: "#555",
     clipMarkers: false,
     yaxis: {
       lines: {
-        show: false
-      }
-    }
+        show: false,
+      },
+    },
   },
   dataLabels: {
-    enabled: false
+    enabled: false,
   },
   fill: {
     gradient: {
       enabled: true,
       opacityFrom: 0.55,
-      opacityTo: 0
-    }
+      opacityTo: 0,
+    },
   },
   markers: {
     size: 2,
     // colors: ["#000524"],
     strokeColor: "#2DB26F",
-    strokeWidth: 2
+    strokeWidth: 2,
   },
   series: [
     {
-      data: data
-    }
+      data: data,
+    },
   ],
   tooltip: {
-    theme: "dark"
+    theme: "dark",
   },
   xaxis: {
-    type: "datetime"
+    type: "datetime",
   },
   yaxis: {
     min: 0,
-    tickAmount: 4
-  }
+    tickAmount: 4,
+  },
 };
 
 onMounted(() => {
   if (import.meta.browser) {
-    const chart1 = new ApexCharts(document.querySelector("#chart-area"), options1);
+    const chart1 = new ApexCharts(
+      document.querySelector("#chart-area"),
+      options1,
+    );
     chart1.render();
   }
-})
+});
 </script>

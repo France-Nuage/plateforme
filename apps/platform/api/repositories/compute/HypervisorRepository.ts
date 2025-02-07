@@ -1,6 +1,6 @@
-import { parseUri } from '../../parsers/url';
-import type { AllowedParams } from './../ApiParams';
-import type { ApiResponse } from './../ApiResponse';
+import { parseUri } from "../../parsers/url";
+import type { AllowedParams } from "./../ApiParams";
+import type { ApiResponse } from "./../ApiResponse";
 
 interface PostOrganizationData {}
 
@@ -14,26 +14,38 @@ interface OrganizationResource {
   created_at: string;
 }
 
-type PatchOrganizationData = Partial<OrganizationResource> | { resultCode: string };
+type PatchOrganizationData =
+  | Partial<OrganizationResource>
+  | { resultCode: string };
 
-export const HypervisorRepository = function (client: any, config: Record<any, any>) {
+export const HypervisorRepository = function (
+  client: any,
+  config: Record<any, any>,
+) {
   return {
-    list: async (params?: AllowedParams<any, null, null>): Promise<ApiResponse<OrganizationResource[]>> => {
-      const apiCallParams = params ? parseUri(params) : '';
-      return client(`/hypervisor${apiCallParams}`, { method: 'GET' });
+    list: async (
+      params?: AllowedParams<any, null, null>,
+    ): Promise<ApiResponse<OrganizationResource[]>> => {
+      const apiCallParams = params ? parseUri(params) : "";
+      return client(`/hypervisor${apiCallParams}`, { method: "GET" });
     },
     get: async (
       instanceId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      const apiCallParams = params ? parseUri(params) : '';
+      const apiCallParams = params ? parseUri(params) : "";
       return client(`/hypervisor/${instanceId}${apiCallParams}`);
     },
-    post: async (body: PostOrganizationData): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/hypervisor`, { method: 'POST', body });
+    post: async (
+      body: PostOrganizationData,
+    ): Promise<ApiResponse<OrganizationResource>> => {
+      return client(`/hypervisor`, { method: "POST", body });
     },
-    patch: async (instanceId: string, body: PatchOrganizationData): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/hypervisor/${instanceId}`, {  method: 'PUT', body });
+    patch: async (
+      instanceId: string,
+      body: PatchOrganizationData,
+    ): Promise<ApiResponse<OrganizationResource>> => {
+      return client(`/hypervisor/${instanceId}`, { method: "PUT", body });
     },
   };
 };

@@ -5,10 +5,7 @@
 </template>
 
 <script setup lang="ts">
-
 import CTable from "~/components/table/CTable.vue";
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
