@@ -18,8 +18,4 @@ export default class extends BaseSchema {
       table.foreign('zone__id').references('zone__id').inTable('infrastructure.zones')
     })
   }
-
-  async down() {
-    this.schema.withSchema('billing').dropTable('prices')
-  }
 }
