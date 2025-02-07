@@ -12,7 +12,6 @@ agent_build:
     - docker build -f apps/agent/Dockerfile -t $DOCKER_IMAGE .
     - docker push $DOCKER_IMAGE
 
-
 # agent_test:
 # stage: test
 # image: node:22.11.0
@@ -96,4 +95,3 @@ agent_deploy_prod:
     - docker push $DOCKER_IMAGE
   only:
     - master
-
