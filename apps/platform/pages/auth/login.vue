@@ -5,7 +5,7 @@
       <nuxt-link
         to="/auth/subscribe"
         class="font-semibold text-primary"
-        data-id="subscribe-link"
+        data-pw="subscribe-link"
         >Inscriver vous !</nuxt-link
       >
     </p>
@@ -53,7 +53,7 @@
               type="submit"
               block
               :loading="loading"
-              data-pw="login-submit"
+              data-id="login-submit"
             >
               Se connecter
             </c-button>
