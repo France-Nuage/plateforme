@@ -13,7 +13,9 @@ test("subscribe", async ({ page }) => {
   await page.locator("input#firstname").click();
   await page.locator("input#firstname").fill("Alexandre");
   await page.locator("input#email").click();
-  await page.locator("input#email").fill(`test.${date.getTime()}@gmail.com`);
+  await page
+    .locator("input#email")
+    .fill(`${date.getTime()}-login.test@france-nuage.fr`);
   await page.locator("input#password").click();
   await page.locator("input#password").fill("test1234");
   await page.locator("button[type=submit]").click();
@@ -27,7 +29,7 @@ test("login", async ({ page }) => {
   await expect(page).toHaveURL(APP_URL + "/auth/login");
 
   await page.locator("input#email").click();
-  await page.locator("input#email").fill(`test.login@gmail.com`);
+  await page.locator("input#email").fill(`login.test@france-nuage.fr`);
   await page.locator("input#password").click();
   await page.locator("input#password").fill("test1234");
   await page.locator("button[type=submit]").click();
@@ -42,6 +44,8 @@ test("forgot password", async ({ page }) => {
 
   await page.locator("[data-id=forgot-password-link]").click();
   await page.locator("input#email").click();
-  await page.locator("input#email").fill(`test.${date.getTime()}@gmail.com`);
+  await page
+    .locator("input#email")
+    .fill(`${date.getTime()}-login.test@france-nuage.fr`);
   await page.locator("button[type=submit]").click();
 });
