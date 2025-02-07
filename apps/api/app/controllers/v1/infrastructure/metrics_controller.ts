@@ -34,26 +34,19 @@ export default class MetricsController {
     ) {
       return response.badRequest({ error: 'Invalid data received' })
     }
-
+    if (
+      typeof data.ip_address !== 'string' ||
+      typeof data.hostname !== 'string' ||
+      typeof data.total_memory !== 'number' ||
+      typeof data.cpu_count !== 'number' ||
+      typeof data.disk_space !== 'number' ||
+      typeof data.os !== 'string' ||
+      typeof data.os_version !== 'string' ||
+      !Array.isArray(data.installed_packages)
+    ) {
+      return response.badRequest({ error: 'Invalid data received' })
+    }
     // Format data for Mimir (Prometheus Remote Write format)
-    /* const formattedMetrics = await snappy.compress(
-      Buffer.from(
-        JSON.stringify({
-          "timeseries": [
-            {
-              "labels": [
-                {"name": "__name__", "value": "http_requests_total"},
-                {"name": "method", "value": "GET"},
-                {"name": "status", "value": "200"}
-              ],
-              "samples": [
-                {"value": 42, "timestamp": 1673945600000}
-              ]
-            }
-          ]
-        })
-      )
-    )*/
     const root = await protobuf.load('plop.proto')
     const writeRequestType = root.lookupType('prometheus.WriteRequest')
 
@@ -74,46 +67,53 @@ export default class MetricsController {
       ],
     })
 
-    // chatgpt example : https://chatgpt.com/share/678a6cd1-1074-800e-9cc8-bd1481713dac
-    // 2) Encoder en binary (Protobuf)
+    // Encode in binary (Protobuf)
     const messageBuffer = writeRequestType.encode(writeRequest).finish()
 
-    // 3) Compresses avec Snappy
-    const compressed = await snappy.compress(Buffer.from(messageBuffer))
+    // Compress with Snappy
+    snappy.compress(Buffer.from(messageBuffer), async (err, compressed) => {
+      if (err) {
+        console.error('Error compressing data:', err)
+        return response.internalServerError({
+          error: 'Failed to compress data',
+          details: err.message,
+        })
+      }
 
-    try {
-      // Push data to Mimir
-      const mimirUrl = Env.get('MIMIR_URL') + '/api/v1/push'
-      const mimirResponse = await axios.post(mimirUrl, compressed, {
-        headers: {
-          'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
-          'CF-Access-Client-Secret': Env.get('CLOUDFLARE_CLIENT_SECRET'),
-          'Content-Type': 'application/x-protobuf',
-          'Content-Encoding': 'snappy',
-          'X-Prometheus-Remote-Write-Version': '0.1.0',
-        },
-      })
+      try {
+        // Push data to Mimir
+        const mimirUrl = Env.get('MIMIR_URL') + '/api/v1/push'
+        const mimirResponse = await axios.post(mimirUrl, compressed, {
+          headers: {
+            'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
+            'CF-Access-Client-Secret': Env.get('CLOUDFLARE_CLIENT_SECRET'),
+            'Content-Type': 'application/x-protobuf',
+            'Content-Encoding': 'snappy',
+            'X-Prometheus-Remote-Write-Version': '0.1.0',
+          },
+        })
 
-      console.log('Metrics pushed successfully:', mimirResponse)
+        if (mimirResponse.status !== 200) {
+          console.error('Error pushing metrics:', mimirResponse.data)
+          return response.internalServerError({
+            error: 'Failed to push metrics',
+            details: mimirResponse.data,
+          })
+        }
 
-      console.log('Metrics pushed successfully:', mimirResponse)
+        // Respond to the external agent
+        return response.ok({
+          message: 'Metrics received and pushed successfully',
+          pushedData: compressed,
+        })
+      } catch (error) {
+        console.error('Error pushing metrics:', error.message)
 
-      // Respond to the external agent
-      return response.ok({
-        message: 'Metrics received and pushed successfully',
-        pushedData: compressed,
-      })
-    } catch (error) {
-      console.error('Error pushing metrics:', error.message)
-
-      return response.internalServerError({
-        error: 'Failed to push metrics',
-        details: error.message,
-      })
-    }
-  }
-
-  async getUtilisation({ response }: HttpContext) {
-    return response.ok('Hello, World')
+        return response.internalServerError({
+          error: 'Failed to push metrics',
+          details: error.message,
+        })
+      }
+    })
   }
 }
