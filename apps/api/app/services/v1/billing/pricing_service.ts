@@ -22,7 +22,7 @@ export default {
       total: ramPricing + cpuPricing,
     }
   },
-  getPriceForPeriod: async (zoneId: string, period: { start: string, end: string }) => {
+  getPriceForPeriod: async (zoneId: string, period: { start: string; end: string }) => {
     const prices = await Price.query()
       .where('zone', zoneId)
       // .where('resource_type', resourceType)

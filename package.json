@@ -5,9 +5,13 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{js,json,md,ts,vue,yml}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md,ts,vue,yml}\"",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
     "prettier": "^3.2.5",
     "turbo": "^2.2.3"
   },

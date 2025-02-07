@@ -16,6 +16,21 @@ RUN npm install
 # Build the app (specific to the "api" app in the monorepo)
 RUN npx turbo run build --filter=api
 
+# Development Stage
+FROM node:22-alpine AS development
+
+RUN mkdir -p /usr/src/app/apps
+
+COPY ./apps/api /usr/src/app/apps/api
+
+WORKDIR /usr/src/app/apps/api
+
+RUN npm install
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
+
 # Production Stage
 FROM node:22-alpine
 
@@ -31,7 +46,7 @@ COPY ./apps/api/package*.json ./apps/api/
 COPY --from=build /usr/src/app/apps/api/build ./build
 
 # Install only production dependencies (omit dev dependencies)
-RUN npm install --omit=dev --production
+RUN npm install --omit=dev --production --ignore-scripts
 
 # Expose the API's port
 EXPOSE 3000

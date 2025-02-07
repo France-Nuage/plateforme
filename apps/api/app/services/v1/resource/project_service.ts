@@ -1,11 +1,10 @@
-import RequestQueryBuilder from '../../../utils/RequestQueryBuilder.js'
-// import User from '#models/user'
+import RequestQueryBuilder from '#utils/request_query_builder'
 import Project from '#models/resource/project'
 import User from '#models/user'
 import Policy from '#models/iam/policy'
 import Role from '#models/iam/role'
 import Authorization from '#services/authorization'
-import Folder from "#models/resource/folder";
+import Folder from '#models/resource/folder'
 
 export default {
   get: async function (id: string, includes: Array<string>) {

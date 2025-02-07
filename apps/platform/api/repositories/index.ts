@@ -1,11 +1,11 @@
 // resource
-export { OrganizationRepository } from './resource/OrganizationRepository';
-export { ProjectRepository } from './resource/ProjectRepository';
+export { OrganizationRepository } from "./resource/OrganizationRepository";
+export { ProjectRepository } from "./resource/ProjectRepository";
 export { FolderRepository } from "./resource/FolderRepository";
 
 // iam
-export { IAMMemberRepository } from './iam/MemberRepository';
-export { IAMPolicyRepository } from './iam/PolicyRepository';
+export { IAMMemberRepository } from "./iam/MemberRepository";
+export { IAMPolicyRepository } from "./iam/PolicyRepository";
 export { RoleRepository } from "./iam/RoleRepository";
 export { PermissionRepository } from "./iam/PermissionRepository";
 
@@ -17,12 +17,12 @@ export { BillingAccountRepository } from "./billing/BillingAccountRepository";
 export { PricingRepository } from "./billing/PricingRepository";
 
 // member
-export { MemberRepository } from './member/MemberRepository'
+export { MemberRepository } from "./member/MemberRepository";
 
 // compute
-export { RegionRepository } from './compute/RegionRepository'
-export { ZoneRepository } from './compute/ZoneRepository'
-export { InstanceRepository } from './compute/InstanceRepository'
+export { RegionRepository } from "./compute/RegionRepository";
+export { ZoneRepository } from "./compute/ZoneRepository";
+export { InstanceRepository } from "./compute/InstanceRepository";
 
 // payment
-export { PaymentMethodRepository } from './payment/PaymentMethodRepository'
+export { PaymentMethodRepository } from "./payment/PaymentMethodRepository";

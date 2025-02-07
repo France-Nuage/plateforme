@@ -27,6 +27,7 @@ While Laravel was another viable option, the choice of AdonisJS aligned better w
 ## Consequences
 
 Using AdonisJS has several advantages:
+
 - **Efficiency**: Its comprehensive set of built-in tools minimizes development time.
 - **Streamlined Workflow**: AdonisJS provides a structured and opinionated framework, making it easier to organize and maintain the codebase.
 
