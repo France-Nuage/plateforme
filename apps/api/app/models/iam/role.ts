@@ -28,3 +28,8 @@ export default class Role extends BaseModel {
   })
   declare permissions: ManyToMany<typeof Permission>
 }
+
+export enum RoleId {
+  OrganizationAdmin = 'roles/resourcemanager.organizationAdmin',
+  ProjectAdmin = 'roles/resourcemanager.projectAdmin',
+}

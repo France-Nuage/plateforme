@@ -14,3 +14,9 @@ export default class Service extends BaseModel {
   @hasMany(() => Type)
   declare types: HasMany<typeof Type>
 }
+
+export enum ServiceId {
+  CloudAssets = 'cloudassets',
+  Compute = 'compute',
+  ResourceManager = 'resourcemanager',
+}
