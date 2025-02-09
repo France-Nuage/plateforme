@@ -43,8 +43,4 @@ export default class extends BaseSchema {
       table.foreign('account__id').references('account__id').inTable('billing.accounts')
     })
   }
-
-  async down() {
-    this.schema.withSchema('billing').dropTable('accounts')
-  }
 }
