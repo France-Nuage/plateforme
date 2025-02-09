@@ -5,7 +5,7 @@ api_build:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:$CI_COMMIT_SHORT_SHA
+    DOCKER_IMAGE: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/apps/api:$CI_COMMIT_SHORT_SHA
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
@@ -32,7 +32,7 @@ api_test:
     - export DB_USER=$POSTGRES_USER DB_PASSWORD=$POSTGRES_PASSWORD DB_DATABASE=$POSTGRES_DB DB_HOST=postgres DB_PORT=5432
     - npm install
     - node ace migration:run
-    #    - node ace db:seed
+    - node ace db:seed
     - node ace test
 
 api_db_migrate_staging:
@@ -70,7 +70,7 @@ api_deploy_staging:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:staging
+    DOCKER_IMAGE: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/apps/api:staging
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
@@ -86,7 +86,7 @@ api_deploy_prod:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/api:production
+    DOCKER_IMAGE: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/apps/api:production
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:

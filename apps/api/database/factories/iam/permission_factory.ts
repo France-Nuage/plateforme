@@ -1,12 +1,16 @@
 import factory from '@adonisjs/lucid/factories'
-import Permission from '#models/iam/permission'
+import Permission, { PermissionId } from '#models/iam/permission'
+import { ServiceId } from '#models/catalog/service'
+import { TypeId } from '#models/iam/type'
+import { VerbId } from '#models/iam/verb'
 
 export const PermissionFactory = factory
   .define(Permission, ({ faker }) => {
     return {
-      serviceId: faker.string.uuid(),
-      typeId: faker.string.uuid(),
-      verbId: faker.string.uuid(),
+      id: faker.helpers.arrayElement(Object.values(PermissionId)),
+      serviceId: faker.helpers.arrayElement(Object.values(ServiceId)),
+      typeId: faker.helpers.arrayElement(Object.values(TypeId)),
+      verbId: faker.helpers.arrayElement(Object.values(VerbId)),
     }
   })
   .build()
