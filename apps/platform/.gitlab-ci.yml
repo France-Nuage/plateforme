@@ -9,6 +9,8 @@
 local-test-e2e:
   <<: *e2e-test
   stage: test
+  services:
+    - docker:dind
   variables:
     BASE_URL: "http://localhost:3000"
   before_script:
