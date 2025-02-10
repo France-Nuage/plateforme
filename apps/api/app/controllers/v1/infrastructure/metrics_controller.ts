@@ -1,5 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import axios from 'axios' // Import HTTP client
+import axios from 'axios'
 import Env from '#start/env'
 import snappy from 'snappy'
 import protobuf from 'protobufjs'
@@ -30,10 +30,11 @@ export default class MetricsController {
       !data.disk_space ||
       !data.os ||
       !data.os_version ||
-      !data.installed_packages
+      !Array.isArray(data.installed_packages)
     ) {
       return response.badRequest({ error: 'Invalid data received' })
     }
+
     if (
       typeof data.ip_address !== 'string' ||
       typeof data.hostname !== 'string' ||
@@ -41,15 +42,14 @@ export default class MetricsController {
       typeof data.cpu_count !== 'number' ||
       typeof data.disk_space !== 'number' ||
       typeof data.os !== 'string' ||
-      typeof data.os_version !== 'string' ||
-      !Array.isArray(data.installed_packages)
+      typeof data.os_version !== 'string'
     ) {
       return response.badRequest({ error: 'Invalid data received' })
     }
+
     // Format data for Mimir (Prometheus Remote Write format)
     const root = await protobuf.load('./app/controllers/v1/infrastructure/mimir.proto')
     const writeRequestType = root.lookupType('prometheus.WriteRequest')
-
     const writeRequest = writeRequestType.create({
       timeseries: [
         {
@@ -57,36 +57,31 @@ export default class MetricsController {
             { name: '__name__', value: 'my_app_requests_total' },
             { name: 'instance', value: 'test' },
           ],
-          samples: [
-            {
-              value: 42,
-              timestamp: Date.now(),
-            },
-          ],
+          samples: [{ value: 42, timestamp: Date.now() }],
         },
       ],
     })
 
+    //
     // Encode in binary (Protobuf)
     const messageBuffer = writeRequestType.encode(writeRequest).finish()
 
-    // Compress with Snappy
-    snappy.compress(Buffer.from(messageBuffer), (err: Error, compressed?: Buffer) => {
-      if (err) {
-        console.error('Error compressing data:', err)
-        return response.internalServerError({
-          error: 'Failed to compress data',
-          details: err.message,
-        })
-      }
-
-      if (!compressed) {
-        console.error('Compression returned undefined buffer')
-        return response.internalServerError({
-          error: 'Failed to compress data',
-          details: 'Compression returned undefined buffer',
-        })
-      }
+    try {
+      const compressed = await new Promise<Buffer>((resolve, reject) => {
+        snappy.compress(
+          Buffer.from(messageBuffer),
+          {},
+          (err: Error | null, compressed?: Buffer) => {
+            if (err) {
+              reject(err)
+            } else if (!compressed) {
+              reject(new Error('Compression returned undefined buffer'))
+            } else {
+              resolve(compressed)
+            }
+          }
+        )
+      })
 
       try {
         // Push data to Mimir
@@ -116,12 +111,17 @@ export default class MetricsController {
         })
       } catch (error) {
         console.error('Error pushing metrics:', error.message)
-
         return response.internalServerError({
           error: 'Failed to push metrics',
           details: error.message,
         })
       }
-    })
+    } catch (error) {
+      console.error('Error compressing data:', error)
+      return response.internalServerError({
+        error: 'Failed to compress data',
+        details: error.message,
+      })
+    }
   }
 }
