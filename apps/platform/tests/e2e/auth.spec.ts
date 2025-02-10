@@ -7,7 +7,7 @@ test("subscribe", async ({ page }) => {
   await page.goto(APP_URL);
   await expect(page).toHaveURL(APP_URL + "/auth/login");
 
-  await page.locator("[data-id=subscribe-link]").click();
+  await page.locator("[data-pw=subscribe-link]").click();
   await page.locator("input#lastname").click();
   await page.locator("input#lastname").fill("Cailler");
   await page.locator("input#firstname").click();
@@ -29,7 +29,7 @@ test("login", async ({ page }) => {
   await expect(page).toHaveURL(APP_URL + "/auth/login");
 
   await page.locator("input#email").click();
-  await page.locator("input#email").fill(`login.test@france-nuage.fr`);
+  await page.locator("input#email").fill("login.test@france-nuage.fr");
   await page.locator("input#password").click();
   await page.locator("input#password").fill("test1234");
   await page.locator("button[type=submit]").click();
@@ -42,7 +42,7 @@ test("forgot password", async ({ page }) => {
   await page.goto(APP_URL);
   await expect(page).toHaveURL(APP_URL + "/auth/login");
 
-  await page.locator("[data-id=forgot-password-link]").click();
+  await page.locator("[data-pw=forgot-password-link]").click();
   await page.locator("input#email").click();
   await page
     .locator("input#email")

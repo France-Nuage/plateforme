@@ -17,3 +17,14 @@ export default class Type extends BaseModel {
   @belongsTo(() => Service)
   declare service: BelongsTo<typeof Service>
 }
+
+export enum TypeId {
+  Assets = 'assets',
+  Folders = 'folders',
+  Images = 'images',
+  Instances = 'instances',
+  Organizations = 'organizations',
+  Projects = 'projects',
+  Regions = 'regions',
+  Zones = 'zones',
+}
