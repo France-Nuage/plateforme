@@ -71,7 +71,7 @@ export default class MetricsController {
     const messageBuffer = writeRequestType.encode(writeRequest).finish()
 
     // Compress with Snappy
-    snappy.compress(Buffer.from(messageBuffer), async (err: Error, compressed?: Buffer) => {
+    snappy.compress(Buffer.from(messageBuffer), (err: Error, compressed?: Buffer) => {
       if (err) {
         console.error('Error compressing data:', err)
         return response.internalServerError({
