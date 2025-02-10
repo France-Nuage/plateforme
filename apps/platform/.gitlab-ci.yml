@@ -17,7 +17,7 @@ local-test-e2e:
     - npm install
     - npx turbo prune --scope="@france-nuage/platform"
     - npx turbo prune --scope="@france-nuage/api"
-    - docker-compose up -d
+    - docker compose up -d
     - cd apps/api
     - node ace db:seed
     - cd ../..
