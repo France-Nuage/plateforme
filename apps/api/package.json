@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "@france-nuage/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
