@@ -47,7 +47,7 @@ export default class MetricsController {
       return response.badRequest({ error: 'Invalid data received' })
     }
     // Format data for Mimir (Prometheus Remote Write format)
-    const root = await protobuf.load('plop.proto')
+    const root = await protobuf.load('./app/controllers/v1/infrastructure/mimir.proto')
     const writeRequestType = root.lookupType('prometheus.WriteRequest')
 
     const writeRequest = writeRequestType.create({
