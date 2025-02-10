@@ -14,7 +14,7 @@ COPY ./apps ./apps
 RUN npm install
 
 # Build the app (specific to the "api" app in the monorepo)
-RUN npx turbo run build --filter=api
+RUN npx turbo run build --filter=@france-nuage/api
 
 # Development Stage
 FROM node:22-alpine AS development
