@@ -13,7 +13,7 @@ worker_deploy_staging:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/worker:staging
+    DOCKER_IMAGE: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/apps/worker:staging
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
@@ -29,7 +29,7 @@ worker_deploy_prod:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/worker:production
+    DOCKER_IMAGE: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/apps/worker:production
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:

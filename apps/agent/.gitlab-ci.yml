@@ -5,7 +5,7 @@ agent_build:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/agent:$CI_COMMIT_SHORT_SHA
+    DOCKER_IMAGE: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/apps/agent:$CI_COMMIT_SHORT_SHA
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
@@ -71,7 +71,7 @@ agent_deploy_staging:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/agent:staging
+    DOCKER_IMAGE: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/apps/agent:staging
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
@@ -87,7 +87,7 @@ agent_deploy_prod:
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE: registry.gitlab.com/getnobullshit/france-nuage/plateforme/apps/agent:production
+    DOCKER_IMAGE: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/apps/agent:production
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
