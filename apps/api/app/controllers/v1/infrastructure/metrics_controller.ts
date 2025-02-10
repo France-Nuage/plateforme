@@ -67,21 +67,7 @@ export default class MetricsController {
     const messageBuffer = writeRequestType.encode(writeRequest).finish()
 
     try {
-      const compressed = await new Promise<Buffer>((resolve, reject) => {
-        snappy.compress(
-          Buffer.from(messageBuffer),
-          {},
-          (err: Error | null, compressed?: Buffer) => {
-            if (err) {
-              reject(err)
-            } else if (!compressed) {
-              reject(new Error('Compression returned undefined buffer'))
-            } else {
-              resolve(compressed)
-            }
-          }
-        )
-      })
+      const compressed = await snappy.compress(Buffer.from(messageBuffer))
 
       try {
         // Push data to Mimir
