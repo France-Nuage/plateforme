@@ -7,8 +7,8 @@
     - npx playwright test
 
 local-test-e2e:
-  <<: *e2e-test
   stage: test
+  image: docker:latest
   services:
     - docker:dind
   variables:
