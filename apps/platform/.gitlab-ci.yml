@@ -7,13 +7,15 @@
     - npx playwright test
 
 local-test-e2e:
-  <<: *e2e-test
   stage: test
+  image: docker:latest
   services:
     - docker:dind
   variables:
     BASE_URL: "http://localhost:3000"
   before_script:
+    - apk add --no-cache docker-compose npm nodejs
+  script:
     - sudo apt-get update
     - sudo apt-get install docker-compose
     - npm install
@@ -24,7 +26,6 @@ local-test-e2e:
     - node ace db:seed
     - cd ../..
     - cd apps/platform
-  script:
     - npm ci --ignore-scripts
     - npx playwright test
 
