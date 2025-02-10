@@ -80,6 +80,15 @@ export default class MetricsController {
 
     // 3) Compresses avec Snappy
     const compressed = await snappy.compress(Buffer.from(messageBuffer))
+    // Compress with Snappy
+    snappy.compress(Buffer.from(messageBuffer), async (err: Error, compressed?: Buffer) => {
+      if (err) {
+        console.error('Error compressing data:', err)
+        return response.internalServerError({
+          error: 'Failed to compress data',
+          details: err.message,
+        })
+      }
 
     try {
       // Push data to Mimir
@@ -93,6 +102,26 @@ export default class MetricsController {
           'X-Prometheus-Remote-Write-Version': '0.1.0',
         },
       })
+      if (!compressed) {
+        console.error('Compression returned undefined buffer')
+        return response.internalServerError({
+          error: 'Failed to compress data',
+          details: 'Compression returned undefined buffer',
+        })
+      }
+
+      try {
+        // Push data to Mimir
+        const mimirUrl = Env.get('MIMIR_URL') + '/api/v1/push'
+        const mimirResponse = await axios.post(mimirUrl, compressed, {
+          headers: {
+            'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
+            'CF-Access-Client-Secret': Env.get('CLOUDFLARE_CLIENT_SECRET'),
+            'Content-Type': 'application/x-protobuf',
+            'Content-Encoding': 'snappy',
+            'X-Prometheus-Remote-Write-Version': '0.1.0',
+          },
+        })
 
       console.log('Metrics pushed successfully:', mimirResponse)
 
