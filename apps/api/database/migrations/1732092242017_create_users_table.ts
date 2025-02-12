@@ -16,4 +16,16 @@ export default class extends BaseSchema {
       table.timestamp('updated_at').nullable()
     })
   }
+
+  async down() {
+    this.schema.dropSchema('billing', true)
+    this.schema.dropSchema('catalog', true)
+    this.schema.dropSchema('iam', true)
+    this.schema.dropSchema('infrastructure', true)
+    this.schema.dropSchema('localisation', true)
+    this.schema.dropSchema('member', true)
+    this.schema.dropSchema('quota', true)
+    this.schema.dropSchema('resource', true)
+    this.schema.dropSchema('stripe', true)
+  }
 }

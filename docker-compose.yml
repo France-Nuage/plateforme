@@ -11,7 +11,7 @@ services:
     environment:
       # Application
       NODE_ENV: development
-      APP_KEY: vUfHvIvSHtNNsRYrD-PfTm1pUc1L_4zd
+      APP_KEY: ${APP_KEY:-vUfHvIvSHtNNsRYrD-PfTm1pUc1L_4zd}
       TZ: UTC
       HOST: 0.0.0.0
       PORT: 3333
@@ -81,7 +81,7 @@ services:
       - control-plane
     environment:
       API_URL: http://control-plane:3333
-      API_TOKEN:
+      API_TOKEN: ${WORKER_API_TOKEN:-oat_MQ.NERJdHV3QmlSbmpaUXlXd1dxSnZfb2tWcmVoRHpEQTF2WFZ6TjNnWTExMTcxMTMwMjU}
     restart: always
 
 volumes:

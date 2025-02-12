@@ -31,8 +31,6 @@ api_test:
   script:
     - export DB_USER=$POSTGRES_USER DB_PASSWORD=$POSTGRES_PASSWORD DB_DATABASE=$POSTGRES_DB DB_HOST=postgres DB_PORT=5432
     - npm install
-    - node ace migration:run
-    - node ace db:seed
     - node ace test
 
 api_db_migrate_staging:
