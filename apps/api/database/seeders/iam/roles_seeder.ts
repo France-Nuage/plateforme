@@ -15,6 +15,10 @@ export default class extends BaseSeeder {
         id: RoleId.ProjectAdmin,
         serviceId: ServiceId.ResourceManager,
       },
+      {
+        id: RoleId.Worker,
+        serviceId: ServiceId.ResourceManager,
+      },
     ])
   }
 }

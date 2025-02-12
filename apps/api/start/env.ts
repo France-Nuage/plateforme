@@ -61,10 +61,10 @@ export default await Env.create(new URL('../', import.meta.url), {
   R2_ENDPOINT: Env.schema.string.optionalWhen(process.env.DRIVE_DISK !== 'r2'),
 
   /*
- |----------------------------------------------------------
- | Variables for configuring the payment package
- |----------------------------------------------------------
- */
+  |----------------------------------------------------------
+  | Variables for configuring the payment package
+  |----------------------------------------------------------
+  */
   STRIPE_SECRET_KEY: Env.schema.string(),
 
   REDIS_HOST: Env.schema.string({ format: 'host' }),
@@ -78,4 +78,11 @@ export default await Env.create(new URL('../', import.meta.url), {
   */
   CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
   CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the Cloudflare authentication headers
+  |----------------------------------------------------------
+  */
+  WORKER_USER_EMAIL: Env.schema.string.optional(),
 })

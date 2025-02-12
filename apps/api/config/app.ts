@@ -13,6 +13,11 @@ import { defineConfig } from '@adonisjs/core/http'
 export const appKey = new Secret(env.get('APP_KEY'))
 
 /**
+ * The application environment.
+ */
+export const environment = env.get('NODE_ENV', 'development')
+
+/**
  * The configuration settings used by the HTTP server
  */
 export const http = defineConfig({
@@ -38,3 +43,13 @@ export const http = defineConfig({
     sameSite: 'lax',
   },
 })
+
+export const worker = {
+  email: env.get('WORKER_USER_EMAIL', 'worker@france-nuage.fr'),
+}
+
+export const organizations = {
+  franceNuage: {
+    policyId: env.get('FRANCE_NUAGE_POLICY_ID', '6653a9f0-b451-456b-a278-cb03ae8beb89'),
+  },
+}
