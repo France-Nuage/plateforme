@@ -10,7 +10,7 @@ COPY ./package.json ./package-lock.json ./turbo.json ./
 COPY ./apps ./apps
 #COPY ./packages ./packages
 
-# Install all dependencies (including dev dependencies) in the build stages
+# Install all dependencies (including dev dependencies) in the build stage
 RUN npm install
 
 # Build the app (specific to the "api" app in the monorepo)

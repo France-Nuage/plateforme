@@ -284,26 +284,34 @@ async function sendMetrics(data: MetricData): Promise<void> {
  * Verifies API availability with retry and timeout
  * Exits process if API is not available after all retries
  */
-async function checkApiAvailability(): Promise<void> {
-  await withRetry(
-    async () => {
-      const response = await axios.get(API_URL, {
-        headers: API_HEADERS,
-        timeout: REQUEST_TIMEOUT,
-      });
+async function checkApiAvailability(): Promise<boolean> {
+  try {
+    await withRetry(
+      async () => {
+        const response = await axios.get(API_URL, {
+          headers: API_HEADERS,
+          timeout: REQUEST_TIMEOUT,
+        });
 
-      if (response.status !== 200) {
-        throw new Error(
-          `API is not reachable. Status code: ${response.status}`,
-        );
-      }
+        if (response.status !== 200) {
+          throw new Error(
+            `API is not reachable. Status code: ${response.status}`,
+          );
+        }
 
-      Logger.info("API is reachable.");
-    },
-    MAX_RETRIES,
-    RETRY_DELAY,
-    "API availability check",
-  );
+        Logger.info("API is reachable.");
+      },
+      MAX_RETRIES,
+      RETRY_DELAY,
+      "API availability check",
+    );
+    return true;
+  } catch (error) {
+    Logger.error(
+      `API availability check failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return false;
+  }
 }
 /**
  * Main function that orchestrates the monitoring agent
