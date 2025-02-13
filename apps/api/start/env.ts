@@ -77,6 +77,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring the Worker account
   |----------------------------------------------------------
   */
+  CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
+  CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
+  MIMIR_URL: Env.schema.string.optionalWhen(process.env.NODE_ENV !== 'production'),
   WORKER_USER_EMAIL: Env.schema.string.optional(),
 
   /*
