@@ -106,4 +106,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   ),
   DEV_USER_EMAIL: Env.schema.string.optional(),
   DEV_USER_PASSWORD: Env.schema.string.optional(),
+  CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
+  CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
+  MIMIR_URL: Env.schema.string.optionalWhen(process.env.NODE_ENV !== 'production'),
 })
