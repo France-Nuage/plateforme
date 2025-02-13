@@ -22,6 +22,9 @@ export default class MainSeeder extends BaseSeeder {
     // CATALOG schema
     await this.seed(await import('#database/seeders/catalog/services_seeder'))
 
+    // LOCALISATION schema
+    await this.seed(await import('#database/seeders/localisation/countries_seeder'))
+
     // MEMBER schema
     await this.seed(await import('#database/seeders/member/users_seeder'))
 
@@ -33,5 +36,11 @@ export default class MainSeeder extends BaseSeeder {
     await this.seed(await import('#database/seeders/iam/permissions_seeder'))
     await this.seed(await import('#database/seeders/iam/role_permission_seeder'))
     await this.seed(await import('#database/seeders/iam/binding_seeder'))
+
+    // INFRASTRUCTURE schema
+    await this.seed(await import('#database/seeders/infrastructure/regions_seeder'))
+    await this.seed(await import('#database/seeders/infrastructure/zones_seeder'))
+    await this.seed(await import('#database/seeders/infrastructure/clusters_seeder'))
+    await this.seed(await import('#database/seeders/infrastructure/nodes_seeder'))
   }
 }
