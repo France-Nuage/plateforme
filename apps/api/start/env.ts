@@ -81,8 +81,24 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
-  | Variables for configuring the Cloudflare authentication headers
+  | Variables for configuring the Worker account
   |----------------------------------------------------------
   */
   WORKER_USER_EMAIL: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the development assets
+  |----------------------------------------------------------
+  */
+  DEV_CLUSTER_ID: Env.schema.string.optional(),
+  DEV_CLUSTER_NAME: Env.schema.string.optional(),
+  DEV_NODE_ID: Env.schema.string.optional(),
+  DEV_NODE_NAME: Env.schema.string.optional(),
+  DEV_NODE_TOKEN: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
+  DEV_NODE_URL: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
 })

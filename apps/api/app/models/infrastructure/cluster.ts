@@ -13,6 +13,9 @@ export default class Cluster extends BaseModel {
   @column({ columnName: 'zone__id' })
   declare zoneId: string
 
+  @column()
+  declare name: string
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
