@@ -32,4 +32,5 @@ export default class Role extends BaseModel {
 export enum RoleId {
   OrganizationAdmin = 'roles/resourcemanager.organizationAdmin',
   ProjectAdmin = 'roles/resourcemanager.projectAdmin',
+  Worker = 'roles/worker',
 }

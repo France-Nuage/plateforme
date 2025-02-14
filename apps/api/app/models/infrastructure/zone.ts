@@ -28,3 +28,7 @@ export default class Zone extends BaseModel {
   @belongsTo(() => Region, { localKey: 'id', foreignKey: 'regionId' })
   declare region: BelongsTo<typeof Region>
 }
+
+export enum ZoneName {
+  FranceVendeeA = 'Vendée A',
+}

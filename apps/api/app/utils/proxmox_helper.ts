@@ -1,23 +1,25 @@
 import axios from 'axios'
-import env from '#start/env'
+import config from '@adonisjs/core/services/config'
 
 export const proxmoxApi = {
   node: {
     qemu: {
       async create(
-        config: { vmid: string; nodeName: string; token: string; url: string },
+        node: { vmid: string; nodeName: string; token: string; url: string },
         options: { name: string; [_: string]: string | number | boolean }
       ) {
         try {
           const response = await axios.post(
-            `${config.url}/api2/json/nodes/${config.nodeName}/qemu`,
+            `${node.url}/api2/json/nodes/${node.nodeName}/qemu`,
             {
               ...options,
-              vmid: Number.parseInt(config.vmid),
+              vmid: Number.parseInt(node.vmid),
             },
             {
               headers: {
-                Authorization: config.token,
+                'Authorization': node.token,
+                'CF-Access-Client-Id': config.get('dev.cloudflare.clientId'),
+                'CF-Access-Client-Secret': config.get('dev.cloudflare.clientSecret'),
               },
             }
           )
@@ -40,7 +42,9 @@ export const proxmoxApi = {
         try {
           const response = await axios.get(`${url}/api2/json/nodes/${nodeName}/qemu/${vmid}`, {
             headers: {
-              Authorization: token,
+              'Authorization': token,
+              'CF-Access-Client-Id': config.get('dev.cloudflare.clientId'),
+              'CF-Access-Client-Secret': config.get('dev.cloudflare.clientSecret'),
             },
           })
           return response.data.data
@@ -62,7 +66,9 @@ export const proxmoxApi = {
         try {
           const response = await axios.delete(`${url}/api2/json/nodes/${nodeName}/qemu/${vmid}`, {
             headers: {
-              Authorization: token,
+              'Authorization': token,
+              'CF-Access-Client-Id': config.get('dev.cloudflare.clientId'),
+              'CF-Access-Client-Secret': config.get('dev.cloudflare.clientSecret'),
             },
           })
           return response.data.data
@@ -88,8 +94,8 @@ export const proxmoxApi = {
               {
                 headers: {
                   'Authorization': token,
-                  'CF-Access-Client-Id': env.get('CLOUDFLARE_ACCESS_CLIENT_ID'),
-                  'CF-Access-Client-Secret': env.get('CLOUDFLARE_ACCESS_CLIENT_SECRET'),
+                  'CF-Access-Client-Id': config.get('dev.cloudflare.clientId'),
+                  'CF-Access-Client-Secret': config.get('dev.cloudflare.clientSecret'),
                 },
               }
             )
@@ -115,7 +121,9 @@ export const proxmoxApi = {
           try {
             return axios.post(`${url}/api2/json/nodes/${nodeName}/qemu/${vmid}/${status}`, {
               headers: {
-                Authorization: token,
+                'Authorization': token,
+                'CF-Access-Client-Id': config.get('dev.cloudflare.clientId'),
+                'CF-Access-Client-Secret': config.get('dev.cloudflare.clientSecret'),
               },
             })
           } catch (e) {

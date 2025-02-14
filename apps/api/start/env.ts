@@ -36,7 +36,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring the limiter package
   |----------------------------------------------------------
   */
-  LIMITER_STORE: Env.schema.enum(['redis', 'memory'] as const),
+  LIMITER_STORE: Env.schema.enum.optional(['redis', 'memory'] as const),
 
   /*
   |----------------------------------------------------------
@@ -61,10 +61,10 @@ export default await Env.create(new URL('../', import.meta.url), {
   R2_ENDPOINT: Env.schema.string.optionalWhen(process.env.DRIVE_DISK !== 'r2'),
 
   /*
- |----------------------------------------------------------
- | Variables for configuring the payment package
- |----------------------------------------------------------
- */
+  |----------------------------------------------------------
+  | Variables for configuring the payment package
+  |----------------------------------------------------------
+  */
   STRIPE_SECRET_KEY: Env.schema.string(),
 
   REDIS_HOST: Env.schema.string({ format: 'host' }),
@@ -79,4 +79,27 @@ export default await Env.create(new URL('../', import.meta.url), {
   CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
   CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
   MIMIR_URL: Env.schema.string.optionalWhen(process.env.NODE_ENV !== 'production'),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the Worker account
+  |----------------------------------------------------------
+  */
+  WORKER_USER_EMAIL: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the development assets
+  |----------------------------------------------------------
+  */
+  DEV_CLUSTER_ID: Env.schema.string.optional(),
+  DEV_CLUSTER_NAME: Env.schema.string.optional(),
+  DEV_NODE_ID: Env.schema.string.optional(),
+  DEV_NODE_NAME: Env.schema.string.optional(),
+  DEV_NODE_TOKEN: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
+  DEV_NODE_URL: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
 })

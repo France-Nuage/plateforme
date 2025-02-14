@@ -74,6 +74,14 @@ export default class extends BaseSeeder {
           roleId: RoleId.ProjectAdmin,
           permissionId: PermissionId.ResourceManagerProjectsList,
         },
+        {
+          roleId: RoleId.Worker,
+          permissionId: PermissionId.ComputeInstancesList,
+        },
+        {
+          roleId: RoleId.Worker,
+          permissionId: PermissionId.ComputeInstancesUpdate,
+        },
       ]
     )
   }
