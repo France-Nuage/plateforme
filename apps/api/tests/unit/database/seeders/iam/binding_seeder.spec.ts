@@ -19,7 +19,7 @@ test.group('Binding Seeder', (group) => {
     // Assert the database has the expected entries
     assert.exists(
       await Binding.findByOrFail({
-        policyId: config.get('app.organizations.franceNuage.policyId'),
+        policyId: config.get('app.rootOrganization.policy.id'),
         memberId: workerUser.id,
       })
     )

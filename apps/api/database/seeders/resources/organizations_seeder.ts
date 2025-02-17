@@ -1,14 +1,15 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import Policy from '#models/iam/policy'
+import Organization from '#models/resource/organization'
 import config from '@adonisjs/core/services/config'
 
 export default class extends BaseSeeder {
   static environment = ['development', 'production', 'testing']
 
   public async run() {
-    await Policy.updateOrCreateMany('id', [
+    await Organization.updateOrCreateMany('id', [
       {
-        id: config.get('app.rootOrganization.policy.id'),
+        id: config.get('app.rootOrganization.id'),
+        name: config.get('app.rootOrganization.name'),
       },
     ])
   }

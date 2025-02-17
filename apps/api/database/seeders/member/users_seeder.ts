@@ -16,10 +16,21 @@ export default class extends BaseSeeder {
       }
     )
 
-    // Generate an entry for the worker access token when the environment is not production
-    if (config.get('app.environment') !== 'production') {
-      await this.generateWorkerAccessToken()
+    // Skip the next steps in production environment
+    if (config.get('app.environment') === 'production') {
+      return
     }
+
+    // Create the demo users
+    await User.updateOrCreateMany('email', [
+      {
+        email: config.get('dev.user.email'),
+        password: config.get('dev.user.password'),
+      },
+    ])
+
+    // Generate an entry for the worker access token
+    await this.generateWorkerAccessToken()
   }
 
   /**

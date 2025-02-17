@@ -17,6 +17,10 @@ export default class extends BaseSeeder {
       {
         id: config.get('dev.cluster.id'),
         name: config.get('dev.cluster.name'),
+        host: config.get('dev.cluster.host'),
+        tokenId: config.get('dev.cluster.token.id'),
+        tokenSecret: config.get('dev.cluster.token.secret'),
+        organizationId: config.get('app.rootOrganization.id'),
         zoneId: vendeeA.id,
       },
     ])
