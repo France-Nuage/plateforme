@@ -42,6 +42,11 @@ export default class MainSeeder extends BaseSeeder {
     await this.seed(await import('#database/seeders/iam/role_permission_seeder'))
     await this.seed(await import('#database/seeders/iam/binding_seeder'))
 
+    // RESOURCE schema
+    await this.seed(await import('#database/seeders/resources/organizations_seeder'))
+    await this.seed(await import('#database/seeders/resources/folders_seeder'))
+    await this.seed(await import('#database/seeders/resources/projects_seeder'))
+
     // INFRASTRUCTURE schema
     await this.seed(await import('#database/seeders/infrastructure/regions_seeder'))
     await this.seed(await import('#database/seeders/infrastructure/zones_seeder'))
