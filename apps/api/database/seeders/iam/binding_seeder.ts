@@ -15,9 +15,28 @@ export default class extends BaseSeeder {
       ['policyId', 'memberId'],
       [
         {
-          policyId: config.get('app.organizations.franceNuage.policyId'),
+          policyId: config.get('app.rootOrganization.policy.id'),
           memberId: workerUser.id,
           roleId: RoleId.Worker,
+          serviceId: ServiceId.ResourceManager,
+        },
+      ]
+    )
+
+    // Skip the next steps in production environment
+    if (config.get('app.environment') === 'production') {
+      return
+    }
+
+    const devUser = await User.findByOrFail('email', config.get('dev.user.email'))
+
+    await Binding.updateOrCreateMany(
+      ['policyId', 'memberId'],
+      [
+        {
+          policyId: config.get('app.rootOrganization.policy.id'),
+          memberId: devUser.id,
+          roleId: RoleId.OrganizationAdmin,
           serviceId: ServiceId.ResourceManager,
         },
       ]

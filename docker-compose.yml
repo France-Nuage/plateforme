@@ -25,8 +25,9 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       # Dev
-      DEV_NODE_TOKEN: ${DEV_NODE_TOKEN}
-      DEV_NODE_URL: ${DEV_NODE_URL}
+      DEV_CLUSTER_HOST: ${DEV_CLUSTER_HOST}
+      DEV_CLUSTER_TOKEN_ID: ${DEV_CLUSTER_TOKEN_ID}
+      DEV_CLUSTER_TOKEN_SECRET: ${DEV_CLUSTER_TOKEN_SECRET}
       # Redis
       REDIS_HOST: redis
     ports:

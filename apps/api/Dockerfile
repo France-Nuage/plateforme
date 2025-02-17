@@ -21,11 +21,13 @@ FROM node:22-alpine AS development
 
 RUN mkdir -p /usr/src/app/apps
 
-COPY ./apps/api /usr/src/app/apps/api
-
 WORKDIR /usr/src/app/apps/api
 
+COPY ./apps/api/package*.json /usr/src/app/apps/api
+
 RUN npm install
+
+COPY ./apps/api /usr/src/app/apps/api
 
 EXPOSE 3000
 
