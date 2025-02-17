@@ -12,6 +12,7 @@ stages:
   - migrate
   - deployment
   - post-deployment
+  - cleanup
 
 include:
   - local: "apps/api/.gitlab-ci.yml"
@@ -50,8 +51,8 @@ prettier:
   script:
     - npm run format:check
 
-storage-cleanup:
-  stage: post-deployment
+docker-storage-cleanup:
+  stage: cleanup
   image: docker:latest
   variables:
     DOCKER_HOST: unix:///var/run/docker.sock
