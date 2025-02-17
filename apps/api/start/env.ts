@@ -73,14 +73,6 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
-  | Variables for configuring the Cloudflare authentication headers
-  |----------------------------------------------------------
-  */
-  CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
-  CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
-
-  /*
-  |----------------------------------------------------------
   | Variables for configuring the Worker account
   |----------------------------------------------------------
   */
@@ -93,12 +85,15 @@ export default await Env.create(new URL('../', import.meta.url), {
   */
   DEV_CLUSTER_ID: Env.schema.string.optional(),
   DEV_CLUSTER_NAME: Env.schema.string.optional(),
-  DEV_NODE_ID: Env.schema.string.optional(),
-  DEV_NODE_NAME: Env.schema.string.optional(),
-  DEV_NODE_TOKEN: Env.schema.string.optionalWhen(
+  DEV_CLUSTER_HOST: Env.schema.string.optionalWhen(
     ['production', 'test'].includes(process.env.NODE_ENV!)
   ),
-  DEV_NODE_URL: Env.schema.string.optionalWhen(
+  DEV_CLUSTER_TOKEN_ID: Env.schema.string.optionalWhen(
     ['production', 'test'].includes(process.env.NODE_ENV!)
   ),
+  DEV_CLUSTER_TOKEN_SECRET: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
+  DEV_USER_EMAIL: Env.schema.string.optional(),
+  DEV_USER_PASSWORD: Env.schema.string.optional(),
 })

@@ -51,5 +51,23 @@ export const worker = {
 export const organizations = {
   franceNuage: {
     policyId: env.get('FRANCE_NUAGE_POLICY_ID', '6653a9f0-b451-456b-a278-cb03ae8beb89'),
+    organizationId: env.get('FRANCE_NUAGE_ORGANIZATION_ID', '00000000-0000-0000-0000-000000000000'),
   },
+}
+
+export const rootOrganization = {
+  id: env.get('ROOT_ORGANIZATION_ORGANIZATION_ID', '00000000-0000-0000-0000-000000000000'),
+  name: env.get('ROOT_ORGANIZATION_ORGANIZATION_NAME', 'France Nuage'),
+
+  policy: {
+    id: env.get('ROOT_ORGANIZATION_POLICY_ID', '00000000-0000-0000-0000-000000000000'),
+  },
+}
+
+export const defaultFolder = {
+  name: 'Interne',
+}
+
+export const defaultProject = {
+  name: 'Interne',
 }

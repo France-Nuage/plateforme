@@ -6,8 +6,6 @@ export const NodeFactory = factory
   .define(Node, ({ faker }) => {
     return {
       id: faker.string.uuid(),
-      url: faker.internet.url(),
-      token: faker.string.uuid(),
       name: faker.string.uuid(),
       clusterId: faker.string.uuid(),
     }

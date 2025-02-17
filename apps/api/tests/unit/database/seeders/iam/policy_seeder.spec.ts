@@ -14,6 +14,6 @@ test.group('Policy Seeder', (group) => {
     assert,
   }) => {
     // Assert the database has the expected entries
-    assert.exists(await Policy.find(config.get('app.organizations.franceNuage.policyId')))
+    assert.exists(await Policy.find(config.get('app.rootOrganization.policy.id')))
   })
 })
