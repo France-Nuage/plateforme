@@ -52,6 +52,9 @@ prettier:
 
 storage-cleanup:
   stage: post-deployment
+  image: docker:latest
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
   script:
     - docker system prune -af
     - docker image prune -af
