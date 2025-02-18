@@ -60,8 +60,10 @@ integration-tests:
   script:
     - docker compose up -d
     - docker compose ps
+    - sleep 15
     - docker compose exec platform npx playwright test
   after_script:
+    - docker compose ps
     - docker compose logs platform
 
 docker-storage-cleanup:
