@@ -59,7 +59,10 @@ integration-tests:
   stage: tmp
   script:
     - docker compose up -d
+    - docker compose ps
     - docker compose exec platform npx playwright test
+  after_script:
+    - docker compose logs platform
 
 docker-storage-cleanup:
   stage: cleanup
