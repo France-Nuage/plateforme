@@ -35,21 +35,21 @@ services:
     volumes:
       - ./apps/api:/usr/src/app/apps/api
       - /usr/src/app/apps/api/node_modules
-    command: "pwd && ls -l"
+    command: ["/bin/sh", "-c", "pwd && ls -l ."]
 
-  platform:
-    build:
-      context: ./apps/platform
-    container_name: platform
-    environment:
-      API_URL: http://control-plane:3333
-      BASE_URL: http://platform:3000
-      PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./apps/platform:/usr/src/app
-      - /usr/src/app/node_modules
+  # platform:
+  #   build:
+  #     context: ./apps/platform
+  #   container_name: platform
+  #   environment:
+  #     API_URL: http://control-plane:3333
+  #     BASE_URL: http://platform:3000
+  #     PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./apps/platform:/usr/src/app
+  #     - /usr/src/app/node_modules
 
   # playwright:
   #   image: mcr.microsoft.com/playwright:v1.50.1-noble
