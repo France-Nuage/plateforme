@@ -60,21 +60,14 @@ integration-tests:
   script:
     - docker compose up --detach --build
     - docker compose ps
-    - sleep 15
-    - docker compose ps
-    #   - docker compose logs control-plane
-    #   - docker compose logs platform
-    - docker compose exec control-plane ls -l /usr/src/app/apps/api/
-  #   - docker compose exec platform npx playwright test
-  # after_script:
-  #   - docker compose ps
-  #   - docker compose logs platform
-# docker-storage-cleanup:
-#   stage: cleanup
-#   image: docker:latest
-#   variables:
-#     DOCKER_HOST: unix:///var/run/docker.sock
-#   script:
-#     - docker system prune -af
-#     - docker image prune -af
-#     - docker volume prune -af
+    - docker compose exec platform npx playwright test
+
+docker-storage-cleanup:
+  stage: cleanup
+  image: docker:latest
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+  script:
+    - docker system prune -af
+    - docker image prune -af
+    - docker volume prune -af
