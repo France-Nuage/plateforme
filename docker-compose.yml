@@ -8,6 +8,7 @@ services:
     depends_on:
       - postgres
       - redis
+    privileged: true
     environment:
       # Application
       NODE_ENV: development
