@@ -61,6 +61,7 @@ integration-tests:
     - docker compose up -d
     - docker compose ps
     - sleep 15
+    - docker compose exec platform ls -l /usr/src/app/
     - docker compose exec platform npx playwright test
   after_script:
     - docker compose ps
