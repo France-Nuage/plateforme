@@ -33,12 +33,7 @@ services:
       REDIS_HOST: redis
     ports:
       - "3333:3333"
-    volumes:
-      - type: bind
-        source: ./apps/api
-        target: /usr/src/app/apps/api
-        bind:
-          propagration: rshared
+    # volumes:
     # - ./apps/api:/usr/src/app/apps/api
     # - /usr/src/app/apps/api/node_modules
 
@@ -52,9 +47,9 @@ services:
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
     ports:
       - "3000:3000"
-    volumes:
-      - ./apps/platform:/usr/src/app
-      - /usr/src/app/node_modules
+    # volumes:
+    #   - ./apps/platform:/usr/src/app
+    #   - /usr/src/app/node_modules
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.50.1-noble
