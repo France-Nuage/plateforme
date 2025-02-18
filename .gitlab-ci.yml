@@ -58,10 +58,13 @@ integration-tests:
   image: docker:27-dind
   stage: tmp
   script:
+    - ls -l
+    - ls -l apps/platform
     - docker compose up -d
     - docker compose ps
     - sleep 15
     - docker compose ps
+    - docker compose logs control-plane
     - docker compose logs platform
     - docker compose exec platform ls -l /usr/src/app/
     - docker compose exec platform npx playwright test
