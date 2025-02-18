@@ -9,6 +9,7 @@ export default class extends BaseSeeder {
     await Policy.updateOrCreateMany('id', [
       {
         id: config.get('app.rootOrganization.policy.id'),
+        organizationId: config.get('app.rootOrganization.id'),
       },
     ])
   }
