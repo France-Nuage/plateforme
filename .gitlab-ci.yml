@@ -60,7 +60,7 @@ integration-tests:
   script:
     - ls -l
     - ls -l apps/platform
-    - docker compose up -d
+    - docker compose up --build --detach
     - docker compose ps
     - sleep 15
     - docker compose ps
