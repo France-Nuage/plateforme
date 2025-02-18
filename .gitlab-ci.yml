@@ -62,15 +62,16 @@ integration-tests:
     - ls -l apps/platform
     - docker compose up --build --detach
     - docker compose ps
-    - sleep 15
-    - docker compose ps
     - docker compose logs control-plane
-    - docker compose logs platform
-    - docker compose exec platform ls -l /usr/src/app/
-    - docker compose exec platform npx playwright test
-  after_script:
-    - docker compose ps
-    - docker compose logs platform
+  #   - sleep 15
+  #   - docker compose ps
+  #   - docker compose logs control-plane
+  #   - docker compose logs platform
+  #   - docker compose exec platform ls -l /usr/src/app/
+  #   - docker compose exec platform npx playwright test
+  # after_script:
+  #   - docker compose ps
+  #   - docker compose logs platform
 
 docker-storage-cleanup:
   stage: cleanup

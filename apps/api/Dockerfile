@@ -31,6 +31,8 @@ COPY ./apps/api /usr/src/app/apps/api
 
 EXPOSE 3000
 
+RUN ls -l /usr/src/app/apps/api/
+
 CMD ["npm", "run", "dev"]
 
 # Production Stage
