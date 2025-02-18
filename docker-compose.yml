@@ -36,6 +36,8 @@ services:
       - type: bind
         source: ./apps/api
         target: /usr/src/app/apps/api
+        bind:
+          propagration: rshared
     # - ./apps/api:/usr/src/app/apps/api
     # - /usr/src/app/apps/api/node_modules
     # command: ["/bin/sh", "-c", "pwd && ls -l ."]
