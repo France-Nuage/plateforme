@@ -34,6 +34,7 @@ services:
       - "3333:3333"
     volumes:
       - ./apps/api:/usr/src/app/apps/api
+      - ./apps/foobar:/usr/src/apps/api
       - /usr/src/app/apps/api/node_modules
     command: ["/bin/sh", "-c", "pwd && ls -l ."]
 
