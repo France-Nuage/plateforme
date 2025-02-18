@@ -60,7 +60,8 @@ integration-tests:
   script:
     - ls -l
     - ls -l apps/platform
-    - docker compose up --build --detach
+    - docker compose build control-plane --no-cache
+    - docker compose up --detach
     - docker compose ps
     - docker compose logs control-plane
   #   - sleep 15
