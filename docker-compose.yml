@@ -32,9 +32,9 @@ services:
       REDIS_HOST: redis
     ports:
       - "3333:3333"
-    volumes:
-      # - ./apps/api:/usr/src/app/apps/api
-      # - /usr/src/app/apps/api/node_modules
+    # volumes:
+    # - ./apps/api:/usr/src/app/apps/api
+    # - /usr/src/app/apps/api/node_modules
     command: ["/bin/sh", "-c", "pwd && ls -l ."]
 
   # platform:
