@@ -5,6 +5,7 @@ cache:
     - node_modules/
 
 stages:
+  - tmp
   - install
   - code-style
   - build
@@ -55,7 +56,7 @@ prettier:
 
 integration-tests:
   image: docker:27-dind
-  stage: test
+  stage: tmp
   script:
     - docker compose up -d
     - docker compose exec platform npx playwright test
