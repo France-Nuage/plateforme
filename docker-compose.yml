@@ -35,6 +35,7 @@ services:
     volumes:
       - ./apps/api:/usr/src/app/apps/api
       - /usr/src/app/apps/api/node_modules
+    command: "pwd && ls -l"
 
   platform:
     build:
