@@ -19,8 +19,7 @@ include:
   - local: "apps/platform/.gitlab-ci.yml"
   - local: "apps/worker-vm-status/.gitlab-ci.yml"
 
-before_script:
-  - docker compose up -d
+# before_script:
 
 install:
   image: node:22
@@ -55,8 +54,10 @@ prettier:
     - npm run format:check
 
 integration-tests:
+  image: docker:27-dind
   stage: test
   script:
+    - docker compose up -d
     - docker compose exec platform npx playwright test
 
 docker-storage-cleanup:
