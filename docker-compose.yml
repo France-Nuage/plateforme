@@ -41,12 +41,20 @@ services:
       context: ./apps/platform
     container_name: platform
     environment:
-      API_URL: http://localhost:3333
+      API_URL: http://control-plane:3333
+      BASE_URL: http://platform:3000
+      PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
     ports:
       - "3000:3000"
     volumes:
       - ./apps/platform:/usr/src/app
       - /usr/src/app/node_modules
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.50.1-noble
+    command: /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
+    ports:
+      - "4444:4444"
 
   postgres:
     container_name: postgres
