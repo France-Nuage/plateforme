@@ -32,7 +32,10 @@ services:
       REDIS_HOST: redis
     ports:
       - "3333:3333"
-    # volumes:
+    volumes:
+      - type: bind
+        source: ./apps/api
+        target: /usr/src/app/apps/api
     # - ./apps/api:/usr/src/app/apps/api
     # - /usr/src/app/apps/api/node_modules
     # command: ["/bin/sh", "-c", "pwd && ls -l ."]
