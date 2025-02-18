@@ -5,7 +5,6 @@ cache:
     - node_modules/
 
 stages:
-  - tmp
   - install
   - code-style
   - build
@@ -15,48 +14,48 @@ stages:
   - post-deployment
   - cleanup
 
-# include:
-#   - local: "apps/api/.gitlab-ci.yml"
-#   - local: "apps/platform/.gitlab-ci.yml"
-#   - local: "apps/worker-vm-status/.gitlab-ci.yml"
+include:
+  - local: "apps/api/.gitlab-ci.yml"
+  - local: "apps/platform/.gitlab-ci.yml"
+  - local: "apps/worker-vm-status/.gitlab-ci.yml"
 
-# before_script:
+before_script:
 
-# install:
-#   image: node:22
-#   stage: install
-#   script:
-#     - npm install
-#   cache:
-#     key: ${CI_COMMIT_REF_SLUG}
-#     paths:
-#       - .npm-cache
-#       - .turbo
-#   artifacts:
-#     paths:
-#       - node_modules/
-#       - .npm-cache
-#       - .turbo
-#
-# eslint:
-#   image: node:22
-#   stage: code-style
-#   dependencies:
-#     - install
-#   script:
-#     - npm run lint
-#
-# prettier:
-#   image: node:22
-#   stage: code-style
-#   dependencies:
-#     - install
-#   script:
-#     - npm run format:check
+install:
+  image: node:22
+  stage: install
+  script:
+    - npm install
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .npm-cache
+      - .turbo
+  artifacts:
+    paths:
+      - node_modules/
+      - .npm-cache
+      - .turbo
+
+eslint:
+  image: node:22
+  stage: code-style
+  dependencies:
+    - install
+  script:
+    - npm run lint
+
+prettier:
+  image: node:22
+  stage: code-style
+  dependencies:
+    - install
+  script:
+    - npm run format:check
 
 integration-tests:
   image: docker:27-dind
-  stage: tmp
+  stage: test
   script:
     - docker compose up --detach --build
     - docker compose ps
