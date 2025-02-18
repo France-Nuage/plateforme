@@ -47,6 +47,7 @@ services:
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
     ports:
       - "3000:3000"
+      - "39709:39709"
     # volumes:
     #   - ./apps/platform:/usr/src/app
     #   - /usr/src/app/node_modules

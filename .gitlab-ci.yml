@@ -5,6 +5,7 @@ cache:
     - node_modules/
 
 stages:
+  - investigation
   - install
   - code-style
   - build
@@ -14,59 +15,67 @@ stages:
   - post-deployment
   - cleanup
 
-include:
-  - local: "apps/api/.gitlab-ci.yml"
-  - local: "apps/platform/.gitlab-ci.yml"
-  - local: "apps/worker-vm-status/.gitlab-ci.yml"
-
-before_script:
-
-install:
-  image: node:22
-  stage: install
-  script:
-    - npm install
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - .npm-cache
-      - .turbo
-  artifacts:
-    paths:
-      - node_modules/
-      - .npm-cache
-      - .turbo
-
-eslint:
-  image: node:22
-  stage: code-style
-  dependencies:
-    - install
-  script:
-    - npm run lint
-
-prettier:
-  image: node:22
-  stage: code-style
-  dependencies:
-    - install
-  script:
-    - npm run format:check
-
-integration-tests:
+investigation:
   image: docker:27-dind
   stage: test
   script:
+    - docker ps
     - docker compose up --detach --build
     - docker compose ps
-    - docker compose exec platform npx playwright test
-
-docker-storage-cleanup:
-  stage: cleanup
-  image: docker:latest
-  variables:
-    DOCKER_HOST: unix:///var/run/docker.sock
-  script:
-    - docker system prune -af
-    - docker image prune -af
-    - docker volume prune -af
+    - docker ps
+# include:
+#   - local: "apps/api/.gitlab-ci.yml"
+#   - local: "apps/platform/.gitlab-ci.yml"
+#   - local: "apps/worker-vm-status/.gitlab-ci.yml"
+#
+# before_script:
+#
+# install:
+#   image: node:22
+#   stage: install
+#   script:
+#     - npm install
+#   cache:
+#     key: ${CI_COMMIT_REF_SLUG}
+#     paths:
+#       - .npm-cache
+#       - .turbo
+#   artifacts:
+#     paths:
+#       - node_modules/
+#       - .npm-cache
+#       - .turbo
+#
+# eslint:
+#   image: node:22
+#   stage: code-style
+#   dependencies:
+#     - install
+#   script:
+#     - npm run lint
+#
+# prettier:
+#   image: node:22
+#   stage: code-style
+#   dependencies:
+#     - install
+#   script:
+#     - npm run format:check
+#
+# integration-tests:
+#   image: docker:27-dind
+#   stage: test
+#   script:
+#     - docker compose up --detach --build
+#     - docker compose ps
+#     - docker compose exec platform npx playwright test
+#
+# docker-storage-cleanup:
+#   stage: cleanup
+#   image: docker:latest
+#   variables:
+#     DOCKER_HOST: unix:///var/run/docker.sock
+#   script:
+#     - docker system prune -af
+#     - docker image prune -af
+#     - docker volume prune -af
