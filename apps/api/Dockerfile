@@ -31,10 +31,7 @@ COPY ./apps/api /usr/src/app/apps/api
 
 EXPOSE 3000
 
-RUN ls -l /usr/src/app/apps/api/
-
-# CMD ["npm", "run", "dev"]
-CMD ["/bin/sh", "-c", "pwd && ls -l ."]
+CMD ["npm", "run", "dev"]
 
 # Production Stage
 FROM node:22-alpine
