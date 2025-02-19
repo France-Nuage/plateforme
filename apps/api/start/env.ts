@@ -17,7 +17,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   APP_KEY: Env.schema.string(),
   PLATFORM_URL: Env.schema.string(),
   HOST: Env.schema.string({ format: 'host' }),
-  LOG_LEVEL: Env.schema.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']),
+  LOG_LEVEL: Env.schema.enum.optional(['fatal', 'error', 'warn', 'info', 'debug', 'trace']),
   API_URL: Env.schema.string(),
 
   /*
@@ -79,7 +79,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   */
   CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
   CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
-  MIMIR_URL: Env.schema.string.optionalWhen(process.env.NODE_ENV !== 'production'),
 
   /*
   |----------------------------------------------------------
@@ -101,12 +100,12 @@ export default await Env.create(new URL('../', import.meta.url), {
   DEV_CLUSTER_TOKEN_ID: Env.schema.string.optionalWhen(
     ['production', 'test'].includes(process.env.NODE_ENV!)
   ),
+  DEV_CLUSTER_TOKEN_ID: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
   DEV_CLUSTER_TOKEN_SECRET: Env.schema.string.optionalWhen(
     ['production', 'test'].includes(process.env.NODE_ENV!)
   ),
   DEV_USER_EMAIL: Env.schema.string.optional(),
   DEV_USER_PASSWORD: Env.schema.string.optional(),
-  CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
-  CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
-  MIMIR_URL: Env.schema.string.optionalWhen(process.env.NODE_ENV !== 'production'),
 })
