@@ -1,17 +1,16 @@
 // tests/metrics.spec.ts
 import { test } from '@japa/runner'
 import supertest from 'supertest'
-import axios, { AxiosInstance } from 'axios'
+import axios from 'axios'
 import Env from '#start/env'
-import MockAdapter from 'axios-mock-adapter'
+import sinon from 'sinon'
 
 // Ensure these are always strings
 const APP_URL: string = Env.get('APP_URL') ?? 'http://127.0.0.1:3333'
 const MIMIR_URL: string = Env.get('MIMIR_URL') ?? 'http://mimir:9009'
 
 // Create a dedicated Axios instance to avoid type mismatches
-const axiosInstance = axios.create() as AxiosInstance
-const mock = new MockAdapter(axiosInstance)
+const axiosInstance = axios.create()
 
 test.group('MetricsController', () => {
   /**
@@ -89,8 +88,13 @@ test.group('MetricsController', () => {
    * Error handling test: simulate a failure when pushing metrics to Mimir
    */
   test('should throw an error when Mimir push fails', async ({ assert }) => {
-    // Simulate an error response (status 500) for the Mimir push call
-    mock.onPost(`${MIMIR_URL}/api/v1/push`).reply(500, { error: 'Internal Server Error' })
+    // Stub the Axios post method to simulate an error response (status 500)
+    const stub = sinon.stub(axiosInstance, 'post').rejects({
+      response: {
+        status: 500,
+        data: { error: 'Internal Server Error' },
+      },
+    })
 
     const payload = {
       hostname: 'test-host',
@@ -115,8 +119,7 @@ test.group('MetricsController', () => {
     }
     assert.isTrue(errorThrown, 'An error should be thrown when Mimir returns an error')
 
-    // Restore axios to its original behavior
-    mock.reset()
-    mock.restore()
+    // Restore the original behavior of the Axios post method
+    stub.restore()
   })
 })
