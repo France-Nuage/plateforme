@@ -34,6 +34,7 @@
     "node": "22.13.1"
   },
   "dependencies": {
-    "node-mock-http": "^1.0.0"
+    "node-mock-http": "^1.0.0",
+    "sinon": "^19.0.2"
   }
 }
