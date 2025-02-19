@@ -10,7 +10,7 @@ const APP_URL: string = Env.get('APP_URL') ?? 'http://127.0.0.1:3333'
 const MIMIR_URL: string = Env.get('MIMIR_URL') ?? 'http://mimir:9009'
 
 // Create a dedicated Axios instance to avoid type mismatches
-const axiosInstance: AxiosInstance = axios.create()
+const axiosInstance = axios.create() as AxiosInstance
 const mock = new MockAdapter(axiosInstance)
 
 test.group('MetricsController', () => {
