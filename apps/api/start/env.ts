@@ -100,9 +100,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   DEV_CLUSTER_TOKEN_ID: Env.schema.string.optionalWhen(
     ['production', 'test'].includes(process.env.NODE_ENV!)
   ),
-  DEV_CLUSTER_TOKEN_ID: Env.schema.string.optionalWhen(
-    ['production', 'test'].includes(process.env.NODE_ENV!)
-  ),
   DEV_CLUSTER_TOKEN_SECRET: Env.schema.string.optionalWhen(
     ['production', 'test'].includes(process.env.NODE_ENV!)
   ),
