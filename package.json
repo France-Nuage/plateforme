@@ -33,5 +33,7 @@
   "volta": {
     "node": "22.13.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "node-mock-http": "^1.0.0"
+  }
 }
