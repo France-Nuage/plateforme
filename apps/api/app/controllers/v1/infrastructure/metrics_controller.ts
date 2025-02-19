@@ -1,148 +1,74 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import axios from 'axios' // Import HTTP client
+import { MetricsValidator } from '#validators/v1/infrastructure/metric'
+import axios from 'axios'
 import Env from '#start/env'
 import snappy from 'snappy'
 import protobuf from 'protobufjs'
-
+import mimir from '../../../../protocol/mimir.proto'
 export default class MetricsController {
   /**
    * Handle the POST request to receive and push metrics
    */
   async store({ request, response }: HttpContext) {
-    // Receive metrics data from the external agent
-    const data = request.only([
-      'ip_address',
-      'hostname',
-      'total_memory',
-      'cpu_count',
-      'disk_space',
-      'os',
-      'os_version',
-      'installed_packages',
-    ])
+    return request
+      .validateUsing(MetricsValidator)
+      .then(async (data) => {
+        /**
+         * Load and parse the Protobuf schema
+         */
+        const root = await protobuf.load(mimir)
+        const writeRequestType = root.lookupType('prometheus.WriteRequest')
 
-    // Validate required fields
-    if (
-      !data.ip_address ||
-      !data.hostname ||
-      !data.total_memory ||
-      !data.cpu_count ||
-      !data.disk_space ||
-      !data.os ||
-      !data.os_version ||
-      !data.installed_packages
-    ) {
-      return response.badRequest({ error: 'Invalid data received' })
-    }
-
-    // Format data for Mimir (Prometheus Remote Write format)
-    /* const formattedMetrics = await snappy.compress(
-      Buffer.from(
-        JSON.stringify({
-          "timeseries": [
+        /**
+         * Create the Protobuf structure based on validated data
+         */
+        const writeRequest = writeRequestType.create({
+          timeseries: [
             {
-              "labels": [
-                {"name": "__name__", "value": "http_requests_total"},
-                {"name": "method", "value": "GET"},
-                {"name": "status", "value": "200"}
+              labels: [
+                { name: 'instance', value: data.hostname },
+                { name: 'ip_address', value: data.ip_address },
+                { name: 'os', value: data.os },
+                { name: 'os_version', value: data.os_version },
               ],
-              "samples": [
-                {"value": 42, "timestamp": 1673945600000}
-              ]
-            }
-          ]
-        })
-      )
-    )*/
-    const root = await protobuf.load('plop.proto')
-    const writeRequestType = root.lookupType('prometheus.WriteRequest')
-
-    const writeRequest = writeRequestType.create({
-      timeseries: [
-        {
-          labels: [
-            { name: '__name__', value: 'my_app_requests_total' },
-            { name: 'instance', value: 'test' },
-          ],
-          samples: [
-            {
-              value: 42,
-              timestamp: Date.now(),
+              samples: [
+                { value: data.cpu_count, timestamp: Date.now() },
+                { value: data.total_memory, timestamp: Date.now() },
+                { value: data.disk_space, timestamp: Date.now() },
+              ],
             },
           ],
-        },
-      ],
-    })
-
-    // chatgpt example : https://chatgpt.com/share/678a6cd1-1074-800e-9cc8-bd1481713dac
-    // 2) Encoder en binary (Protobuf)
-    const messageBuffer = writeRequestType.encode(writeRequest).finish()
-
-    // 3) Compresses avec Snappy
-    const compressed = await snappy.compress(Buffer.from(messageBuffer))
-    // Compress with Snappy
-    snappy.compress(Buffer.from(messageBuffer), async (err: Error, compressed?: Buffer) => {
-      if (err) {
-        console.error('Error compressing data:', err)
-        return response.internalServerError({
-          error: 'Failed to compress data',
-          details: err.message,
-        })
-      }
-
-    try {
-      // Push data to Mimir
-      const mimirUrl = Env.get('MIMIR_URL') + '/api/v1/push'
-      const mimirResponse = await axios.post(mimirUrl, compressed, {
-        headers: {
-          'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
-          'CF-Access-Client-Secret': Env.get('CLOUDFLARE_CLIENT_SECRET'),
-          'Content-Type': 'application/x-protobuf',
-          'Content-Encoding': 'snappy',
-          'X-Prometheus-Remote-Write-Version': '0.1.0',
-        },
-      })
-      if (!compressed) {
-        console.error('Compression returned undefined buffer')
-        return response.internalServerError({
-          error: 'Failed to compress data',
-          details: 'Compression returned undefined buffer',
-        })
-      }
-
-      try {
-        // Push data to Mimir
-        const mimirUrl = Env.get('MIMIR_URL') + '/api/v1/push'
-        const mimirResponse = await axios.post(mimirUrl, compressed, {
-          headers: {
-            'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
-            'CF-Access-Client-Secret': Env.get('CLOUDFLARE_CLIENT_SECRET'),
-            'Content-Type': 'application/x-protobuf',
-            'Content-Encoding': 'snappy',
-            'X-Prometheus-Remote-Write-Version': '0.1.0',
-          },
         })
 
-      console.log('Metrics pushed successfully:', mimirResponse)
+        /**
+         * Encode the data into binary format using Protobuf
+         */
+        const messageBuffer = writeRequestType.encode(writeRequest).finish()
 
-      console.log('Metrics pushed successfully:', mimirResponse)
-
-      // Respond to the external agent
-      return response.ok({
-        message: 'Metrics received and pushed successfully',
-        pushedData: compressed,
+        return snappy.compress(Buffer.from(messageBuffer)).then(async (compressed) => {
+          const mimirUrl = Env.get('MIMIR_URL') + '/api/v1/push'
+          const mimirResponse = await axios.post(mimirUrl, compressed, {
+            headers: {
+              'CF-Access-Client-Id': Env.get('CLOUDFLARE_CLIENT_ID'),
+              'CF-Access-Client-Secret': Env.get('CLOUDFLARE_CLIENT_SECRET'),
+              'Content-Type': 'application/x-protobuf',
+              'Content-Encoding': 'snappy',
+              'X-Prometheus-Remote-Write-Version': '0.1.0',
+            },
+          })
+          if (mimirResponse.status !== 200) {
+            throw new Error('Failed to push metrics: ' + JSON.stringify(mimirResponse.data))
+          }
+          return response.ok({
+            message: 'Metrics received and pushed successfully',
+            receivedData: data,
+            pushedData: compressed,
+          })
+        })
       })
-    } catch (error) {
-      console.error('Error pushing metrics:', error.message)
-
-      return response.internalServerError({
-        error: 'Failed to push metrics',
-        details: error.message,
+      .catch((error) => {
+        console.error('Error processing metrics:', error.message)
+        throw error
       })
-    }
-  }
-
-  async getUtilisation({ response }: HttpContext) {
-    return response.ok('Hello, World')
   }
 }
