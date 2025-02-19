@@ -3,7 +3,7 @@ services:
     container_name: france-nuage-agent
     build:
       context: . # Chemin vers le dossier contenant le Dockerfile
-      dockerfile: Dockerfile            # Nom du Dockerfile (assurez-vous qu'il existe ici)
+      dockerfile: Dockerfile # Nom du Dockerfile (assurez-vous qu'il existe ici)
     ports:
       - "3333:3333"
     restart: always
@@ -13,4 +13,3 @@ services:
       API_URL:
       CF_ID:
       CF_SECRET:
-
