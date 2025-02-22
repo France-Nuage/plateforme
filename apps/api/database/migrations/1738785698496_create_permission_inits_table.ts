@@ -16,9 +16,9 @@ export default class extends BaseSchema {
       await db.from('iam.role__permission').delete()
       await db.from('iam.permissions').delete()
       await db.from('iam.verbs').delete()
+      await db.from('iam.roles').delete()
       await db.from('catalog.services').delete()
       await db.from('iam.types').delete()
-      await db.from('iam.roles').delete()
     })
 
     this.schema.withSchema('iam').table('permissions', (table) => {
