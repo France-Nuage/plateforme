@@ -1,5 +1,6 @@
 # Define the pipeline stages
 stages:
+  - release
   - build
   - code-style
   - unit-tests
@@ -88,3 +89,9 @@ build:
 
   only:
     - master
+
+"Release":
+  image: node:12
+  stage: release
+  script:
+    - npx semantic-release
