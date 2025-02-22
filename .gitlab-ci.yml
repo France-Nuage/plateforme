@@ -95,5 +95,7 @@ build:
   stage: release
   before_script:
     - npm install
+  variables:
+    GITLAB_TOKEN: "glpat-rqocYJs-LxG8Gtf3ybGy"
   script:
     - npx semantic-release --dry-run --debug
