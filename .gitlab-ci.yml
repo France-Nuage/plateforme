@@ -96,4 +96,4 @@ build:
   before_script:
     - npm install
   script:
-    - npx semantic-release
+    - npx semantic-release --dry-run --debug
