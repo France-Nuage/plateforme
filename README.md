@@ -35,11 +35,24 @@ docker compose down
 
 ## Miscellaneous
 
+### Integration tests (Playwright)
+
+Integration tests are defined in the `platform` application. The playwright UI
+can be started with the following command:
+
+```sh
+docker compose exec platform \
+   npx playwright test --project=firefox --ui-host=0.0.0.0 --ui-port=39709
+```
+
+The UI is then accessible on [http://localhost:39709](http://localhost:39709)
+
 ### Connect to a REPL session
 
-AdonisJS offers an [application-aware REPL](https://docs.adonisjs.com/guides/digging-deeper/repl) to interact with the
-control-plane from the command line. To start a new REPL session in a development environment with docker-compose, run
-the following command:
+AdonisJS offers an [application-aware REPL](https://docs.adonisjs.com/guides/digging-deeper/repl)
+to interact with the control-plane from the command line. To start a new REPL
+session in a development environment with docker-compose, run the following
+command:
 
 ```sh
 docker compose exec control-plane node ace repl
@@ -47,8 +60,8 @@ docker compose exec control-plane node ace repl
 
 ### Generate a token for the worker user
 
-The project comes with a token preconfigured for the worker user. The token might not be valid for a few different
-reasons:
+The project comes with a token preconfigured for the worker user. The token
+might not be valid for a few different reasons:
 
 - The AdonisJS application key (the `APP_KEY` environment variable) has been changed
 - The token has expired (expiry scheduled in 2035)

@@ -1,51 +1,90 @@
-cache:
-  paths:
-    - apps/api/node_modules/
-    - apps/platform/node_modules/
-    - node_modules/
-
+# Define the pipeline stages
 stages:
-  - install
-  - code-style
   - build
-  - test
-  - migrate
-  - deployment
-  - post-deployment
+  - code-style
+  - unit-tests
+  - integration-tests
+  - deploy
 
-include:
-  - local: "apps/api/.gitlab-ci.yml"
-  - local: "apps/platform/.gitlab-ci.yml"
-  - local: "apps/worker-vm-status/.gitlab-ci.yml"
+# Define the default image
+image: docker:27-cli
 
-install:
-  image: node:22
-  stage: install
+# Define the docker-dind service that is started for each job
+services:
+  - name: docker:27-dind
+
+# Define the preliminary scripts to run before every job
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+build:
+  stage: build
   script:
-    - npm install
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - .npm-cache
-      - .turbo
+    - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker compose push
+
+"code style / control-plane":
+  stage: code-style
+  script:
+    - docker compose run --no-deps control-plane npm run lint
+    - docker compose run --no-deps control-plane npx prettier --check "**/*.{js,json,md,ts,vue,yml}"
+
+"code style / worker":
+  stage: code-style
+  script:
+    - docker compose run --no-deps worker cargo fmt --check
+    - docker compose run --no-deps worker cargo clippy
+
+"unit tests / control-plane":
+  stage: unit-tests
+  script:
+    - docker compose run control-plane npm run test
+
+"unit tests / worker":
+  stage: unit-tests
+  script:
+    - docker compose run --no-deps worker cargo test -- --test-threads=1
+
+"integration tests":
+  stage: integration-tests
   artifacts:
+    when: always
     paths:
-      - node_modules/
-      - .npm-cache
-      - .turbo
-
-eslint:
-  image: node:22
-  stage: code-style
-  dependencies:
-    - install
+      - apps/platform/playwright-report/
+      - docker-compose.log
+    expire_in: 1 day
+  after_script:
+    - docker compose logs > docker-compose.log
   script:
-    - npm run lint
+    - docker compose up --detach
+    - sleep 30 # TODO: replace by health check
+    - docker compose exec -e PW_TEST_HTML_REPORT_OPEN='never' platform npx playwright test --project=firefox --reporter=dot,html --trace=on
 
-prettier:
-  image: node:22
-  stage: code-style
-  dependencies:
-    - install
+"Deploy / control-plane (staging)":
+  stage: deploy
   script:
-    - npm run format:check
+    - docker build --target=release --file=apps/api/Dockerfile --tag=${CI_REGISTRY_IMAGE}/api:staging --push .
+  only:
+    - staging
+
+"Deploy / control-plane (production)":
+  stage: deploy
+  script:
+    - docker build --target=release --file=apps/api/Dockerfile --tag=${CI_REGISTRY_IMAGE}/api:production --push .
+  only:
+    - master
+
+"Deploy / worker (staging)":
+  stage: deploy
+  script:
+    - docker build --target=release --file=apps/worker-vm-status/Dockerfile --tag=${CI_REGISTRY_IMAGE}/worker:staging --push ./apps/worker-vm-status/
+  only:
+    - staging
+
+"Deploy / worker (production)":
+  stage: deploy
+  script:
+    - docker build --target=release --file=apps/worker-vm-status/Dockerfile --tag=${CI_REGISTRY_IMAGE}/worker:production --push ./apps/worker-vm-status/
+
+  only:
+    - master
