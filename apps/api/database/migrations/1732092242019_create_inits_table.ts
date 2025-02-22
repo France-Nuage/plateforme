@@ -224,26 +224,4 @@ export default class extends BaseSchema {
       table.timestamp('updated_at', { useTz: true })
     })
   }
-
-  async down() {
-    this.schema.withSchema('iam').dropTable('roles')
-    this.schema.withSchema('iam').dropTable('permissions')
-    this.schema.withSchema('iam').dropTable('verbs')
-    this.schema.withSchema('iam').dropTable('types')
-    this.schema.withSchema('iam').dropTable('services')
-
-    this.schema.withSchema('resources').dropTable('projects')
-    this.schema.withSchema('resources').dropTable('organizations')
-    this.schema.withSchema('resources').dropTable('folders')
-    this.schema.dropSchema('resources')
-
-    this.schema.withSchema('service').dropTable('services')
-    this.schema.withSchema('service').dropTable('versions')
-    this.schema.dropSchema('service')
-
-    this.schema.withSchema('localisation').dropTable('countries')
-    this.schema.dropSchema('localisation')
-
-    this.schema.dropSchema('stripe')
-  }
 }

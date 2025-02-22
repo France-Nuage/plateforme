@@ -61,10 +61,10 @@ export default await Env.create(new URL('../', import.meta.url), {
   R2_ENDPOINT: Env.schema.string.optionalWhen(process.env.DRIVE_DISK !== 'r2'),
 
   /*
- |----------------------------------------------------------
- | Variables for configuring the payment package
- |----------------------------------------------------------
- */
+  |----------------------------------------------------------
+  | Variables for configuring the payment package
+  |----------------------------------------------------------
+  */
   STRIPE_SECRET_KEY: Env.schema.string(),
 
   REDIS_HOST: Env.schema.string({ format: 'host' }),
@@ -73,9 +73,27 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
-  | Variables for configuring the Cloudflare authentication headers
+  | Variables for configuring the Worker account
   |----------------------------------------------------------
   */
-  CLOUDFLARE_ACCESS_CLIENT_ID: Env.schema.string.optional(),
-  CLOUDFLARE_ACCESS_CLIENT_SECRET: Env.schema.string.optional(),
+  WORKER_USER_EMAIL: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the development assets
+  |----------------------------------------------------------
+  */
+  DEV_CLUSTER_ID: Env.schema.string.optional(),
+  DEV_CLUSTER_NAME: Env.schema.string.optional(),
+  DEV_CLUSTER_HOST: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
+  DEV_CLUSTER_TOKEN_ID: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
+  DEV_CLUSTER_TOKEN_SECRET: Env.schema.string.optionalWhen(
+    ['production', 'test'].includes(process.env.NODE_ENV!)
+  ),
+  DEV_USER_EMAIL: Env.schema.string.optional(),
+  DEV_USER_PASSWORD: Env.schema.string.optional(),
 })

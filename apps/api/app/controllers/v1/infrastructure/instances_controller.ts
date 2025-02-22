@@ -7,7 +7,6 @@ import {
   queryInstancesValidator,
   updateInstanceValidator,
 } from '#validators/v1/infrastructure/instance'
-import { proxmoxApi } from '#utils/proxmox_helper'
 import Node from '#models/infrastructure/node'
 import Instance, { Status } from '#models/infrastructure/instance'
 
@@ -57,12 +56,9 @@ export default class InstancesController {
   async destroy({ response, params }: HttpContext) {
     const instance = await Instance.findOrFail(params.node_id)
     const node = await Node.findOrFail(instance.nodeId)
-    await proxmoxApi.node.qemu.destroy({
-      url: node.url,
-      token: node.token,
-      nodeName: node.name,
-      vmid: instance.pveVmId,
-    })
+    node.load('cluster')
+
+    await node.api().instance(instance.pveVmId).delete()
 
     instance.status = Status.Deleting
     await instance.save()
@@ -76,14 +72,10 @@ export default class InstancesController {
   async start({ response, params }: HttpContext) {
     const instance = await Instance.findOrFail(params.node_id)
     const node = await Node.findOrFail(instance.nodeId)
+    node.load('cluster')
 
-    await proxmoxApi.node.qemu.status.change({
-      url: node.url,
-      token: node.token,
-      nodeName: node.name,
-      vmid: instance.pveVmId,
-      status: 'start',
-    })
+    await node.api().instance(instance.pveVmId).start()
+
     instance.status = Status.Staging
     await instance.save()
 
@@ -96,13 +88,9 @@ export default class InstancesController {
   async stop({ response, params }: HttpContext) {
     const instance = await Instance.findOrFail(params.node_id)
     const node = await Node.findOrFail(instance.nodeId)
-    await proxmoxApi.node.qemu.status.change({
-      url: node.url,
-      token: node.token,
-      nodeName: node.name,
-      vmid: instance.pveVmId,
-      status: 'stop',
-    })
+    node.load('cluster')
+
+    await node.api().instance(instance.pveVmId).stop()
 
     instance.status = Status.Stopping
     await instance.save()

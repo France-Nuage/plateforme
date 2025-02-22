@@ -42,3 +42,7 @@ export default class Country extends BaseModel {
   @hasMany(() => Region)
   declare regions: HasMany<typeof Region>
 }
+
+export enum CountryCode {
+  France = 'FR',
+}

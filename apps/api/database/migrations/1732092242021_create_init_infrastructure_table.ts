@@ -153,14 +153,4 @@ export default class extends BaseSchema {
         .inTable('infrastructure.boot_disks')
     })
   }
-
-  async down() {
-    this.schema.withSchema('infrastructure').dropTable('instances')
-    this.schema.withSchema('infrastructure').dropTable('clusters')
-    this.schema.withSchema('infrastructure').dropTable('zones')
-    this.schema.withSchema('infrastructure').dropTable('regions')
-    this.schema.dropSchema('infrastructure')
-
-    this.schema.dropSchema('stripe')
-  }
 }

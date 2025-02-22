@@ -36,10 +36,7 @@ export const plugins: Config['plugins'] = [
  * The teardown functions are executed after all the tests
  */
 export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
-  setup: [
-    // () => TestUtils.ace().loadCommands(),
-    // () => TestUtils.db().migrate()
-  ],
+  setup: [() => testUtils.db().migrate(), () => testUtils.db().seed()],
   teardown: [],
   // filters: ['auth_register', 'auth_login', 'organization_list'],
 }
