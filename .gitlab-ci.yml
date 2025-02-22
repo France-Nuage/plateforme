@@ -93,5 +93,7 @@ build:
 "Release":
   image: node:22
   stage: release
+  before_script:
+    - npm install
   script:
     - npx semantic-release
