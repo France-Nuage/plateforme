@@ -63,6 +63,4 @@ export default class extends BaseSchema {
       table.unique(['organization__id', 'folder__id', 'project__id'])
     })
   }
-
-  async down() {}
 }

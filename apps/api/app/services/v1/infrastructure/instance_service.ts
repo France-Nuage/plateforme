@@ -1,23 +1,7 @@
-import axios from 'axios'
 import Zone from '#models/infrastructure/zone'
 import RequestQueryBuilder from '#utils/request_query_builder'
 import Instance from '#models/infrastructure/instance'
 import Price from '#models/billing/price'
-import { proxmoxApi } from '#utils/proxmox_helper'
-
-const getNextVMID = async (url: string, token: string) => {
-  try {
-    const response = await axios.get(`${url}/api2/json/cluster/nextid`, {
-      headers: {
-        Authorization: token,
-      },
-    })
-    return response.data.data
-  } catch (e) {
-    throw new Error('Could not get next VMID')
-    // throw new Error(e)
-  }
-}
 
 export default {
   list: async function ({
@@ -41,7 +25,7 @@ export default {
       .firstOrFail()
   },
   create: async function ({ zoneId, name }: { zoneId: string; name: string }) {
-    const zone = await new RequestQueryBuilder(Zone.query())
+    const zone: Zone = await new RequestQueryBuilder(Zone.query())
       .withIncludes(['clusters.nodes'])
       .applyWhere([['id', zoneId]])
       .firstOrFail()
@@ -50,23 +34,17 @@ export default {
       return new Error('No nodes available in the zone')
     }
 
-    const node = zone.clusters[0].nodes[0]
+    const cluster = zone.clusters[0]
+    const node = cluster.nodes[0]
 
-    const vmid = await getNextVMID(node.url, node.token)
-    await proxmoxApi.node.qemu.create(
-      {
-        vmid,
-        nodeName: node.name,
-        token: node.token,
-        url: node.url,
-      },
-      {
-        name,
-      }
-    )
+    const hypervisor = cluster.api()
+
+    const id = await hypervisor.getNextInstanceId()
+    await hypervisor.node(node).instance(id).create({ name })
+
     return await Instance.create({
       name: name,
-      pveVmId: vmid,
+      pveVmId: id,
       nodeId: node.id,
     })
   },

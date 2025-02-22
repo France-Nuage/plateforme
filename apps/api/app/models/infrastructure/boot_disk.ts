@@ -17,11 +17,11 @@ export default class BootDisk extends BaseModel {
   @column()
   declare os: string
 
-  @column()
-  declare disk_type: string
+  @column({ columnName: 'size_gb' })
+  declare size: string
 
-  @column()
-  declare size_gb: string
+  @column({ columnName: 'disk_type' })
+  declare type: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

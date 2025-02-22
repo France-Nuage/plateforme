@@ -18,7 +18,14 @@ export default class extends BaseSchema {
   }
 
   async down() {
-    this.schema.withSchema('member').dropTable(this.tableName)
-    this.schema.dropSchema('member')
+    this.schema.dropSchema('billing', true)
+    this.schema.dropSchema('catalog', true)
+    this.schema.dropSchema('iam', true)
+    this.schema.dropSchema('infrastructure', true)
+    this.schema.dropSchema('localisation', true)
+    this.schema.dropSchema('member', true)
+    this.schema.dropSchema('quota', true)
+    this.schema.dropSchema('resource', true)
+    this.schema.dropSchema('stripe', true)
   }
 }

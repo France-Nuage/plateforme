@@ -5,11 +5,12 @@ import Permission from '#models/iam/permission'
 
 export default class RolePermission extends BaseModel {
   public static table = 'iam.role__permission'
+  public static selfAssignPrimaryKey = true
 
-  @column({ columnName: 'role__id' })
+  @column({ isPrimary: true, columnName: 'role__id' })
   declare roleId: string
 
-  @column({ columnName: 'permission__id' })
+  @column({ isPrimary: true, columnName: 'permission__id' })
   declare permissionId: string
 
   @belongsTo(() => Role, { localKey: 'roleId', foreignKey: 'roleId' })
