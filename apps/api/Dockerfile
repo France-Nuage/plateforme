@@ -34,7 +34,7 @@ EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
 # Production Stage
-FROM node:22-alpine
+FROM node:22-alpine AS release
 
 WORKDIR /usr/src/app
 
