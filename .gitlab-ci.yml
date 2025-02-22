@@ -91,7 +91,7 @@ build:
     - master
 
 "Release":
-  image: node:latest
+  image: node:22
   stage: release
   script:
     - npx semantic-release
