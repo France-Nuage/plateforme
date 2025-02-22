@@ -100,4 +100,4 @@ build:
     - npm install
   script:
     - echo $GITLAB_TOKEN
-    - npx semantic-release --dry-run --debug
+    - npx semantic-release
