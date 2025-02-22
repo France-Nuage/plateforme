@@ -93,7 +93,10 @@ build:
 "Release":
   image: node:22
   stage: release
+  variables:
+    CI: "true"
   before_script:
+    - git remote set-url origin "https://oauth2:${GITLAB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
     - npm install
   script:
     - echo $GITLAB_TOKEN
