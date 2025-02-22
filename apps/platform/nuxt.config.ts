@@ -99,4 +99,9 @@ export default defineNuxtConfig({
       setMiddleware(pages);
     },
   },
+  vite: {
+    server: {
+      allowedHosts: ["platform"],
+    },
+  },
 });

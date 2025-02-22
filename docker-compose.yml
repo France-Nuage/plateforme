@@ -1,9 +1,14 @@
 services:
   control-plane:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane:${CI_COMMIT_REF_SLUG:-latest}"
     build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane:staging
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane:production
       context: .
       dockerfile: apps/api/Dockerfile
-      target: development
+      target: ${TARGET:-development}
     container_name: control-plane
     depends_on:
       - postgres
@@ -36,17 +41,46 @@ services:
       - ./apps/api:/usr/src/app/apps/api
       - /usr/src/app/apps/api/node_modules
 
+  control-plane-setup:
+    image: docker:27-cli
+    depends_on:
+      - control-plane
+    command: >
+      sh -c "docker exec control-plane node ace migration:run && 
+             docker exec control-plane node ace db:seed"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
   platform:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}platform:${CI_COMMIT_REF_SLUG:-latest}"
     build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}platform:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}platform:staging
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}platform:production
       context: ./apps/platform
+      target: ${TARGET:-development}
     container_name: platform
+    depends_on:
+      - control-plane
+      - control-plane-setup
+      - playwright
     environment:
-      API_URL: http://localhost:3333
+      API_URL: http://control-plane:3333
+      BASE_URL: http://platform:3000
+      PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
     ports:
       - "3000:3000"
+      - "39709:39709"
     volumes:
       - ./apps/platform:/usr/src/app
       - /usr/src/app/node_modules
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.50.1-noble
+    command: /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
+    ports:
+      - "4444:4444"
 
   postgres:
     container_name: postgres
@@ -67,25 +101,22 @@ services:
     ports:
       - "6379:6379"
 
-  web:
+  worker:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:${CI_COMMIT_REF_SLUG:-latest}"
     build:
-      context: ./apps/web
-    container_name: web
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./apps/platform:/usr/src/app
-      - /usr/src/app/node_modules
-
-  worker-vm-status:
-    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:staging
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:production
       context: apps/worker-vm-status
+      target: ${TARGET:-development}
     container_name: worker
     depends_on:
       - control-plane
     environment:
       API_URL: http://control-plane:3333
       API_TOKEN: ${WORKER_API_TOKEN:-oat_MQ.NERJdHV3QmlSbmpaUXlXd1dxSnZfb2tWcmVoRHpEQTF2WFZ6TjNnWTExMTcxMTMwMjU}
+      RUSTFLAGS: -Dwarnings
     restart: always
 
 volumes:
