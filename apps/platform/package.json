@@ -37,7 +37,6 @@
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.10",
     "autoprefixer": "^10.4.20",
-    "eslint": "^8.57.0",
     "@france-nuage/eslint-config": "*",
     "@france-nuage/tsconfig": "*",
     "postcss": "^8.4.49",
