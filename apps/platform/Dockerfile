@@ -20,7 +20,7 @@ COPY . .
 
 # Installation des dépendances avec Turbo
 RUN pnpm install
-RUN pnpm turbo build --filter=@france-nuage/web...
+RUN pnpm turbo build --filter=@france-nuage/platform
 
 # Étape de production
 FROM node:20-alpine AS development
@@ -32,13 +32,13 @@ RUN corepack enable
 WORKDIR /app
 
 # Copie des fichiers nécessaires depuis l'étape de construction
-COPY --from=builder /app/apps/web/.output ./apps/web/.output
+COPY --from=builder /app/apps/platform/.output ./apps/platform/.output
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/package-lock.json ./package-lock.json
 
 # Installation des dépendances de production uniquement
 ENV NODE_ENV=production
-RUN pnpm install --prod
+RUN npm install
 
 # Configuration des variables d'environnement
 ENV NUXT_HOST=0.0.0.0
@@ -48,4 +48,4 @@ ENV PORT=3000
 EXPOSE 3000
 
 # Commande de démarrage
-CMD ["node", "apps/web/.output/server/index.mjs"]
+CMD ["node", "apps/platform/.output/server/index.mjs"]
