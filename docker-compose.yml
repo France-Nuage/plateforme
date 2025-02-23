@@ -58,7 +58,7 @@ services:
       #        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}platform:${CI_COMMIT_REF_SLUG:-latest}
       #        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}platform:staging
       #        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}platform:production
-      context: ./apps/platform
+      context: .
       target: ${TARGET:-development}
     container_name: platform
     depends_on:
