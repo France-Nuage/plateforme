@@ -20,12 +20,9 @@ COPY ./package.json ./package-lock.json ./turbo.json ./
 
 # Copie des packages locaux
 COPY /packages ./packages
-COPY ./apps ./apps
+COPY /apps ./apps
 
-# Installation des dépendances
 RUN npm install
-
-# Build de l'application
 RUN npx turbo run build --filter=platform
 
 # Étape de développement
