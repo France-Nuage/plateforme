@@ -29,7 +29,10 @@ WORKDIR /usr/src/app
 
 COPY --from=build /usr/src/app ./
 
-# Re-install dependencies to ensure binaries are available
+# Install dependencies at root level
+RUN npm install
+
+# Install dependencies in platform directory
 WORKDIR /usr/src/app/apps/platform
 RUN npm install
 
