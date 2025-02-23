@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 COPY package.json package-lock.json turbo.json ./
 
 # Copy workspace files
-COPY apps ./apps
+COPY apps/platform ./apps/platform
 COPY packages ./packages
 
 RUN npm install
