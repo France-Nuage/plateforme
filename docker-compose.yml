@@ -73,8 +73,8 @@ services:
       - "3000:3000"
       - "39709:39709"
     volumes:
-      - ./apps/platform:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./apps/platform:/usr/src/app/apps/platform
+      - /usr/src/apps/platform/node_modules
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.50.1-noble
