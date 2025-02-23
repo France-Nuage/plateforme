@@ -13,7 +13,7 @@ COPY packages ./packages
 RUN npm install
 
 # Build platform app
-RUN npx turbo run build --filter=platform
+RUN npx turbo run build --filter=@france-nuage/platform
 
 # Development Stage
 FROM node:22-alpine AS development
