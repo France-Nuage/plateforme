@@ -6,46 +6,42 @@
 #EXPOSE 3000
 #CMD ["npm", "run", "dev"]
 
-FROM node:22-alpine AS builder
+# Étape de construction
+FROM node:20-alpine AS builder
 
 # Installation des dépendances système nécessaires
 RUN apk add --no-cache libc6-compat python3 make g++
-RUN corepack enable
 
 # Définition du répertoire de travail
 WORKDIR /app
 
-# Copie des fichiers de configuration
-COPY . .
+# Copie des fichiers essentiels pour l'installation
+COPY package*.json ./
+COPY turbo.json ./
 
-# Installation des dépendances avec Turbo
+# Copie des packages locaux
+COPY packages/ ./packages/
+
+# Copie de l'application platform
+COPY apps/platform/ ./apps/platform/
+
+# Installation avec npm
 RUN npm install
-RUN npm turbo build --filter=@france-nuage/platform
+RUN npx turbo build --filter=@france-nuage/platform
 
 # Étape de production
-FROM node:20-alpine AS development
-
-# Installation des dépendances système nécessaires pour la production
-RUN apk add --no-cache libc6-compat
-RUN corepack enable
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Copie des fichiers nécessaires depuis l'étape de construction
-COPY --from=builder /app/apps/platform/.output ./apps/platform/.output
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
+# Copie des fichiers de production depuis l'étape de build
+COPY --from=builder /app/apps/platform/.output ./.output
+COPY --from=builder /app/package*.json ./
 
-# Installation des dépendances de production uniquement
+# Installation des dépendances de production
 ENV NODE_ENV=production
-RUN npm install
+RUN npm install --production
 
-# Configuration des variables d'environnement
-ENV NUXT_HOST=0.0.0.0
-ENV PORT=3000
-
-# Exposition du port
 EXPOSE 3000
 
-# Commande de démarrage
-CMD ["node", "apps/platform/.output/server/index.mjs"]
+CMD ["node", ".output/server/index.mjs"]
