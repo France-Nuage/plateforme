@@ -9,7 +9,15 @@ COPY package.json package-lock.json turbo.json ./
 COPY apps/platform ./apps/platform
 COPY packages ./packages
 
+# Install dependencies at root level
 RUN npm install
+
+# Install dependencies in platform directory
+WORKDIR /usr/src/app/apps/platform
+RUN npm install
+
+# Return to root directory
+WORKDIR /usr/src/app
 
 # Build platform app
 RUN npx turbo run build --filter=@france-nuage/platform
@@ -21,32 +29,14 @@ WORKDIR /usr/src/app
 
 COPY --from=build /usr/src/app ./
 
+# Re-install dependencies to ensure binaries are available
+WORKDIR /usr/src/app/apps/platform
+RUN npm install
+
+WORKDIR /usr/src/app
+
 # Expose port
 EXPOSE 3000
 EXPOSE 39709
 
 CMD ["npm", "run", "dev", "--workspace=apps/platform"]
-
-# Production Stage
-FROM node:22-alpine AS production
-
-WORKDIR /usr/src/app
-
-# Copy built app and dependencies
-COPY --from=build /usr/src/app/apps/platform/.output ./.output
-COPY --from=build /usr/src/app/package*.json ./
-
-# Install production dependencies only
-ENV NODE_ENV=production
-RUN npm install --production
-
-# Set environment variables
-ENV NUXT_HOST=0.0.0.0
-ENV PORT=3000
-
-# Expose ports
-EXPOSE 3000
-EXPOSE 39709
-
-# Start production server
-CMD ["node", ".output/server/index.mjs"]
