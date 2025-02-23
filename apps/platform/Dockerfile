@@ -7,7 +7,7 @@
 #CMD ["npm", "run", "dev"]
 
 # Étape de construction
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS build
 
 # Installation des dépendances système nécessaires
 RUN apk add --no-cache libc6-compat python3 make g++
@@ -27,7 +27,7 @@ COPY apps/platform/ ./apps/platform/
 
 # Installation avec npm
 RUN npm install
-RUN npx turbo build --filter=@france-nuage/platform
+RUN npx turbo build --filter=platform
 
 # Étape de production
 FROM node:20-alpine AS development
@@ -35,8 +35,8 @@ FROM node:20-alpine AS development
 WORKDIR /app
 
 # Copie des fichiers de production depuis l'étape de build
-COPY --from=builder /app/apps/platform/.output ./.output
-COPY --from=builder /app/package*.json ./
+COPY --from=build /app/apps/platform/.output ./.output
+COPY --from=build /app/package*.json ./
 
 # Installation des dépendances de production
 ENV NODE_ENV=production
