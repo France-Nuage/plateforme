@@ -9,7 +9,6 @@ COPY package.json package-lock.json turbo.json ./
 COPY apps ./apps
 COPY packages ./packages
 
-# Install all dependencies
 RUN npm install
 
 # Build platform app
@@ -20,14 +19,12 @@ FROM node:22-alpine AS development
 
 WORKDIR /usr/src/app
 
-# Copy all files from build stage
 COPY --from=build /usr/src/app ./
 
 # Expose port
 EXPOSE 3000
 EXPOSE 39709
 
-# Start development server
 CMD ["npm", "run", "dev", "--workspace=apps/platform"]
 
 # Production Stage
