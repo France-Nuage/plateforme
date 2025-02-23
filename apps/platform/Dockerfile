@@ -32,6 +32,7 @@ RUN mkdir -p /usr/src/app/apps
 WORKDIR /usr/src/app/apps/platform
 
 COPY ./apps/platform/package*.json /usr/src/app/apps/platform
+COPY ./packages /usr/src/app/packages
 
 RUN npm install
 
