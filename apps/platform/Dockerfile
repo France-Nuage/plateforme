@@ -30,7 +30,7 @@ RUN npm install
 RUN npx turbo build --filter=@france-nuage/platform
 
 # Étape de production
-FROM node:22-alpine AS runner
+FROM node:22-alpine AS development
 
 WORKDIR /app
 
