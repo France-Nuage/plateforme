@@ -13,30 +13,37 @@ FROM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat python3 make g++
 
 # Définition du répertoire de travail
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copie des fichiers essentiels pour l'installation
+# Copie des fichiers depuis le contexte platform
 COPY package*.json ./
-COPY turbo.json ./
 
-# Copie des packages locaux
-COPY packages/ ./packages/
-
-# Copie de l'application platform
-COPY apps/platform/ ./apps/platform/
-
-# Installation avec npm
+# Installation des dépendances
 RUN npm install
-RUN npx turbo build --filter=@france-nuage/platform
 
-# Étape de production
+# Copie du reste du code de l'application
+COPY . .
+
+# Build de l'application
+RUN npm run build
+
+# Étape de développement
 FROM node:22-alpine AS development
 
-WORKDIR /app
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app ./
+
+# L'application démarre en mode développement
+CMD ["npm", "run", "dev"]
+
+# Étape de production
+FROM node:20-alpine AS production
+
+WORKDIR /usr/src/app
 
 # Copie des fichiers de production depuis l'étape de build
-COPY --from=builder /app/apps/platform/.output ./.output
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /usr/src/app/.output ./.output
+COPY --from=builder /usr/src/app/package*.json ./
 
 # Installation des dépendances de production
 ENV NODE_ENV=production
@@ -47,5 +54,6 @@ ENV NUXT_HOST=0.0.0.0
 ENV PORT=3000
 
 EXPOSE 3000
+EXPOSE 39709
 
 CMD ["node", ".output/server/index.mjs"]
