@@ -6,32 +6,46 @@
 #EXPOSE 3000
 #CMD ["npm", "run", "dev"]
 
-FROM node:22-alpine as base
+FROM node:22-alpine AS builder
 
-FROM base AS builder
-RUN apk update
-RUN apk add --no-cache libc6-compat
+# Installation des dépendances système nécessaires
+RUN apk add --no-cache libc6-compat python3 make g++
+RUN corepack enable
+
+# Définition du répertoire de travail
 WORKDIR /app
-RUN npm install -g turbo
+
+# Copie des fichiers de configuration
 COPY . .
-RUN turbo prune platform --docker
 
-FROM base AS installer
-RUN apk update
+# Installation des dépendances avec Turbo
+RUN pnpm install
+RUN pnpm turbo build --filter=@france-nuage/web...
+
+# Étape de production
+FROM node:20-alpine AS development
+
+# Installation des dépendances système nécessaires pour la production
 RUN apk add --no-cache libc6-compat
+RUN corepack enable
+
 WORKDIR /app
 
-COPY --from=builder /app/out/json/ .
-RUN npm install
+# Copie des fichiers nécessaires depuis l'étape de construction
+COPY --from=builder /app/apps/web/.output ./apps/web/.output
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
-COPY --from=builder /app/out/full/ .
+# Installation des dépendances de production uniquement
+ENV NODE_ENV=production
+RUN pnpm install --prod
 
-RUN npm exec -- turbo build
+# Configuration des variables d'environnement
+ENV NUXT_HOST=0.0.0.0
+ENV PORT=3000
 
-FROM base AS development
-WORKDIR /app
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nuxtjs
-USER nuxtjs
+# Exposition du port
+EXPOSE 3000
 
-CMD node apps/platform/.output/server/index.mjs
+# Commande de démarrage
+CMD ["node", "apps/web/.output/server/index.mjs"]
