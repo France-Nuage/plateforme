@@ -7,13 +7,7 @@
     "./nuxt-js": "./nuxt.js"
   },
   "devDependencies": {
-    "@vercel/style-guide": "^5.2.0",
-    "@vue/eslint-config-typescript": "^12.0.0",
     "eslint": "^9.12.0",
-    "eslint-config-turbo": "^2.0.0",
-    "typescript": "5.5.4"
-  },
-  "dependencies": {
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-turbo": "^2.4.2",
     "typescript-eslint": "^8.24.1"
