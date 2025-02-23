@@ -19,8 +19,8 @@ WORKDIR /app
 COPY . .
 
 # Installation des dépendances avec Turbo
-RUN pnpm install
-RUN pnpm turbo build --filter=@france-nuage/platform
+RUN npm install
+RUN npm turbo build --filter=@france-nuage/platform
 
 # Étape de production
 FROM node:20-alpine AS development
