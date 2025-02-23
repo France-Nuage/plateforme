@@ -16,20 +16,17 @@ RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /usr/src/app
 
 # Copie des fichiers workspace depuis la racine
-COPY ../../package*.json ./
-COPY ../../turbo.json ./
+COPY ./package.json ./package-lock.json ./turbo.json ./
 
 # Copie des packages locaux
-COPY ../../packages ./packages
-
-# Copie de l'application platform
-COPY . ./apps/platform
+COPY /packages ./packages
+COPY ./apps ./apps
 
 # Installation des dépendances
 RUN npm install
 
 # Build de l'application
-RUN npm run build --workspace=apps/platform
+RUN npx turbo run build --filter=platform
 
 # Étape de développement
 FROM node:22-alpine AS development
