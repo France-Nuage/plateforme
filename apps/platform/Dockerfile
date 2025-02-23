@@ -23,7 +23,7 @@ COPY turbo.json ./
 COPY packages/ ./packages/
 
 # Copie de l'application platform
-COPY apps/platform/ ./apps/platform/
+COPY apps/ ./apps/
 
 # Installation avec npm
 RUN npm install
