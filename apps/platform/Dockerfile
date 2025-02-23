@@ -28,7 +28,7 @@ COPY --from=builder /app/out/full/ .
 
 RUN npm exec -- turbo build
 
-FROM base AS runner
+FROM base AS development
 WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nuxtjs
