@@ -15,17 +15,21 @@ RUN apk add --no-cache libc6-compat python3 make g++
 # Définition du répertoire de travail
 WORKDIR /usr/src/app
 
-# Copie des fichiers depuis le contexte platform
-COPY package*.json ./
+# Copie des fichiers workspace depuis la racine
+COPY ../../package*.json ./
+COPY ../../turbo.json ./
+
+# Copie des packages locaux
+COPY ../../packages ./packages
+
+# Copie de l'application platform
+COPY . ./apps/platform
 
 # Installation des dépendances
 RUN npm install
 
-# Copie du reste du code de l'application
-COPY . .
-
 # Build de l'application
-RUN npm run build
+RUN npm run build --workspace=apps/platform
 
 # Étape de développement
 FROM node:22-alpine AS development
@@ -34,7 +38,7 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app ./
 
 # L'application démarre en mode développement
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--workspace=apps/platform"]
 
 # Étape de production
 FROM node:20-alpine AS production
@@ -42,7 +46,7 @@ FROM node:20-alpine AS production
 WORKDIR /usr/src/app
 
 # Copie des fichiers de production depuis l'étape de build
-COPY --from=builder /usr/src/app/.output ./.output
+COPY --from=builder /usr/src/app/apps/platform/.output ./.output
 COPY --from=builder /usr/src/app/package*.json ./
 
 # Installation des dépendances de production
