@@ -67,6 +67,7 @@
     "@adonisjs/transmit": "^2.0.2",
     "@aws-sdk/client-s3": "^3.696.0",
     "@aws-sdk/s3-request-presigner": "^3.696.0",
+    "@france-nuage/types": "*",
     "@vinejs/vine": "^2.1.0",
     "axios": "^1.7.8",
     "edge.js": "^6.2.0",
