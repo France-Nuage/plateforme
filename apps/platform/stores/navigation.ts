@@ -37,7 +37,7 @@ export const useNavigationStore = defineStore("navigation", {
         .organizations.list(queryParams)
         .then((response) => {
           this.organizations = response.data;
-          // this.organization = response.data[0]
+          this.organization = response.data[0];
 
           // this.folders = this.organization.folders
           // this.folder = this.organization.folders[0]
