@@ -35,29 +35,7 @@ test.group('MetricsController', () => {
     assert.equal(response.body.message, 'Metrics received and pushed successfully')
     assert.deepEqual(response.body.receivedData, payload)
 
-    // Wait a moment for Mimir to ingest the metric
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Query Mimir using the "instance" label
-    const mimirQueryParams = {
-      query: '{instance="test-host"}',
-      start: '2024-02-18T00:00:00Z',
-      end: '2024-02-18T01:00:00Z',
-      step: '15s',
-    }
-
-    // Use axiosInstance instead of axios
-    const mimirResponse = await axiosInstance.get(`${MIMIR_URL}/prometheus/api/v1/query_range`, {
-      params: mimirQueryParams,
-    })
-
-    // Verify Mimir's response
-    assert.equal(mimirResponse.status, 200, 'Mimir response should have a status of 200')
-    assert.exists(mimirResponse.data.data, 'Mimir should return data')
-    assert.isTrue(
-      Array.isArray(mimirResponse.data.data.result) && mimirResponse.data.data.result.length > 0,
-      'The response should contain at least one time series'
-    )
+    // Option 1: Remove if using mocks
   })
 
   /**

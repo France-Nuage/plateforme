@@ -4,7 +4,7 @@ import axios from 'axios'
 import Env from '#start/env'
 import snappy from 'snappy'
 import protobuf from 'protobufjs'
-import mimir from '../../../../protocol/mimir.proto'
+import mimir from '../../../../protocol/prometheus/mimir.proto.js'
 
 export default class MetricsController {
   /**

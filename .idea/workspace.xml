@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="060128d5-eaf4-4953-b2db-a36a69d91755" name="Changes" comment="fix: prettierfix">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="060128d5-eaf4-4953-b2db-a36a69d91755" name="Changes" comment="fix: france-nuage-agents.ts">
+      <change beforePath="$PROJECT_DIR$/apps/api/app/controllers/v1/infrastructure/metrics_controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/app/controllers/v1/infrastructure/metrics_controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/protocol/gogoproto/gogo.proto" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/protocol/prometheus/gogoproto/gogo.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/protocol/gogoproto/google/protobuf/descriptor.proto" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/protocol/prometheus/gogoproto/google/protobuf/descriptor.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/protocol/mimir.proto" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/protocol/prometheus/mimir.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/protocol/mimir.proto.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/protocol/prometheus/mimir.proto.d.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/api/tests/unit/app/models/infrastructure/metrics.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/tests/unit/app/models/infrastructure/metrics.spec.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -44,35 +48,35 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feat-agent-package",
-    "last_opened_file_path": "/Users/cailler/Projects/france-nuage/monorepo/apps/api/database/migrations",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.standard": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.standard": "",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_interpreter_path": "/Users/cailler/Library/Application Support/JetBrains/WebStorm2024.3/node/versions/22.11.0/bin/node",
-    "nodejs_package_manager_path": "npm",
-    "prettierjs.PrettierConfiguration.Package": "C:\\Users\\Admin\\PycharmProjects\\plateforme\\node_modules\\prettier",
-    "settings.editor.selected.configurable": "com.github.copilot.settings.ApplicationConfigurable",
-    "ts.external.directory.path": "C:\\Users\\Admin\\PycharmProjects\\plateforme\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feat-agent-package&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/cailler/Projects/france-nuage/monorepo/apps/api/database/migrations&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.standard&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.standard&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;/Users/cailler/Library/Application Support/JetBrains/WebStorm2024.3/node/versions/22.11.0/bin/node&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;C:\\Users\\Admin\\PycharmProjects\\plateforme\\node_modules\\prettier&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.github.copilot.settings.ApplicationConfigurable&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Admin\\PycharmProjects\\plateforme\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "redis",
-      "postgresql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;redis&quot;,
+      &quot;postgresql&quot;
     ],
-    "vue.recent.templates": [
-      "Vue Composition API Component"
+    &quot;vue.recent.templates&quot;: [
+      &quot;Vue Composition API Component&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/apps/api/database/migrations" />
@@ -82,11 +86,11 @@
       <recent name="$PROJECT_DIR$/apps/platform/components/forms/checkbox" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Admin\PycharmProjects\plateforme\apps\api\protocol\prometheus" />
       <recent name="$PROJECT_DIR$/apps/api/app/models/catalog" />
       <recent name="$PROJECT_DIR$/apps/platform/api/repositories/payment" />
       <recent name="$PROJECT_DIR$/apps/platform/pages/billings/accounts" />
       <recent name="$PROJECT_DIR$/apps/platform/pages/settings/organizations" />
-      <recent name="$PROJECT_DIR$/apps/platform/pages/settings/projects" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -141,7 +145,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739974792914</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="fix: france-nuage-agents.ts">
+      <option name="closed" value="true" />
+      <created>1740389045048</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1740389045048</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -163,6 +175,7 @@
     <MESSAGE value="fix : node-mock-http" />
     <MESSAGE value="fix: fixed wrong conflict resolve" />
     <MESSAGE value="fix: prettierfix" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: prettierfix" />
+    <MESSAGE value="fix: france-nuage-agents.ts" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: france-nuage-agents.ts" />
   </component>
 </project>
