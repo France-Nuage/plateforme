@@ -7,7 +7,8 @@
 
 // Required Node.js built-in modules
 import * as os from "os";
-import * as child_process from "child_process";
+import { promisify } from "util";
+import { execFile } from "child_process";
 import axios from "axios";
 import dotenv from "dotenv";
 
@@ -22,7 +23,7 @@ if (!process.env.API_URL || !process.env.CF_ID || !process.env.CF_SECRET) {
 // Global configuration constants
 const BASE_API_URL = process.env.API_URL;
 const API_URL = BASE_API_URL + "/api/v1/infrastructure/metrics";
-const INTERVAL = process.env.INTERVAL;
+const INTERVAL = process.env.INTERVAL || "60000"; // Default to 60s if not provided
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 5000;
 const REQUEST_TIMEOUT = 10000;
@@ -73,7 +74,7 @@ async function withRetry<T>(
   retries = MAX_RETRIES,
   delay = RETRY_DELAY,
   operationName = "Operation",
-) {
+): Promise<T> {
   let lastError;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
@@ -87,13 +88,18 @@ async function withRetry<T>(
         throw lastError;
       }
       logWarn(
-        `${operationName} failed (attempt ${attempt}/${retries}). Retrying in ${delay / 1000}s...`,
+        `${operationName} failed (attempt ${attempt}/${retries}). Retrying in ${
+          delay / 1000
+        }s...`,
       );
       await sleep(delay);
     }
   }
   throw lastError;
 }
+
+// Promisified execFile for asynchronous system commands
+const execFilePromise = promisify(execFile);
 
 /**
  * Collects system metrics with retry mechanism
@@ -106,19 +112,20 @@ async function collectMetrics() {
       const usedMemory = totalMemory - freeMemory;
       const memoryUsagePercent = (usedMemory / totalMemory) * 100;
       const cpuUsage = (os.loadavg()[0] * 100) / os.cpus().length;
-      const diskUsage = child_process
-        .execSync("df -h /")
-        .toString()
-        .split("\n")[1]
-        .split(/\s+/);
+
+      // Asynchronous disk usage retrieval
+      const { stdout } = await execFilePromise("df", ["-B1", "/"]);
+      const diskUsage = stdout.split("\n")[1].split(/\s+/);
       const diskUsagePercent = parseFloat(diskUsage[4]);
+      const diskSpace = parseFloat(diskUsage[1]);
+
       return {
         cpuUsage,
         memoryUsagePercent,
         diskUsagePercent,
         usedMemory,
         totalMemory,
-        diskSpace: parseFloat(diskUsage[1]),
+        diskSpace,
       };
     },
     MAX_RETRIES,
@@ -160,7 +167,9 @@ async function main() {
         await sendMetrics(realMetrics);
       } catch (error) {
         logError(
-          `Error in metrics collection cycle: ${error instanceof Error ? error.message : String(error)}`,
+          `Error in metrics collection cycle: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
         );
       }
     }, Number(INTERVAL));
