@@ -1,6 +1,6 @@
 <!-- PROJECT LOGO -->
 <p align="center">
-  <a href="https://github.com/france-nuage/france-nuage">
+  <a href="https://gitlab.com/groups/getbunker-france-nuage/france-nuage">
    <img src="./apps/mediakit/logo-scripts/raw.svg" alt="France nuage Logo">
   </a>
 
