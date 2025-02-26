@@ -6,10 +6,14 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".nuxt/**", ".output/**", "dist/**"]
     },
+    "test": {
+      "env": ["*"]
+    },
     "lint": {},
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["*"]
     }
   }
 }

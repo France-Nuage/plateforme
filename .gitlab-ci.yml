@@ -39,7 +39,7 @@ build:
 "unit tests / control-plane":
   stage: unit-tests
   script:
-    - docker compose run control-plane npm run test
+    - docker compose run control-plane npx turbo run test --filter=@france-nuage/control-plane
 
 "unit tests / worker":
   stage: unit-tests
