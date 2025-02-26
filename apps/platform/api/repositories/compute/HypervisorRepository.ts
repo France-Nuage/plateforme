@@ -1,3 +1,4 @@
+import type { $Fetch } from "nitropack";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
@@ -19,7 +20,7 @@ type PatchOrganizationData =
   | { resultCode: string };
 
 export const HypervisorRepository = function (
-  client: any,
+  client: $Fetch,
   config: Record<any, any>,
 ) {
   return {

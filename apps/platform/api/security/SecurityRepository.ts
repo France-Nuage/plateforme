@@ -1,6 +1,4 @@
-import { AxiosInstance } from "axios";
-import routes from "./routes";
-import type { ApiResponse } from "~/api/repositories/ApiResponse";
+import type { $Fetch } from "nitropack";
 
 export interface AllowedLoginCredentials {
   username: string;
@@ -15,7 +13,10 @@ export interface AllowedRegisterCredentials {
   confirm_password: string;
 }
 
-export const SecurityRepository = function (client, config: Record<any, any>) {
+export const SecurityRepository = function (
+  client: $Fetch,
+  config: Record<any, any>,
+) {
   return {
     login: async (credentials: AllowedLoginCredentials) =>
       client(`/auth/token`, {
