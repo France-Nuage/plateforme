@@ -23,7 +23,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN turbo prune --scope=@france-nuage/platform --docker
+RUN turbo prune --scope=@france-nuage/control-plane --docker
 
 #------------------------------------------------------------------------------
 # INSTALL stage
@@ -48,14 +48,14 @@ COPY --from=pruned /app/out/full/ .
 COPY turbo.json turbo.json
 
 # Build all of the app dependencies, but not the app itself for development
-RUN turbo run build --no-cache --filter="@france-nuage/platform^..."
+RUN turbo run build --no-cache --filter="@france-nuage/control-plane^..."
 
 #------------------------------------------------------------------------------
 # DEVELOPMENT stage
 #------------------------------------------------------------------------------
 #
 # Sets up a development environment with live reloading for the
-# @france-nuage/platform application.
+# @france-nuage/control-plane application.
 #
 FROM base AS development
 
@@ -63,7 +63,7 @@ WORKDIR /app
 
 COPY --from=install /app /app
 
-CMD ["turbo", "run", "dev", "--filter", "@france-nuage/platform"]
+CMD ["turbo", "run", "dev", "--filter", "@france-nuage/control-plane"]
 
 #------------------------------------------------------------------------------
 # BUILD stage
@@ -79,7 +79,7 @@ WORKDIR /app
 COPY --from=install /app /app
 
 # Build the application
-RUN turbo run build --filter=@france-nuage/platform
+RUN turbo run build --filter=@france-nuage/control-plane
 
 #------------------------------------------------------------------------------
 # RELEASE stage
@@ -89,10 +89,10 @@ RUN turbo run build --filter=@france-nuage/platform
 #
 FROM node:22-alpine AS release
 
-WORKDIR /app/apps/platform/build
+WORKDIR /app/apps/control-plane/build
 
 # Copy only the necessary node_modules and build for runtime
-COPY --from=build /app/apps/platform/build /app/apps/platform/build
+COPY --from=build /app/apps/control-plane/build /app/apps/control-plane/build
 COPY --from=build /app/node_modules /app/node_modules
 
 EXPOSE 3000

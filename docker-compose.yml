@@ -7,7 +7,7 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane:staging
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane:production
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: apps/control-plane/Dockerfile
       target: ${TARGET:-development}
     container_name: control-plane
     depends_on:
@@ -38,8 +38,9 @@ services:
     ports:
       - "3333:3333"
     volumes:
-      - ./apps/api:/usr/src/app/apps/api
+      - ./apps/control-plane:/app/apps/control-plane
       - /usr/src/app/apps/api/node_modules
+    working_dir: /app/apps/control-plane
 
   control-plane-setup:
     image: docker:27-cli
@@ -74,8 +75,9 @@ services:
       - "3000:3000"
       - "39709:39709"
     volumes:
-      - ./apps/platform:/usr/src/app/apps/platform
-      - /usr/src/apps/platform/node_modules
+      - ./apps/platform:/app/apps/platform
+      - /usr/src/app/node_modules
+    working_dir: /app/apps/platform
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.50.1-noble
