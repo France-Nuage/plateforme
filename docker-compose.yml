@@ -46,8 +46,12 @@ services:
     depends_on:
       - control-plane
     command: >
-      sh -c "docker exec control-plane node ace migration:run && 
-             docker exec control-plane node ace db:seed"
+      sh -c "
+              echo 'waiting 10s before playwing migrations/seeders' &&
+              echo 'TODO: remove this wait once health checks are implemented' &&
+              sleep 10 &&
+              docker exec control-plane node ace migration:run && 
+              docker exec control-plane node ace db:seed"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
