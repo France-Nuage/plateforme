@@ -87,12 +87,18 @@ services:
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.50.1-noble
-    command: /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
     ports:
       - "4444:4444"
     depends_on:
-      control-plane:
-        - condition: service_healthy
+      - adonis
+    command: sh -c "
+      while ! wget -q -O- http://adonis:3333/api/health > /dev/null 2>&1; do
+      echo 'En attente du démarrage d'adonis...'
+      sleep 2
+      done
+      echo 'Adonis est prêt, démarrage des tests...'
+      /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
+      "
 
   postgres:
     container_name: postgres
