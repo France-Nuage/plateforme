@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@france-nuage/api": "*",
     "@france-nuage/types": "*",
     "@france-nuage/typescript-config": "*",
     "@headlessui/vue": "^1.7.23",
