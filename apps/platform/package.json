@@ -24,7 +24,7 @@
     "apexcharts": "^4.0.0",
     "highlight-words-core": "^1.2.3",
     "lodash": "^4.17.21",
-    "nuxt": "^3.14.159",
+    "nuxt": "^3.6.0",
     "pinia": "^2.2.6",
     "vue": "latest",
     "vue-router": "latest"
