@@ -1,16 +1,9 @@
 import { test as base } from "@playwright/test";
+import type { User } from "@france-nuage/types";
 import { LoginPage } from "./pages/login.page";
 import { SignupPage } from "./pages/signup.page";
 import { DashboardPage } from "./pages/dashboard.page";
 import { ForgotPasswordPage } from "./pages/forgot-password.page";
-
-// TODO: pull from global types
-export type User = {
-  email: string;
-  password: string;
-  lastname: string;
-  firstname: string;
-};
 
 const user = {
   email: `${new Date().getTime()}-login.test@france-nuage.fr`,

@@ -1,3 +1,4 @@
+import type { $Fetch } from "nitropack";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
@@ -16,7 +17,7 @@ interface UserResource {
 type PatchUserData = Partial<UserResource> | { resultCode: string };
 
 export const IAMPolicyRepository = function (
-  client: any,
+  client: $Fetch,
   config: Record<any, any>,
 ) {
   const { resource } = storeToRefs(useNavigationStore());

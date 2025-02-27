@@ -1,3 +1,4 @@
+import type { $Fetch } from "nitropack";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
@@ -14,7 +15,7 @@ interface ServiceResource {
 type PatchServiceData = Partial<ServiceResource> | { resultCode: string };
 
 export const ServiceRepository = function (
-  client: any,
+  client: $Fetch,
   config: Record<any, any>,
 ) {
   return {
