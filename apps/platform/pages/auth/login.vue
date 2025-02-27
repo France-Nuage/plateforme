@@ -6,7 +6,7 @@
         to="/auth/subscribe"
         class="font-semibold text-primary"
         data-pw="subscribe-link"
-        >Inscriver vous !</nuxt-link
+        >Inscrivez-vous !</nuxt-link
       >
     </p>
 
