@@ -64,14 +64,14 @@ build:
 "Deploy / control-plane (staging)":
   stage: deploy
   script:
-    - docker build --target=release --file=apps/api/Dockerfile --tag=${CI_REGISTRY_IMAGE}/api:staging --push .
+    - docker build --target=release --file=apps/control-plane/Dockerfile --tag=${CI_REGISTRY_IMAGE}/control-plane:staging --push .
   only:
     - staging
 
 "Deploy / control-plane (production)":
   stage: deploy
   script:
-    - docker build --target=release --file=apps/api/Dockerfile --tag=${CI_REGISTRY_IMAGE}/api:production --push .
+    - docker build --target=release --file=apps/control-plane/Dockerfile --tag=${CI_REGISTRY_IMAGE}/control-plane:production --push .
   only:
     - master
 
