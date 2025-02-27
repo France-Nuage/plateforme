@@ -99,3 +99,10 @@ router
     ])
   })
   .prefix('api/internal')
+
+router.get('/api/health', async ({ response }) => {
+  return response.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+  })
+})

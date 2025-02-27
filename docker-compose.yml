@@ -41,6 +41,12 @@ services:
       - ./apps/control-plane:/app/apps/control-plane
       - /usr/src/app/apps/api/node_modules
     working_dir: /app/apps/control-plane
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://control-plane:3333/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   control-plane-setup:
     image: docker:27-cli
@@ -84,6 +90,9 @@ services:
     command: /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
     ports:
       - "4444:4444"
+    depends_on:
+      control-plane:
+        - condition: service_healthy
 
   postgres:
     container_name: postgres
