@@ -16,12 +16,9 @@ import {
   PricingRepository,
   PaymentMethodRepository,
 } from "./repositories";
-import type { AxiosInstance } from "axios";
+import type { $Fetch } from "nitropack";
 
-const repositories: any = (
-  client: AxiosInstance,
-  config: Record<any, any>,
-) => ({
+const repositories = (client: $Fetch, config: Record<any, any>) => ({
   iam: {
     members: IAMMemberRepository(client, config),
     policies: IAMPolicyRepository(client, config),
