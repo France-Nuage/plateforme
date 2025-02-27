@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres-api-france-nuage:
     container_name: postgres-api-france-nuage
-    image: postgres:15
+    image: postgres:17
     volumes:
       - postgres_volume_france_nuage:/var/lib/postgresql/data
     environment:
