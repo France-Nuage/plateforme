@@ -1,10 +1,10 @@
-import { expect, test } from '../../../base.js'
+import { expect, test, Users } from '../../../base.js'
 
 test.describe('POST /api/v1/auth/login', () => {
-  test('I can authenticate with valid credentials', async ({ request }) => {
+  test('I can authenticate with valid credentials', async ({ request, users }) => {
     const response = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'admin@france-nuage.fr',
+        email: users[Users.Admin].email,
         password: 'password',
       },
     })
@@ -26,7 +26,7 @@ test.describe('POST /api/v1/auth/login', () => {
   test('I cannot authenticate with invalid credentials', async ({ request, users }) => {
     const response = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'admin@france-nuage.fr',
+        email: users[Users.Admin].email,
         password: 'an-invalid-password',
       },
     })

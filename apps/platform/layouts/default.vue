@@ -139,12 +139,6 @@
           to="/settings"
           :active="route.path === '/settings'"
         />
-        <c-sidebar-navigation-item
-          title="Clusters"
-          icon="cloud-linear"
-          to="/clusters"
-          :active="route.path === '/clusters'"
-        />
       </c-sidebar-navigation-group>
 
       <!--      v-if="project"-->
@@ -183,7 +177,7 @@ import {
   TransitionChild,
   TransitionRoot,
 } from "@headlessui/vue";
-import { CloudIcon, Cog6ToothIcon, XMarkIcon } from "@heroicons/vue/24/outline";
+import { Cog6ToothIcon, XMarkIcon } from "@heroicons/vue/24/outline";
 import CLogo from "~/components/CLogo.vue";
 import CHeader from "~/components/header/CHeader.vue";
 import { ref } from "vue";
