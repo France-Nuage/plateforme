@@ -1,7 +1,7 @@
 import { User } from '@france-nuage/types'
 import { expect, request as baseRequest, test as base } from '@playwright/test'
 import type { APIRequestContext, PlaywrightTestConfig } from '@playwright/test'
-import config from '../../playwright.config.js'
+import baseConfig from '../../playwright.config.js'
 
 /**
  * Re-exports unmodified Playwright tools as-in
@@ -80,7 +80,7 @@ export const test = base.extend<{}, Fixtures>({
   users: [
     async ({}, use, w) => {
       const admin = { email: 'admin@france-nuage.fr', firstname: 'Wile E.', lastname: 'Coyote' }
-      const credentials = await login(admin, config)
+      const credentials = await login(admin, baseConfig)
 
       await use({
         [Users.Admin]: { ...admin, ...credentials },
@@ -117,9 +117,9 @@ export const test = base.extend<{}, Fixtures>({
       await use(async (user: Credentials) => {
         // Create a new context request with authentication headers
         const request = await baseRequest.newContext({
-          ...config.use,
+          ...baseConfig.use,
           extraHTTPHeaders: {
-            ...config.use?.extraHTTPHeaders,
+            ...baseConfig.use?.extraHTTPHeaders,
             Authorization: `Bearer ${user.token}`,
           },
         })
