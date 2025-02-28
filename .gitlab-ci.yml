@@ -24,6 +24,12 @@ build:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
+"code style / platform":
+  stage: code-style
+  script:
+    - docker compose run --no-deps platform npm run lint
+  allow_failure: true
+
 "code style / control-plane":
   stage: code-style
   script:
@@ -64,14 +70,14 @@ build:
 "Deploy / control-plane (staging)":
   stage: deploy
   script:
-    - docker build --target=release --file=apps/api/Dockerfile --tag=${CI_REGISTRY_IMAGE}/api:staging --push .
+    - docker build --target=release --file=apps/control-plane/Dockerfile --tag=${CI_REGISTRY_IMAGE}/control-plane:staging --push .
   only:
     - staging
 
 "Deploy / control-plane (production)":
   stage: deploy
   script:
-    - docker build --target=release --file=apps/api/Dockerfile --tag=${CI_REGISTRY_IMAGE}/api:production --push .
+    - docker build --target=release --file=apps/control-plane/Dockerfile --tag=${CI_REGISTRY_IMAGE}/control-plane:production --push .
   only:
     - master
 

@@ -1,7 +1,7 @@
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { SitemapStream, streamToPromise } from "sitemap";
-import { writeFile } from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 
 // Get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -38,6 +38,4 @@ const __dirname = path.dirname(__filename);
   // Write sitemap to the `dist` folder
   const distPath = path.resolve(__dirname, "./public/sitemap.xml");
   await writeFile(distPath, sitemapBuffer);
-
-  console.log("Sitemap generated successfully in the output folder.");
 })();
