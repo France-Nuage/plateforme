@@ -20,9 +20,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const toQuery = to.query || {};
   const fromQuery = from.query || {};
 
-  let nextOrganizationId = toQuery.organization || storeOrganizationId;
-  let nextFolderId = toQuery.folder || storeFolderId;
-  let nextProjectId = toQuery.project || storeProjectId;
+  const nextOrganizationId = toQuery.organization || storeOrganizationId;
+  const nextFolderId = toQuery.folder || storeFolderId;
+  const nextProjectId = toQuery.project || storeProjectId;
 
   const queryParams = {};
 

@@ -24,6 +24,12 @@ build:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
+"code style / platform":
+  stage: code-style
+  script:
+    - docker compose run --no-deps platform npm run lint -- --filter=@france-nuage/platform
+  allow_failure: true
+
 "code style / control-plane":
   stage: code-style
   script:
