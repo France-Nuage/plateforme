@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from '../../../base.js'
 
-test.describe('/api/v1/auth/login', () => {
+test.describe('POST /api/v1/auth/login', () => {
   test('I can authenticate with valid credentials', async ({ request }) => {
     const response = await request.post('/api/v1/auth/login', {
       data: {
@@ -8,12 +8,10 @@ test.describe('/api/v1/auth/login', () => {
         password: 'password',
       },
     })
+    const result = await response.json()
 
     expect(response.ok()).toBeTruthy()
     expect(response.status()).toBe(200)
-
-    const result = await response.json()
-
     expect(Object.keys(result).sort()).toMatchObject([
       'abilities',
       'expiresAt',
@@ -25,19 +23,17 @@ test.describe('/api/v1/auth/login', () => {
     expect(result.type.toLowerCase()).toBe('bearer')
   })
 
-  test('I cannot authenticate with invalid credentials', async ({ request }) => {
+  test('I cannot authenticate with invalid credentials', async ({ request, users }) => {
     const response = await request.post('/api/v1/auth/login', {
       data: {
         email: 'admin@france-nuage.fr',
         password: 'an-invalid-password',
       },
     })
+    const result = await response.json()
 
     expect(response.ok()).toBeFalsy()
     expect(response.status()).toBe(400)
-
-    const result = await response.json()
-
     expect(result).toMatchObject({ errors: [{ message: 'Invalid user credentials' }] })
   })
 
@@ -49,7 +45,6 @@ test.describe('/api/v1/auth/login', () => {
 
     expect(response.ok()).toBeFalsy()
     expect(response.status()).toBe(422)
-
     expect(result).toMatchObject({
       errors: [
         {
