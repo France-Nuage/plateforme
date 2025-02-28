@@ -1,3 +1,4 @@
+import type { $Fetch } from "nitropack";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
@@ -18,7 +19,10 @@ type PatchOrganizationData =
   | Partial<OrganizationResource>
   | { resultCode: string };
 
-export const RoleRepository = function (client: any, config: Record<any, any>) {
+export const RoleRepository = function (
+  client: $Fetch,
+  config: Record<any, any>,
+) {
   return {
     list: async (
       params?: AllowedParams<any, null, null>,

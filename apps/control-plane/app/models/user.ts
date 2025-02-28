@@ -5,6 +5,7 @@ import { BaseModel, column, computed, hasMany, manyToMany } from '@adonisjs/luci
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
+import type { User as UserContract } from '@france-nuage/types'
 import Binding from '#models/iam/binding'
 import Policy from '#models/iam/policy'
 
@@ -13,7 +14,7 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   passwordColumnName: 'password',
 })
 
-export default class User extends compose(BaseModel, AuthFinder) {
+export default class User extends compose(BaseModel, AuthFinder) implements UserContract {
   public static table = 'member.users'
 
   @computed()

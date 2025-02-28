@@ -16,7 +16,7 @@ FROM base AS builder
 RUN cargo build --release
 
 # Production Stage
-FROM alpine:3.18 AS release
+FROM alpine:3.21 AS release
 RUN apk add --no-cache ca-certificates openssl
 COPY --from=builder /app/target/release/worker /usr/bin/worker
 RUN chmod +x /usr/bin/worker
