@@ -44,9 +44,8 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://control-plane:3333/api/health"]
       interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
+      timeout: 10s
+      retries: 6
 
   control-plane-setup:
     image: docker:27-cli
@@ -99,7 +98,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    image: postgres:15
+    image: postgres:17
     ports:
       - "5432:5432"
     volumes:
