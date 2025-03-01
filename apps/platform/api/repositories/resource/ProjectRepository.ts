@@ -1,10 +1,16 @@
-import type { $Fetch } from "nitropack";
+import type { $Fetch } from "ofetch";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 
+/**
+ * @deprecated
+ */
 interface PostProjectData {}
 
+/**
+ * @deprecated
+ */
 interface ProjectResource {
   id: string;
   name: string;
@@ -12,8 +18,14 @@ interface ProjectResource {
   created_at: string;
 }
 
+/**
+ * @deprecated
+ */
 type PatchProjectData = Partial<ProjectResource> | { resultCode: string };
 
+/**
+ * @deprecated
+ */
 export const ProjectRepository = function (
   client: $Fetch,
   config: Record<any, any>,

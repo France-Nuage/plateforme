@@ -1,10 +1,16 @@
-import type { $Fetch } from "nitropack";
+import type { $Fetch } from "ofetch";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 
+/**
+ * @deprecated
+ */
 interface PostServiceData {}
 
+/**
+ * @deprecated
+ */
 interface ServiceResource {
   id: string;
   name: string;
@@ -12,8 +18,14 @@ interface ServiceResource {
   created_at: string;
 }
 
+/**
+ * @deprecated
+ */
 type PatchServiceData = Partial<ServiceResource> | { resultCode: string };
 
+/**
+ * @deprecated
+ */
 export const ServiceRepository = function (
   client: $Fetch,
   config: Record<any, any>,

@@ -1,11 +1,17 @@
-import type { $Fetch } from "nitropack";
+import type { $Fetch } from "ofetch";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 import { useNavigationStore } from "~/stores/navigation";
 
+/**
+ * @deprecated
+ */
 interface PostUserData {}
 
+/**
+ * @deprecated
+ */
 interface UserResource {
   id: string;
   name: string;
@@ -14,10 +20,16 @@ interface UserResource {
   createdAt: string;
 }
 
+/**
+ * @deprecated
+ */
 type PatchUserData = Partial<UserResource> | { resultCode: string };
 
+/**
+ * @deprecated
+ */
 export const MemberRepository = function (
-  client: typeof $fetch,
+  client: $Fetch,
   config: Record<any, any>,
 ) {
   return {

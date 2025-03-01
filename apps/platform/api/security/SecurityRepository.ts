@@ -1,10 +1,16 @@
-import type { $Fetch } from "nitropack";
+import type { $Fetch } from "ofetch";
 
+/**
+ * @deprecated
+ */
 export interface AllowedLoginCredentials {
   username: string;
   password: string;
 }
 
+/**
+ * @deprecated
+ */
 export interface AllowedRegisterCredentials {
   lastname: string;
   firstname: string;
@@ -13,6 +19,9 @@ export interface AllowedRegisterCredentials {
   confirm_password: string;
 }
 
+/**
+ * @deprecated
+ */
 export const SecurityRepository = function (
   client: $Fetch,
   config: Record<any, any>,

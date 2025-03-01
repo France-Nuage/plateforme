@@ -1,10 +1,16 @@
-import type { $Fetch } from "nitropack";
+import type { $Fetch } from "ofetch";
 import { parseUri } from "./../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 
+/**
+ * @deprecated
+ */
 interface PostPaymentData {}
 
+/**
+ * @deprecated
+ */
 interface PaymentResource {
   id: string;
   name: string;
@@ -12,8 +18,14 @@ interface PaymentResource {
   created_at: string;
 }
 
+/**
+ * @deprecated
+ */
 type PatchPaymentData = Partial<PaymentResource> | { resultCode: string };
 
+/**
+ * @deprecated
+ */
 export const PaymentMethodRepository = function (
   client: $Fetch,
   config: Record<any, any>,
