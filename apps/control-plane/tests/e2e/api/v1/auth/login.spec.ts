@@ -12,7 +12,7 @@ test.describe('POST /api/v1/auth/login', () => {
 
     expect(response.ok()).toBeTruthy()
     expect(response.status()).toBe(200)
-    expect(Object.keys(result).sort()).toMatchObject([
+    expect(Object.keys(result).sort()).toEqual([
       'abilities',
       'expiresAt',
       'lastUsedAt',
@@ -45,7 +45,7 @@ test.describe('POST /api/v1/auth/login', () => {
 
     expect(response.ok()).toBeFalsy()
     expect(response.status()).toBe(422)
-    expect(result).toMatchObject({
+    expect(result).toEqual({
       errors: [
         {
           message: 'The email field must be defined',
