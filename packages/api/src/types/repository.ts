@@ -24,7 +24,12 @@ import { ApiIndexResponse } from "./api-index-response";
  */
 export type Repository<
   Resource,
-  Operations extends "list" | "read" | "create" | "update" | "delete",
+  Operations extends "list" | "read" | "create" | "update" | "delete" =
+    | "list"
+    | "read"
+    | "create"
+    | "update"
+    | "delete",
 > = (
   client: $Fetch,
   config: Record<any, any>,
