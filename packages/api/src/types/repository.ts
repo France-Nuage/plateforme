@@ -34,7 +34,7 @@ export type Repository<
      * Gets a listing of the resource.
      */
     list: (
-      options: FetchOptions<"json", Resource>,
+      options?: FetchOptions<"json", Resource>,
     ) => Promise<ApiIndexResponse<Resource>>;
 
     /**
@@ -42,7 +42,7 @@ export type Repository<
      */
     read: (
       id: string,
-      options: FetchOptions<"json", Resource>,
+      options?: FetchOptions<"json", Resource>,
     ) => Promise<Resource>;
 
     /**
@@ -50,7 +50,7 @@ export type Repository<
      */
     create: <U = Partial<Resource>>(
       body: U,
-      options: FetchOptions<"json", Resource>,
+      options?: FetchOptions<"json", Resource>,
     ) => Promise<Resource>;
 
     /**
@@ -59,7 +59,7 @@ export type Repository<
     update: <U = Partial<Resource>>(
       id: string,
       body: U,
-      options: FetchOptions<"json", Resource>,
+      options?: FetchOptions<"json", Resource>,
     ) => Promise<Resource>;
 
     /**
@@ -67,7 +67,7 @@ export type Repository<
      */
     delete: (
       id: string,
-      options: FetchOptions<"json", Resource>,
+      options?: FetchOptions<"json", Resource>,
     ) => Promise<void>;
   },
   Operations

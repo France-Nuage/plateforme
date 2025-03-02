@@ -1,4 +1,6 @@
-import { User } from '@france-nuage/types'
+import { ofetch } from 'ofetch'
+import { organizationsRepository } from '@france-nuage/api'
+import { Organization, User } from '@france-nuage/types'
 import { expect, request as baseRequest, test as base } from '@playwright/test'
 import type { APIRequestContext, PlaywrightTestConfig } from '@playwright/test'
 import baseConfig from '../../playwright.config.js'
@@ -57,12 +59,27 @@ type Fixtures = {
   actingAs: (user: Credentials) => Promise<{ request: APIRequestContext }>
 
   /**
+   * The pre-defined organization.
+   */
+  organization: Organization
+
+  /**
    * The pre-defined users.
    */
   users: Record<Users, Pick<User, 'email' | 'firstname' | 'lastname'> & Credentials>
 }
 
 export const test = base.extend<{}, Fixtures>({
+  organization: [
+    async ({}, use) => {
+      const organization = await organizationsRepository(ofetch, {}).read(
+        '00000000-0000-0000-0000-000000000000'
+      )
+      console.log('organization should have been retrieved')
+      use(organization)
+    },
+    { scope: 'worker' },
+  ],
   /**
    * Provides an implementation for the `users` fixtures.
    *
@@ -78,7 +95,7 @@ export const test = base.extend<{}, Fixtures>({
    * "admin" user, alongside some top-level resources (e.g. an organization).
    */
   users: [
-    async ({}, use, w) => {
+    async ({}, use) => {
       const admin = { email: 'admin@france-nuage.fr', firstname: 'Wile E.', lastname: 'Coyote' }
       const credentials = await login(admin, baseConfig)
 
