@@ -1,6 +1,5 @@
 import { SecurityRepository } from "./security";
 import {
-  OrganizationRepository,
   ProjectRepository,
   IAMMemberRepository,
   IAMPolicyRepository,
@@ -16,7 +15,8 @@ import {
   PricingRepository,
   PaymentMethodRepository,
 } from "./repositories";
-import type { $Fetch } from "nitropack";
+import { organizationsRepository } from "./repositories";
+import type { $Fetch } from "ofetch";
 
 const repositories = (client: $Fetch, config: Record<any, any>) => ({
   iam: {
@@ -37,7 +37,7 @@ const repositories = (client: $Fetch, config: Record<any, any>) => ({
   },
   members: MemberRepository(client, config),
   security: SecurityRepository(client, config),
-  organizations: OrganizationRepository(client, config),
+  organizations: organizationsRepository(client, config),
   projects: ProjectRepository(client, config),
   services: ServiceRepository(client, config),
   folders: FolderRepository(client, config),
