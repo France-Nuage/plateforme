@@ -40,25 +40,25 @@ export const PricingRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/pricing${apiCallParams}`, { method: "GET" });
+      return client(`/api/v1/pricing${apiCallParams}`, { method: "GET" });
     },
     get: async (
       pricingId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/pricing/${pricingId}${apiCallParams}`);
+      return client(`/api/v1/pricing/${pricingId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/pricing`, { method: "POST", body });
+      return client(`/api/v1/pricing`, { method: "POST", body });
     },
     patch: async (
       pricingId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/pricing/${pricingId}`, { method: "PUT", body });
+      return client(`/api/v1/pricing/${pricingId}`, { method: "PUT", body });
     },
   };
 };

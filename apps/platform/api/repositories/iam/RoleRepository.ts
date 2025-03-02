@@ -40,25 +40,25 @@ export const RoleRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/iam/roles${apiCallParams}`, { method: "GET" });
+      return client(`/api/v1/iam/roles${apiCallParams}`, { method: "GET" });
     },
     get: async (
       roleId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/iam/roles/${roleId}${apiCallParams}`);
+      return client(`/api/v1/iam/roles/${roleId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/iam/roles`, { method: "POST", body });
+      return client(`/api/v1/iam/roles`, { method: "POST", body });
     },
     patch: async (
       roleId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/iam/roles/${roleId}`, { method: "PUT", body });
+      return client(`/api/v1/iam/roles/${roleId}`, { method: "PUT", body });
     },
   };
 };

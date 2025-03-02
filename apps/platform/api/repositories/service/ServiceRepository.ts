@@ -35,28 +35,28 @@ export const ServiceRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<ServiceResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/services${apiCallParams}`);
+      return client(`/api/v1/services${apiCallParams}`);
     },
     get: async (
       serviceId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<ServiceResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/services/${serviceId}${apiCallParams}`);
+      return client(`/api/v1/services/${serviceId}${apiCallParams}`);
     },
     post: async (
       body: PostServiceData,
     ): Promise<ApiResponse<ServiceResource>> => {
-      return client(`/services`, { method: "POST", body: body });
+      return client(`/api/v1/services`, { method: "POST", body: body });
     },
     patch: async (
       serviceId: string,
       body: PatchServiceData,
     ): Promise<ApiResponse<ServiceResource>> => {
-      return client(`/services/${serviceId}`, { method: "PUT", body });
+      return client(`/api/v1/services/${serviceId}`, { method: "PUT", body });
     },
     delete: async (body: Array<string>): Promise<ApiResponse<any>> => {
-      return client(`/services`, { method: "DELETE", body });
+      return client(`/api/v1/services`, { method: "DELETE", body });
     },
   };
 };

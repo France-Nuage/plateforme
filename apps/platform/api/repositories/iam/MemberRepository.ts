@@ -46,7 +46,7 @@ export const IAMMemberRepository = function (
     ): Promise<ApiResponse<any>> => {
       const apiCallParams = params ? parseUri(params) : "";
       return client(
-        `/${resourceValue.type}/${resourceValue.id}/iam/members${apiCallParams}`,
+        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members${apiCallParams}`,
       );
     },
     get: async (
@@ -55,21 +55,24 @@ export const IAMMemberRepository = function (
     ): Promise<ApiResponse<UserResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
       return client(
-        `/${resourceValue.type}/${resourceValue.id}/iam/members/${userId}${apiCallParams}`,
+        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members/${userId}${apiCallParams}`,
       );
     },
     post: async (body: PostUserData): Promise<ApiResponse<UserResource>> => {
-      return client(`/${resourceValue.type}/${resourceValue.id}/iam/members`, {
-        method: "POST",
-        body,
-      });
+      return client(
+        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members`,
+        {
+          method: "POST",
+          body,
+        },
+      );
     },
     patch: async (
       userId: string,
       body: PatchUserData,
     ): Promise<ApiResponse<UserResource>> => {
       return client(
-        `/${resourceValue.type}/${resourceValue.id}/iam/members/${userId}`,
+        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members/${userId}`,
         { method: "PUT", body },
       );
     },
@@ -78,7 +81,7 @@ export const IAMMemberRepository = function (
         ids.map(
           async (id: string) =>
             await client(
-              `/${resourceValue.type}/${resourceValue.id}/iam/members/${id}`,
+              `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members/${id}`,
               { method: "DELETE" },
             ),
         ),

@@ -35,28 +35,31 @@ export const PaymentMethodRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<PaymentResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/payment-methods${apiCallParams}`);
+      return client(`/api/v1/payment-methods${apiCallParams}`);
     },
     get: async (
       paymentId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<PaymentResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/payment-methods/${paymentId}${apiCallParams}`);
+      return client(`/api/v1/payment-methods/${paymentId}${apiCallParams}`);
     },
     post: async (
       body: PostPaymentData,
     ): Promise<ApiResponse<PaymentResource>> => {
-      return client(`/payment-methods`, { method: "POST", body: body });
+      return client(`/api/v1/payment-methods`, { method: "POST", body: body });
     },
     patch: async (
       paymentId: string,
       body: PatchPaymentData,
     ): Promise<ApiResponse<PaymentResource>> => {
-      return client(`/payment-methods/${paymentId}`, { method: "PUT", body });
+      return client(`/api/v1/payment-methods/${paymentId}`, {
+        method: "PUT",
+        body,
+      });
     },
     delete: async (body: Array<string>): Promise<ApiResponse<any>> => {
-      return client(`/payment-methods`, { method: "DELETE", body });
+      return client(`/api/v1/payment-methods`, { method: "DELETE", body });
     },
   };
 };

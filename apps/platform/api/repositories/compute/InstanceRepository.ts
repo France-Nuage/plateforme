@@ -40,25 +40,27 @@ export const InstanceRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/compute/instances${apiCallParams}`, { method: "GET" });
+      return client(`/api/v1/compute/instances${apiCallParams}`, {
+        method: "GET",
+      });
     },
     get: async (
       instanceId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/compute/instances/${instanceId}${apiCallParams}`);
+      return client(`/api/v1/compute/instances/${instanceId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/compute/instances`, { method: "POST", body });
+      return client(`/api/v1/compute/instances`, { method: "POST", body });
     },
     patch: async (
       instanceId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/compute/instances/${instanceId}`, {
+      return client(`/api/v1/compute/instances/${instanceId}`, {
         method: "PUT",
         body,
       });
@@ -66,7 +68,7 @@ export const InstanceRepository = function (
     getForecastPrice: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/compute/price`, { method: "POST", body });
+      return client(`/api/v1/compute/price`, { method: "POST", body });
     },
   };
 };

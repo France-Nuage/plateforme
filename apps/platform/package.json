@@ -25,7 +25,7 @@
     "apexcharts": "^4.0.0",
     "highlight-words-core": "^1.2.3",
     "lodash": "^4.17.21",
-    "nuxt": "^3.6.0",
+    "nuxt": "^3.15.0",
     "pinia": "^2.2.6",
     "vue": "latest",
     "vue-router": "latest"
@@ -34,6 +34,7 @@
     "node": "22.13.1"
   },
   "devDependencies": {
+    "@nuxt/devtools": "^2.0",
     "@playwright/test": "^1.50.0",
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.10",

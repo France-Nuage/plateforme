@@ -40,25 +40,25 @@ export const ZoneRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/zones${apiCallParams}`, { method: "GET" });
+      return client(`/api/v1/zones${apiCallParams}`, { method: "GET" });
     },
     get: async (
       zoneId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/zones/${zoneId}${apiCallParams}`);
+      return client(`/api/v1/zones/${zoneId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/zones`, { method: "POST", body });
+      return client(`/api/v1/zones`, { method: "POST", body });
     },
     patch: async (
       zoneId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/zones/${zoneId}`, { method: "PUT", body });
+      return client(`/api/v1/zones/${zoneId}`, { method: "PUT", body });
     },
   };
 };

@@ -35,28 +35,28 @@ export const ProjectRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<ProjectResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/projects${apiCallParams}`);
+      return client(`/api/v1/projects${apiCallParams}`);
     },
     get: async (
       projectId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<ProjectResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/projects/${projectId}${apiCallParams}`);
+      return client(`/api/v1/projects/${projectId}${apiCallParams}`);
     },
     post: async (
       body: PostProjectData,
     ): Promise<ApiResponse<ProjectResource>> => {
-      return client(`/projects`, { method: "POST", body: body });
+      return client(`/api/v1/projects`, { method: "POST", body: body });
     },
     patch: async (
       projectId: string,
       body: PatchProjectData,
     ): Promise<ApiResponse<ProjectResource>> => {
-      return client(`/projects/${projectId}`, { method: "PUT", body });
+      return client(`/api/v1/projects/${projectId}`, { method: "PUT", body });
     },
     delete: async (body: Array<string>): Promise<ApiResponse<any>> => {
-      return client(`/projects`, { method: "DELETE", body });
+      return client(`/api/v1/projects`, { method: "DELETE", body });
     },
   };
 };

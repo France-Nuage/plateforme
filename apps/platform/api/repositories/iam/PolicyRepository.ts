@@ -46,7 +46,7 @@ export const IAMPolicyRepository = function (
     ): Promise<ApiResponse<any>> => {
       const apiCallParams = params ? parseUri(params) : "";
       return client(
-        `/${resourceValue.type}/${resourceValue.id}/iam/policies${apiCallParams}`,
+        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies${apiCallParams}`,
       );
     },
     get: async (
@@ -55,21 +55,24 @@ export const IAMPolicyRepository = function (
     ): Promise<ApiResponse<UserResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
       return client(
-        `/${resourceValue.type}/${resourceValue.id}/iam/policies/${userId}${apiCallParams}`,
+        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies/${userId}${apiCallParams}`,
       );
     },
     post: async (body: PostUserData): Promise<ApiResponse<UserResource>> => {
-      return client(`/${resourceValue.type}/${resourceValue.id}/iam/policies`, {
-        method: "POST",
-        body,
-      });
+      return client(
+        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies`,
+        {
+          method: "POST",
+          body,
+        },
+      );
     },
     patch: async (
       userId: string,
       body: PatchUserData,
     ): Promise<ApiResponse<UserResource>> => {
       return client(
-        `/${resourceValue.type}/${resourceValue.id}/iam/policies/${userId}`,
+        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies/${userId}`,
         { method: "PUT", body },
       );
     },
@@ -78,7 +81,7 @@ export const IAMPolicyRepository = function (
         ids.map(
           async (id: string) =>
             await client(
-              `/${resourceValue.type}/${resourceValue.id}/iam/policies/${id}`,
+              `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies/${id}`,
               { method: "DELETE" },
             ),
         ),

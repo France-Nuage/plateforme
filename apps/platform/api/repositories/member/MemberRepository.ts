@@ -37,29 +37,29 @@ export const MemberRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<any>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/members${apiCallParams}`);
+      return client(`/api/v1/members${apiCallParams}`);
     },
     get: async (
       memberId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<UserResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/members/${memberId}${apiCallParams}`);
+      return client(`/api/v1/members/${memberId}${apiCallParams}`);
     },
     post: async (body: PostUserData): Promise<ApiResponse<UserResource>> => {
-      return client(`/members`, { method: "POST", body });
+      return client(`/api/v1/members`, { method: "POST", body });
     },
     patch: async (
       memberId: string,
       body: PatchUserData,
     ): Promise<ApiResponse<UserResource>> => {
-      return client(`/members/${memberId}`, { method: "PUT", body });
+      return client(`/api/v1/members/${memberId}`, { method: "PUT", body });
     },
     delete: async (ids: Array<string>): Promise<Awaited<any>[]> => {
       return Promise.all(
         ids.map(
           async (id: string) =>
-            await client(`/members/${id}`, { method: "DELETE" }),
+            await client(`/api/v1/members/${id}`, { method: "DELETE" }),
         ),
       );
     },
