@@ -1,3 +1,4 @@
+import type { $Fetch } from "ofetch";
 import repositories from "../api";
 import { nanoid } from "nanoid";
 import { useAlerts } from "~/stores/alert";
@@ -65,7 +66,7 @@ export default defineNuxtPlugin((app) => {
 
       return error;
     },
-  });
+  }) as $Fetch;
 
   return {
     provide: {

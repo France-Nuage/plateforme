@@ -1,5 +1,5 @@
 import { organizations } from '#config/app'
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import { expect, test, Users } from '../../../base.js'
 
 test.describe('GET /api/v1/organizations/:id', () => {
