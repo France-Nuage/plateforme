@@ -8,10 +8,10 @@ export const organizationsRepository: Repository<
   /**
    * @inheritdoc
    */
-  list: (options) => client(`/organizations`, options),
+  list: (options) => client(`/api/v1/organizations`, options),
 
   /**
    * @inheritdoc
    */
-  read: (id, options) => client(`/organizations/${id}`, options),
+  read: (id, options) => client(`/api/v1/organizations/${id}`, options),
 });

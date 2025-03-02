@@ -71,11 +71,12 @@ type Fixtures = {
 
 export const test = base.extend<{}, Fixtures>({
   organization: [
-    async ({}, use) => {
-      const organization = await organizationsRepository(ofetch, {}).read(
-        '00000000-0000-0000-0000-000000000000'
+    async ({ users }, use) => {
+      const admin = users[Users.Admin]
+      const organization = await organizationsRepository(client, {}).read(
+        '00000000-0000-0000-0000-000000000000',
+        { headers: { Authorization: `Bearer ${admin.token}` } }
       )
-      console.log('organization should have been retrieved')
       use(organization)
     },
     { scope: 'worker' },
@@ -149,6 +150,7 @@ export const test = base.extend<{}, Fixtures>({
   ],
 })
 
+const client = ofetch.create({ baseURL: process.env.API_URL })
 /**
  * Logs the given user in.
  */
