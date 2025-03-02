@@ -9,10 +9,10 @@ export const useOrganizationStore = defineStore("organization", {
     organization: null,
   }),
   actions: {
-    loadOrganizations: async function (queryParams: any = null) {
+    loadOrganizations: async function (query: any = null) {
       const { $api } = useNuxtApp();
       return $api()
-        .organizations.list(queryParams)
+        .organizations.list({ query })
         .then(({ data, meta }) => {
           this.organizations = data;
         });

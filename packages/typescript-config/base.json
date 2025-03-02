@@ -10,7 +10,7 @@
     "lib": ["esnext", "dom", "dom.iterable"],
     "sourceMap": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
