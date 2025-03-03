@@ -11,8 +11,12 @@ services:
       target: ${TARGET:-development}
     container_name: control-plane
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      playwright:
+        condition: service_healthy
     environment:
       # Application
       NODE_ENV: development
