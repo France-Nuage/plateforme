@@ -43,10 +43,9 @@ services:
     working_dir: /app/apps/control-plane
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3333/api/health"]
-      interval: 10s
       timeout: 10s
-      retries: 10
-      start_period: 30s
+      retries: 6
+      start_period: 0s
 
   control-plane-setup:
     image: docker:27-cli
@@ -70,9 +69,11 @@ services:
       target: ${TARGET:-development}
     container_name: platform
     depends_on:
-      - control-plane
-      - control-plane-setup
-      - playwright
+      control-plane:
+        condition: service_healthy
+      control-plane-setup:
+      playwright:
+        condition: service_healthy
     environment:
       API_URL: http://control-plane:3333
       BASE_URL: http://platform:3000
@@ -89,9 +90,18 @@ services:
     command: /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
     ports:
       - "4444:4444"
-    depends_on:
-      control-plane:
-        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const { chromium } = require('@playwright/test'); (async () => { const browser = await chromium.launch(); await browser.close(); })().catch(e => { console.error(e); process.exit(1); })",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
 
   postgres:
     container_name: postgres
