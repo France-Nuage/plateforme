@@ -92,13 +92,7 @@ services:
     ports:
       - "4444:4444"
     healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "const { chromium } = require('@playwright/test'); (async () => { const browser = await chromium.launch(); await browser.close(); })().catch(e => { console.error(e); process.exit(1); })",
-        ]
+      test: ["CMD", "wget", "-qO-", "http://0.0.0.0:4444"]
       interval: 30s
       timeout: 10s
       retries: 3
