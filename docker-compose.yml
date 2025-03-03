@@ -94,6 +94,16 @@ services:
       - ./apps/platform:/app/apps/platform
       - /app/node_modules
     working_dir: /app/apps/platform
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://platform:3000/health",
+        ]
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.50.1-noble
