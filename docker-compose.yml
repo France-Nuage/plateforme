@@ -103,9 +103,9 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://0.0.0.0:4444"]
       interval: 30s
-      timeout: 10s
+      timeout: 30s
       retries: 3
-      start_period: 15s
+      start_period: 0s
 
   postgres:
     container_name: postgres
