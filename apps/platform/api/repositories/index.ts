@@ -1,6 +1,6 @@
 // resource
 export { OrganizationRepository } from "./resource/OrganizationRepository";
-export { organizationsRepository } from "@france-nuage/api";
+import { organizationsRepository } from "@france-nuage/api";
 export { ProjectRepository } from "./resource/ProjectRepository";
 export { FolderRepository } from "./resource/FolderRepository";
 

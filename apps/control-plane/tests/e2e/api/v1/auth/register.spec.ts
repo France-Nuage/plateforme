@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { expect, test, Users } from '../../../base.js'
+import { expect, test } from '../../../base.js'
 
 test.describe('POST /api/v1/auth/register', () => {
   test('I can register with valid data without being authenticated', async ({ request }) => {
@@ -34,8 +34,10 @@ test.describe('POST /api/v1/auth/register', () => {
     ])
   })
 
-  test('I can register with valid data while being authenticated', async ({ actingAs, users }) => {
-    const { request } = await actingAs(users[Users.Admin])
+  test('I can register with valid data while being authenticated', async ({
+    actingWith: actingAs,
+  }) => {
+    const { request } = await actingAs()
     const response = await request.post('/api/v1/auth/register', {
       data: {
         email: faker.internet.email(),

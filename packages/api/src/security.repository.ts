@@ -1,7 +1,7 @@
 import type { $Fetch, FetchOptions } from "ofetch";
 import type { AuthenticationToken, User } from "@france-nuage/types";
 
-export const securityRepository = (client: $Fetch) => {
+export const securityRepository = (client: $Fetch) => ({
   /**
    * Logs the user in.
    *
@@ -20,12 +20,12 @@ export const securityRepository = (client: $Fetch) => {
    * ```
    */
   login: (body: Pick<User, "email" | "password">) =>
-    client<AuthenticationToken>(`/api/v1/login`, { method: "POST", body });
+    client<AuthenticationToken>(`/api/v1/login`, { method: "POST", body }),
 
   /**
    * Get the authenticated user info.
    */
-  me: (options: FetchOptions<"json">) => client<User>(`/api/v1/me`, options);
+  me: (options: FetchOptions<"json">) => client<User>(`/api/v1/me`, options),
 
   /**
    * Registers a new user.
@@ -36,5 +36,5 @@ export const securityRepository = (client: $Fetch) => {
     client<{
       token: AuthenticationToken;
       user: User;
-    }>(`/api/v1/auth/register`, { method: "POST", body });
-};
+    }>(`/api/v1/auth/register`, { method: "POST", body }),
+});
