@@ -49,3 +49,7 @@ router
     RegionRoutes(router)
   })
   .middleware([middleware.auth()])
+
+router.get('/health', ({ response }) => {
+  response.ok({ status: 'ok' })
+})
