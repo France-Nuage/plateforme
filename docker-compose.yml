@@ -42,10 +42,15 @@ services:
       - /app/node_modules
     working_dir: /app/apps/control-plane
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://control-plane:3333/api/health"]
-      timeout: 10s
-      retries: 6
-      start_period: 0s
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://control-plane:3333/health",
+        ]
 
   control-plane-setup:
     image: docker:27-cli
