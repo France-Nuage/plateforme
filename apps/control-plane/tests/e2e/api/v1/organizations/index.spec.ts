@@ -2,8 +2,8 @@ import { PermissionId } from '@france-nuage/types'
 import { expect, test } from '../../../base.js'
 
 test.describe('GET /api/v1/organizations', () => {
-  test('I can retrieve a list of organizations', async ({ actingWith: actingAs }) => {
-    const { request } = await actingAs(PermissionId.ResourceManagerOrganizationsList)
+  test('I can retrieve a list of organizations', async ({ actingWith }) => {
+    const { request } = await actingWith(PermissionId.ResourceManagerOrganizationsList)
     const response = await request.get('/api/v1/organizations')
     const result = await response.json()
 
@@ -25,8 +25,8 @@ test.describe('GET /api/v1/organizations', () => {
     ])
   })
 
-  test('The items have the expected shape', async ({ actingWith: actingAs }) => {
-    const { request } = await actingAs(PermissionId.ResourceManagerOrganizationsList)
+  test('The items have the expected shape', async ({ actingWith }) => {
+    const { request } = await actingWith(PermissionId.ResourceManagerOrganizationsList)
     const response = await request.get('/api/v1/organizations')
     const result = await response.json()
 
@@ -42,8 +42,8 @@ test.describe('GET /api/v1/organizations', () => {
     ])
   })
 
-  test('The endpoint is paginated', async ({ actingWith: actingAs }) => {
-    const { request } = await actingAs(PermissionId.ResourceManagerOrganizationsList)
+  test('The endpoint is paginated', async ({ actingWith }) => {
+    const { request } = await actingWith(PermissionId.ResourceManagerOrganizationsList)
     const response = await request.get('/api/v1/organizations')
     const result = await response.json()
 

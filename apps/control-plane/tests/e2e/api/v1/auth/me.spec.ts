@@ -1,8 +1,8 @@
 import { expect, test } from '../../../base.js'
 
 test.describe('GET /api/v1/auth/me', () => {
-  test('I can retrieve my info as a user', async ({ actingWith: actingAs }) => {
-    const { request, user } = await actingAs()
+  test('I can retrieve my info as a user', async ({ actingWith }) => {
+    const { request, user } = await actingWith()
     const response = await request.get('/api/v1/auth/me')
     const result = await response.json()
 

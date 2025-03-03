@@ -34,10 +34,8 @@ test.describe('POST /api/v1/auth/register', () => {
     ])
   })
 
-  test('I can register with valid data while being authenticated', async ({
-    actingWith: actingAs,
-  }) => {
-    const { request } = await actingAs()
+  test('I can register with valid data while being authenticated', async ({ actingWith }) => {
+    const { request } = await actingWith()
     const response = await request.post('/api/v1/auth/register', {
       data: {
         email: faker.internet.email(),
