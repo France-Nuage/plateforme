@@ -1,9 +1,9 @@
-import { expect, test, Users } from '../../../base.js'
+import { PermissionId } from '@france-nuage/types'
+import { expect, test } from '../../../base.js'
 
 test.describe('GET /api/v1/organizations', () => {
-  test('I can retrieve a list of organizations', async ({ actingAs, users }) => {
-    // TODO: rely on a RBAC function rather than the admin user
-    const { request } = await actingAs(users[Users.Admin])
+  test('I can retrieve a list of organizations', async ({ actingWith }) => {
+    const { request } = await actingWith(PermissionId.ResourceManagerOrganizationsList)
     const response = await request.get('/api/v1/organizations')
     const result = await response.json()
 
@@ -12,8 +12,6 @@ test.describe('GET /api/v1/organizations', () => {
     expect(result).toMatchObject({
       data: [
         {
-          id: '00000000-0000-0000-0000-000000000000',
-          name: 'France Nuage',
           object: 'organization',
         },
       ],
@@ -27,10 +25,8 @@ test.describe('GET /api/v1/organizations', () => {
     ])
   })
 
-  test('The items have the expected shape', async ({ actingAs, users }) => {
-    // TODO: rely on a RBAC function rather than the admin user
-    // TODO: once a second list endpoint is tested, generalize the shape test
-    const { request } = await actingAs(users[Users.Admin])
+  test('The items have the expected shape', async ({ actingWith }) => {
+    const { request } = await actingWith(PermissionId.ResourceManagerOrganizationsList)
     const response = await request.get('/api/v1/organizations')
     const result = await response.json()
 
@@ -46,10 +42,8 @@ test.describe('GET /api/v1/organizations', () => {
     ])
   })
 
-  test('The endpoint is paginated', async ({ actingAs, users }) => {
-    // TODO: rely on a RBAC function rather than the admin user
-    // TODO: once a second list endpoint is tested, generalize the pagination test
-    const { request } = await actingAs(users[Users.Admin])
+  test('The endpoint is paginated', async ({ actingWith }) => {
+    const { request } = await actingWith(PermissionId.ResourceManagerOrganizationsList)
     const response = await request.get('/api/v1/organizations')
     const result = await response.json()
 

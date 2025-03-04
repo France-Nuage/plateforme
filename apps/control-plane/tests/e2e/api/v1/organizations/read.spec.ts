@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto'
-import { expect, test, Users } from '../../../base.js'
+import { expect, test } from '../../../base.js'
+import { PermissionId } from '@france-nuage/types'
 
 test.describe('GET /api/v1/organizations/:id', () => {
-  test('I can read a given organization', async ({ actingAs, organization, users }) => {
-    // TODO: rely on a RBAC function rather than the admin user
-    const { request } = await actingAs(users[Users.Admin])
+  test('I can read a given organization', async ({ actingWith, organization }) => {
+    const { request } = await actingWith(PermissionId.ResourceManagerOrganizationsGet, organization)
     const response = await request.get(`/api/v1/organizations/${organization.id}`)
     const result = await response.json()
 
@@ -25,9 +25,8 @@ test.describe('GET /api/v1/organizations/:id', () => {
     expect(result).toEqual({ errors: [{ message: 'Unauthorized access' }] })
   })
 
-  test('I cannot read a non-existing organization ', async ({ actingAs, users }) => {
-    // TODO: rely on a RBAC function rather than the admin user
-    const { request } = await actingAs(users[Users.Admin])
+  test('I cannot read a non-existing organization ', async ({ actingWith, organization }) => {
+    const { request } = await actingWith(PermissionId.ResourceManagerOrganizationsGet, organization)
     const response = await request.get(`/api/v1/organizations/${randomUUID()}`)
 
     expect(response.ok()).toBeFalsy()
