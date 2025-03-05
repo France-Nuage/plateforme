@@ -43,7 +43,7 @@
     "@japa/plugin-adonisjs": "^4.0.0",
     "@japa/runner": "^3.1.4",
     "@japa/snapshot": "^2.0.6",
-    "@swc/core": "1.11.5",
+    "@swc/core": "1.11.7",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.7.5",
     "eslint": "^9.12.0",
