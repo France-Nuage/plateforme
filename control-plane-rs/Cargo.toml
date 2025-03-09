@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+  "control_plane",
+  "hypervisor_connector"
+]
+
+resolver = "3"
