@@ -30,7 +30,7 @@ build:
     TARGET: release
   script:
     - docker compose up --build --detach --no-deps control-plane
-    - ./wait-for-it.sh 127.0.0.1:3333
+    - sh ./wait-for-it.sh 127.0.0.1:3333
 
 "production build / platform":
   stage: build
@@ -38,7 +38,7 @@ build:
     TARGET: release
   script:
     - docker compose run --build --detach --no-deps --service-ports --volume '/app/apps/platform' platform
-    - ./wait-for-it.sh 127.0.0.1:3000
+    - sh ./wait-for-it.sh 127.0.0.1:3000
 
 "code style / platform":
   stage: code-style
