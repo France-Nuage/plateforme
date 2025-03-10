@@ -38,6 +38,7 @@ services:
     ports:
       - "3333:3333"
     volumes:
+      - control-plane-build:/app/apps/control-plane/build
       - ./apps/control-plane:/app/apps/control-plane
       - /app/node_modules
     working_dir: /app/apps/control-plane
@@ -79,6 +80,7 @@ services:
       - "3000:3000"
       - "39709:39709"
     volumes:
+      - platform-build:/app/apps/platform/.output
       - ./apps/platform:/app/apps/platform
       - /app/node_modules
     working_dir: /app/apps/platform
@@ -127,5 +129,7 @@ services:
     restart: always
 
 volumes:
+  control-plane-build:
+  platform-build:
   france_nuage_postgres:
   france_nuage_redis:

@@ -1,1 +1,3 @@
 apps/control-plane/build
+apps/platform/.output
+
