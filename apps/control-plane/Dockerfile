@@ -90,7 +90,7 @@ RUN turbo run build --filter=@france-nuage/control-plane
 #
 FROM node:22-alpine AS release
 
-WORKDIR /app/apps/control-plane/build
+WORKDIR /app/apps/control-plane
 
 # Copy only the necessary node_modules and build for runtime
 COPY --from=build /app/apps/control-plane/build /app/apps/control-plane/build
@@ -100,5 +100,5 @@ EXPOSE 3000
 
 USER node
 
-CMD ["node", "bin/server.js"]
+CMD ["node", "build/bin/server.js"]
 

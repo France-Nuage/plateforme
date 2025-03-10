@@ -24,12 +24,21 @@ build:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
-production-build:
+"production build / control-plane":
   stage: build
   variables:
     TARGET: release
   script:
-    - docker compose build
+    - docker compose up --build --detach --no-deps control-plane
+    - ./wait-for-it.sh 127.0.0.1:3333
+
+"production build / platform":
+  stage: build
+  variables:
+    TARGET: release
+  script:
+    - docker compose run --build --detach --no-deps --service-ports --volume '/app/apps/platform' platform
+    - ./wait-for-it.sh 127.0.0.1:3000
 
 "code style / platform":
   stage: code-style
