@@ -32,6 +32,9 @@ build:
     - apk add --no-cache bash
     - docker compose up --build --detach --no-deps control-plane
     - bash ./wait-for-it.sh control-plane:3333
+  after_script:
+    - docker compose logs control-plane
+    - docker ps -a
 
 "production build / platform":
   stage: build
@@ -41,6 +44,9 @@ build:
     - apk add --no-cache bash
     - docker compose run --build --detach --no-deps --service-ports --volume '/app/apps/platform' platform
     - bash ./wait-for-it.sh platform:3000
+  after_script:
+    - docker compose logs platform
+    - docker ps -a
 
 "code style / platform":
   stage: code-style
