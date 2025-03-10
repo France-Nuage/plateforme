@@ -101,5 +101,5 @@ EXPOSE 3000
 
 USER node
 
-CMD ["node", ".output/server/server.mjs"]
+CMD ["node", ".output/server/index.mjs"]
 
