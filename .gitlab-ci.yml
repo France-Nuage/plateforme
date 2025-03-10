@@ -29,16 +29,18 @@ build:
   variables:
     TARGET: release
   script:
+    - apk add --no-cache bash
     - docker compose up --build --detach --no-deps control-plane
-    - sh ./wait-for-it.sh 127.0.0.1:3333
+    - bash ./wait-for-it.sh 127.0.0.1:3333
 
 "production build / platform":
   stage: build
   variables:
     TARGET: release
   script:
+    - apk add --no-cache bash
     - docker compose run --build --detach --no-deps --service-ports --volume '/app/apps/platform' platform
-    - sh ./wait-for-it.sh 127.0.0.1:3000
+    - bash ./wait-for-it.sh 127.0.0.1:3000
 
 "code style / platform":
   stage: code-style
