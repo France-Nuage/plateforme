@@ -1,6 +1,5 @@
 import factory from '@adonisjs/lucid/factories'
-import { PermissionId } from '@france-nuage/types'
-import Permission from '#models/iam/permission'
+import Permission, { PermissionId } from '#models/iam/permission'
 import { ServiceId } from '#models/catalog/service'
 import { TypeId } from '#models/iam/type'
 import { VerbId } from '#models/iam/verb'

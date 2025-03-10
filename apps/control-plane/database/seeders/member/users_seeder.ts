@@ -26,8 +26,6 @@ export default class extends BaseSeeder {
       {
         email: config.get('dev.user.email'),
         password: config.get('dev.user.password'),
-        firstname: 'Wile E.',
-        lastname: 'Coyote',
       },
     ])
 
