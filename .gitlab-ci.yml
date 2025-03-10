@@ -25,6 +25,7 @@ build:
     - docker compose push
 
 "production build / control-plane":
+  image: docker:27-dind
   stage: build
   variables:
     TARGET: release
