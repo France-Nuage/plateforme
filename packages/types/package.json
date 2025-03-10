@@ -2,27 +2,18 @@
   "name": "@france-nuage/types",
   "version": "0.0.0",
   "private": "true",
-  "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.cjs",
-  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsup src/index.ts --format cjs,esm --dts"
+    "build": "tsc"
   },
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "devDependencies": {
     "@france-nuage/typescript-config": "*",
-    "tsup": "^7.2.0",
-    "typescript": "^5.1"
+    "typescript": "latest"
   }
 }

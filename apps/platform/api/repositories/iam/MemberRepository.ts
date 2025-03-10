@@ -1,17 +1,11 @@
-import type { $Fetch } from "ofetch";
+import type { $Fetch } from "nitropack";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 import { useNavigationStore } from "~/stores/navigation";
 
-/**
- * @deprecated
- */
 interface PostUserData {}
 
-/**
- * @deprecated
- */
 interface UserResource {
   id: string;
   name: string;
@@ -20,14 +14,8 @@ interface UserResource {
   createdAt: string;
 }
 
-/**
- * @deprecated
- */
 type PatchUserData = Partial<UserResource> | { resultCode: string };
 
-/**
- * @deprecated
- */
 export const IAMMemberRepository = function (
   client: $Fetch,
   config: Record<any, any>,
@@ -46,7 +34,7 @@ export const IAMMemberRepository = function (
     ): Promise<ApiResponse<any>> => {
       const apiCallParams = params ? parseUri(params) : "";
       return client(
-        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members${apiCallParams}`,
+        `/${resourceValue.type}/${resourceValue.id}/iam/members${apiCallParams}`,
       );
     },
     get: async (
@@ -55,24 +43,21 @@ export const IAMMemberRepository = function (
     ): Promise<ApiResponse<UserResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
       return client(
-        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members/${userId}${apiCallParams}`,
+        `/${resourceValue.type}/${resourceValue.id}/iam/members/${userId}${apiCallParams}`,
       );
     },
     post: async (body: PostUserData): Promise<ApiResponse<UserResource>> => {
-      return client(
-        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members`,
-        {
-          method: "POST",
-          body,
-        },
-      );
+      return client(`/${resourceValue.type}/${resourceValue.id}/iam/members`, {
+        method: "POST",
+        body,
+      });
     },
     patch: async (
       userId: string,
       body: PatchUserData,
     ): Promise<ApiResponse<UserResource>> => {
       return client(
-        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members/${userId}`,
+        `/${resourceValue.type}/${resourceValue.id}/iam/members/${userId}`,
         { method: "PUT", body },
       );
     },
@@ -81,7 +66,7 @@ export const IAMMemberRepository = function (
         ids.map(
           async (id: string) =>
             await client(
-              `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/members/${id}`,
+              `/${resourceValue.type}/${resourceValue.id}/iam/members/${id}`,
               { method: "DELETE" },
             ),
         ),

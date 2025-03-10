@@ -1,4 +1,3 @@
-import type { $Fetch } from "ofetch";
 import repositories from "../api";
 import { nanoid } from "nanoid";
 import { useAlerts } from "~/stores/alert";
@@ -9,7 +8,7 @@ export default defineNuxtPlugin((app) => {
   const route = app._route;
   const router = useRouter();
   const client = $fetch.create({
-    baseURL: config.public.apiUrl,
+    baseURL: config.public.apiUrl + "/api/v1",
     timeout: 5000,
     retry: 0,
     retryDelay: 5000,
@@ -66,7 +65,7 @@ export default defineNuxtPlugin((app) => {
 
       return error;
     },
-  }) as $Fetch;
+  });
 
   return {
     provide: {

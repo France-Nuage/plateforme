@@ -1,16 +1,10 @@
-import type { $Fetch } from "ofetch";
+import type { $Fetch } from "nitropack";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 
-/**
- * @deprecated
- */
 interface PostOrganizationData {}
 
-/**
- * @deprecated
- */
 interface OrganizationResource {
   id: string;
   name: string;
@@ -21,16 +15,10 @@ interface OrganizationResource {
   created_at: string;
 }
 
-/**
- * @deprecated
- */
 type PatchOrganizationData =
   | Partial<OrganizationResource>
   | { resultCode: string };
 
-/**
- * @deprecated
- */
 export const BillingAccountRepository = function (
   client: $Fetch,
   config: Record<any, any>,
@@ -40,29 +28,25 @@ export const BillingAccountRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/api/v1/billing/accounts${apiCallParams}`, {
-        method: "GET",
-      });
+      return client(`/billing/accounts${apiCallParams}`, { method: "GET" });
     },
     get: async (
       accountBillingId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(
-        `/api/v1/billing/accounts/${accountBillingId}${apiCallParams}`,
-      );
+      return client(`/billing/accounts/${accountBillingId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/api/v1/billing/accounts`, { method: "POST", body });
+      return client(`/billing/accounts`, { method: "POST", body });
     },
     patch: async (
       accountBillingId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/api/v1/billing/accounts/${accountBillingId}`, {
+      return client(`/billing/accounts/${accountBillingId}`, {
         method: "PUT",
         body,
       });

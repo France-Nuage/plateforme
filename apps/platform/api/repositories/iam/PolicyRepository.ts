@@ -1,17 +1,11 @@
-import type { $Fetch } from "ofetch";
+import type { $Fetch } from "nitropack";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 import { useNavigationStore } from "#imports";
 
-/**
- * @deprecated
- */
 interface PostUserData {}
 
-/**
- * @deprecated
- */
 interface UserResource {
   id: string;
   name: string;
@@ -20,14 +14,8 @@ interface UserResource {
   createdAt: string;
 }
 
-/**
- * @deprecated
- */
 type PatchUserData = Partial<UserResource> | { resultCode: string };
 
-/**
- * @deprecated
- */
 export const IAMPolicyRepository = function (
   client: $Fetch,
   config: Record<any, any>,
@@ -46,7 +34,7 @@ export const IAMPolicyRepository = function (
     ): Promise<ApiResponse<any>> => {
       const apiCallParams = params ? parseUri(params) : "";
       return client(
-        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies${apiCallParams}`,
+        `/${resourceValue.type}/${resourceValue.id}/iam/policies${apiCallParams}`,
       );
     },
     get: async (
@@ -55,24 +43,21 @@ export const IAMPolicyRepository = function (
     ): Promise<ApiResponse<UserResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
       return client(
-        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies/${userId}${apiCallParams}`,
+        `/${resourceValue.type}/${resourceValue.id}/iam/policies/${userId}${apiCallParams}`,
       );
     },
     post: async (body: PostUserData): Promise<ApiResponse<UserResource>> => {
-      return client(
-        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies`,
-        {
-          method: "POST",
-          body,
-        },
-      );
+      return client(`/${resourceValue.type}/${resourceValue.id}/iam/policies`, {
+        method: "POST",
+        body,
+      });
     },
     patch: async (
       userId: string,
       body: PatchUserData,
     ): Promise<ApiResponse<UserResource>> => {
       return client(
-        `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies/${userId}`,
+        `/${resourceValue.type}/${resourceValue.id}/iam/policies/${userId}`,
         { method: "PUT", body },
       );
     },
@@ -81,7 +66,7 @@ export const IAMPolicyRepository = function (
         ids.map(
           async (id: string) =>
             await client(
-              `/api/v1/${resourceValue.type}/${resourceValue.id}/iam/policies/${id}`,
+              `/${resourceValue.type}/${resourceValue.id}/iam/policies/${id}`,
               { method: "DELETE" },
             ),
         ),

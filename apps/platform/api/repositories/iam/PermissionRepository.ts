@@ -1,16 +1,10 @@
-import type { $Fetch } from "ofetch";
+import type { $Fetch } from "nitropack";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 
-/**
- * @deprecated
- */
 interface PostOrganizationData {}
 
-/**
- * @deprecated
- */
 interface OrganizationResource {
   id: string;
   name: string;
@@ -21,16 +15,10 @@ interface OrganizationResource {
   created_at: string;
 }
 
-/**
- * @deprecated
- */
 type PatchOrganizationData =
   | Partial<OrganizationResource>
   | { resultCode: string };
 
-/**
- * @deprecated
- */
 export const PermissionRepository = function (
   client: $Fetch,
   config: Record<any, any>,
@@ -40,28 +28,25 @@ export const PermissionRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/api/v1/permissions${apiCallParams}`, { method: "GET" });
+      return client(`/permissions${apiCallParams}`, { method: "GET" });
     },
     get: async (
       permissionId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/api/v1/permissions/${permissionId}${apiCallParams}`);
+      return client(`/permissions/${permissionId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/api/v1/permissions`, { method: "POST", body });
+      return client(`/permissions`, { method: "POST", body });
     },
     patch: async (
       permissionId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/api/v1/permissions/${permissionId}`, {
-        method: "PUT",
-        body,
-      });
+      return client(`/permissions/${permissionId}`, { method: "PUT", body });
     },
   };
 };

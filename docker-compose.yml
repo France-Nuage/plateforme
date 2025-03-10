@@ -39,7 +39,7 @@ services:
       - "3333:3333"
     volumes:
       - ./apps/control-plane:/app/apps/control-plane
-      - /app/node_modules
+      - /usr/src/app/apps/api/node_modules
     working_dir: /app/apps/control-plane
 
   control-plane-setup:
@@ -80,7 +80,7 @@ services:
       - "39709:39709"
     volumes:
       - ./apps/platform:/app/apps/platform
-      - /app/node_modules
+      - /usr/src/app/node_modules
     working_dir: /app/apps/platform
 
   playwright:

@@ -1,8 +1,8 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
-import { PermissionId } from '@france-nuage/types'
 import { RoleId } from '#models/iam/role'
 import RolePermission from '#models/iam/role_permission'
+import { PermissionId } from '#models/iam/permission'
 
 test.group('RolePermission Seeder', (group) => {
   group.each.setup(async () => {
