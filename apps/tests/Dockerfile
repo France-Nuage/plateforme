@@ -2,6 +2,12 @@ FROM mcr.microsoft.com/playwright:v1.50.1-noble
 
 WORKDIR /app/apps/tests
 
+RUN npm install --global turbo
+
+COPY . .
+
+RUN turbo prune --scope=@france-nuage/platform --docker
+
 # Copy package.json and turbo.json files for dependency installation
 COPY package.json turbo.json ./
 COPY apps/tests/package.json ./apps/tests/
