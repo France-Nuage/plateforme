@@ -77,7 +77,7 @@ build:
         sleep 5
       done
       echo "Platform is healthy, proceeding with tests"
-      - docker compose exec -e PW_TEST_HTML_REPORT_OPEN='never' platform npx playwright test --project=firefox --reporter=dot,html --trace=on
+    - docker compose exec -e PW_TEST_HTML_REPORT_OPEN='never' platform npx playwright test --project=firefox --reporter=dot,html --trace=on
 
 "Deploy / control-plane (staging)":
   stage: deploy
