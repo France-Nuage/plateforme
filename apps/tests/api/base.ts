@@ -1,21 +1,21 @@
-import { faker } from '@faker-js/faker'
-import { ofetch } from 'ofetch'
-import { organizationsRepository, securityRepository } from '@france-nuage/api'
+import { faker } from "@faker-js/faker";
+import { ofetch } from "ofetch";
+import { organizationsRepository, securityRepository } from "@france-nuage/api";
 import {
   AuthenticationToken,
   Organization,
   PermissionId,
   Resource,
   User,
-} from '@france-nuage/types'
-import { expect, request as baseRequest, test as base } from '@playwright/test'
-import type { APIRequestContext, PlaywrightTestConfig } from '@playwright/test'
-import baseConfig from '../../playwright.config.js'
+} from "@france-nuage/types";
+import { expect, request as baseRequest, test as base } from "@playwright/test";
+import type { APIRequestContext, PlaywrightTestConfig } from "@playwright/test";
+import baseConfig from "../playwright.config.js";
 
 /**
  * Re-exports unmodified Playwright tools as-in
  */
-export { expect }
+export { expect };
 
 /**
  * The available fixtured users.
@@ -28,8 +28,8 @@ export enum Users {
  * The authentication data for a user.
  */
 type Credentials = {
-  token: string
-}
+  token: string;
+};
 
 /**
  * The fixtures exposed in the tests.
@@ -65,31 +65,34 @@ type Fixtures = {
    */
   actingWith: (
     permission?: PermissionId,
-    resource?: Resource
-  ) => Promise<{ request: APIRequestContext; user: User }>
+    resource?: Resource,
+  ) => Promise<{ request: APIRequestContext; user: User }>;
 
   /**
    * The pre-defined organization.
    */
-  organization: Organization
+  organization: Organization;
 
   /**
    * The pre-defined users.
    */
-  users: Record<Users, Pick<User, 'email' | 'firstname' | 'lastname'> & Credentials>
-}
+  users: Record<
+    Users,
+    Pick<User, "email" | "firstname" | "lastname"> & Credentials
+  >;
+};
 
 export const test = base.extend<{}, Fixtures>({
   organization: [
     async ({ users }, use) => {
-      const admin = users[Users.Admin]
+      const admin = users[Users.Admin];
       const organization = await organizationsRepository(client, {}).read(
-        '00000000-0000-0000-0000-000000000000',
-        { headers: { Authorization: `Bearer ${admin.token}` } }
-      )
-      use(organization)
+        "00000000-0000-0000-0000-000000000000",
+        { headers: { Authorization: `Bearer ${admin.token}` } },
+      );
+      use(organization);
     },
-    { scope: 'worker' },
+    { scope: "worker" },
   ],
   /**
    * Provides an implementation for the `users` fixtures.
@@ -107,14 +110,18 @@ export const test = base.extend<{}, Fixtures>({
    */
   users: [
     async ({}, use) => {
-      const admin = { email: 'admin@france-nuage.fr', firstname: 'Wile E.', lastname: 'Coyote' }
-      const credentials = await login(admin, baseConfig)
+      const admin = {
+        email: "admin@france-nuage.fr",
+        firstname: "Wile E.",
+        lastname: "Coyote",
+      };
+      const credentials = await login(admin, baseConfig);
 
       await use({
         [Users.Admin]: { ...admin, ...credentials },
-      })
+      });
     },
-    { scope: 'worker' },
+    { scope: "worker" },
   ],
 
   /**
@@ -143,17 +150,19 @@ export const test = base.extend<{}, Fixtures>({
   actingWith: [
     async ({}, use) => {
       const cache: {
-        permission?: PermissionId
-        resource?: Resource
-        token: AuthenticationToken
-        user: User
-      }[] = []
+        permission?: PermissionId;
+        resource?: Resource;
+        token: AuthenticationToken;
+        user: User;
+      }[] = [];
 
       await use(async (permission, resource) => {
         // Search the cache for a matching entry
         let entry = cache.find(
-          (item) => item.permission === permission && resource?.id === item.resource?.id
-        )
+          (item) =>
+            item.permission === permission &&
+            resource?.id === item.resource?.id,
+        );
 
         // Generate a new entry and update the cache if there is no match
         if (!entry) {
@@ -162,11 +171,11 @@ export const test = base.extend<{}, Fixtures>({
             password: faker.internet.password(),
             firstname: faker.person.firstName(),
             lastname: faker.person.lastName(),
-          })
+          });
 
-          entry = { permission, resource, user, token }
+          entry = { permission, resource, user, token };
 
-          cache.push(entry)
+          cache.push(entry);
         }
 
         // Create a new context request with authentication headers
@@ -176,36 +185,36 @@ export const test = base.extend<{}, Fixtures>({
             ...baseConfig.use?.extraHTTPHeaders,
             Authorization: `Bearer ${entry.token.token}`,
           },
-        })
+        });
 
         // Return the contextualized request object
-        return { request, user: entry.user }
-      })
+        return { request, user: entry.user };
+      });
     },
-    { scope: 'worker' },
+    { scope: "worker" },
   ],
-})
+});
 
-const client = ofetch.create({ baseURL: process.env.API_URL })
+const client = ofetch.create({ baseURL: process.env.API_URL });
 /**
  * Logs the given user in.
  */
 async function login(
-  user: Pick<User, 'email'>,
-  config: PlaywrightTestConfig
+  user: Pick<User, "email">,
+  config: PlaywrightTestConfig,
 ): Promise<Credentials> {
   // Create a new context -- this avoids mistakenly using an authenticated one.
-  const context = await baseRequest.newContext(config.use)
+  const context = await baseRequest.newContext(config.use);
 
   // Submit a login request to generate credentials.
-  const response = await context.post('/api/v1/auth/login', {
+  const response = await context.post("/api/v1/auth/login", {
     data: {
       email: user.email,
-      password: 'password',
+      password: "password",
     },
-  })
-  const credentials = await response.json()
+  });
+  const credentials = await response.json();
 
   // Return the generated credentials.
-  return { token: credentials.token }
+  return { token: credentials.token };
 }

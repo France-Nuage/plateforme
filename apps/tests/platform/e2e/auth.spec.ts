@@ -1,4 +1,4 @@
-import { test } from "../../base";
+import { test } from "../base";
 
 test.describe("Signup", () => {
   test("I can access the signup page from the login page", async ({
