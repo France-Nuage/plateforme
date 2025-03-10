@@ -28,25 +28,28 @@ export const HypervisorRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/hypervisor${apiCallParams}`, { method: "GET" });
+      return client(`/api/v1/hypervisor${apiCallParams}`, { method: "GET" });
     },
     get: async (
       instanceId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/hypervisor/${instanceId}${apiCallParams}`);
+      return client(`/api/v1/hypervisor/${instanceId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/hypervisor`, { method: "POST", body });
+      return client(`/api/v1/hypervisor`, { method: "POST", body });
     },
     patch: async (
       instanceId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/hypervisor/${instanceId}`, { method: "PUT", body });
+      return client(`/api/v1/hypervisor/${instanceId}`, {
+        method: "PUT",
+        body,
+      });
     },
   };
 };

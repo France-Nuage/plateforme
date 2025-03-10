@@ -1,10 +1,16 @@
-import type { $Fetch } from "nitropack";
+import type { $Fetch } from "ofetch";
 
+/**
+ * @deprecated
+ */
 export interface AllowedLoginCredentials {
   username: string;
   password: string;
 }
 
+/**
+ * @deprecated
+ */
 export interface AllowedRegisterCredentials {
   lastname: string;
   firstname: string;
@@ -13,13 +19,16 @@ export interface AllowedRegisterCredentials {
   confirm_password: string;
 }
 
+/**
+ * @deprecated
+ */
 export const SecurityRepository = function (
   client: $Fetch,
   config: Record<any, any>,
 ) {
   return {
     login: async (credentials: AllowedLoginCredentials) =>
-      client(`/auth/token`, {
+      client(`/api/v1/auth/token`, {
         // client_id: config.PASSPORT_CLIENT_ID,
         // client_secret: config.PASSPORT_CLIENT_SECRET,
         // grant_type: 'password',
@@ -33,10 +42,10 @@ export const SecurityRepository = function (
         })
         .catch((e) => e.message),
     me: async () => {
-      return client("/auth/me");
+      return client("/api/v1/auth/me");
     },
     register: async (credentials: AllowedRegisterCredentials) =>
-      client("/auth/register", {
+      client("/api/v1/auth/register", {
         method: "POST",
         body: {
           lastname: credentials.firstname,
@@ -46,12 +55,12 @@ export const SecurityRepository = function (
         },
       }),
     resetPasswordRequest: async (body) =>
-      client(`/auth/reset-password-request`, {
+      client(`/api/v1/auth/reset-password-request`, {
         method: "POST",
         body,
       }),
     resetPassword: async (body) => {
-      return client(`/auth/reset-password`, {
+      return client(`/api/v1/auth/reset-password`, {
         method: "POST",
         body,
       });

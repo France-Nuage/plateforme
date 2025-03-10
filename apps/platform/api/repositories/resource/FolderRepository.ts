@@ -1,10 +1,16 @@
-import type { $Fetch } from "nitropack";
+import type { $Fetch } from "ofetch";
 import { parseUri } from "../../parsers/url";
 import type { AllowedParams } from "./../ApiParams";
 import type { ApiResponse } from "./../ApiResponse";
 
+/**
+ * @deprecated
+ */
 interface PostOrganizationData {}
 
+/**
+ * @deprecated
+ */
 interface OrganizationResource {
   id: string;
   name: string;
@@ -15,10 +21,16 @@ interface OrganizationResource {
   created_at: string;
 }
 
+/**
+ * @deprecated
+ */
 type PatchOrganizationData =
   | Partial<OrganizationResource>
   | { resultCode: string };
 
+/**
+ * @deprecated
+ */
 export const FolderRepository = function (
   client: $Fetch,
   config: Record<any, any>,
@@ -28,25 +40,25 @@ export const FolderRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/folders${apiCallParams}`, { method: "GET" });
+      return client(`/api/v1/folders${apiCallParams}`, { method: "GET" });
     },
     get: async (
       folderId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/folders/${folderId}${apiCallParams}`);
+      return client(`/api/v1/folders/${folderId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/folders`, { method: "POST", body });
+      return client(`/api/v1/folders`, { method: "POST", body });
     },
     patch: async (
       folderId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/folders/${folderId}`, { method: "PUT", body });
+      return client(`/api/v1/folders/${folderId}`, { method: "PUT", body });
     },
   };
 };

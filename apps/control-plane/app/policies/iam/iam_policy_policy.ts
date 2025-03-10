@@ -2,7 +2,7 @@ import BasePolicy from '#policies/base_policy'
 import authorization from '#services/authorization'
 import User from '#models/user'
 import { AuthorizerResponse } from '@adonisjs/bouncer/types'
-import { PermissionId } from '#models/iam/permission'
+import { PermissionId } from '@france-nuage/types'
 
 export default class IAMPolicyPolicy extends BasePolicy {
   /**

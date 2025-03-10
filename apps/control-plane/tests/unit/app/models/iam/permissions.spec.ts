@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
-import Permission, { PermissionId } from '#models/iam/permission'
+import Permission from '#models/iam/permission'
+import { PermissionId } from '@france-nuage/types'
 
 test.group('Permission', () => {
   test('every variant of the PermissionId enum exists in the database', async ({ assert }) => {

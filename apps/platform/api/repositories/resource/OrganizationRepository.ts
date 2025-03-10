@@ -28,25 +28,25 @@ export const OrganizationRepository = function (
       params?: AllowedParams<any, null, null>,
     ): Promise<ApiResponse<OrganizationResource[]>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/organizations${apiCallParams}`, { method: "GET" });
+      return client(`/api/v1/organizations${apiCallParams}`, { method: "GET" });
     },
     get: async (
       organizationId: string,
       params?: AllowedParams<null, null, null>,
     ): Promise<ApiResponse<OrganizationResource>> => {
       const apiCallParams = params ? parseUri(params) : "";
-      return client(`/organizations/${organizationId}${apiCallParams}`);
+      return client(`/api/v1/organizations/${organizationId}${apiCallParams}`);
     },
     post: async (
       body: PostOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/organizations`, { method: "POST", body });
+      return client(`/api/v1/organizations`, { method: "POST", body });
     },
     patch: async (
       organizationId: string,
       body: PatchOrganizationData,
     ): Promise<ApiResponse<OrganizationResource>> => {
-      return client(`/organizations/${organizationId}`, {
+      return client(`/api/v1/organizations/${organizationId}`, {
         method: "PUT",
         body,
       });
