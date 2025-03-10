@@ -1,6 +1,13 @@
+import { faker } from '@faker-js/faker'
 import { ofetch } from 'ofetch'
-import { organizationsRepository } from '@france-nuage/api'
-import { Organization, User } from '@france-nuage/types'
+import { organizationsRepository, securityRepository } from '@france-nuage/api'
+import {
+  AuthenticationToken,
+  Organization,
+  PermissionId,
+  Resource,
+  User,
+} from '@france-nuage/types'
 import { expect, request as baseRequest, test as base } from '@playwright/test'
 import type { APIRequestContext, PlaywrightTestConfig } from '@playwright/test'
 import baseConfig from '../../playwright.config.js'
@@ -56,7 +63,10 @@ type Fixtures = {
    * })
    * ```
    */
-  actingAs: (user: Credentials) => Promise<{ request: APIRequestContext }>
+  actingWith: (
+    permission?: PermissionId,
+    resource?: Resource
+  ) => Promise<{ request: APIRequestContext; user: User }>
 
   /**
    * The pre-defined organization.
@@ -130,20 +140,46 @@ export const test = base.extend<{}, Fixtures>({
    * TODO: implement RBAC management for this function, then update the function
    * documentation
    */
-  actingAs: [
+  actingWith: [
     async ({}, use) => {
-      await use(async (user: Credentials) => {
+      const cache: {
+        permission?: PermissionId
+        resource?: Resource
+        token: AuthenticationToken
+        user: User
+      }[] = []
+
+      await use(async (permission, resource) => {
+        // Search the cache for a matching entry
+        let entry = cache.find(
+          (item) => item.permission === permission && resource?.id === item.resource?.id
+        )
+
+        // Generate a new entry and update the cache if there is no match
+        if (!entry) {
+          const { token, user } = await securityRepository(client).register({
+            email: faker.internet.email(),
+            password: faker.internet.password(),
+            firstname: faker.person.firstName(),
+            lastname: faker.person.lastName(),
+          })
+
+          entry = { permission, resource, user, token }
+
+          cache.push(entry)
+        }
+
         // Create a new context request with authentication headers
         const request = await baseRequest.newContext({
           ...baseConfig.use,
           extraHTTPHeaders: {
             ...baseConfig.use?.extraHTTPHeaders,
-            Authorization: `Bearer ${user.token}`,
+            Authorization: `Bearer ${entry.token.token}`,
           },
         })
 
         // Return the contextualized request object
-        return { request }
+        return { request, user: entry.user }
       })
     },
     { scope: 'worker' },

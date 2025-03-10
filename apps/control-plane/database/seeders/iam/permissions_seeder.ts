@@ -1,5 +1,6 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import Permission, { PermissionId } from '#models/iam/permission'
+import { PermissionId } from '@france-nuage/types'
+import Permission from '#models/iam/permission'
 import { VerbId } from '#models/iam/verb'
 import { TypeId } from '#models/iam/type'
 import { ServiceId } from '#models/catalog/service'

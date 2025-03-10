@@ -9,7 +9,7 @@
     "isolatedModules": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "sourceMap": true,
-    "module": "esnext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
