@@ -2,7 +2,10 @@
   "name": "@france-nuage/tests",
   "version": "1.0.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "playwright test",
+    "test:control-plane": "playwright test --project=control-plane",
+    "test:platform": "playwright test --project=platform --reporter=dot,html --trace=on",
+    "test:worker": "playwright test --project=worker"
   },
   "devDependencies": {
     "@france-nuage/api": "*",

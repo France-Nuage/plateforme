@@ -52,25 +52,19 @@ build:
   script:
     - docker compose run --no-deps worker cargo test -- --test-threads=1
 
-"integration tests / control-plane":
-  stage: integration-tests
-  script:
-    - docker compose up --detach
-    - docker compose exec control-plane npx playwright test
-
-"integration tests / platform":
+integration-tests:
   stage: integration-tests
   artifacts:
     when: always
     paths:
-      - apps/platform/playwright-report/
+      - playwright-report/
       - docker-compose.log
     expire_in: 1 day
   after_script:
     - docker compose logs > docker-compose.log
   script:
     - docker compose up --detach
-    - docker compose exec -e PW_TEST_HTML_REPORT_OPEN='never' platform npx playwright test --project=firefox --reporter=dot,html --trace=on
+    - docker compose up tests
 
 "Deploy / control-plane (staging)":
   stage: deploy
