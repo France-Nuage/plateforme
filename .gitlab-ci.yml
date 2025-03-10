@@ -24,6 +24,13 @@ build:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
+production-build:
+  stage: build
+  variables:
+    TARGET: release
+  script:
+    - docker compose build
+
 "code style / platform":
   stage: code-style
   script:
