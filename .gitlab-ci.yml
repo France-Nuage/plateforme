@@ -64,7 +64,7 @@ integration-tests:
     - docker compose logs > docker-compose.log
   script:
     - docker compose up --detach
-    - docker compose up tests
+    - docker compose exec -e PW_TEST_HTML_REPORT_OPEN='never' tests npx playwright test --project=firefox --reporter=dot,html --trace=on
 
 "Deploy / control-plane (staging)":
   stage: deploy

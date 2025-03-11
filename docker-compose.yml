@@ -15,6 +15,8 @@ services:
         condition: service_started
       redis:
         condition: service_started
+      playwright:
+        condition: service_healthy
     environment:
       # Application
       NODE_ENV: development
@@ -80,10 +82,11 @@ services:
         condition: service_healthy
       control-plane-setup:
         condition: service_started
+      playwright:
+        condition: service_healthy
     environment:
       API_URL: http://control-plane:3333
       BASE_URL: http://platform:3000
-      PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
     ports:
       - "3000:3000"
       - "39709:39709"
@@ -117,6 +120,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      playwright:
+        condition: service_healthy
     environment:
       API_URL: http://control-plane:3333
       PLATFORM_URL: http://platform:3000
@@ -125,7 +130,14 @@ services:
     volumes:
       - ./apps/tests:/app/apps/tests
       - ./playwright-report:/app/playwright-report
-    working_dir: /app
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.50.1-noble
+    command: /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
+    ports:
+      - "4444:4444"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://0.0.0.0:4444"]
 
   postgres:
     container_name: postgres
