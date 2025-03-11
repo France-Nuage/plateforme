@@ -21,6 +21,7 @@ before_script:
 build:
   stage: build
   script:
+    - docker run --platform linux/amd64 --volume="$PWD:/app" --workdir="/app" node:latest npm ci
     - docker run --platform linux/amd64 --volume="$PWD:/app" --workdir="/app" node:latest npx turbo run build
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
