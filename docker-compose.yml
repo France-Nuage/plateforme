@@ -112,17 +112,15 @@ services:
       dockerfile: apps/tests/Dockerfile
     container_name: tests
     depends_on:
-      control-plane:
-        condition: service_healthy
-      platform:
-        condition: service_healthy
-      playwright:
-        condition: service_healthy
+      - control-plane
+      - platform
+      - playwright
     environment:
       API_URL: http://control-plane:3333
       PLATFORM_URL: http://platform:3000
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
       PW_TEST_HTML_REPORT_OPEN: "never"
+      WAIT_HOSTS: "platform:3000,control-plane:3333"
     volumes:
       - ./apps/tests:/app/apps/tests
       - ./playwright-report:/app/playwright-report
