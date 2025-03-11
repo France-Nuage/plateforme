@@ -40,6 +40,7 @@ services:
     volumes:
       - ./apps/control-plane:/app/apps/control-plane
       - ./packages:/app/packages
+      - /app/apps/control-plane/node_modules
       - /app/node_modules
     working_dir: /app/apps/control-plane
 

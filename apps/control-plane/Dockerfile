@@ -23,6 +23,8 @@ WORKDIR /app
 
 COPY . .
 
+RUN npm ci
+
 RUN turbo prune --scope=@france-nuage/control-plane --docker
 
 #------------------------------------------------------------------------------
