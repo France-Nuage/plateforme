@@ -21,7 +21,8 @@ before_script:
 build:
   stage: build
   script:
-    - docker compose build --no-cache --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker run --platform linux/amd64 --volume="$PWD:/app" --workdir="/app" node:latest npx turbo run build
+    - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
 "production build / control-plane":
@@ -68,7 +69,7 @@ build:
 "unit tests / control-plane":
   stage: unit-tests
   script:
-    - docker compose run --build control-plane npx turbo run test --filter=@france-nuage/control-plane
+    - docker compose run control-plane npx turbo run test --filter=@france-nuage/control-plane
 
 "unit tests / worker":
   stage: unit-tests
