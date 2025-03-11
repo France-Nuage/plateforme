@@ -51,8 +51,6 @@ import CCardHeader from "~/components/card/CCardHeader.vue";
 import CCard from "~/components/card/CCard.vue";
 import CTextField from "~/components/forms/CTextField.vue";
 import CLabel from "~/components/forms/CLabel.vue";
-import CSwitch from "~/components/forms/CSwitch.vue";
-import CSelect from "~/components/forms/CSelect.vue";
 
 const plans = [
   { id: 1, name: "Durward Reynolds", price: "" },
