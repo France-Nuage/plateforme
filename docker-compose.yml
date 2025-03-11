@@ -39,6 +39,7 @@ services:
       - "3333:3333"
     volumes:
       - ./apps/control-plane:/app/apps/control-plane
+      - ./packages:/app/packages
       - /app/node_modules
     working_dir: /app/apps/control-plane
 
@@ -80,6 +81,7 @@ services:
       - "39709:39709"
     volumes:
       - ./apps/platform:/app/apps/platform
+      - ./packages:/app/packages
       - /app/node_modules
     working_dir: /app/apps/platform
 

@@ -94,6 +94,7 @@ WORKDIR /app/apps/control-plane
 
 # Copy only the necessary node_modules and build for runtime
 COPY --from=build /app/apps/control-plane/build /app/apps/control-plane/build
+COPY --from=build /app/packages /app/packages
 COPY --from=build /app/node_modules /app/node_modules
 
 EXPOSE 3000
