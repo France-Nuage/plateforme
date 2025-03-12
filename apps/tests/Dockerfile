@@ -1,6 +1,6 @@
 FROM node:22-alpine AS base
 
-RUN apk add --no-cache bash curl firefox
+RUN apk add --no-cache bash curl
 RUN wget -O /usr/local/bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
     && chmod +x /usr/local/bin/wait-for-it.sh
 
@@ -12,7 +12,6 @@ COPY packages/ ./packages/
 COPY apps/tests/ ./apps/tests/
 
 RUN npm ci
-RUN npx playwright install --with-deps firefox
 
 # Install playwright browsers
 RUN npx playwright install --with-deps firefox
