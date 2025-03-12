@@ -16,6 +16,8 @@ RUN npm ci
 # Install Firefox browser for Playwright
 RUN npx playwright install firefox
 
+
+CMD ["tail", "-f", "/dev/null"]
 #COPY <<EOF /app/entrypoint.sh
 ##!/bin/bash
 #set -e
