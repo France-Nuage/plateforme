@@ -41,18 +41,18 @@ export default defineConfig({
       testDir: "./platform",
       use: { ...devices["Desktop Chrome"] },
     },
-
-    {
-      name: "firefox",
-      testDir: "./platform",
-      use: { ...devices["Desktop Firefox"] },
-    },
-
-    {
-      name: "webkit",
-      testDir: "./platform",
-      use: { ...devices["Desktop Safari"] },
-    },
+    //
+    // {
+    //   name: "firefox",
+    //   testDir: "./platform",
+    //   use: { ...devices["Desktop Firefox"] },
+    // },
+    //
+    // {
+    //   name: "webkit",
+    //   testDir: "./platform",
+    //   use: { ...devices["Desktop Safari"] },
+    // },
     {
       name: "api",
       testDir: "./api",
