@@ -13,6 +13,17 @@ COPY apps/tests/ ./apps/tests/
 
 RUN npm ci
 
+# Install playwright browsers
+RUN npx playwright install --with-deps firefox
+
+# Debug step to check playwright configuration
+RUN echo "Installed packages:" && \
+    npm list --depth=0 && \
+    echo "Playwright config:" && \
+    cat /app/apps/tests/playwright.config.ts && \
+    echo "Available test files:" && \
+    find /app/apps/tests -name "*.spec.ts" -type f
+
 COPY <<EOF /app/entrypoint.sh
 #!/bin/bash
 set -e
