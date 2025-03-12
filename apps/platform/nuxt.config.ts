@@ -50,6 +50,13 @@ export default defineNuxtConfig({
     "/": {
       redirect: "/dashboard",
     },
+    "/health": {
+      cors: true,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+      },
+    },
   },
 
   hooks: {

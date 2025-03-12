@@ -130,9 +130,14 @@ services:
       dockerfile: apps/tests/Dockerfile
     container_name: tests
     depends_on:
-      - control-plane
-      - platform
-      - playwright
+      control-plane:
+        condition: service_healthy
+      platform:
+        condition: service_healthy
+      playwright:
+        condition: service_healthy
+      control-plane-setup:
+        condition: service_completed_successfully
     environment:
       API_URL: http://control-plane:3333
       PLATFORM_URL: http://platform:3000
@@ -149,6 +154,7 @@ services:
     volumes:
       - ./apps/tests:/app/apps/tests
       - ./playwright-report:/app/playwright-report
+    restart: on-failure:3
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.50.1-noble
