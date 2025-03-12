@@ -56,6 +56,7 @@ export default defineConfig({
     {
       name: "api",
       testDir: "./api",
+      use: { ...devices["Desktop Firefox"] },
     },
   ],
 
