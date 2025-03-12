@@ -38,24 +38,20 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testDir: "./platform",
       use: { ...devices["Desktop Chrome"] },
     },
 
     {
       name: "firefox",
+      testDir: "./platform",
       use: { ...devices["Desktop Firefox"] },
     },
 
     {
       name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    // Project for testing platform
-    {
-      name: "platform",
       testDir: "./platform",
-      use: { ...devices["Desktop Firefox"] },
+      use: { ...devices["Desktop Safari"] },
     },
   ],
 
