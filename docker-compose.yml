@@ -39,6 +39,12 @@ services:
       DEV_CLUSTER_TOKEN_SECRET: ${DEV_CLUSTER_TOKEN_SECRET}
       # Redis
       REDIS_HOST: redis
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
     ports:
       - "3333:3333"
     volumes:
@@ -55,6 +61,9 @@ services:
           "--spider",
           "http://control-plane:3333/health",
         ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   control-plane-setup:
     image: docker:27-cli
@@ -87,6 +96,12 @@ services:
     environment:
       API_URL: http://control-plane:3333
       BASE_URL: http://platform:3000
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
     ports:
       - "3000:3000"
       - "39709:39709"
@@ -104,6 +119,9 @@ services:
           "--spider",
           "http://platform:3000/health",
         ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   tests:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}tests:${CI_COMMIT_REF_SLUG:-latest}"
@@ -121,6 +139,13 @@ services:
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
       PW_TEST_HTML_REPORT_OPEN: "never"
       WAIT_HOSTS: "platform:3000,control-plane:3333"
+      INTEGRATION_TESTS_TIMEOUT: 30000
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+        reservations:
+          memory: 1G
     volumes:
       - ./apps/tests:/app/apps/tests
       - ./playwright-report:/app/playwright-report
@@ -128,10 +153,19 @@ services:
   playwright:
     image: mcr.microsoft.com/playwright:v1.50.1-noble
     command: /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
     ports:
       - "4444:4444"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://0.0.0.0:4444"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   postgres:
     container_name: postgres
