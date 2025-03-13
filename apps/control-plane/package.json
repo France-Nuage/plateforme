@@ -44,7 +44,7 @@
     "@japa/plugin-adonisjs": "^4.0.0",
     "@japa/runner": "^3.1.4",
     "@japa/snapshot": "^2.0.6",
-    "@playwright/test": "^1.50.0",
+    "@playwright/test": "^1.51.0",
     "@swc/core": "1.11.1",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.7.5",

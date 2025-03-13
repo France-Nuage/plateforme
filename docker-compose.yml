@@ -39,6 +39,7 @@ services:
       - "3333:3333"
     volumes:
       - ./apps/control-plane:/app/apps/control-plane
+      - /app/apps/control-plane/node_modules
       - /app/node_modules
     working_dir: /app/apps/control-plane
 
@@ -80,12 +81,13 @@ services:
       - "39709:39709"
     volumes:
       - ./apps/platform:/app/apps/platform
+      - /app/apps/platform/node_modules
       - /app/node_modules
     working_dir: /app/apps/platform
 
   playwright:
-    image: mcr.microsoft.com/playwright:v1.50.1-noble
-    command: /bin/sh -c "npx -y playwright@1.50.1 run-server --port 4444 --host 0.0.0.0"
+    image: mcr.microsoft.com/playwright:v1.51.0-noble
+    command: /bin/sh -c "npx -y playwright@1.51.0 run-server --port 4444 --host 0.0.0.0"
     ports:
       - "4444:4444"
 

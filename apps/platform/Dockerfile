@@ -23,6 +23,8 @@ WORKDIR /app
 
 COPY . .
 
+RUN npm ci
+
 RUN turbo prune --scope=@france-nuage/platform --docker
 
 #------------------------------------------------------------------------------
@@ -64,8 +66,7 @@ WORKDIR /app
 
 COPY --from=install /app /app
 
-# CMD ["turbo", "run", "dev", "--filter", "@france-nuage/platform"]
-CMD ["npm", "run", "dev"]
+CMD ["turbo", "run", "dev", "--filter", "@france-nuage/platform"]
 
 #------------------------------------------------------------------------------
 # BUILD stage
@@ -91,15 +92,15 @@ RUN turbo run build --filter=@france-nuage/platform
 #
 FROM node:22-alpine AS release
 
-WORKDIR /app/apps/platform/build
+WORKDIR /app/apps/platform
 
 # Copy only the necessary node_modules and build for runtime
-COPY --from=build /app/apps/platform/build /app/apps/platform/build
+COPY --from=build /app/apps/platform/.output /app/apps/platform/.output
 COPY --from=build /app/node_modules /app/node_modules
 
 EXPOSE 3000
 
 USER node
 
-CMD ["node", "bin/server.js"]
+CMD ["node", ".output/server/index.mjs"]
 

@@ -1,0 +1,10 @@
+services:
+  control-plane:
+    build:
+      target: release
+    volumes: !reset []
+
+  platform:
+    build:
+      target: release
+    volumes: !reset []

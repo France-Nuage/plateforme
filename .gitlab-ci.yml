@@ -24,6 +24,29 @@ build:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
+"production build / control-plane":
+  image: docker:27-dind
+  stage: build
+  variables:
+    TARGET: release
+  script:
+    - docker compose -f docker-compose.yml -f docker-compose.ci.yml up --build --detach --no-deps control-plane
+    - sleep 30
+  after_script:
+    - docker compose logs control-plane
+    - docker ps -a
+
+"production build / platform":
+  stage: build
+  variables:
+    TARGET: release
+  script:
+    - docker compose -f docker-compose.yml -f docker-compose.ci.yml up --build --detach --no-deps platform
+    - sleep 30
+  after_script:
+    - docker compose logs platform
+    - docker ps -a
+
 "code style / platform":
   stage: code-style
   script:
