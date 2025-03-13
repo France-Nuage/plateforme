@@ -14,4 +14,4 @@ RUN npm ci
 # Install Firefox browser for Playwright
 RUN npx playwright install firefox
 
-CMD ["tail", "-f", "/dev/null"]
+CMD ["npx", "playwright", "test", "--project=firefox", "--config=/app/apps/tests/playwright.config.ts"]
