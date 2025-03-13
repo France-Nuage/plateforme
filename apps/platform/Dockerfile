@@ -66,8 +66,7 @@ WORKDIR /app
 
 COPY --from=install /app /app
 
-# CMD ["turbo", "run", "dev", "--filter", "@france-nuage/platform"]
-CMD ["npm", "run", "dev"]
+CMD ["turbo", "run", "dev", "--filter", "@france-nuage/platform"]
 
 #------------------------------------------------------------------------------
 # BUILD stage

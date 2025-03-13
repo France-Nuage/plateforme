@@ -81,7 +81,6 @@ services:
       - "39709:39709"
     volumes:
       - ./apps/platform:/app/apps/platform
-      - ./packages:/app/packages
       - /app/apps/platform/node_modules
       - /app/node_modules
     working_dir: /app/apps/platform
