@@ -54,6 +54,9 @@ RUN --mount=type=cache,target=/root/.npm,sharing=locked npm ci
 COPY --from=pruned /app/out/full/ .
 COPY turbo.json turbo.json
 
+# Build all of the app dependencies, but not the app itself for development
+RUN turbo run build --no-cache --filter="@france-nuage/tests^..."
+
 
 #------------------------------------------------------------------------------
 # PRODUCTION stage
