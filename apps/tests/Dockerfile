@@ -9,6 +9,7 @@ FROM node:22-alpine AS base
 
 RUN apk add --no-cache wget bash curl firefox
 RUN npm install --global turbo
+RUN npx playwright install firefox
 
 
 #------------------------------------------------------------------------------
@@ -66,9 +67,6 @@ FROM base AS base
 WORKDIR /app
 
 COPY --from=install /app /app
-
-# Install Firefox browser for Playwright
-RUN npx playwright install firefox
 
 CMD ["tail", "-f", "/dev/null"]
 
