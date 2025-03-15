@@ -28,7 +28,7 @@ COPY . .
 
 RUN npm ci
 
-RUN turbo prune --scope=@france-nuage/platform --docker
+RUN turbo prune --scope=@france-nuage/tests --docker
 
 
 #------------------------------------------------------------------------------
@@ -56,13 +56,13 @@ COPY turbo.json turbo.json
 
 
 #------------------------------------------------------------------------------
-# DEVELOPMENT stage
+# PRODUCTION stage
 #------------------------------------------------------------------------------
 #
 # Sets up a development environment with live reloading for the
 # @france-nuage/platform application.
 #
-FROM base AS base
+FROM base AS production
 
 WORKDIR /app
 
