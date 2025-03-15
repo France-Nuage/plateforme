@@ -130,6 +130,7 @@ services:
     build:
       context: .
       dockerfile: apps/tests/Dockerfile
+      target: base
     container_name: tests
     depends_on:
       control-plane:
