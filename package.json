@@ -32,5 +32,8 @@
   ],
   "volta": {
     "node": "22.13.1"
+  },
+  "dependencies": {
+    "@france-nuage/types": "^0.0.0"
   }
 }
