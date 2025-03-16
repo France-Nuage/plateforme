@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 dotenv = "0.15"
-hypervisor_connector = { path = "../hypervisor_connector" }
+hypervisor = { path = "../hypervisor" }
+proxmox = { path = "../proxmox" }
 reqwest = { version = "0.12", features = ["json"] }
 tokio = { version = "1", features = ["full"] }

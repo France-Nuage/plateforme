@@ -36,6 +36,12 @@ build:
     - docker compose run --no-deps control-plane npm run lint
     - docker compose run --no-deps control-plane npx prettier --check "**/*.{js,json,md,ts,vue,yml}"
 
+"code style / control-plane-rs":
+  stage: code-style
+  script:
+    - docker compose run --no-deps control-plane-rs cargo fmt --check
+    - docker compose run --no-deps control-plane-rs cargo clippy
+
 "code style / worker":
   stage: code-style
   script:
@@ -46,6 +52,11 @@ build:
   stage: unit-tests
   script:
     - docker compose run control-plane npx turbo run test --filter=@france-nuage/control-plane
+
+"unit tests / control-plane-rs":
+  stage: unit-tests
+  script:
+    - docker compose run --no-deps control-plane-rs cargo test
 
 "unit tests / worker":
   stage: unit-tests

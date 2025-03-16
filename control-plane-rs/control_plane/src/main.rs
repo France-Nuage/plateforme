@@ -1,10 +1,9 @@
 use dotenv::dotenv;
-use hypervisor_connector::hypervisor::{Hypervisor, Instance, InstanceConfig, Node};
-use hypervisor_connector::proxmox;
+use hypervisor::{Cluster, Instance, InstanceConfig, Node};
 use std::env;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
     let authentication_header =
@@ -21,42 +20,24 @@ async fn main() {
         .build()
         .unwrap();
 
-    let cluster =
-        proxmox::ProxmoxCluster::new("https://pve-poc01-internal.france-nuage.fr", &client);
+    let cluster = proxmox::Cluster::new("https://pve-poc01-internal.france-nuage.fr", &client);
 
     let node = cluster.node("pve-node1");
     let instance = node.instance(666);
 
-    let result = instance.status().await;
-    match result {
-        Ok(status) => println!("VM 666 status: {:?}", status),
-        Err(err) => println!(
-            "Error while reading VM 666 status, does the VM exists? error: {:?}",
-            err
-        ),
-    }
+    let result = instance.status().await?;
+    println!("VM 666 status: {:?}", result);
 
-    let result = instance.delete().await;
-    match result {
-        Ok(_) => println!("VM 666 has been deleted"),
-        Err(err) => println!(
-            "Error while deleting VM 666, does the VM exists? error: {:?}",
-            err
-        ),
-    }
+    instance.delete().await?;
+    println!("VM 666 has been deleted");
 
     let options = InstanceConfig {
         id: 666,
         name: "instance-from-control-plane",
     };
-    let result = instance.create(&options).await;
-    match result {
-        Ok(_) => println!("VM 666 has been created"),
-        Err(err) => println!(
-            "Error while creating VM 666, does the VM exists? error: {:?}",
-            err
-        ),
-    }
+    instance.create(&options).await?;
+    println!("VM 666 has been created");
 
+    Ok(())
     // todo: write a simpler vm config api, and adapt in proxmox implementation
 }

@@ -42,6 +42,19 @@ services:
       - /app/node_modules
     working_dir: /app/apps/control-plane
 
+  control-plane-rs:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:${CI_COMMIT_REF_SLUG:-latest}"
+    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:staging
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:production
+      context: control-plane-rs
+      target: ${TARGET:-development}
+    container_name: control-plane-rs
+    profiles:
+      - donotstart
+
   control-plane-setup:
     image: docker:27-cli
     depends_on:

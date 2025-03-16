@@ -1,22 +1,21 @@
 use serde::Serialize;
 use serde_with::skip_serializing_none;
 
-use crate::error::Error;
+use crate::api_response::{ApiResponse, ApiResponseExt};
 
 pub async fn vm_create(
     api_url: &str,
     client: &reqwest::Client,
     node_id: &str,
     options: &VMConfig<'_>,
-) -> Result<(), Error> {
+) -> Result<ApiResponse<String>, crate::error::Error> {
     client
         .post(format!("{}/api2/json/nodes/{}/qemu", api_url, node_id))
         .json(options)
         .send()
-        .await?
-        .error_for_status()?;
-
-    Ok(())
+        .await
+        .to_api_response()
+        .await
 }
 
 #[skip_serializing_none]
@@ -71,8 +70,8 @@ pub struct VMConfig<'a> {
     vmid: u32,
 }
 
-impl<'a> std::convert::From<&'a crate::hypervisor::InstanceConfig<'a>> for VMConfig<'a> {
-    fn from(config: &'a crate::hypervisor::InstanceConfig) -> Self {
+impl<'a> std::convert::From<&'a hypervisor::InstanceConfig<'a>> for VMConfig<'a> {
+    fn from(config: &'a hypervisor::InstanceConfig) -> Self {
         VMConfig {
             name: Some(config.name),
             vmid: config.id,
