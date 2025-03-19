@@ -1,15 +1,16 @@
 # Base Stage
 FROM rust:1.85-alpine AS base
-RUN apk add --no-cache musl-dev openssl-dev openssl-libs-static
+RUN apk add --no-cache musl-dev openssl-dev openssl-libs-static protoc zlib-dev zlib-static gcc libc-dev
+RUN cargo install grcov
+RUN rustup default nightly
+RUN rustup component add clippy
+RUN rustup component add rustfmt
+RUN rustup component add llvm-tools-preview
 WORKDIR /app
 COPY . .
 
 # Development Stage
 FROM base AS development
-
-RUN cargo build
-RUN rustup component add rustfmt
-RUN rustup component add clippy
 CMD ["cargo", "run"]
 
 # Build Stage

@@ -51,9 +51,15 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:production
       context: control-plane-rs
       target: ${TARGET:-development}
+    environment:
+      CARGO_INCREMENTAL: "0"
+      LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
+      RUSTFLAGS: "-Cinstrument-coverage"
     container_name: control-plane-rs
     profiles:
       - donotstart
+    volumes:
+      - ./control-plane-rs:/app
 
   control-plane-setup:
     image: docker:27-cli
