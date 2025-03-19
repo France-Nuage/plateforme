@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-  "control_plane", 
+  "controlplane", 
   "hypervisor",
   "hypervisor_connector",
   "proxmox"

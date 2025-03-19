@@ -6,6 +6,7 @@ COPY . .
 
 # Development Stage
 FROM base AS development
+
 RUN cargo build
 RUN rustup component add rustfmt
 RUN rustup component add clippy
