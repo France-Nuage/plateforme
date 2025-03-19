@@ -11,6 +11,7 @@ COPY . .
 
 # Development Stage
 FROM base AS development
+RUN cargo build
 CMD ["cargo", "run"]
 
 # Build Stage

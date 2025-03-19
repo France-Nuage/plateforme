@@ -58,13 +58,14 @@ build:
   script:
     - docker compose run --no-deps control-plane-rs cargo test --workspace
     - docker compose run --no-deps control-plane-rs grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
-    # - xmllint --xpath "concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')" target/cobertura.xml
+    - >
+      xmllint --xpath "concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')" target/cobertura.xml
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: target/coverage.xml
+        path: target/cobertura.xml
 
 "unit tests / worker":
   stage: unit-tests
