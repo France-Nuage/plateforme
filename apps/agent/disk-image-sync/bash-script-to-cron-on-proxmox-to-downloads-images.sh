@@ -17,9 +17,11 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
 
-# Vérifier l'espace disque utilisé par le répertoire
+# Vérifier l'espace disque utilisé par le répertoire en Go
 check_disk_usage() {
-    du -sh "$LOCAL_DIR" | awk '{print $1}' | sed 's/G//'
+    # Get size in bytes and convert to GB
+    local size_bytes=$(du -sb "$LOCAL_DIR" | awk '{print $1}')
+    echo "scale=2; $size_bytes / 1024 / 1024 / 1024" | bc
 }
 
 # Obtenir la taille d'un fichier en Go
@@ -42,7 +44,7 @@ if [ ! -f "$TMP_LIST" ]; then
     exit 1
 fi
 
-# Vérifier l'espace disque
+# Vérifier l'espace disque actuel
 CURRENT_USAGE=$(check_disk_usage)
 log "Utilisation actuelle: ${CURRENT_USAGE}G / ${MAX_STORAGE_GB}G maximum"
 
@@ -82,7 +84,8 @@ while read -r image_url; do
             if [[ "$image_url" == *cloud.debian.org* ]]; then
                 # Extraire la date de l'URL
                 url_date=$(echo "$image_url" | grep -o -E "[0-9]{8}-[0-9]{4}")
-                filename_date=$(echo "$filename" | grep -o -E "[0-9]{8}-[0-9]{4}")
+                local_file_basename=$(basename "$local_path")
+                filename_date=$(echo "$local_file_basename" | grep -o -E "[0-9]{8}-[0-9]{4}")
                 
                 # Vérifier si nous avons une date à comparer
                 if [ -n "$url_date" ] && [ -n "$filename_date" ]; then
@@ -96,43 +99,40 @@ while read -r image_url; do
                         continue
                     fi
                 else
-                    # Pas de date à comparer, on essaie HEAD request
-                    log "Vérification de l'état de $filename avec HEAD request..."
-                    if curl -Is "$image_url" | grep -q "200 OK"; then
-                        # Vérifier si la taille est la même
-                        remote_size=$(curl -sI "$image_url" | grep -i "content-length" | awk '{print $2}' | tr -d '\r\n')
-                        if [ -n "$remote_size" ]; then
-                            local_size=$(stat -c%s "$local_path")
-                            if [ "$remote_size" -eq "$local_size" ]; then
-                                log "Taille identique pour $filename, pas besoin de télécharger"
-                                continue
-                            else
-                                log "Taille différente pour $filename, téléchargement de la nouvelle version"
-                            fi
-                        else
-                            # On ne peut pas vérifier la taille, on utilise curl avec l'option -z
-                            if curl -s -z "$local_path" -o /dev/null -w "%{http_code}" "$image_url" | grep -q "304"; then
-                                log "Fichier non modifié selon curl -z, pas besoin de télécharger"
-                                continue
-                            fi
-                        fi
+                    # Pas de date à comparer, on essaie une autre méthode
+                    log "Impossible de comparer les dates par le nom de fichier pour $filename"
+                    
+                    # On essaie une comparaison de taille
+                    local_size=$(stat -c%s "$local_path")
+                    
+                    # On fait une requête pour obtenir la taille du fichier distant
+                    if command -v wget >/dev/null 2>&1; then
+                        remote_size=$(wget --spider --server-response "$image_url" 2>&1 | grep -i "content-length" | awk '{print $2}' | tr -d '\r\n')
                     fi
+                    
+                    if [ -n "$remote_size" ] && [ "$remote_size" -eq "$local_size" ]; then
+                        log "Taille identique pour $filename, pas besoin de télécharger"
+                        continue
+                    fi
+                    
+                    # Si on ne peut pas comparer les tailles, on télécharge
+                    log "Impossible de vérifier si $filename est à jour, téléchargement..."
                 fi
             # Pour Ubuntu, comparer les tailles
             elif [[ "$image_url" == *ubuntu.com* ]]; then
                 log "Vérification de l'image Ubuntu avec HEAD request..."
-                if curl -Is "$image_url" | grep -q "200 OK"; then
-                    # Essayer de comparer les tailles
-                    remote_size=$(curl -sI "$image_url" | grep -i "content-length" | awk '{print $2}' | tr -d '\r\n')
-                    if [ -n "$remote_size" ]; then
-                        local_size=$(stat -c%s "$local_path")
-                        if [ "$remote_size" -eq "$local_size" ]; then
-                            log "Taille identique pour $filename, pas besoin de télécharger"
-                            continue
-                        else
-                            log "Taille différente pour $filename, téléchargement de la nouvelle version"
-                        fi
-                    fi
+                local_size=$(stat -c%s "$local_path")
+                
+                # Essayer d'obtenir la taille avec wget
+                if command -v wget >/dev/null 2>&1; then
+                    remote_size=$(wget --spider --server-response "$image_url" 2>&1 | grep -i "content-length" | awk '{print $2}' | tr -d '\r\n')
+                fi
+                
+                if [ -n "$remote_size" ] && [ "$remote_size" -eq "$local_size" ]; then
+                    log "Taille identique pour $filename, pas besoin de télécharger"
+                    continue
+                else
+                    log "Taille différente ou non vérifiable pour $filename, téléchargement de la nouvelle version"
                 fi
             fi
         # Pour les autres URLs, utiliser l'approche standard
@@ -160,29 +160,29 @@ while read -r image_url; do
     # Calculer la taille potentielle pour la gestion de l'espace
     log "Vérification de la taille pour $filename..."
     
-    # Essayer d'obtenir la taille avec curl
+    # Essayer d'obtenir la taille avec wget (plus fiable que curl pour certains serveurs)
     image_size=""
-    if curl -sI "$image_url" | grep -q "200 OK"; then
+    if command -v wget >/dev/null 2>&1; then
+        image_size=$(wget --spider --server-response "$image_url" 2>&1 | grep -i "content-length" | awk '{print $2}' | tr -d '\r\n')
+    fi
+    
+    # Si wget échoue, essayer avec curl
+    if [ -z "$image_size" ] && curl -sI "$image_url" | grep -q "200 OK"; then
         image_size=$(curl -sI "$image_url" | grep -i "content-length" | awk '{print $2}' | tr -d '\r\n')
     fi
     
-    # Si on ne peut pas obtenir la taille, on essaie avec wget
-    if [ -z "$image_size" ]; then
-        if command -v wget >/dev/null 2>&1; then
-            log "Essai avec wget pour $filename..."
-            image_size=$(wget --spider --server-response "$image_url" 2>&1 | grep -i "content-length" | awk '{print $2}' | tr -d '\r\n')
-        fi
-    fi
-    
     # Si une taille a été trouvée, vérifier l'espace
-    if [ -n "$image_size" ]; then
+    if [ -n "$image_size" ] && [ "$image_size" -gt 0 ]; then
         image_size_gb=$(echo "scale=2; $image_size / 1024 / 1024 / 1024" | bc)
         log "Taille estimée de $filename: ${image_size_gb}G"
+        
+        # Recalculer l'utilisation actuelle pour s'assurer qu'elle est correcte
+        CURRENT_USAGE=$(check_disk_usage)
         
         # Vérifier si l'ajout de cette image dépasserait la limite
         new_total=$(echo "scale=2; $CURRENT_USAGE + $image_size_gb" | bc)
         if (( $(echo "$new_total > $MAX_STORAGE_GB" | bc -l) )); then
-            log "Avertissement: Télécharger $filename dépasserait la limite de ${MAX_STORAGE_GB}G (nouveau total: ${new_total}G)"
+            log "Avertissement: Télécharger $filename ($image_size_gb G) dépasserait la limite de ${MAX_STORAGE_GB}G (nouveau total: ${new_total}G)"
             
             # Libérer de l'espace
             space_needed=$(echo "scale=2; $new_total - $MAX_STORAGE_GB" | bc)
@@ -194,8 +194,9 @@ while read -r image_url; do
             for old_file in $old_files; do
                 if [ "$old_file" != "$local_path" ]; then
                     old_file_size_gb=$(get_file_size_gb "$old_file")
+                    old_file_name=$(basename "$old_file")
                     
-                    log "Suppression de l'ancien fichier: $(basename "$old_file") (${old_file_size_gb}G)"
+                    log "Suppression de l'ancien fichier: $old_file_name (${old_file_size_gb}G)"
                     rm -f "$old_file"
                     
                     # Recalculer l'espace
@@ -203,7 +204,7 @@ while read -r image_url; do
                     new_total=$(echo "scale=2; $CURRENT_USAGE + $image_size_gb" | bc)
                     
                     if (( $(echo "$new_total <= $MAX_STORAGE_GB" | bc -l) )); then
-                        log "Espace suffisant libéré, poursuite du téléchargement"
+                        log "Espace suffisant libéré ($CURRENT_USAGE G utilisés), poursuite du téléchargement"
                         break
                     fi
                 fi
@@ -216,7 +217,7 @@ while read -r image_url; do
     # Télécharger l'image avec un compteur de progression
     log "Téléchargement de $filename en cours..."
     
-    # Utiliser wget avec barre de progression dans le journal
+    # Utiliser wget avec barre de progression dans le journal si disponible
     if command -v wget >/dev/null 2>&1; then
         if wget -q --show-progress --progress=bar:force:noscroll -O "$temp_path" "$image_url" 2>&1 | tee -a "$LOG_FILE"; then
             download_success=true
@@ -234,11 +235,13 @@ while read -r image_url; do
     
     # Vérifier si le téléchargement a réussi
     if [ -f "$temp_path" ] && [ -s "$temp_path" ]; then
-        # Obtenir la taille du fichier téléchargé
+        # Obtenir la taille réelle du fichier téléchargé
         downloaded_size_gb=$(get_file_size_gb "$temp_path")
         
-        # Vérifier si nous avons assez d'espace
+        # Mise à jour de l'utilisation actuelle
         CURRENT_USAGE=$(check_disk_usage)
+        
+        # Vérifier si nous avons assez d'espace pour déplacer le fichier
         new_total=$(echo "scale=2; $CURRENT_USAGE + $downloaded_size_gb" | bc)
         
         if (( $(echo "$new_total > $MAX_STORAGE_GB" | bc -l) )); then
@@ -253,8 +256,9 @@ while read -r image_url; do
             for old_file in $old_files; do
                 if [ "$old_file" != "$local_path" ]; then
                     old_file_size_gb=$(get_file_size_gb "$old_file")
+                    old_file_name=$(basename "$old_file")
                     
-                    log "Suppression de l'ancien fichier: $(basename "$old_file") (${old_file_size_gb}G)"
+                    log "Suppression de l'ancien fichier: $old_file_name (${old_file_size_gb}G)"
                     rm -f "$old_file"
                     
                     # Recalculer l'espace
