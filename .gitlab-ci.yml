@@ -65,7 +65,7 @@ build:
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: target/cobertura.xml
+        path: control-plane-rs/target/cobertura.xml
 
 "unit tests / worker":
   stage: unit-tests
