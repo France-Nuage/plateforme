@@ -59,7 +59,7 @@ build:
     - docker compose run --no-deps control-plane-rs cargo test --workspace
     - docker compose run --no-deps control-plane-rs grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
     - >
-      xmllint --xpath "concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')" target/cobertura.xml
+      docker compose run --build --no-deps --remove-orphans control-plane-rs sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" target/cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
