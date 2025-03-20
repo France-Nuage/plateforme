@@ -1,6 +1,6 @@
-use super::proto::instance_server::Instance;
-use super::proto::{InstanceStatusRequest, InstanceStatusResponse};
 use hypervisor::{Cluster, Instance as HypervisorInstance, Node};
+use proto::instance_server::Instance;
+use proto::{InstanceStatusRequest, InstanceStatusResponse};
 use tonic::{Request, Response, Status};
 
 #[derive(Debug, Default)]

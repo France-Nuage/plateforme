@@ -15,6 +15,7 @@ edition = "2024"
 dotenv = "0.15"
 hypervisor = { path = "../hypervisor" }
 prost = "0.13"
+proto = { path = "../proto" }
 proxmox = { path = "../proxmox" }
 reqwest = { version = "0.12", features = ["json"] }
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }

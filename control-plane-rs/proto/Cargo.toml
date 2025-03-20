@@ -1,0 +1,12 @@
+[package]
+name = "proto"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+prost = "0.13"
+tonic = "0.12"
+
+[build-dependencies]
+tonic-build = "0.12"
+

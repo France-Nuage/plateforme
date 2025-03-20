@@ -1,0 +1,14 @@
+syntax = "proto3";
+package controlplane;
+
+service Instance {
+    rpc Status (InstanceStatusRequest) returns (InstanceStatusResponse);
+}
+
+message InstanceStatusRequest {
+  string id = 1;
+}
+
+message InstanceStatusResponse {
+  string status = 1;
+}

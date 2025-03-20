@@ -1,6 +1,6 @@
-use controlplane::proto::instance_client::InstanceClient;
-use controlplane::proto::{InstanceStatusRequest, InstanceStatusResponse};
 use controlplane::server::{Server, ServerConfig};
+use proto::instance_client::InstanceClient;
+use proto::{InstanceStatusRequest, InstanceStatusResponse};
 use proxmox::mock::{MockServer, WithVMStatusReadMock};
 
 #[tokio::test]

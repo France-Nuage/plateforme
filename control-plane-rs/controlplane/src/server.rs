@@ -1,5 +1,5 @@
 use super::instance_service::InstanceService;
-use super::proto::instance_server::InstanceServer;
+use proto::instance_server::InstanceServer;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
 use tokio_stream::wrappers::TcpListenerStream;
