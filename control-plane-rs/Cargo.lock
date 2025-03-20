@@ -237,14 +237,12 @@ version = "0.1.0"
 dependencies = [
  "dotenv",
  "hypervisor",
- "prost",
  "proto",
  "proxmox",
  "reqwest",
  "tokio",
  "tokio-stream",
  "tonic",
- "tonic-build",
 ]
 
 [[package]]
@@ -645,6 +643,7 @@ dependencies = [
 name = "hypervisor"
 version = "0.1.0"
 dependencies = [
+ "proto",
  "serde",
  "thiserror",
 ]

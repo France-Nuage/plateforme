@@ -5,10 +5,15 @@ service Instance {
     rpc Status (InstanceStatusRequest) returns (InstanceStatusResponse);
 }
 
+enum InstanceStatus {
+    RUNNING = 0;
+    STOPPED = 1;
+}
+
 message InstanceStatusRequest {
   string id = 1;
 }
 
 message InstanceStatusResponse {
-  string status = 1;
+  InstanceStatus status = 1;
 }

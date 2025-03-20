@@ -33,7 +33,7 @@ impl Instance for InstanceService {
         let status = result.unwrap();
 
         Ok(Response::new(InstanceStatusResponse {
-            status: format!("{:?}", status),
+            status: status.into(),
         }))
     }
 }
@@ -57,6 +57,9 @@ mod tests {
 
         // Assert the procedure result
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().into_inner().status, String::from("Running"));
+        assert_eq!(
+            result.unwrap().into_inner().status,
+            proto::InstanceStatus::Running as i32
+        );
     }
 }

@@ -1,6 +1,6 @@
 use controlplane::server::{Server, ServerConfig};
 use proto::instance_client::InstanceClient;
-use proto::{InstanceStatusRequest, InstanceStatusResponse};
+use proto::{InstanceStatus, InstanceStatusRequest, InstanceStatusResponse};
 use proxmox::mock::{MockServer, WithVMStatusReadMock};
 
 #[tokio::test]
@@ -32,7 +32,7 @@ async fn test_the_status_procedure_works() -> Result<(), Box<dyn std::error::Err
     assert_eq!(
         response.unwrap().into_inner(),
         InstanceStatusResponse {
-            status: String::from("Running")
+            status: InstanceStatus::Running as i32,
         }
     );
 

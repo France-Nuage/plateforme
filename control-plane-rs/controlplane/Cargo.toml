@@ -3,27 +3,15 @@ name = "controlplane"
 version = "0.1.0"
 edition = "2024"
 
-# [[bin]]
-# name = "controlplane-server"
-# path = "src/server.rs"
-#
-# [[bin]]
-# name = "controlplane-client"
-# path = "src/client.rs"
-
 [dependencies]
 dotenv = "0.15"
 hypervisor = { path = "../hypervisor" }
-prost = "0.13"
 proto = { path = "../proto" }
 proxmox = { path = "../proxmox" }
 reqwest = { version = "0.12", features = ["json"] }
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1.17"
 tonic = "0.12"
-
-[build-dependencies]
-tonic-build = "0.12"
 
 [dev-dependencies]
 proxmox = { path = "../proxmox", features = ["mock"] }

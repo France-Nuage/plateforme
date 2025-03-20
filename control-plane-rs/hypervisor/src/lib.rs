@@ -51,3 +51,12 @@ pub enum InstanceStatus {
     #[serde(rename = "stopped")]
     Stopped,
 }
+
+impl From<InstanceStatus> for i32 {
+    fn from(status: InstanceStatus) -> i32 {
+        match status {
+            InstanceStatus::Running => proto::InstanceStatus::Running as i32,
+            InstanceStatus::Stopped => proto::InstanceStatus::Stopped as i32,
+        }
+    }
+}
