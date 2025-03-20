@@ -7,6 +7,9 @@ pub mod error;
 pub trait Cluster {
     /// Gets a node belonging to the hypervisor.
     fn node(&self, id: &str) -> impl Node + Send;
+
+    fn instances(&self)
+    -> impl Future<Output = Result<Vec<proto::v0::InstanceInfo>, Error>> + Send;
 }
 
 /// Represents a node.
@@ -55,8 +58,8 @@ pub enum InstanceStatus {
 impl From<InstanceStatus> for i32 {
     fn from(status: InstanceStatus) -> i32 {
         match status {
-            InstanceStatus::Running => proto::InstanceStatus::Running as i32,
-            InstanceStatus::Stopped => proto::InstanceStatus::Stopped as i32,
+            InstanceStatus::Running => proto::v0::InstanceStatus::Running as i32,
+            InstanceStatus::Stopped => proto::v0::InstanceStatus::Stopped as i32,
         }
     }
 }

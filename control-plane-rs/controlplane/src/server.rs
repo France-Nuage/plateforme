@@ -1,5 +1,6 @@
-use super::instance_service::InstanceService;
-use proto::instance_server::InstanceServer;
+use crate::hypervisor_service::HypervisorService;
+
+use proto::v0::hypervisor_server::HypervisorServer;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
 use tokio_stream::wrappers::TcpListenerStream;
@@ -41,7 +42,7 @@ impl Server {
 
         // Create the tonic router
         let mut server = TonicServer::builder();
-        let router = server.add_service(InstanceServer::new(InstanceService::new(
+        let router = server.add_service(HypervisorServer::new(HypervisorService::new(
             config.api_url.clone(),
             client.clone(),
         )));

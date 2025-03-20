@@ -11,6 +11,7 @@ pub use vm::VM;
 
 #[cfg(feature = "mock")]
 pub mod mock {
+    pub use crate::endpoints::cluster_resources_list::mock::WithClusterResourceList;
     pub use crate::endpoints::vm_create::mock::WithVMCreateMock;
     pub use crate::endpoints::vm_delete::mock::WithVMDeleteMock;
     pub use crate::endpoints::vm_list::mock::WithVMListMock;
