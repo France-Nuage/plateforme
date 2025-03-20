@@ -15,8 +15,8 @@ impl<'a, 'b> Node<'a, 'b> {
 }
 
 impl hypervisor::Node for Node<'_, '_> {
-    fn instance(&self, id: u32) -> impl hypervisor::Instance {
-        crate::vm::VM::new(self.api_url, self.client, id, self)
+    fn instance(&self, id: &str) -> impl hypervisor::Instance {
+        crate::vm::VM::new(self.api_url, self.client, id.parse().unwrap(), self)
     }
 
     async fn list_instances(&self) -> Result<(), hypervisor::error::Error> {

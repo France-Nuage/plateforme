@@ -1,10 +1,19 @@
-use tonic::{Request, Response, Status};
-
 use super::proto::instance_server::Instance;
 use super::proto::{InstanceStatusRequest, InstanceStatusResponse};
+use hypervisor::{Cluster, Instance as HypervisorInstance, Node};
+use tonic::{Request, Response, Status};
 
 #[derive(Debug, Default)]
-pub struct InstanceService {}
+pub struct InstanceService {
+    api_url: String,
+    client: reqwest::Client,
+}
+
+impl InstanceService {
+    pub fn new(api_url: String, client: reqwest::Client) -> Self {
+        Self { api_url, client }
+    }
+}
 
 #[tonic::async_trait]
 impl Instance for InstanceService {
@@ -12,7 +21,15 @@ impl Instance for InstanceService {
         &self,
         request: Request<InstanceStatusRequest>,
     ) -> Result<Response<InstanceStatusResponse>, Status> {
+        let request = request.into_inner();
         println!("Request: {:?}", request);
+        let cluster = proxmox::Cluster::new(&self.api_url, &self.client);
+        let result = cluster
+            .node("pve-node1")
+            .instance(&request.id)
+            .status()
+            .await;
+        println!("result: {:?}", result);
         Ok(Response::new(InstanceStatusResponse {
             status: String::from("OK"),
         }))

@@ -16,12 +16,6 @@ pub struct Server {
     pub router: Router,
 }
 
-/// Define the configuration options for the gRPC server.
-#[derive(Debug, Default)]
-pub struct ServerConfig {
-    pub addr: Option<String>,
-}
-
 impl Server {
     /// Create a new gRPC server for the controlplane.
     pub async fn new(config: ServerConfig) -> Result<Self, Box<dyn std::error::Error>> {
@@ -33,9 +27,24 @@ impl Server {
                 .local_addr()?,
         };
 
+        // Create a reqwest client with authentication headers
+        let mut headers = reqwest::header::HeaderMap::new();
+        if let Some(authentication_header) = config.authentication_header {
+            headers.insert(
+                reqwest::header::AUTHORIZATION,
+                reqwest::header::HeaderValue::from_str(&authentication_header)?,
+            );
+        }
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()?;
+
         // Create the tonic router
         let mut server = TonicServer::builder();
-        let router = server.add_service(InstanceServer::new(InstanceService::default()));
+        let router = server.add_service(InstanceServer::new(InstanceService::new(
+            config.api_url.clone(),
+            client.clone(),
+        )));
 
         // Return a Server instance
         Ok(Server { addr, router })
@@ -67,5 +76,23 @@ impl Server {
         });
 
         Ok(shutdown_tx)
+    }
+}
+
+/// Define the configuration options for the gRPC server.
+#[derive(Debug, Default)]
+pub struct ServerConfig {
+    pub addr: Option<String>,
+    pub api_url: String,
+    pub authentication_header: Option<String>,
+}
+
+impl ServerConfig {
+    pub fn new(api_url: String) -> Self {
+        ServerConfig {
+            addr: None,
+            api_url,
+            authentication_header: None,
+        }
     }
 }

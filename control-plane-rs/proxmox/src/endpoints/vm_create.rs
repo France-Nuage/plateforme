@@ -74,7 +74,7 @@ impl<'a> std::convert::From<&'a hypervisor::InstanceConfig<'a>> for VMConfig<'a>
     fn from(config: &'a hypervisor::InstanceConfig) -> Self {
         VMConfig {
             name: Some(config.name),
-            vmid: config.id,
+            vmid: config.id.parse().unwrap(),
             ..Default::default()
         }
     }

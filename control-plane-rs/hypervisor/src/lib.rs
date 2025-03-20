@@ -6,38 +6,38 @@ pub mod error;
 /// Represents a hypervisor.
 pub trait Cluster {
     /// Gets a node belonging to the hypervisor.
-    fn node(&self, id: &str) -> impl Node;
+    fn node(&self, id: &str) -> impl Node + Send;
 }
 
 /// Represents a node.
 pub trait Node {
     /// Gets an instance belonging to the node.
-    fn instance(&self, id: u32) -> impl Instance;
+    fn instance(&self, id: &str) -> impl Instance + Send;
 
     /// Gets the instances belonging to the node.
-    fn list_instances(&self) -> impl Future<Output = Result<(), Error>>;
+    fn list_instances(&self) -> impl Future<Output = Result<(), Error>> + Send;
 }
 
 pub trait Instance {
     /// Creates the instance.
-    fn create(&self, options: &InstanceConfig) -> impl Future<Output = Result<(), Error>>;
+    fn create(&self, options: &InstanceConfig) -> impl Future<Output = Result<(), Error>> + Send;
 
     /// Deletes the instance.
-    fn delete(&self) -> impl Future<Output = Result<(), Error>>;
+    fn delete(&self) -> impl Future<Output = Result<(), Error>> + Send;
 
     /// Starts the instance.
-    fn start(&self) -> impl Future<Output = Result<(), Error>>;
+    fn start(&self) -> impl Future<Output = Result<(), Error>> + Send;
 
     /// Gets the instance status.
-    fn status(&self) -> impl Future<Output = Result<InstanceStatus, Error>>;
+    fn status(&self) -> impl Future<Output = Result<InstanceStatus, Error>> + Send;
 
     /// Stops the instance.
-    fn stop(&self) -> impl Future<Output = Result<(), Error>>;
+    fn stop(&self) -> impl Future<Output = Result<(), Error>> + Send;
 }
 
 pub struct InstanceConfig<'a> {
     /// The instance id.
-    pub id: u32,
+    pub id: &'a str,
 
     /// The instance name.
     pub name: &'a str,
