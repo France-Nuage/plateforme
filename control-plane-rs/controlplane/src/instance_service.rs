@@ -29,9 +29,11 @@ impl Instance for InstanceService {
             .instance(&request.id)
             .status()
             .await;
-        println!("result: {:?}", result);
+
+        let status = result.unwrap();
+
         Ok(Response::new(InstanceStatusResponse {
-            status: String::from("OK"),
+            status: format!("{:?}", status),
         }))
     }
 }
@@ -55,6 +57,6 @@ mod tests {
 
         // Assert the procedure result
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().into_inner().status, String::from("OK"));
+        assert_eq!(result.unwrap().into_inner().status, String::from("Running"));
     }
 }
