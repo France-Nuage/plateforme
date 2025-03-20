@@ -23,3 +23,6 @@ tonic = "0.12"
 
 [build-dependencies]
 tonic-build = "0.12"
+
+[dev-dependencies]
+proxmox = { path = "../proxmox", features = ["mock"] }

@@ -39,11 +39,13 @@ impl Instance for InstanceService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proxmox::mock::{MockServer, WithVMStatusReadMock};
 
     #[tokio::test]
     async fn test_status_works() {
         // Arrange a service and a request for the status procedure
-        let service = InstanceService::default();
+        let server = MockServer::new().await.with_vm_status_read();
+        let service = InstanceService::new(server.url(), reqwest::Client::new());
         let request = Request::new(InstanceStatusRequest {
             id: String::from("666"),
         });

@@ -9,8 +9,15 @@ pub use cluster::Cluster;
 pub use node::Node;
 pub use vm::VM;
 
-#[cfg(test)]
-pub mod tests {
+#[cfg(feature = "mock")]
+pub mod mock {
+    pub use crate::endpoints::vm_create::mock::WithVMCreateMock;
+    pub use crate::endpoints::vm_delete::mock::WithVMDeleteMock;
+    pub use crate::endpoints::vm_list::mock::WithVMListMock;
+    pub use crate::endpoints::vm_status_read::mock::WithVMStatusReadMock;
+    pub use crate::endpoints::vm_status_start::mock::WithVMStatusStartMock;
+    pub use crate::endpoints::vm_status_stop::mock::WithVMStatusStopMock;
+
     pub struct MockServer {
         pub mocks: Vec<mockito::Mock>,
         pub server: mockito::ServerGuard,

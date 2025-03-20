@@ -105,12 +105,11 @@ impl Default for VMConfig<'_> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::tests::MockServer;
+#[cfg(feature = "mock")]
+pub mod mock {
+    use crate::mock::MockServer;
 
-    trait WithVMCreateMock {
+    pub trait WithVMCreateMock {
         fn with_vm_create(self) -> Self;
     }
 
@@ -128,6 +127,12 @@ mod tests {
             self
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mock::{MockServer, WithVMCreateMock};
 
     #[tokio::test]
     async fn test_vm_status_read() {

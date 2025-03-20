@@ -18,12 +18,11 @@ pub async fn vm_list(
 #[derive(Debug, Deserialize)]
 pub struct VMInfo {}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::tests::MockServer;
+#[cfg(feature = "mock")]
+pub mod mock {
+    use crate::mock::MockServer;
 
-    trait WithVMListMock {
+    pub trait WithVMListMock {
         fn with_vm_list(self) -> Self;
     }
 
@@ -41,6 +40,12 @@ mod tests {
             self
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mock::{MockServer, WithVMListMock};
 
     #[tokio::test]
     async fn test_vm_list() {

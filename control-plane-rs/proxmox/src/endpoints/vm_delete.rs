@@ -17,12 +17,11 @@ pub async fn vm_delete(
         .await
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::tests::MockServer;
+#[cfg(feature = "mock")]
+pub mod mock {
+    use crate::mock::MockServer;
 
-    trait WithVMDeleteMock {
+    pub trait WithVMDeleteMock {
         fn with_vm_delete(self) -> Self;
     }
 
@@ -40,6 +39,12 @@ mod tests {
             self
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mock::{MockServer, WithVMDeleteMock};
 
     #[tokio::test]
     async fn test_vm_status_read() {

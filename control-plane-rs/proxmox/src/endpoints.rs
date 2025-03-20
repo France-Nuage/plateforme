@@ -1,9 +1,9 @@
-mod vm_create;
-mod vm_delete;
-mod vm_list;
-mod vm_status_read;
-mod vm_status_start;
-mod vm_status_stop;
+pub mod vm_create;
+pub mod vm_delete;
+pub mod vm_list;
+pub mod vm_status_read;
+pub mod vm_status_start;
+pub mod vm_status_stop;
 
 pub use vm_create::*;
 pub use vm_delete::*;

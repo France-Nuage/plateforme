@@ -17,12 +17,11 @@ pub async fn vm_status_stop(
         .await
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::tests::MockServer;
+#[cfg(feature = "mock")]
+pub mod mock {
+    use crate::mock::MockServer;
 
-    trait WithVMStatusStopMock {
+    pub trait WithVMStatusStopMock {
         fn with_vm_status_stop(self) -> Self;
     }
 
@@ -42,6 +41,12 @@ mod tests {
             self
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mock::{MockServer, WithVMStatusStopMock};
 
     #[tokio::test]
     async fn test_vm_status_read() {
