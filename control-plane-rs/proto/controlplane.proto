@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package controlplane.v0;
+package francenuage.fr.api.controlplane.v1;
 
 import "google/protobuf/empty.proto";
 
