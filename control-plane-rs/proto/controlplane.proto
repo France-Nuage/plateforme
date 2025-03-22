@@ -2,7 +2,8 @@ syntax = "proto3";
 package francenuage.fr.api.controlplane.v1;
 
 import "google/protobuf/empty.proto";
-import "problems.proto";
+import "validate/validate.proto";
+import "problem.proto";
 
 // ControlPlane service provides operations to manage virtual machine instances.
 service Hypervisor {
@@ -22,22 +23,40 @@ service Hypervisor {
 // InstanceInfo contains detailed information about a virtual machine instance.
 message InstanceInfo {
     // Unique identifier for the instance
-    string id = 1;
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
     
     // Current operational status of the instance
-    InstanceStatus status = 2;
+    InstanceStatus status = 2 [(validate.rules).enum = {
+        defined_only: true  // Must be a defined enum value
+    }];
     
-    // Maximum CPU cores available to the instance
-    uint32 max_cpu_cores = 3;
+    // Maximum CPU cores available to the instance (max 99)
+    uint32 max_cpu_cores = 3 [(validate.rules).uint32 = {
+        gt: 0,  // Must have at least 1 core
+        lte: 99  // Maximum 99 cores
+    }];
     
     // Current CPU utilization as a percentage (0.0-100.0)
-    float cpu_usage_percent = 4;
+    float cpu_usage_percent = 4 [(validate.rules).float = { 
+        gte: 0.0, 
+        lte: 100.0 
+    }];
     
-    // Maximum memory available to the instance (in bytes)
-    uint64 max_memory_bytes = 5;
+    // Maximum memory available to the instance (in bytes, max 64GB)
+    uint64 max_memory_bytes = 5 [(validate.rules).uint64 = {
+        gt: 0,  // Must have some memory
+        lte: 68719476736,  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
+    }];
     
-    // Current memory utilization (in bytes)
-    uint64 memory_usage_bytes = 6;
+    // Current memory utilization (in bytes, cannot exceed max_memory_bytes)
+    uint64 memory_usage_bytes = 6 [(validate.rules).uint64 = {
+        gte: 0  // Cannot be negative
+        lte: 68719476736,  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
+    }];
 }
 
 // InstanceStatus represents the possible states of a virtual machine instance.
@@ -56,7 +75,7 @@ message ListInstancesResponse {
         InstanceList success = 1;
         
         // Problem details on failure
-        francenuage.fr.api.common.v1.ProblemDetails problem = 2;
+        francenuage.fr.api.controlplane.v1.ProblemDetails problem = 2;
     }
 }
 
@@ -79,7 +98,7 @@ message StartInstanceResponse {
         google.protobuf.Empty success = 1;
         
         // Problem details on failure
-        francenuage.fr.api.common.v1.ProblemDetails problem = 2;
+        francenuage.fr.api.controlplane.v1.ProblemDetails problem = 2;
     }
 }
 
@@ -96,6 +115,6 @@ message StopInstanceResponse {
         google.protobuf.Empty success = 1;
         
         // Problem details on failure
-        francenuage.fr.api.common.v1.ProblemDetails problem = 2;
+        francenuage.fr.api.controlplane.v1.ProblemDetails problem = 2;
     }
 }

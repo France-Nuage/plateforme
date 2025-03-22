@@ -21,10 +21,14 @@ impl Hypervisor for HypervisorService {
         _: tonic::Request<()>,
     ) -> std::result::Result<tonic::Response<proto::v0::ListInstancesResponse>, tonic::Status> {
         Ok(tonic::Response::new(proto::v0::ListInstancesResponse {
-            instances: proxmox::Cluster::new(&self.api_url, &self.client)
-                .instances()
-                .await
-                .unwrap(),
+            result: Some(proto::v0::list_instances_response::Result::Success(
+                proto::v0::InstanceList {
+                    instances: proxmox::Cluster::new(&self.api_url, &self.client)
+                        .instances()
+                        .await
+                        .unwrap(),
+                },
+            )),
         }))
     }
 
@@ -32,7 +36,7 @@ impl Hypervisor for HypervisorService {
     async fn start_instance(
         &self,
         request: tonic::Request<proto::v0::StartInstanceRequest>,
-    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<proto::v0::StartInstanceResponse>, tonic::Status> {
         proxmox::Cluster::new(&self.api_url, &self.client)
             .node("pve-node1")
             .instance(&request.into_inner().id)
@@ -40,21 +44,25 @@ impl Hypervisor for HypervisorService {
             .await
             .unwrap();
 
-        Ok(tonic::Response::new(()))
+        Ok(tonic::Response::new(proto::v0::StartInstanceResponse {
+            result: Some(proto::v0::start_instance_response::Result::Success(())),
+        }))
     }
 
     /// TODO: docgen with prost
     async fn stop_instance(
         &self,
         request: tonic::Request<proto::v0::StopInstanceRequest>,
-    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<proto::v0::StopInstanceResponse>, tonic::Status> {
         proxmox::Cluster::new(&self.api_url, &self.client)
             .node("pve-node1")
             .instance(&request.into_inner().id)
             .stop()
             .await
             .unwrap();
-        Ok(tonic::Response::new(()))
+        Ok(tonic::Response::new(proto::v0::StopInstanceResponse {
+            result: Some(proto::v0::stop_instance_response::Result::Success(())),
+        }))
     }
 }
 
@@ -76,7 +84,21 @@ mod tests {
 
         // Assert the procedure result
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().into_inner().instances.len(), 1);
+        let response = result.unwrap().into_inner();
+        // Check that we have a Success result
+        assert!(matches!(
+            response.result,
+            Some(proto::v0::list_instances_response::Result::Success(_))
+        ));
+
+        // If we need to access the instances
+        if let Some(proto::v0::list_instances_response::Result::Success(instance_list)) =
+            response.result
+        {
+            assert_eq!(instance_list.instances.len(), 1);
+        } else {
+            panic!("Expected Success result variant");
+        }
     }
 
     #[tokio::test]

@@ -27,7 +27,22 @@ async fn test_the_list_instances_procedure_works() -> Result<(), Box<dyn std::er
 
     // Assert the result
     assert!(response.is_ok());
-    assert_eq!(response.unwrap().into_inner().instances.len(), 1);
+
+    // Get the inner response
+    let inner_response = response.unwrap().into_inner();
+
+    // Check that we have a Success result
+    match inner_response.result {
+        Some(proto::v0::list_instances_response::Result::Success(instance_list)) => {
+            assert_eq!(instance_list.instances.len(), 1);
+        }
+        Some(proto::v0::list_instances_response::Result::Problem(problem)) => {
+            panic!("Expected Success result, got Problem: {}", problem.title);
+        }
+        None => {
+            panic!("Expected Some result, got None");
+        }
+    }
 
     // Shutdown the server
     shutdown_tx.send(()).ok();

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package francenuage.fr.api.common.v1;
+package francenuage.fr.api.controlplane.v1;
 
 // Status codes that can be used with ProblemDetails
 enum StatusCode {
