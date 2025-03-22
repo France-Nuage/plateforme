@@ -61,19 +61,53 @@ impl Hypervisor for HypervisorService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use proxmox::mock::{MockServer, WithClusterResourceList};
+    use proxmox::mock::{
+        MockServer, WithClusterResourceList, WithVMStatusStartMock, WithVMStatusStopMock,
+    };
 
     #[tokio::test]
     async fn test_list_instances_works() {
-        // Arrange a service and a request for the status procedure
+        // Arrange a service and a request for the list_instances procedure
         let server = MockServer::new().await.with_cluster_resource_list();
         let service = HypervisorService::new(server.url(), reqwest::Client::new());
 
-        // Act the call to the status procedure
+        // Act the call to the list_instances procedure
         let result = service.list_instances(tonic::Request::new(())).await;
 
         // Assert the procedure result
         assert!(result.is_ok());
         assert_eq!(result.unwrap().into_inner().instances.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_start_instance_works() {
+        // Arrange a service and a request for the start_instance procedure
+        let server = MockServer::new().await.with_vm_status_start();
+        let service = HypervisorService::new(server.url(), reqwest::Client::new());
+
+        // Act the call to the start_instance procedure
+        let request = tonic::Request::new(proto::v0::StartInstanceRequest {
+            id: String::from("100"),
+        });
+        let result = service.start_instance(request).await;
+
+        // Assert the procedure result
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_stop_instance_works() {
+        // Arrange a service and a request for the start_instance procedure
+        let server = MockServer::new().await.with_vm_status_stop();
+        let service = HypervisorService::new(server.url(), reqwest::Client::new());
+
+        // Act the call to the start_instance procedure
+        let request = tonic::Request::new(proto::v0::StopInstanceRequest {
+            id: String::from("100"),
+        });
+        let result = service.stop_instance(request).await;
+
+        // Assert the procedure result
+        assert!(result.is_ok());
     }
 }

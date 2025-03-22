@@ -3,21 +3,20 @@ syntax = "proto3";
 package francenuage.fr.api.controlplane.v1;
 
 import "google/protobuf/empty.proto";
-import "google/rpc/status.proto";
 
 // ControlPlane service provides operations to manage virtual machine instances.
 service Hypervisor {
     // ListInstances retrieves information about all available instances.
     // Returns a collection of instance details including their current status and resource usage.
     rpc ListInstances (google.protobuf.Empty) returns (ListInstancesResponse);
-    
+
     // StartInstance initiates a specific instance identified by its unique ID.
     // Returns an empty response on success.
-    rpc StartInstance (StartInstanceRequest) returns (StartInstanceResponse);
-    
+    rpc StartInstance (StartInstanceRequest) returns (google.protobuf.Empty);
+
     // StopInstance halts a specific instance identified by its unique ID.
     // Returns an empty response on success.
-    rpc StopInstance (StopInstanceRequest) returns (StopInstanceResponse);
+    rpc StopInstance (StopInstanceRequest) returns (google.protobuf.Empty);
 }
 
 // InstanceInfo contains detailed information about a virtual machine instance.
@@ -45,48 +44,16 @@ message InstanceInfo {
 enum InstanceStatus {
     // Instance is active and operational
     RUNNING = 0;
+
     // Instance is inactive
     STOPPED = 1;
 }
 
-// ListInstancesResponse contains a collection of instance information or an error.
+// ListInstancesResponse contains a collection of instance information.
 message ListInstancesResponse {
-  oneof result {
-    // List of instance details on success
-    InstancesList data = 1;
-    // Error details on failure
-    google.rpc.Status error = 2;
-  }
-}
-
-// InstancesList contains the actual list of instances
-message InstancesList {
   // List of instance details
   repeated InstanceInfo instances = 1;
 }
-
-// StartInstanceResponse represents the result of a start instance operation.
-message StartInstanceResponse {
-  oneof result {
-    // Success indicator (using empty message as there's no specific data to return)
-    Success success = 1;
-    // Error details on failure
-    google.rpc.Status error = 2;
-  }
-}
-
-// StopInstanceResponse represents the result of a stop instance operation.
-message StopInstanceResponse {
-  oneof result {
-    // Success indicator (using empty message as there's no specific data to return)
-    Success success = 1;
-    // Error details on failure
-    google.rpc.Status error = 2;
-  }
-}
-
-// Empty message used to indicate success in responses
-message Success {}
 
 // StartInstanceRequest identifies which instance to start.
 message StartInstanceRequest {
