@@ -2,7 +2,7 @@ syntax = "proto3";
 package francenuage.fr.api.controlplane.v1;
 
 import "google/protobuf/empty.proto";
-import "validate/validate.proto";
+import "validate.proto";
 import "problem.proto";
 
 // ControlPlane service provides operations to manage virtual machine instances.

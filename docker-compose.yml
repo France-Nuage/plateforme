@@ -42,13 +42,13 @@ services:
       - /app/node_modules
     working_dir: /app/apps/control-plane
 
-  control-plane-rs:
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:${CI_COMMIT_REF_SLUG:-latest}"
+  controlplane:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}"
     build:
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:staging
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}control-plane-rs:production
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:staging
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:production
       context: control-plane-rs
       target: ${TARGET:-development}
     environment:
@@ -57,13 +57,13 @@ services:
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
       RUSTFLAGS: "-Cinstrument-coverage"
-    container_name: control-plane-rs
+    container_name: controlplane
     ports:
       - "80:80"
     profiles:
       - donotstart
     volumes:
-      - ./control-plane-rs:/app
+      - ./controlplane:/app
 
   control-plane-setup:
     image: docker:27-cli
