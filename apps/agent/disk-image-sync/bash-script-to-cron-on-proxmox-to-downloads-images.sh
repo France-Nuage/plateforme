@@ -17,6 +17,13 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
 
+# Fonction de debug
+debug_log() {
+    if [ "$DEBUG" = true ]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - DEBUG: $1" | tee -a "$LOG_FILE"
+    fi
+}
+
 # Vérifier l'espace disque utilisé par le répertoire en Go
 check_disk_usage() {
     # Get size in bytes and convert to GB
@@ -82,23 +89,29 @@ while read -r image_url; do
         if [[ "$image_url" == *cloud.debian.org* ]] || [[ "$image_url" == *ubuntu.com* ]]; then
             # Pour Debian, vérifier la date dans l'URL
             if [[ "$image_url" == *cloud.debian.org* ]]; then
-                # Extraire la date de l'URL
-                url_date=$(echo "$image_url" | grep -o -E "[0-9]{8}-[0-9]{4}")
+                # Extraire la date de l'URL - utiliser une regex plus précise
+                url_date=$(echo "$image_url" | grep -o -E "/[0-9]{8}-[0-9]{4}/" | tr -d '/')
+                
+                if [ -z "$url_date" ]; then
+                    # Tentative alternative d'extraction
+                    url_date=$(echo "$image_url" | grep -o -E "[0-9]{8}-[0-9]{4}" | head -1)
+                fi
+                
+                # Extraire la date du nom du fichier local
                 local_file_basename=$(basename "$local_path")
                 filename_date=$(echo "$local_file_basename" | grep -o -E "[0-9]{8}-[0-9]{4}")
                 
                 # Debug - afficher les dates extraites
-                log "Comparaison: URL date ($url_date) vs Fichier local date ($filename_date)"
+                debug_log "URL brute: $image_url"
+                debug_log "URL date extraite: $url_date"
+                debug_log "Fichier local: $local_file_basename"
+                debug_log "Date fichier local extraite: $filename_date"
                 
                 # Vérifier si nous avons une date à comparer
                 if [ -n "$url_date" ] && [ -n "$filename_date" ]; then
-                    # Nettoyage des dates pour une comparaison exacte
-                    url_date_clean=$(echo "$url_date" | tr -d '[:space:]')
-                    filename_date_clean=$(echo "$filename_date" | tr -d '[:space:]')
-                    
                     # Si les dates sont différentes, il faut télécharger
-                    if [ "$url_date_clean" != "$filename_date_clean" ]; then
-                        log "Date différente dans l'URL ($url_date_clean) et le fichier local ($filename_date_clean), téléchargement de la nouvelle version"
+                    if [ "$url_date" != "$filename_date" ]; then
+                        log "Date différente dans l'URL ($url_date) et le fichier local ($filename_date), téléchargement de la nouvelle version"
                         # Continuer avec le téléchargement
                     else
                         # Même date, pas besoin de télécharger
