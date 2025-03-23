@@ -87,11 +87,18 @@ while read -r image_url; do
                 local_file_basename=$(basename "$local_path")
                 filename_date=$(echo "$local_file_basename" | grep -o -E "[0-9]{8}-[0-9]{4}")
                 
+                # Debug - afficher les dates extraites
+                log "Comparaison: URL date ($url_date) vs Fichier local date ($filename_date)"
+                
                 # Vérifier si nous avons une date à comparer
                 if [ -n "$url_date" ] && [ -n "$filename_date" ]; then
+                    # Nettoyage des dates pour une comparaison exacte
+                    url_date_clean=$(echo "$url_date" | tr -d '[:space:]')
+                    filename_date_clean=$(echo "$filename_date" | tr -d '[:space:]')
+                    
                     # Si les dates sont différentes, il faut télécharger
-                    if [ "$url_date" != "$filename_date" ]; then
-                        log "Date différente dans l'URL ($url_date) et le fichier local ($filename_date), téléchargement de la nouvelle version"
+                    if [ "$url_date_clean" != "$filename_date_clean" ]; then
+                        log "Date différente dans l'URL ($url_date_clean) et le fichier local ($filename_date_clean), téléchargement de la nouvelle version"
                         # Continuer avec le téléchargement
                     else
                         # Même date, pas besoin de télécharger
@@ -115,7 +122,12 @@ while read -r image_url; do
                         continue
                     fi
                     
-                    # Si on ne peut pas comparer les tailles, on télécharge
+                    # Si on ne peut pas comparer les tailles, on utilise curl avec l'option -z
+                    if curl -s -z "$local_path" -o /dev/null -w "%{http_code}" "$image_url" | grep -q "304"; then
+                        log "Fichier non modifié selon curl -z, pas besoin de télécharger"
+                        continue
+                    fi
+                    
                     log "Impossible de vérifier si $filename est à jour, téléchargement..."
                 fi
             # Pour Ubuntu, comparer les tailles
@@ -150,6 +162,19 @@ while read -r image_url; do
                         continue
                     fi
                 fi
+            fi
+            
+            # Si on ne peut pas vérifier par date, essayer par taille
+            local_size=$(stat -c%s "$local_path")
+            
+            # On fait une requête pour obtenir la taille du fichier distant
+            if command -v wget >/dev/null 2>&1; then
+                remote_size=$(wget --spider --server-response "$image_url" 2>&1 | grep -i "content-length" | awk '{print $2}' | tr -d '\r\n')
+            fi
+            
+            if [ -n "$remote_size" ] && [ "$remote_size" -eq "$local_size" ]; then
+                log "Taille identique pour $filename, pas besoin de télécharger"
+                continue
             fi
         fi
     fi
