@@ -54,8 +54,12 @@ services:
     environment:
       CARGO_INCREMENTAL: "0"
       LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
+      PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
+      PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
       RUSTFLAGS: "-Cinstrument-coverage"
     container_name: control-plane-rs
+    ports:
+      - "80:80"
     profiles:
       - donotstart
     volumes:
