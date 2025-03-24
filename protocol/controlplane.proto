@@ -9,7 +9,7 @@ import "problem.proto";
 service Hypervisor {
     // ListInstances retrieves information about all available instances.
     // Returns a collection of instance details including their current status and resource usage.
-    rpc ListInstances (google.protobuf.Empty) returns (ListInstancesResponse);
+    rpc ListInstances (ListInstancesRequest) returns (ListInstancesResponse);
     
     // StartInstance initiates a specific instance identified by its unique ID.
     // Returns a response indicating success or a ProblemDetails on failure.
@@ -67,6 +67,9 @@ enum InstanceStatus {
     // Instance is inactive
     STOPPED = 1;
 }
+
+// ListInstancesRequest is an empty message for listing instances.
+message ListInstancesRequest {}
 
 // ListInstancesResponse contains a collection of instance information.
 message ListInstancesResponse {

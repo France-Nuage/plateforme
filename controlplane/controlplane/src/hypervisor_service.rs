@@ -18,7 +18,7 @@ impl Hypervisor for HypervisorService {
     /// TODO: docgen with prost
     async fn list_instances(
         &self,
-        _: tonic::Request<()>,
+        _: tonic::Request<proto::v0::ListInstancesRequest>,
     ) -> std::result::Result<tonic::Response<proto::v0::ListInstancesResponse>, tonic::Status> {
         Ok(tonic::Response::new(proto::v0::ListInstancesResponse {
             result: Some(proto::v0::list_instances_response::Result::Success(
@@ -69,6 +69,7 @@ impl Hypervisor for HypervisorService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proto::v0::ListInstancesRequest;
     use proxmox::mock::{
         MockServer, WithClusterResourceList, WithVMStatusStartMock, WithVMStatusStopMock,
     };
@@ -80,7 +81,9 @@ mod tests {
         let service = HypervisorService::new(server.url(), reqwest::Client::new());
 
         // Act the call to the list_instances procedure
-        let result = service.list_instances(tonic::Request::new(())).await;
+        let result = service
+            .list_instances(tonic::Request::new(ListInstancesRequest::default()))
+            .await;
 
         // Assert the procedure result
         assert!(result.is_ok());

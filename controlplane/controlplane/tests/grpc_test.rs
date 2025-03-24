@@ -23,7 +23,9 @@ async fn test_the_list_instances_procedure_works() -> Result<(), Box<dyn std::er
     let mut client = HypervisorClient::connect(format!("http://{}", addr)).await?;
 
     // Act the request to the test_the_status_procedure_works
-    let response = client.list_instances(()).await;
+    let response = client
+        .list_instances(proto::v0::ListInstancesRequest::default())
+        .await;
 
     // Assert the result
     assert!(response.is_ok());
