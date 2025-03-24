@@ -143,10 +143,9 @@ services:
         condition: service_completed_successfully
     environment:
       API_URL: http://control-plane:3333
-      PLATFORM_URL: http://platform:3000
+      BASE_URL: http://platform:3000
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
       PW_TEST_HTML_REPORT_OPEN: "never"
-      WAIT_HOSTS: "platform:3000,control-plane:3333"
       INTEGRATION_TESTS_TIMEOUT: 30000
     deploy:
       resources:
