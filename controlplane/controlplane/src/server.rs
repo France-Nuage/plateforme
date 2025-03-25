@@ -41,10 +41,9 @@ impl Server {
             .build()?;
 
         // Create the tonic router
-        let mut server = TonicServer::builder();
-        let router = server.add_service(HypervisorServer::new(HypervisorService::new(
-            config.api_url.clone(),
-            client.clone(),
+        let mut server = TonicServer::builder().accept_http1(true);
+        let router = server.add_service(tonic_web::enable(HypervisorServer::new(
+            HypervisorService::new(config.api_url.clone(), client.clone()),
         )));
 
         // Return a Server instance
