@@ -1,5 +1,11 @@
 use hypervisor::{Cluster, Instance, Node};
-use proto::v0::hypervisor_server::Hypervisor;
+use proto::v0::{
+    InstanceList, ListInstancesRequest, ListInstancesResponse, StartInstanceRequest,
+    StartInstanceResponse, StopInstanceRequest, StopInstanceResponse,
+    hypervisor_server::Hypervisor,
+};
+use std::result::Result;
+use tonic::{Request, Response};
 
 #[derive(Debug, Default)]
 pub struct HypervisorService {
@@ -18,11 +24,11 @@ impl Hypervisor for HypervisorService {
     /// TODO: docgen with prost
     async fn list_instances(
         &self,
-        _: tonic::Request<proto::v0::ListInstancesRequest>,
-    ) -> std::result::Result<tonic::Response<proto::v0::ListInstancesResponse>, tonic::Status> {
-        Ok(tonic::Response::new(proto::v0::ListInstancesResponse {
+        _: Request<ListInstancesRequest>,
+    ) -> Result<Response<ListInstancesResponse>, tonic::Status> {
+        Ok(Response::new(ListInstancesResponse {
             result: Some(proto::v0::list_instances_response::Result::Success(
-                proto::v0::InstanceList {
+                InstanceList {
                     instances: proxmox::Cluster::new(&self.api_url, &self.client)
                         .instances()
                         .await
@@ -35,8 +41,8 @@ impl Hypervisor for HypervisorService {
     /// TODO: docgen with prost
     async fn start_instance(
         &self,
-        request: tonic::Request<proto::v0::StartInstanceRequest>,
-    ) -> std::result::Result<tonic::Response<proto::v0::StartInstanceResponse>, tonic::Status> {
+        request: Request<StartInstanceRequest>,
+    ) -> Result<Response<StartInstanceResponse>, tonic::Status> {
         proxmox::Cluster::new(&self.api_url, &self.client)
             .node("pve-node1")
             .instance(&request.into_inner().id)
@@ -44,7 +50,7 @@ impl Hypervisor for HypervisorService {
             .await
             .unwrap();
 
-        Ok(tonic::Response::new(proto::v0::StartInstanceResponse {
+        Ok(Response::new(StartInstanceResponse {
             result: Some(proto::v0::start_instance_response::Result::Success(())),
         }))
     }
@@ -52,15 +58,15 @@ impl Hypervisor for HypervisorService {
     /// TODO: docgen with prost
     async fn stop_instance(
         &self,
-        request: tonic::Request<proto::v0::StopInstanceRequest>,
-    ) -> std::result::Result<tonic::Response<proto::v0::StopInstanceResponse>, tonic::Status> {
+        request: Request<StopInstanceRequest>,
+    ) -> Result<Response<StopInstanceResponse>, tonic::Status> {
         proxmox::Cluster::new(&self.api_url, &self.client)
             .node("pve-node1")
             .instance(&request.into_inner().id)
             .stop()
             .await
             .unwrap();
-        Ok(tonic::Response::new(proto::v0::StopInstanceResponse {
+        Ok(Response::new(StopInstanceResponse {
             result: Some(proto::v0::stop_instance_response::Result::Success(())),
         }))
     }
@@ -73,6 +79,7 @@ mod tests {
     use proxmox::mock::{
         MockServer, WithClusterResourceList, WithVMStatusStartMock, WithVMStatusStopMock,
     };
+    use tonic::Request;
 
     #[tokio::test]
     async fn test_list_instances_works() {
@@ -82,7 +89,7 @@ mod tests {
 
         // Act the call to the list_instances procedure
         let result = service
-            .list_instances(tonic::Request::new(ListInstancesRequest::default()))
+            .list_instances(Request::new(ListInstancesRequest::default()))
             .await;
 
         // Assert the procedure result
@@ -111,7 +118,7 @@ mod tests {
         let service = HypervisorService::new(server.url(), reqwest::Client::new());
 
         // Act the call to the start_instance procedure
-        let request = tonic::Request::new(proto::v0::StartInstanceRequest {
+        let request = Request::new(proto::v0::StartInstanceRequest {
             id: String::from("100"),
         });
         let result = service.start_instance(request).await;
@@ -127,7 +134,7 @@ mod tests {
         let service = HypervisorService::new(server.url(), reqwest::Client::new());
 
         // Act the call to the start_instance procedure
-        let request = tonic::Request::new(proto::v0::StopInstanceRequest {
+        let request = Request::new(proto::v0::StopInstanceRequest {
             id: String::from("100"),
         });
         let result = service.stop_instance(request).await;
