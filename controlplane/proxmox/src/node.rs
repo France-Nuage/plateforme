@@ -19,7 +19,7 @@ impl hypervisor::Node for Node<'_, '_> {
         crate::vm::VM::new(self.api_url, self.client, id.parse().unwrap(), self)
     }
 
-    async fn list_instances(&self) -> Result<(), hypervisor::error::Error> {
+    async fn list_instances(&self) -> Result<(), hypervisor::problem::Problem> {
         crate::endpoints::vm_list(self.api_url, self.client, self.id)
             .await
             .unwrap();

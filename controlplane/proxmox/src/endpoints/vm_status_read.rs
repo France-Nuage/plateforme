@@ -8,7 +8,7 @@ pub async fn vm_status_read(
     client: &reqwest::Client,
     node_id: &str,
     vm_id: u32,
-) -> Result<ApiResponse<VMStatus>, crate::error::Error> {
+) -> Result<ApiResponse<VMStatus>, crate::problem::Problem> {
     client
         .get(format!(
             "{}/api2/json/nodes/{}/qemu/{}/status/current",

@@ -5,7 +5,7 @@ pub async fn vm_delete(
     client: &reqwest::Client,
     node_id: &str,
     vm_id: u32,
-) -> Result<ApiResponse<String>, crate::error::Error> {
+) -> Result<ApiResponse<String>, crate::problem::Problem> {
     client
         .delete(format!(
             "{}/api2/json/nodes/{}/qemu/{}",

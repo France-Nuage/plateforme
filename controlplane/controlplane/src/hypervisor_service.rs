@@ -75,7 +75,7 @@ impl Hypervisor for HypervisorService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use proto::v0::ListInstancesRequest;
+    use proto::v0::{ListInstancesRequest, StartInstanceRequest};
     use proxmox::mock::{
         MockServer, WithClusterResourceList, WithVMStatusStartMock, WithVMStatusStopMock,
     };
@@ -118,7 +118,7 @@ mod tests {
         let service = HypervisorService::new(server.url(), reqwest::Client::new());
 
         // Act the call to the start_instance procedure
-        let request = Request::new(proto::v0::StartInstanceRequest {
+        let request = Request::new(StartInstanceRequest {
             id: String::from("100"),
         });
         let result = service.start_instance(request).await;

@@ -5,7 +5,7 @@ pub async fn vm_status_stop(
     client: &reqwest::Client,
     node_id: &str,
     vm_id: u32,
-) -> Result<ApiResponse<String>, crate::error::Error> {
+) -> Result<ApiResponse<String>, crate::problem::Problem> {
     client
         .post(format!(
             "{}/api2/json/nodes/{}/qemu/{}/status/stop",

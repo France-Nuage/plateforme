@@ -18,13 +18,13 @@ pub struct ApiInternalErrorResponse {
 }
 
 pub trait ApiResponseExt {
-    async fn to_api_response<T>(self) -> Result<ApiResponse<T>, crate::error::Error>
+    async fn to_api_response<T>(self) -> Result<ApiResponse<T>, crate::problem::Problem>
     where
         T: DeserializeOwned;
 }
 
 impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
-    async fn to_api_response<T>(self) -> Result<ApiResponse<T>, crate::error::Error>
+    async fn to_api_response<T>(self) -> Result<ApiResponse<T>, crate::problem::Problem>
     where
         T: DeserializeOwned,
     {
@@ -33,7 +33,7 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
             reqwest::StatusCode::OK => response.json::<ApiResponse<T>>().await.map_err(Into::into),
             reqwest::StatusCode::BAD_REQUEST => {
                 let response = response.json::<ApiInvalidResponse>().await?;
-                Err(crate::error::Error::Invalid { response })
+                Err(crate::problem::Problem::Invalid { response })
             }
             reqwest::StatusCode::INTERNAL_SERVER_ERROR => {
                 let vm_not_found_rx = Regex::new(
@@ -43,12 +43,12 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
                 let response = response.json::<ApiInternalErrorResponse>().await?;
 
                 if let Some(vm_id) = vm_not_found_rx.captures(&response.message) {
-                    return Err(crate::error::Error::VMNotFound {
+                    return Err(crate::problem::Problem::VMNotFound {
                         id: vm_id.get(1).unwrap().as_str().to_string(),
                         response,
                     });
                 }
-                Err(crate::error::Error::Internal { response })
+                Err(crate::problem::Problem::Internal { response })
             }
             _ => panic!("Unexpected response status: {:?}", response.status()),
         }

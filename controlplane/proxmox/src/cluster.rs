@@ -11,7 +11,9 @@ impl<'a> Cluster<'a> {
 }
 
 impl hypervisor::Cluster for Cluster<'_> {
-    async fn instances(&self) -> Result<Vec<proto::v0::InstanceInfo>, hypervisor::error::Error> {
+    async fn instances(
+        &self,
+    ) -> Result<Vec<proto::v0::InstanceInfo>, hypervisor::problem::Problem> {
         Ok(
             crate::endpoints::cluster_resource_list(self.api_url, self.client)
                 .await?

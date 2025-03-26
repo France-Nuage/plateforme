@@ -6,7 +6,7 @@ pub async fn vm_list(
     api_url: &str,
     client: &reqwest::Client,
     node_id: &str,
-) -> Result<ApiResponse<Vec<VMInfo>>, crate::error::Error> {
+) -> Result<ApiResponse<Vec<VMInfo>>, crate::problem::Problem> {
     client
         .get(format!("{}/api2/json/nodes/{}/qemu", api_url, node_id))
         .send()

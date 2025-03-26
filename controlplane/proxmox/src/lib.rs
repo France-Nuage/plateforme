@@ -1,8 +1,8 @@
 mod api_response;
 mod cluster;
 mod endpoints;
-mod error;
 mod node;
+mod problem;
 mod vm;
 
 pub use cluster::Cluster;

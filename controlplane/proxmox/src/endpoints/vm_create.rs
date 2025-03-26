@@ -8,7 +8,7 @@ pub async fn vm_create(
     client: &reqwest::Client,
     node_id: &str,
     options: &VMConfig<'_>,
-) -> Result<ApiResponse<String>, crate::error::Error> {
+) -> Result<ApiResponse<String>, crate::problem::Problem> {
     client
         .post(format!("{}/api2/json/nodes/{}/qemu", api_url, node_id))
         .json(options)

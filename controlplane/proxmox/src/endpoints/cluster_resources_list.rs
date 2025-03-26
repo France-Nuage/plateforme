@@ -6,7 +6,7 @@ use crate::api_response::{ApiResponse, ApiResponseExt};
 pub async fn cluster_resource_list(
     api_url: &str,
     client: &reqwest::Client,
-) -> Result<ApiResponse<Vec<Resource>>, crate::error::Error> {
+) -> Result<ApiResponse<Vec<Resource>>, crate::problem::Problem> {
     client
         .get(format!("{}/api2/json/cluster/resources?type=vm", api_url))
         .send()

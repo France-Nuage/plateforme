@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum Error {
+pub enum Problem {
     #[error("instance {vm_id} not found")]
     InstanceNotFound {
         vm_id: String,

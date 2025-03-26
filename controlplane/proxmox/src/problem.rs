@@ -3,7 +3,7 @@ use thiserror::Error;
 use crate::api_response::{ApiInternalErrorResponse, ApiInvalidResponse};
 
 #[derive(Debug, Error)]
-pub enum Error {
+pub enum Problem {
     #[error("Proxmox Connectivity Error: {0:?}")]
     Connectivity(#[from] reqwest::Error),
 
@@ -23,14 +23,16 @@ pub enum Error {
     Other(Box<dyn std::error::Error>),
 }
 
-impl From<Error> for hypervisor::error::Error {
-    fn from(value: Error) -> Self {
+impl From<Problem> for hypervisor::problem::Problem {
+    fn from(value: Problem) -> Self {
         match &value {
-            Error::VMNotFound { id, response: _ } => hypervisor::error::Error::InstanceNotFound {
-                vm_id: id.clone(),
-                source: Box::new(value),
-            },
-            _ => hypervisor::error::Error::Other {
+            Problem::VMNotFound { id, response: _ } => {
+                hypervisor::problem::Problem::InstanceNotFound {
+                    vm_id: id.clone(),
+                    source: Box::new(value),
+                }
+            }
+            _ => hypervisor::problem::Problem::Other {
                 source: Box::new(value),
             },
         }
