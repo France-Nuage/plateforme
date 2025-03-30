@@ -1,0 +1,38 @@
+use thiserror::Error;
+
+use super::api_response::{ApiInternalErrorResponse, ApiInvalidResponse};
+
+#[derive(Debug, Error)]
+pub enum Problem {
+    #[error("Proxmox Connectivity Error: {0:?}")]
+    Connectivity(#[from] reqwest::Error),
+
+    #[error("Proxmox Internal Server Error: {}", .response.message)]
+    Internal { response: ApiInternalErrorResponse },
+
+    #[error("Proxmox Validation Error: {}", .response.message)]
+    Invalid { response: ApiInvalidResponse },
+
+    #[error("Proxmox VM Not Found: {id}")]
+    VMNotFound {
+        id: String,
+        response: ApiInternalErrorResponse,
+    },
+
+    #[error("Internal error: {0}")]
+    Other(Box<dyn std::error::Error>),
+}
+
+impl From<Problem> for hypervisor_connector::Problem {
+    fn from(value: Problem) -> Self {
+        match &value {
+            Problem::VMNotFound { id, response: _ } => {
+                hypervisor_connector::Problem::InstanceNotFound {
+                    id: id.clone(),
+                    source: Box::new(value),
+                }
+            }
+            _ => hypervisor_connector::Problem::Other(Box::new(value)),
+        }
+    }
+}

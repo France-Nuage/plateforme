@@ -1,10 +1,10 @@
 [workspace]
 
 members = [
-  "controlplane", 
-  "hypervisor",
-  "proto",
-  "proxmox"
+  "hypervisor_connector",
+  "hypervisor_connector_proxmox",
+  "instance",
+  "server"
 ]
 
 resolver = "3"

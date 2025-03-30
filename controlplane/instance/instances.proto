@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package francenuage.fr.api.controlplane.v1.instances;
+
+import "google/protobuf/empty.proto";
+import "problem.proto";
+import "validate.proto";
+
+// Instances service provides operations to manage instances.
+service Instances {
+    // ListInstances retrieves information about all available instances.
+    // Returns a collection of instance details including their current status and resource usage.
+    rpc ListInstances (ListInstancesRequest) returns (ListInstancesResponse);
+    
+    // StartInstance initiates a specific instance identified by its unique ID.
+    // Returns a response indicating success or a ProblemDetails on failure.
+    rpc StartInstance (StartInstanceRequest) returns (StartInstanceResponse);
+    
+    // StopInstance halts a specific instance identified by its unique ID.
+    // Returns a response indicating success or a ProblemDetails on failure.
+    rpc StopInstance (StopInstanceRequest) returns (StopInstanceResponse);
+}
+
+// InstanceConfig contains basic configuration information for a virtual machine instance.
+message InstanceConfig {
+    // Unique identifier for the instance configuration
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
+    
+    // Display name of the instance configuration
+    string name = 2 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 64,
+        pattern: "^[a-zA-Z0-9_\\- ]+$"  // Alphanumeric with spaces, underscores and hyphens
+    }];
+}
+
+// InstanceInfo contains detailed information about a virtual machine instance.
+message InstanceInfo {
+    // Unique identifier for the instance
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
+    
+    // Current operational status of the instance
+    InstanceStatus status = 2 [(validate.rules).enum = {
+        defined_only: true  // Must be a defined enum value
+    }];
+    
+    // Maximum CPU cores available to the instance (max 99)
+    uint32 max_cpu_cores = 3 [(validate.rules).uint32 = {
+        gt: 0,  // Must have at least 1 core
+        lte: 99  // Maximum 99 cores
+    }];
+    
+    // Current CPU utilization as a percentage (0.0-100.0)
+    float cpu_usage_percent = 4 [(validate.rules).float = { 
+        gte: 0.0, 
+        lte: 100.0 
+    }];
+    
+    // Maximum memory available to the instance (in bytes, max 64GB)
+    uint64 max_memory_bytes = 5 [(validate.rules).uint64 = {
+        gt: 0,  // Must have some memory
+        lte: 68719476736,  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
+    }];
+    
+    // Current memory utilization (in bytes, cannot exceed max_memory_bytes)
+    uint64 memory_usage_bytes = 6 [(validate.rules).uint64 = {
+        gte: 0  // Cannot be negative
+        lte: 68719476736,  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
+    }];
+}
+
+// InstanceStatus represents the possible states of a virtual machine instance.
+enum InstanceStatus {
+    // Instance is active and operational
+    RUNNING = 0;
+    
+    // Instance is inactive
+    STOPPED = 1;
+}
+
+// ListInstancesRequest is an empty message for listing instances.
+message ListInstancesRequest {}
+
+// ListInstancesResponse contains a collection of instance information.
+message ListInstancesResponse {
+    oneof result {
+        // List of instance details on success
+        InstanceList success = 1;
+        
+        // Problem details on failure
+        francenuage.fr.api.controlplane.v1.instances.ProblemDetails problem = 2;
+    }
+}
+
+// Container for instance list
+message InstanceList {
+    // List of instance details
+    repeated InstanceInfo instances = 1;
+}
+
+// StartInstanceRequest identifies which instance to start.
+message StartInstanceRequest {
+    // Unique identifier of the instance to start
+    string id = 1;
+}
+
+// StartInstanceResponse contains the result of a start instance operation.
+message StartInstanceResponse {
+    oneof result {
+        // Empty success response
+        google.protobuf.Empty success = 1;
+        
+        // Problem details on failure
+        francenuage.fr.api.controlplane.v1.instances.ProblemDetails problem = 2;
+    }
+}
+
+// StopInstanceRequest identifies which instance to stop.
+message StopInstanceRequest {
+    // Unique identifier of the instance to stop
+    string id = 1;
+}
+
+// StopInstanceResponse contains the result of a stop instance operation.
+message StopInstanceResponse {
+    oneof result {
+        // Empty success response
+        google.protobuf.Empty success = 1;
+        
+        // Problem details on failure
+        francenuage.fr.api.controlplane.v1.instances.ProblemDetails problem = 2;
+    }
+}
