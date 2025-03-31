@@ -12,6 +12,11 @@ hypervisor.
 Provides a implementation of the hypervisor_connector contract for the
 [proxmox hypervisor](https://www.proxmox.com/).
 
+### hypervisor_resolver
+
+Resolves at runtime the concrete hypervisor_connector contract implementation
+to return for a given target.
+
 ## server
 
 This is the main binary of this project. It exposes a [gRPC](https://grpc.io/)

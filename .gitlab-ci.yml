@@ -36,11 +36,11 @@ build:
     - docker compose run --no-deps control-plane npm run lint
     - docker compose run --no-deps control-plane npx prettier --check "**/*.{js,json,md,ts,vue,yml}"
 
-"code style / control-plane-rs":
+"code style / controlplane":
   stage: code-style
   script:
-    - docker compose run --no-deps control-plane-rs cargo fmt --check
-    - docker compose run --no-deps control-plane-rs cargo clippy
+    - docker compose run --no-deps controlplane cargo fmt --check
+    - docker compose run --no-deps controlplane cargo clippy
 
 "code style / worker":
   stage: code-style
@@ -53,19 +53,19 @@ build:
   script:
     - docker compose run control-plane npx turbo run test --filter=@france-nuage/control-plane
 
-"unit tests / control-plane-rs":
+"unit tests / controlplane":
   stage: unit-tests
   script:
-    - docker compose run --no-deps control-plane-rs cargo test --workspace
-    - docker compose run --no-deps control-plane-rs grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
+    - docker compose run --no-deps controlplane cargo test --workspace
+    - docker compose run --no-deps controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
     - >
-      docker compose run --build --no-deps --remove-orphans control-plane-rs sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" target/cobertura.xml"
+      docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" target/cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: control-plane-rs/target/cobertura.xml
+        path: controlplane/target/cobertura.xml
 
 "unit tests / worker":
   stage: unit-tests

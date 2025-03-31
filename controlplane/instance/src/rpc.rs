@@ -1,13 +1,9 @@
 use hypervisor_connector::InstanceService;
 use tonic::{Request, Response, Status};
 
-use crate::{
-    service::get_instance_service,
-    v1::{
-        InstanceList, ListInstancesRequest, ListInstancesResponse, StartInstanceRequest,
-        StartInstanceResponse, StopInstanceRequest, StopInstanceResponse,
-        instances_server::Instances,
-    },
+use crate::v1::{
+    InstanceList, ListInstancesRequest, ListInstancesResponse, StartInstanceRequest,
+    StartInstanceResponse, StopInstanceRequest, StopInstanceResponse, instances_server::Instances,
 };
 
 pub struct InstancesRpcService {
@@ -23,10 +19,11 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<ListInstancesRequest>,
     ) -> Result<Response<ListInstancesResponse>, Status> {
-        let instances = get_instance_service(self.api_url.clone(), self.client.clone())
-            .list()
-            .await
-            .expect("could not list instances");
+        let instances =
+            hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
+                .list()
+                .await
+                .expect("could not list instances");
         Ok(Response::new(ListInstancesResponse {
             result: Some(crate::v1::list_instances_response::Result::Success(
                 InstanceList {
@@ -42,7 +39,7 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
-        get_instance_service(self.api_url.clone(), self.client.clone())
+        hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
             .start()
             .await
             .expect("could not start instance");
@@ -58,7 +55,7 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<StopInstanceRequest>,
     ) -> Result<Response<StopInstanceResponse>, Status> {
-        get_instance_service(self.api_url.clone(), self.client.clone())
+        hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
             .stop()
             .await
             .expect("could not start instance");
