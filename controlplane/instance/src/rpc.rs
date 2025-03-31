@@ -2,8 +2,8 @@ use hypervisor_connector::InstanceService;
 use tonic::{Request, Response, Status};
 
 use crate::v1::{
-    InstanceList, ListInstancesRequest, ListInstancesResponse, StartInstanceRequest,
-    StartInstanceResponse, StopInstanceRequest, StopInstanceResponse, instances_server::Instances,
+    ListInstancesRequest, ListInstancesResponse, StartInstanceRequest, StartInstanceResponse,
+    StopInstanceRequest, StopInstanceResponse, instances_server::Instances,
 };
 
 pub struct InstancesRpcService {
@@ -19,18 +19,11 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<ListInstancesRequest>,
     ) -> Result<Response<ListInstancesResponse>, Status> {
-        let instances =
+        let result =
             hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
                 .list()
-                .await
-                .expect("could not list instances");
-        Ok(Response::new(ListInstancesResponse {
-            result: Some(crate::v1::list_instances_response::Result::Success(
-                InstanceList {
-                    instances: instances.into_iter().map(Into::into).collect(),
-                },
-            )),
-        }))
+                .await;
+        Ok(Response::new(result.into()))
     }
 
     #[doc = " StartInstance initiates a specific instance identified by its unique ID."]
@@ -39,14 +32,12 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
-        hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
-            .start()
-            .await
-            .expect("could not start instance");
+        let result =
+            hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
+                .start()
+                .await;
 
-        Ok(Response::new(StartInstanceResponse {
-            result: Some(crate::v1::start_instance_response::Result::Success(())),
-        }))
+        Ok(Response::new(result.into()))
     }
 
     #[doc = " StopInstance halts a specific instance identified by its unique ID."]
@@ -55,14 +46,12 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<StopInstanceRequest>,
     ) -> Result<Response<StopInstanceResponse>, Status> {
-        hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
-            .stop()
-            .await
-            .expect("could not start instance");
+        let result =
+            hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
+                .stop()
+                .await;
 
-        Ok(Response::new(StopInstanceResponse {
-            result: Some(crate::v1::stop_instance_response::Result::Success(())),
-        }))
+        Ok(Response::new(result.into()))
     }
 }
 
