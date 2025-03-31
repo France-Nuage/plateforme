@@ -622,6 +622,9 @@ dependencies = [
 [[package]]
 name = "hypervisor_connector"
 version = "0.1.0"
+dependencies = [
+ "thiserror",
+]
 
 [[package]]
 name = "hypervisor_connector_proxmox"

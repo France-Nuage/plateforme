@@ -1,6 +1,5 @@
-use thiserror::Error;
-
 use super::api_response::{ApiInternalErrorResponse, ApiInvalidResponse};
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Problem {
@@ -20,7 +19,7 @@ pub enum Problem {
     },
 
     #[error("Internal error: {0}")]
-    Other(Box<dyn std::error::Error>),
+    Other(Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl From<Problem> for hypervisor_connector::Problem {

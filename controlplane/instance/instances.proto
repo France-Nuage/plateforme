@@ -3,7 +3,6 @@ syntax = "proto3";
 package francenuage.fr.api.controlplane.v1.instances;
 
 import "google/protobuf/empty.proto";
-import "problem.proto";
 import "validate.proto";
 
 // Instances service provides operations to manage instances.
@@ -91,17 +90,6 @@ message ListInstancesRequest {}
 
 // ListInstancesResponse contains a collection of instance information.
 message ListInstancesResponse {
-    oneof result {
-        // List of instance details on success
-        InstanceList success = 1;
-        
-        // Problem details on failure
-        francenuage.fr.api.controlplane.v1.instances.ProblemDetails problem = 2;
-    }
-}
-
-// Container for instance list
-message InstanceList {
     // List of instance details
     repeated InstanceInfo instances = 1;
 }
@@ -114,13 +102,6 @@ message StartInstanceRequest {
 
 // StartInstanceResponse contains the result of a start instance operation.
 message StartInstanceResponse {
-    oneof result {
-        // Empty success response
-        google.protobuf.Empty success = 1;
-        
-        // Problem details on failure
-        francenuage.fr.api.controlplane.v1.instances.ProblemDetails problem = 2;
-    }
 }
 
 // StopInstanceRequest identifies which instance to stop.
@@ -131,11 +112,4 @@ message StopInstanceRequest {
 
 // StopInstanceResponse contains the result of a stop instance operation.
 message StopInstanceResponse {
-    oneof result {
-        // Empty success response
-        google.protobuf.Empty success = 1;
-        
-        // Problem details on failure
-        francenuage.fr.api.controlplane.v1.instances.ProblemDetails problem = 2;
-    }
 }

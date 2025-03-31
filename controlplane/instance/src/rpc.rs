@@ -1,9 +1,12 @@
 use hypervisor_connector::InstanceService;
 use tonic::{Request, Response, Status};
 
-use crate::v1::{
-    ListInstancesRequest, ListInstancesResponse, StartInstanceRequest, StartInstanceResponse,
-    StopInstanceRequest, StopInstanceResponse, instances_server::Instances,
+use crate::{
+    problem::Problem,
+    v1::{
+        ListInstancesRequest, ListInstancesResponse, StartInstanceRequest, StartInstanceResponse,
+        StopInstanceRequest, StopInstanceResponse, instances_server::Instances,
+    },
 };
 
 pub struct InstancesRpcService {
@@ -23,7 +26,13 @@ impl Instances for InstancesRpcService {
             hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
                 .list()
                 .await;
-        Ok(Response::new(result.into()))
+
+        match result {
+            Ok(instances) => Ok(Response::new(ListInstancesResponse {
+                instances: instances.into_iter().map(Into::into).collect(),
+            })),
+            Err(_) => panic!(""),
+        }
     }
 
     #[doc = " StartInstance initiates a specific instance identified by its unique ID."]
@@ -37,7 +46,11 @@ impl Instances for InstancesRpcService {
                 .start()
                 .await;
 
-        Ok(Response::new(result.into()))
+        match result {
+            Ok(()) => Ok(Response::new(StartInstanceResponse {})),
+            Err(error) => Err(Problem::from(error).into()),
+        }
+        // Ok(Response::new(result.into()))
     }
 
     #[doc = " StopInstance halts a specific instance identified by its unique ID."]
@@ -51,7 +64,10 @@ impl Instances for InstancesRpcService {
                 .stop()
                 .await;
 
-        Ok(Response::new(result.into()))
+        match result {
+            Ok(()) => Ok(Response::new(StopInstanceResponse {})),
+            Err(_) => panic!(""),
+        }
     }
 }
 
@@ -85,19 +101,7 @@ mod tests {
         assert!(result.is_ok());
         let response = result.unwrap().into_inner();
         // Check that we have a Success result
-        assert!(matches!(
-            response.result,
-            Some(crate::v1::list_instances_response::Result::Success(_))
-        ));
-
-        // If we need to access the instances
-        if let Some(crate::v1::list_instances_response::Result::Success(instance_list)) =
-            response.result
-        {
-            assert_eq!(instance_list.instances.len(), 1);
-        } else {
-            panic!("Expected Success result variant");
-        }
+        assert_eq!(response.instances.len(), 1);
     }
 
     #[tokio::test]
