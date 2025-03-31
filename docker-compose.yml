@@ -49,7 +49,7 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:staging
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:production
-      context: control-plane-rs
+      context: controlplane
       target: ${TARGET:-development}
     environment:
       CARGO_INCREMENTAL: "0"
