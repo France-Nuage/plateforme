@@ -78,11 +78,38 @@ message InstanceInfo {
 
 // InstanceStatus represents the possible states of a virtual machine instance.
 enum InstanceStatus {
-    // Instance is active and operational
-    RUNNING = 0;
-    
-    // Instance is inactive
-    STOPPED = 1;
+  // Instance status is undefined
+  UNDEFINED_INSTANCE_STATUS = 0;
+  
+  // Instance is active and operational
+  RUNNING = 1;
+  
+  // Instance is inactive
+  STOPPED = 2;
+  
+  // Instance is in the process of stopping
+  STOPPING = 3;
+  
+  // Instance is in the process of starting/provisioning
+  PROVISIONING = 4;
+  
+  // Instance is in the staging phase before running
+  STAGING = 5;
+  
+  // Instance is suspended (memory state preserved)
+  SUSPENDED = 6;
+  
+  // Instance is in the process of suspending
+  SUSPENDING = 7;
+  
+  // Instance is permanently terminated
+  TERMINATED = 8;
+  
+  // Instance is in the process of being deprovisioned
+  DEPROVISIONING = 9;
+  
+  // Instance is being repaired
+  REPAIRING = 10;
 }
 
 // ListInstancesRequest is an empty message for listing instances.
