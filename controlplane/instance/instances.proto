@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package francenuage.fr.api.controlplane.v1.instances;
 
-import "google/protobuf/empty.proto";
 import "validate.proto";
 
 // Instances service provides operations to manage instances.

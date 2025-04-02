@@ -32,9 +32,13 @@ impl Server {
         if let Some(authentication_header) = config.authentication_header {
             headers.insert(
                 reqwest::header::AUTHORIZATION,
-                reqwest::header::HeaderValue::from_str(&authentication_header)?,
+                reqwest::header::HeaderValue::from_str(&format!(
+                    "PVEAPIToken={}",
+                    authentication_header
+                ))?,
             );
         }
+
         let client = reqwest::Client::builder()
             .default_headers(headers)
             .build()?;
