@@ -43,6 +43,29 @@ services:
       - /app/node_modules
     working_dir: /app/apps/control-plane
 
+  controlplane:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}"
+    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:staging
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:production
+      context: controlplane
+      target: ${TARGET:-development}
+    environment:
+      CARGO_INCREMENTAL: "0"
+      LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
+      PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
+      PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
+      RUSTFLAGS: "-Cinstrument-coverage"
+    container_name: controlplane
+    ports:
+      - "80:80"
+    profiles:
+      - donotstart
+    volumes:
+      - ./controlplane:/app
+
   control-plane-setup:
     image: docker:27-cli
     depends_on:

@@ -1,0 +1,19 @@
+[package]
+name = "instance"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hypervisor_connector = { path = "../hypervisor_connector" }
+hypervisor_connector_proxmox = { path = "../hypervisor_connector_proxmox" }
+hypervisor_connector_resolver = { path = "../hypervisor_connector_resolver" }
+prost = "0.13"
+reqwest = { version = "0.12", features = ["json"] }
+thiserror = "2.0"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+tonic = "0.12"
+
+[build-dependencies]
+tonic-build = "0.12"
+
+
