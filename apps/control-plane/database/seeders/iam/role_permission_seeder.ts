@@ -1,7 +1,7 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import { PermissionId } from '@france-nuage/types'
 import { RoleId } from '#models/iam/role'
 import RolePermission from '#models/iam/role_permission'
+import { PermissionId } from '#models/iam/permission'
 
 export default class extends BaseSeeder {
   static environment = ['development', 'production', 'testing']

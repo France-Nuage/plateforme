@@ -41,7 +41,6 @@ WORKDIR /app
 # Copy the pruned dependency declarations as well as the docker optimizations
 COPY --from=pruned /app/out/json/ .
 COPY --from=pruned /app/out/package*.json /app/
-COPY apps/control-plane/package.json /app/apps/control-plane/package.json
 
 # Install the pruned dependency declarations
 RUN --mount=type=cache,target=/root/.npm,sharing=locked npm ci

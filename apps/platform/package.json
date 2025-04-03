@@ -7,12 +7,11 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "lint": "eslint ."
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@france-nuage/api": "*",
     "@france-nuage/types": "*",
+    "@france-nuage/typescript-config": "*",
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "@iconify/vue": "^4.1.2",
@@ -25,7 +24,7 @@
     "apexcharts": "^4.0.0",
     "highlight-words-core": "^1.2.3",
     "lodash": "^4.17.21",
-    "nuxt": "^3.15.0",
+    "nuxt": "^3.6.0",
     "pinia": "^2.2.6",
     "vue": "latest",
     "vue-router": "latest"
@@ -39,8 +38,6 @@
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.10",
     "autoprefixer": "^10.4.20",
-    "@france-nuage/eslint-config": "*",
-    "@france-nuage/typescript-config": "*",
     "fetch": "^1.1.0",
     "postcss": "^8.4.49",
     "sass-embedded": "^1.81.0",

@@ -2,7 +2,7 @@ import BasePolicy from '#policies/base_policy'
 import authorization from '#services/authorization'
 import User from '#models/user'
 import { AuthorizerResponse } from '@adonisjs/bouncer/types'
-import { PermissionId } from '@france-nuage/types'
+import { PermissionId } from '#models/iam/permission'
 
 export default class RegionPolicy extends BasePolicy {
   /**

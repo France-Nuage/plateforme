@@ -1,11 +1,10 @@
 import { BaseModel, column, computed, hasMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
-import type { Organization as OrganizationContract } from '@france-nuage/types'
 import Folder from '#models/resource/folder'
 import BillingAccount from '#models/billing/billing_account'
 
-export default class Organization extends BaseModel implements OrganizationContract {
+export default class Organization extends BaseModel {
   public static table = 'resource.organizations'
 
   @computed()
