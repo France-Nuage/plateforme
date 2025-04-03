@@ -1,5 +1,5 @@
 # Base Stage
-FROM rust:1.84-alpine AS base
+FROM rust:1.85-alpine AS base
 RUN apk add --no-cache musl-dev openssl-dev openssl-libs-static
 WORKDIR /app
 COPY . .
