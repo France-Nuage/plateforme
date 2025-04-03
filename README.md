@@ -1,7 +1,7 @@
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://gitlab.com/groups/getbunker-france-nuage/france-nuage">
-   <img src="./apps/mediakit/logo/animated-logo.gif" alt="France nuage Logo">
+   <img src="./mediakit/logo/animated-logo.gif" alt="France nuage Logo">
   </a>
 
 <h3 align="center">France nuage</h3>
@@ -33,7 +33,7 @@
 Welcome to France nuage! Sign up to [france-nuage.fr](https://france-nuage.fr/) and start deploying your applications in our French cloud platform!
 
 You should check our documentation website to know what France nuage is and what is our
-vision: https://france-nuage.fr/solutions/perspectives
+vision: <https://france-nuage.fr/solutions/perspectives>
 
 # 🐓 About France nuage
 
@@ -93,57 +93,27 @@ France nuage is built on modern technologies and supports most operating systems
 # 🚧 Development Setup
 
 ## Prerequisites
+
 Ensure you have the following installed:
+
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Running France nuage with Docker
+
 To start the project using Docker, run:
+
 ```sh
 docker compose up -d
 ```
 
-## Running migrations
-Once the services are up, run database migrations using:
-```sh
-docker compose exec control-plane node ace migration:run --force
-```
-
 ## Stopping the services
+
 To stop the services, run:
+
 ```sh
 docker compose down
 ```
-
-## Integration Tests (Playwright)
-Integration tests are defined in the `platform` application. The playwright UI
-can be started with the following command:
-```sh
-docker compose exec platform \
-   npx playwright test --project=firefox --ui-host=0.0.0.0 --ui-port=39709
-```
-The UI is then accessible on [http://localhost:39709](http://localhost:39709)
-
-## Connect to a REPL Session
-AdonisJS offers an [application-aware REPL](https://docs.adonisjs.com/guides/digging-deeper/repl)
-to interact with the control-plane from the command line. To start a new REPL
-session in a development environment with docker-compose, run the following
-command:
-```sh
-docker compose exec control-plane node ace repl
-```
-
-## Generate a token for the worker user
-The project comes with a token preconfigured for the worker user. The token
-might not be valid for a few different reasons:
-- The AdonisJS application key (the `APP_KEY` environment variable) has been changed
-- The token has expired (expiry scheduled in 2035)
-
-The following command (executed in a REPL session) allows you to regenerate a token for the worker user:
-```sh
-(await (await import('#models/user')).default.accessTokens.create(await (await import('#models/user')).default.findByOrFail({ email: 'worker@france-nuage.fr' }), ['*'], { expiresIn: '10 years' })).value.release()
-```
-Be wary of using it in production as generating a long-lived token may be a security risk if exposed outside a controlled, private network.
 
 # Related
 

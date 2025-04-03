@@ -1,16 +1,25 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "autoApprove": true,
+  "extends": [
+    "config:recommended"
+  ],
   "rangeStrategy": "auto",
-  "labels": ["source::renovate"],
+  "labels": [
+    "source::renovate"
+  ],
   "automergeType": "branch",
-  "baseBranches": ["master"],
+  "baseBranches": [
+    "master"
+  ],
   "packageRules": [
     {
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies"],
-      "automerge": false
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "automerge": true
     },
     {
       "matchManagers": [
@@ -19,7 +28,24 @@
         "gitlabci",
         "gitlabci-include"
       ],
-      "automerge": false
+      "automerge": true
+    },
+    {
+      "matchManagers": [
+        "cargo"
+      ],
+      "matchPaths": [
+        "controlplane/**"
+      ],
+      "automerge": true
     }
+  ],
+  "enabledManagers": [
+    "npm",
+    "cargo",
+    "docker-compose",
+    "dockerfile",
+    "gitlabci",
+    "gitlabci-include"
   ]
 }

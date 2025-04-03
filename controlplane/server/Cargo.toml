@@ -1,0 +1,16 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+instance = { path = "../instance" }
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+tokio-stream = "0.1.17"
+tonic = "0.12"
+tonic-web = "0.12"
+
+[dev-dependencies]
+hypervisor_connector_proxmox = { path = "../hypervisor_connector_proxmox", features = ["mock"] }
+
