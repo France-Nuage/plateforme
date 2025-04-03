@@ -1,7 +1,7 @@
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://gitlab.com/groups/getbunker-france-nuage/france-nuage">
-   <img src="./apps/mediakit/logo/animated-logo.gif" alt="France nuage Logo">
+   <img src="./mediakit/logo/animated-logo.gif" alt="France nuage Logo">
   </a>
 
 <h3 align="center">France nuage</h3>
