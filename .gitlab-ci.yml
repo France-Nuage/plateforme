@@ -25,20 +25,9 @@ secrets-detection:
   image: trufflesecurity/trufflehog:latest
   before_script: []  # Override the default before_script
   script:
-    - trufflehog git file://$CI_PROJECT_DIR --json > trufflehog_results.json
-    - |
-      if [ -s trufflehog_results.json ]; then
-        echo "🚨 ATTENTION: Des secrets potentiels ont été détectés dans votre code!"
-        cat trufflehog_results.json
-        exit 1
-      else
-        echo "✅ Aucun secret détecté"
-      fi
-  artifacts:
-    paths:
-      - trufflehog_results.json
-    when: on_failure
-    expire_in: 1 week
+    - /usr/bin/trufflehog filesystem --directory=/builds/getbunker-france-nuage/france-nuage/plateforme
+    - exit_code=$?
+    - if [ $exit_code -ne 0 ]; then echo "Des secrets ont été détectés!"; exit 1; fi
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == 'master'
