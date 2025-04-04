@@ -50,7 +50,6 @@ build:
     - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/controlplane:release --push controlplane
   only:
     - master
-    - build/setup-continuous-delivery
 
 "Deploy / webui":
   stage: deploy
@@ -58,7 +57,6 @@ build:
     - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/webui:release --push webui
   only:
     - master
-    - build/setup-continuous-delivery
 
 "Release":
   image: node:22-alpine
