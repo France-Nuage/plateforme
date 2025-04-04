@@ -111,6 +111,22 @@ mod tests {
         }
     }
 
+    // #[tokio::test]
+    // async fn test_get_instance_works() {
+    //     // Arrange a service and a request for the get_instance procedure
+    //     let server = MockServer::new().await.with_vm_status_start();
+    //     let service = HypervisorService::new(server.url(), reqwest::Client::new());
+    //
+    //     // Act the call to the get_instance procedure
+    //     let request = Request::new(proto::v0::GetInstanceRequest {
+    //         id: String::from("100"),
+    //     });
+    //     let result = service.get_instance(request).await;
+    //
+    //     // Assert the procedure result
+    //     assert!(result.is_ok());
+    // }
+
     #[tokio::test]
     async fn test_start_instance_works() {
         // Arrange a service and a request for the start_instance procedure

@@ -32,12 +32,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-import { typeofJsonValue } from "@protobuf-ts/runtime";
-import type { JsonValue } from "@protobuf-ts/runtime";
-import type { JsonReadOptions } from "@protobuf-ts/runtime";
-import type { JsonWriteOptions } from "@protobuf-ts/runtime";
-import { PbLong } from "@protobuf-ts/runtime";
-import { MessageType } from "@protobuf-ts/runtime";
+import { typeofJsonValue } from '@protobuf-ts/runtime'
+import type { JsonValue } from '@protobuf-ts/runtime'
+import type { JsonReadOptions } from '@protobuf-ts/runtime'
+import type { JsonWriteOptions } from '@protobuf-ts/runtime'
+import { PbLong } from '@protobuf-ts/runtime'
+import { MessageType } from '@protobuf-ts/runtime'
 /**
  * A Duration represents a signed, fixed-length span of time represented
  * as a count of seconds and fractions of seconds at nanosecond
@@ -109,7 +109,7 @@ export interface Duration {
    *
    * @generated from protobuf field: int64 seconds = 1;
    */
-  seconds: bigint;
+  seconds: bigint
   /**
    * Signed fractions of a second at nanosecond resolution of the span
    * of time. Durations less than one second are represented with a 0
@@ -120,80 +120,64 @@ export interface Duration {
    *
    * @generated from protobuf field: int32 nanos = 2;
    */
-  nanos: number;
+  nanos: number
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Duration$Type extends MessageType<Duration> {
   constructor() {
-    super("google.protobuf.Duration", [
+    super('google.protobuf.Duration', [
       {
         no: 1,
-        name: "seconds",
-        kind: "scalar",
+        name: 'seconds',
+        kind: 'scalar',
         T: 3 /*ScalarType.INT64*/,
         L: 0 /*LongType.BIGINT*/,
       },
-      { no: 2, name: "nanos", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-    ]);
+      { no: 2, name: 'nanos', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+    ])
   }
   /**
    * Encode `Duration` to JSON string like "3.000001s".
    */
   internalJsonWrite(message: Duration, options: JsonWriteOptions): JsonValue {
-    let s = PbLong.from(message.seconds).toNumber();
-    if (s > 315576000000 || s < -315576000000)
-      throw new Error("Duration value out of range.");
-    let text = message.seconds.toString();
-    if (s === 0 && message.nanos < 0) text = "-" + text;
+    let s = PbLong.from(message.seconds).toNumber()
+    if (s > 315576000000 || s < -315576000000) throw new Error('Duration value out of range.')
+    let text = message.seconds.toString()
+    if (s === 0 && message.nanos < 0) text = '-' + text
     if (message.nanos !== 0) {
-      let nanosStr = Math.abs(message.nanos).toString();
-      nanosStr = "0".repeat(9 - nanosStr.length) + nanosStr;
-      if (nanosStr.substring(3) === "000000")
-        nanosStr = nanosStr.substring(0, 3);
-      else if (nanosStr.substring(6) === "000")
-        nanosStr = nanosStr.substring(0, 6);
-      text += "." + nanosStr;
+      let nanosStr = Math.abs(message.nanos).toString()
+      nanosStr = '0'.repeat(9 - nanosStr.length) + nanosStr
+      if (nanosStr.substring(3) === '000000') nanosStr = nanosStr.substring(0, 3)
+      else if (nanosStr.substring(6) === '000') nanosStr = nanosStr.substring(0, 6)
+      text += '.' + nanosStr
     }
-    return text + "s";
+    return text + 's'
   }
   /**
    * Decode `Duration` from JSON string like "3.000001s"
    */
-  internalJsonRead(
-    json: JsonValue,
-    options: JsonReadOptions,
-    target?: Duration,
-  ): Duration {
-    if (typeof json !== "string")
+  internalJsonRead(json: JsonValue, options: JsonReadOptions, target?: Duration): Duration {
+    if (typeof json !== 'string')
       throw new Error(
-        "Unable to parse Duration from JSON " +
-          typeofJsonValue(json) +
-          ". Expected string.",
-      );
-    let match = json.match(/^(-?)([0-9]+)(?:\.([0-9]+))?s/);
+        'Unable to parse Duration from JSON ' + typeofJsonValue(json) + '. Expected string.',
+      )
+    let match = json.match(/^(-?)([0-9]+)(?:\.([0-9]+))?s/)
     if (match === null)
-      throw new Error(
-        "Unable to parse Duration from JSON string. Invalid format.",
-      );
-    if (!target) target = this.create();
-    let [, sign, secs, nanos] = match;
-    let longSeconds = PbLong.from(sign + secs);
-    if (
-      longSeconds.toNumber() > 315576000000 ||
-      longSeconds.toNumber() < -315576000000
-    )
-      throw new Error(
-        "Unable to parse Duration from JSON string. Value out of range.",
-      );
-    target.seconds = longSeconds.toBigInt();
-    if (typeof nanos == "string") {
-      let nanosStr = sign + nanos + "0".repeat(9 - nanos.length);
-      target.nanos = parseInt(nanosStr);
+      throw new Error('Unable to parse Duration from JSON string. Invalid format.')
+    if (!target) target = this.create()
+    let [, sign, secs, nanos] = match
+    let longSeconds = PbLong.from(sign + secs)
+    if (longSeconds.toNumber() > 315576000000 || longSeconds.toNumber() < -315576000000)
+      throw new Error('Unable to parse Duration from JSON string. Value out of range.')
+    target.seconds = longSeconds.toBigInt()
+    if (typeof nanos == 'string') {
+      let nanosStr = sign + nanos + '0'.repeat(9 - nanos.length)
+      target.nanos = parseInt(nanosStr)
     }
-    return target;
+    return target
   }
 }
 /**
  * @generated MessageType for protobuf message google.protobuf.Duration
  */
-export const Duration = new Duration$Type();
+export const Duration = new Duration$Type()

@@ -50,6 +50,14 @@ impl hypervisor::Instance for VM<'_, '_> {
         Ok(())
     }
 
+    /// Gets the instance information.
+    async fn show(
+        &self,
+    ) -> Result<(), hypervisor::problem::Problem> {
+        let result = crate::endpoints::vm_show(self.api_url, self.client, self.node.id, self.id).await?;
+        Ok(result.data.into())
+    }
+
     /// Gets the instance status.
     async fn status(&self) -> Result<hypervisor::InstanceStatus, hypervisor::problem::Problem> {
         let result =

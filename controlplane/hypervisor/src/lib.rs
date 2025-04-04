@@ -33,6 +33,9 @@ pub trait Instance {
     /// Starts the instance.
     fn start(&self) -> impl Future<Output = Result<(), Problem>> + Send;
 
+    /// Gets the instance information.
+    fn show(&self) -> impl Future<Output = Result<proto::v0::InstanceInfo, Problem>> + Send;
+
     /// Gets the instance status.
     fn status(&self) -> impl Future<Output = Result<InstanceStatus, Problem>> + Send;
 
