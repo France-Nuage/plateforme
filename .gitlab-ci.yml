@@ -1,5 +1,6 @@
 # Define the pipeline stages
 stages:
+  - security
   - build
   - code-style
   - unit-tests
@@ -17,6 +18,30 @@ services:
 # Define the preliminary scripts to run before every job
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+# Secret detection job using trufflehog
+secrets-detection:
+  stage: security
+  image: trufflesecurity/trufflehog:latest
+  before_script: []  # Override the default before_script
+  script:
+    - trufflehog git file://$CI_PROJECT_DIR --json > trufflehog_results.json
+    - |
+      if [ -s trufflehog_results.json ]; then
+        echo "🚨 ATTENTION: Des secrets potentiels ont été détectés dans votre code!"
+        cat trufflehog_results.json
+        exit 1
+      else
+        echo "✅ Aucun secret détecté"
+      fi
+  artifacts:
+    paths:
+      - trufflehog_results.json
+    when: on_failure
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 build:
   stage: build
