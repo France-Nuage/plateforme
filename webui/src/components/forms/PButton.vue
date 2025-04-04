@@ -3,6 +3,7 @@
     :class="[
       `inline-flex cursor-pointer items-center gap-0.5 justify-center overflow-hidden font-medium transition ${variantClasses[props.variant]} ${sizeClasses[props.size]}`,
       {
+
         'w-full': props.block,
         'cursor-not-allowed': props.disabled || props.loading,
       },
