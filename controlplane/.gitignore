@@ -1,3 +1,5 @@
 target/
 # generated at build
 validate/
+.envrc
+.env

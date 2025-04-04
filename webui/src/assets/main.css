@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+h1 {
+    @apply font-semibold leading-10;
+    font-size: 34px;
+}
