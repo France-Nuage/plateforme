@@ -22,9 +22,11 @@ before_script:
 secrets-detection:
   stage: security
   image: zricethezav/gitleaks:latest
-  before_script: []
+  variables:
+    GIT_DEPTH: 50
+  before_script: []  # Override the default before_script
   script:
-    - gitleaks detect -v -s /builds/getbunker-france-nuage/france-nuage/plateforme
+    - gitleaks detect -v
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == 'master'
