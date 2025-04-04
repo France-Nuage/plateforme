@@ -35,3 +35,4 @@ services:
     volumes:
       - ./webui:/app
       - /app/node_modules
+      - /app/.pnpm-store

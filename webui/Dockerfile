@@ -15,5 +15,5 @@ RUN pnpm run build
 FROM node:22-alpine AS release
 WORKDIR /app
 RUN corepack enable
-COPY --from=build dist node_modules package.json pnpm-lock.yaml ./
+COPY --from=build .pnpm-store/ dist/ node_modules/ package.json pnpm-lock.yaml ./
 CMD ["pnpm", "run", "preview", "--host"]
