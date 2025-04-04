@@ -19,15 +19,12 @@ services:
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
-# Secret detection job using trufflehog
 secrets-detection:
   stage: security
-  image: trufflesecurity/trufflehog:latest
-  before_script: []  # Override the default before_script
+  image: zricethezav/gitleaks:latest
+  before_script: []
   script:
-    - /usr/bin/trufflehog filesystem --directory=/builds/getbunker-france-nuage/france-nuage/plateforme
-    - exit_code=$?
-    - if [ $exit_code -ne 0 ]; then echo "Des secrets ont été détectés!"; exit 1; fi
+    - gitleaks detect -v -s /builds/getbunker-france-nuage/france-nuage/plateforme
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == 'master'
