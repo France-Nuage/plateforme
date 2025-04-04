@@ -1,33 +1,19 @@
-import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport'
-import { HypervisorClient } from '../protocol/controlplane.client'
-import { InstanceInfo } from '../protocol/controlplane'
+import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
+import { InstancesClient } from "../protocol/instances.client";
+import { InstanceInfo } from "../protocol/instances";
 
 const transport = new GrpcWebFetchTransport({
-  baseUrl: 'http://localhost',
-  format: 'binary',
-})
+  baseUrl: "http://localhost",
+  format: "binary",
+});
 
-const client = new HypervisorClient(transport)
+const client = new InstancesClient(transport);
 
 export function list(): Promise<InstanceInfo[]> {
   return new Promise((resolve, reject) => {
     client
       .listInstances({})
-      .response.then(({ result }) => {
-        if (result.oneofKind === 'success') {
-          resolve(result.success.instances)
-        } else if (result.oneofKind === 'problem') {
-          reject(result.problem)
-        } else {
-          throw new Error(`unexpected oneofKind: ${result.oneofKind}`)
-        }
-      })
-      .catch((error) => {
-        throw error
-      })
-  })
-}
-
-export function show(id: string): Promise<InstanceInfo> {
-  return new Promise((resolve, reject) => {})
+      .response.then(({ instances }) => resolve(instances))
+      .catch((error) => reject(error));
+  });
 }

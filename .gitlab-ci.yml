@@ -24,104 +24,25 @@ build:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
-"code style / platform":
+"code style / controlplane":
   stage: code-style
   script:
-    - docker compose run --no-deps platform npm run lint
-  allow_failure: true
+    - docker compose run --no-deps controlplane cargo fmt --check
+    - docker compose run --no-deps controlplane cargo clippy
 
-"code style / control-plane":
-  stage: code-style
-  script:
-    - docker compose run --no-deps control-plane npm run lint
-    - docker compose run --no-deps control-plane npx prettier --check "**/*.{js,json,md,ts,vue,yml}"
-
-"code style / control-plane-rs":
-  stage: code-style
-  script:
-    - docker compose run --no-deps control-plane-rs cargo fmt --check
-    - docker compose run --no-deps control-plane-rs cargo clippy
-
-"code style / worker":
-  stage: code-style
-  script:
-    - docker compose run --no-deps worker cargo fmt --check
-    - docker compose run --no-deps worker cargo clippy
-
-"unit tests / control-plane":
+"unit tests / controlplane":
   stage: unit-tests
   script:
-    - docker compose run control-plane npx turbo run test --filter=@france-nuage/control-plane
-
-"unit tests / control-plane-rs":
-  stage: unit-tests
-  script:
-    - docker compose run --no-deps control-plane-rs cargo test --workspace
-    - docker compose run --no-deps control-plane-rs grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
+    - docker compose run --no-deps controlplane cargo test --workspace
+    - docker compose run --no-deps controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
     - >
-      docker compose run --build --no-deps --remove-orphans control-plane-rs sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" target/cobertura.xml"
+      docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" target/cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: control-plane-rs/target/cobertura.xml
-
-"unit tests / worker":
-  stage: unit-tests
-  script:
-    - docker compose run --no-deps worker cargo test -- --test-threads=1
-
-"integration tests / control-plane":
-  stage: integration-tests
-  script:
-    - docker compose up --detach
-    - sleep 30 #TODO: replace by health check
-    - docker compose exec control-plane npx playwright test
-
-"integration tests / platform":
-  stage: integration-tests
-  artifacts:
-    when: always
-    paths:
-      - apps/platform/playwright-report/
-      - docker-compose.log
-    expire_in: 1 day
-  after_script:
-    - docker compose logs > docker-compose.log
-  script:
-    - docker compose up --detach
-    - sleep 30 # TODO: replace by health check
-    - docker compose exec -e PW_TEST_HTML_REPORT_OPEN='never' platform npx playwright test --project=firefox --reporter=dot,html --trace=on
-
-"Deploy / control-plane (staging)":
-  stage: deploy
-  script:
-    - docker build --target=release --file=apps/control-plane/Dockerfile --tag=${CI_REGISTRY_IMAGE}/control-plane:staging --push .
-  only:
-    - staging
-
-"Deploy / control-plane (production)":
-  stage: deploy
-  script:
-    - docker build --target=release --file=apps/control-plane/Dockerfile --tag=${CI_REGISTRY_IMAGE}/control-plane:production --push .
-  only:
-    - master
-
-"Deploy / worker (staging)":
-  stage: deploy
-  script:
-    - docker build --target=release --file=apps/worker-vm-status/Dockerfile --tag=${CI_REGISTRY_IMAGE}/worker:staging --push ./apps/worker-vm-status/
-  only:
-    - staging
-
-"Deploy / worker (production)":
-  stage: deploy
-  script:
-    - docker build --target=release --file=apps/worker-vm-status/Dockerfile --tag=${CI_REGISTRY_IMAGE}/worker:production --push ./apps/worker-vm-status/
-
-  only:
-    - master
+        path: controlplane/target/cobertura.xml
 
 "Release":
   image: node:22

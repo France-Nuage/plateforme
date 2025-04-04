@@ -1,9 +1,0 @@
-language: 'en-US'
-early_access: false
-reviews:
-  profile: 'assertive'
-  request_changes_workflow: true
-  poem: false
-  base_branches:
-    - master
-    - staging

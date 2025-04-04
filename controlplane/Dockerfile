@@ -12,7 +12,7 @@ COPY . .
 # Development Stage
 FROM base AS development
 RUN cargo build
-CMD ["cargo", "run"]
+CMD ["target/debug/server"]
 
 # Build Stage
 FROM base AS builder
