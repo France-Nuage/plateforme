@@ -2,7 +2,7 @@
 import PTable from '@/components/table/PTable.vue'
 import { onMounted, ref } from 'vue'
 import { list } from '@/services/instance-service'
-import type { InstanceInfo } from '@/protocol/controlplane.ts'
+import type { InstanceInfo } from '@/protocol/instances'
 import LayoutDefault from '@/components/layouts/LayoutDefault.vue'
 import PTableActions from '@/components/table/PTableActions.vue'
 

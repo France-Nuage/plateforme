@@ -10,14 +10,28 @@ services:
       target: ${TARGET:-development}
     environment:
       CARGO_INCREMENTAL: "0"
+      CONTROLPLANE_ADDR: 0.0.0.0:80
       LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
       RUSTFLAGS: "-Cinstrument-coverage"
-    container_name: controlplane
     ports:
-      - "80:80"
-    profiles:
-      - donotstart
+      - "80:8080"
     volumes:
       - ./controlplane:/app
+  webui:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}"
+    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:staging
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:production
+      context: webui
+      target: ${TARGET:-development}
+    environment:
+      VITE_CONTROLPLANE_URL: ${VITE_CONTROLPLANE_URL:-http://controlplane:8080}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./webui:/app
+      - /app/node_modules
