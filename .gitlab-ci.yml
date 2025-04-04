@@ -45,7 +45,7 @@ build:
         path: controlplane/target/cobertura.xml
 
 "Release":
-  image: node:22
+  image: node:22-alpine
   stage: release
   variables:
     CI: "true"
