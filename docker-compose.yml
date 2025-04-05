@@ -57,7 +57,7 @@ services:
       - console
       - playwright
     environment:
-      CONSOLE_URL: http://console:5173
+      CONSOLE_URL: http://console
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
     ports:
       - "9000:9000"
