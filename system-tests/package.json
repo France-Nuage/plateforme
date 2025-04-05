@@ -1,11 +1,11 @@
 {
   "name": "system-tests",
   "version": "1.0.0",
-  "description": "",
+  "description": "System tests using Playwright for the console application",
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
-    "test:ci": "playwright test --reporter=dot",
+    "test:ci": "playwright test --reporter=dot,html",
     "test:ui": "playwright test --ui-host=0.0.0.0 --ui-port=9000"
   },
   "keywords": [],

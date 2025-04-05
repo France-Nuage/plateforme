@@ -30,7 +30,7 @@ export default abstract class BasePage {
    * the current page, use the `assertRedirectedTo` method.
    */
   public async assertLocation(): Promise<void> {
-    await expect(this.page, `Unexpected URL, got ${this.page.url()}`).toHaveURL(
+    await expect(this.page, `Unexpected URL, got ${this.page.url()}, expected ${this.url}`).toHaveURL(
       this.url,
     );
   }
