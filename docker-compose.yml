@@ -1,6 +1,6 @@
 services:
   console:
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}"
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}
@@ -19,7 +19,7 @@ services:
       - /app/.pnpm-store
 
   controlplane:
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}"
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
@@ -47,7 +47,7 @@ services:
       - donotstart
 
   system-tests:
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}"
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}
