@@ -46,8 +46,10 @@ build:
 
 "system tests / console":
   stage: system-tests
+  variables:
+    TARGET: release
   script:
-    - docker compose run system-tests npm run test:ci
+    - docker compose run --build --pull=never system-tests npm run test:ci
 
 "deploy / controlplane":
   stage: deploy
