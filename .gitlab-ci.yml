@@ -3,7 +3,7 @@ stages:
   - build
   - code-style
   - unit-tests
-  - integration-tests
+  - system-tests
   - deploy
   - release
 
@@ -44,26 +44,32 @@ build:
         coverage_format: cobertura
         path: controlplane/target/cobertura.xml
 
-"Deploy / controlplane":
+"system tests / console":
+  stage: system-tests
+  script:
+    - docker compose run system-tests npx playwright test --reporter=dot
+
+"deploy / controlplane":
   stage: deploy
   script:
     - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/controlplane:release --push controlplane
   only:
     - master
 
-"Deploy / webui":
+"deploy / webui":
   stage: deploy
   script:
     - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/webui:release --push webui
   only:
     - master
 
-"Release":
+"release":
   image: node:22-alpine
   stage: release
   variables:
     CI: "true"
   before_script:
+    - apk add --no-cache git
     - corepack enable
     - SHA_SUM=$(npm view pnpm@10.1.0 dist.shasum) && corepack install -g pnpm@10.1.0+sha1.$SHA_SUM #https://github.com/pnpm/pnpm/issues/9014
     - corepack prepare pnpm@10.1.0 --activate

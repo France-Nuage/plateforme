@@ -1,4 +1,24 @@
 services:
+  console:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}"
+    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:staging
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:production
+      context: webui
+      target: ${TARGET:-development}
+    depends_on:
+      - controlplane
+    environment:
+      VITE_CONTROLPLANE_URL: ${VITE_CONTROLPLANE_URL:-http://controlplane:8080}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./webui:/app
+      - /app/node_modules
+      - /app/.pnpm-store
+
   controlplane:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}"
     build:
@@ -19,8 +39,17 @@ services:
       - "80:8080"
     volumes:
       - ./controlplane:/app
-  webui:
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}"
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.51.1-noble
+    command: /bin/sh -c "npx -y playwright@1.51.1 run-server --port 4444 --host 0.0.0.0"
+    ports:
+      - "4444:4444"
+    profiles:
+      - donotstart
+
+  system-tests:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}"
     build:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}
@@ -28,10 +57,17 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:production
       context: webui
       target: ${TARGET:-development}
+    command: npx playwright test --ui-host=0.0.0.0 --ui-port=9000
+    depends_on:
+      - console
+      - playwright
     environment:
-      VITE_CONTROLPLANE_URL: ${VITE_CONTROLPLANE_URL:-http://controlplane:8080}
+      CONSOLE_URL: http://console:5173
+      PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
     ports:
-      - "5173:5173"
+      - "9000:9000"
+    profiles:
+      - donotstart
     volumes:
       - ./webui:/app
       - /app/node_modules

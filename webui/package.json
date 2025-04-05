@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@playwright/test": "^1.51.1",
     "@protobuf-ts/plugin": "^2.9.6",
     "@protobuf-ts/protoc": "^2.9.6",
     "@tailwindcss/vite": "^4.1.2",
