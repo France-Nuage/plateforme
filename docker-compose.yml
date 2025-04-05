@@ -65,3 +65,4 @@ services:
       - donotstart
     volumes:
       - ./system-tests:/app
+      - /app/node_modules
