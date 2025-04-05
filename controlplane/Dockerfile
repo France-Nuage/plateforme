@@ -11,8 +11,7 @@ COPY . .
 
 # Development Stage
 FROM base AS development
-RUN cargo build
-CMD ["target/debug/server"]
+CMD ["cargo", "run"]
 
 # Build Stage
 FROM base AS builder
