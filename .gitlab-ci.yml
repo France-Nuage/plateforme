@@ -53,7 +53,7 @@ build:
   artifacts:
     when: always
     paths:
-      - playwright-report/
+      - system-tests/playwright-report/
     expire_in: 1 week
 
 "deploy / controlplane":
