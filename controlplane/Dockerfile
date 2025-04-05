@@ -21,6 +21,6 @@ RUN cargo build --release
 # Production Stage
 FROM alpine:3.21 AS release
 RUN apk add --no-cache ca-certificates openssl
-COPY --from=builder /app/target/release/worker /usr/bin/worker
-RUN chmod +x /usr/bin/worker
-CMD ["/usr/bin/worker"]
+COPY --from=builder /app/target/release/server /usr/bin/server
+RUN chmod +x /usr/bin/server
+CMD ["/usr/bin/server"]

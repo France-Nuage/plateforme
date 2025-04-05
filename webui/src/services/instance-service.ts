@@ -3,7 +3,7 @@ import { InstancesClient } from "../protocol/instances.client";
 import { InstanceInfo } from "../protocol/instances";
 
 const transport = new GrpcWebFetchTransport({
-  baseUrl: "http://localhost",
+  baseUrl: import.meta.env.VITE_CONTROLPLANE_URL,
   format: "binary",
 });
 
