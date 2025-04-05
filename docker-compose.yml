@@ -4,8 +4,7 @@ services:
     build:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:staging
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:production
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:master
       context: webui
       target: ${TARGET:-development}
     depends_on:
@@ -24,8 +23,7 @@ services:
     build:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:staging
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:production
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:master
       context: controlplane
       target: ${TARGET:-development}
     environment:
@@ -52,12 +50,9 @@ services:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}"
     build:
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:staging
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:production
-      context: webui
-      target: ${TARGET:-development}
-    command: npx playwright test --ui-host=0.0.0.0 --ui-port=9000
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:master
+      context: system-tests
     depends_on:
       - console
       - playwright
@@ -69,6 +64,4 @@ services:
     profiles:
       - donotstart
     volumes:
-      - ./webui:/app
-      - /app/node_modules
-      - /app/.pnpm-store
+      - ./system-tests:/app
