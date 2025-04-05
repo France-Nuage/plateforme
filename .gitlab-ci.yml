@@ -50,6 +50,11 @@ build:
     TARGET: release
   script:
     - docker compose run --build --pull=never system-tests npm run test:ci
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+    expire_in: 1 week
 
 "deploy / controlplane":
   stage: deploy
