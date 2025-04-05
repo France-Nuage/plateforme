@@ -47,7 +47,7 @@ build:
 "system tests / console":
   stage: system-tests
   script:
-    - docker compose run system-tests npx playwright test --reporter=dot
+    - docker compose run system-tests npm run test:ci
 
 "deploy / controlplane":
   stage: deploy
