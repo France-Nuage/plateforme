@@ -1,5 +1,6 @@
 # Define the pipeline stages
 stages:
+  - security
   - build
   - code-style
   - unit-tests
@@ -17,6 +18,16 @@ services:
 # Define the preliminary scripts to run before every job
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+gitleaks:
+  stage: security
+  script:
+    - docker run --rm -v $(pwd):/src zricethezav/gitleaks:v8.24.2 detect --source /src --verbose --report-format json --report-path /src/gitleaks-report.json --exit-code 1
+  artifacts:
+    paths:
+      - gitleaks-report.json
+    when: always
+    expire_in: 1 week
 
 build:
   stage: build
