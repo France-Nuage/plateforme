@@ -28,6 +28,7 @@ services:
       target: ${TARGET:-development}
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL}
+      CONSOLE_URL: ${CONSOLE_URL:-https://console.france-nuage.fr}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE}
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}

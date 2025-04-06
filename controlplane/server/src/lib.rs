@@ -1,10 +1,11 @@
+use hyper::http;
 use instance::InstancesRpcService;
 use instance::v1::instances_server::InstancesServer;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic::transport::Server as TonicServer;
-use tonic::transport::server::Router;
+use tower_http::cors::{Any, CorsLayer};
 
 /// Provide a gRPC tonic server.
 ///
@@ -13,7 +14,9 @@ use tonic::transport::server::Router;
 /// crate.
 pub struct Server {
     pub addr: SocketAddr,
-    pub router: Router,
+    pub router: tonic::transport::server::Router<
+        tower_layer::Stack<tower_http::cors::CorsLayer, tower_layer::Identity>,
+    >,
 }
 
 impl Server {
@@ -43,11 +46,23 @@ impl Server {
             .default_headers(headers)
             .build()?;
 
+        let cors = CorsLayer::new()
+            .allow_origin(
+                config
+                    .console_url
+                    .unwrap_or(String::from("http://localhost"))
+                    .parse::<http::HeaderValue>()
+                    .map_err(|e| format!("Invalid CORS origin header: {}", e))?,
+            )
+            .allow_methods(Any)
+            .allow_headers(Any);
         // Create the tonic router
-        let mut server = TonicServer::builder().accept_http1(true);
-        let router = server.add_service(tonic_web::enable(InstancesServer::new(
-            InstancesRpcService::new(config.api_url.clone(), client.clone()),
-        )));
+        let server = TonicServer::builder().accept_http1(true);
+        let router = server
+            .layer(cors)
+            .add_service(tonic_web::enable(InstancesServer::new(
+                InstancesRpcService::new(config.api_url.clone(), client.clone()),
+            )));
 
         // Return a Server instance
         Ok(Server { addr, router })
@@ -88,6 +103,7 @@ pub struct ServerConfig {
     pub addr: Option<String>,
     pub api_url: String,
     pub authentication_header: Option<String>,
+    pub console_url: Option<String>,
 }
 
 impl ServerConfig {
@@ -96,6 +112,7 @@ impl ServerConfig {
             addr: None,
             api_url,
             authentication_header: None,
+            console_url: None,
         }
     }
 }
