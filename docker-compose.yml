@@ -27,13 +27,13 @@ services:
       context: controlplane
       target: ${TARGET:-development}
     environment:
-      CARGO_INCREMENTAL: ${CARGO_INCREMENTAL}
-      CONSOLE_URL: ${CONSOLE_URL:-https://console.france-nuage.fr}
+      CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
+      CONSOLE_URL: ${CONSOLE_URL:-http://console:5173}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
-      LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE}
+      LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
-      RUSTFLAGS: ${RUSTFLAGS}
+      RUSTFLAGS: ${RUSTFLAGS:-}
     ports:
       - "8080:8080"
     volumes:
