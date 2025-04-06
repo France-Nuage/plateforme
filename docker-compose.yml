@@ -28,6 +28,7 @@ services:
       target: ${TARGET:-development}
     environment:
       CARGO_INCREMENTAL: "0"
+      CONSOLE_URL: ${CONSOLE_URL:-https://console.france-nuage.fr}
       CONTROLPLANE_ADDR: 0.0.0.0:80
       LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}

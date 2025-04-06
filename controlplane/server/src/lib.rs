@@ -48,9 +48,11 @@ impl Server {
 
         let cors = CorsLayer::new()
             .allow_origin(
-                "https://console.france-nuage.fr"
+                config
+                    .console_url
+                    .unwrap_or(String::from("http://locahost"))
                     .parse::<http::HeaderValue>()
-                    .unwrap(),
+                    .map_err(|e| format!("Invalid CORS origin header: {}", e))?,
             )
             .allow_methods(Any)
             .allow_headers(Any);
@@ -101,6 +103,7 @@ pub struct ServerConfig {
     pub addr: Option<String>,
     pub api_url: String,
     pub authentication_header: Option<String>,
+    pub console_url: Option<String>,
 }
 
 impl ServerConfig {
@@ -109,6 +112,7 @@ impl ServerConfig {
             addr: None,
             api_url,
             authentication_header: None,
+            console_url: None,
         }
     }
 }
