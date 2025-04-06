@@ -1,0 +1,14 @@
+title = "Gitleaks Configuration"
+
+[allowlist]
+description = "Invalidated secrets that have been reviewed and confirmed as invalidated on April 6, 2025"
+
+# All invalidated tokens consolidated in a single regexes array
+regexes = [
+  # Invalidated API tokens and secrets
+  '''efd3dba0-1d19-4988-8f29-fe3ad6ba07cb''', # proxmox api token
+  '''0a253801-d1c0-4e74-964e-da6b61ffe92c''', # proxmox api token
+  '''vUfHvIvSHtNNsRYrD-PfTm1pUc1L_4zd''',     # former dev api key (false positive)
+  '''q0PSa3DuYPAGGZqT''',                     # former database password
+  '''glpat-rqocYJs-LxG8Gtf3ybGy'''            # former gitlab token
+]

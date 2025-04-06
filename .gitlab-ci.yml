@@ -23,15 +23,12 @@ gitleaks:
   stage: security
   image: zricethezav/gitleaks:latest
   script:
-    - gitleaks detect --source . --verbose --report-format json --report-path gitleaks-report.json
+    - gitleaks detect --source . --config .gitleaks.toml --verbose --report-format json --report-path gitleaks-report.json
   artifacts:
     paths:
       - gitleaks-report.json
     when: always
     expire_in: 1 week
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 build:
   stage: build
