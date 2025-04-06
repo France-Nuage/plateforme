@@ -32,6 +32,10 @@ build:
 
 "unit tests / controlplane":
   stage: unit-tests
+  variables:
+    CARGO_INCREMENTAL: "0"
+    LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
+    RUSTFLAGS: "-Cinstrument-coverage"
   script:
     - docker compose run --no-deps controlplane cargo test --workspace
     - docker compose run --no-deps controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
