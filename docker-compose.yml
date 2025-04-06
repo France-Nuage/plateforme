@@ -27,12 +27,12 @@ services:
       context: controlplane
       target: ${TARGET:-development}
     environment:
-      CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-} # "0"
+      CARGO_INCREMENTAL: ${CARGO_INCREMENTAL}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
-      LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-} # "cargo-test-%p-%m.profraw"
+      LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE}
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
-      RUSTFLAGS: ${RUSTFLAGS:-} # "-Cinstrument-coverage"
+      RUSTFLAGS: ${RUSTFLAGS}
     ports:
       - "8080:8080"
     volumes:
