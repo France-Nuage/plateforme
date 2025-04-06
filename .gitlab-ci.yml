@@ -21,9 +21,8 @@ before_script:
 
 gitleaks:
   stage: security
-  image: zricethezav/gitleaks:v8.24.2
   script:
-    - gitleaks detect --source . --config .gitleaks.toml --verbose --report-format json --report-path gitleaks-report.json  --exit-code 1
+    - docker run --rm -v $(pwd):/src zricethezav/gitleaks:v8.24.2 detect --source /src --verbose --report-format json --report-path /src/gitleaks-report.json --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
