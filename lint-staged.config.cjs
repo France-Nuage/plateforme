@@ -3,7 +3,7 @@ module.exports = {
     "cd controlplane && cargo fmt --",
     "cd controlplane && cargo clippy -- -D warnings",
   ],
-  "webui/**/*.(ts|js|vue|json|css|scss|html)": [
-    "cd webui && pnpm run lint",
+  "console/**/*.(ts|js|vue|json|css|scss|html)": [
+    "cd console && pnpm run lint",
   ]
 };

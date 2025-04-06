@@ -1,11 +1,11 @@
 services:
   console:
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:master
-      context: webui
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master
+      context: console
       target: ${TARGET:-development}
     depends_on:
       - controlplane
@@ -14,7 +14,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./webui:/app
+      - ./console:/app
       - /app/node_modules
       - /app/.pnpm-store
 
