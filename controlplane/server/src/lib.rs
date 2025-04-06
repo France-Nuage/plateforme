@@ -50,7 +50,7 @@ impl Server {
             .allow_origin(
                 config
                     .console_url
-                    .unwrap_or(String::from("http://locahost"))
+                    .unwrap_or(String::from("http://localhost"))
                     .parse::<http::HeaderValue>()
                     .map_err(|e| format!("Invalid CORS origin header: {}", e))?,
             )
