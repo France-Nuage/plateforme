@@ -1,11 +1,11 @@
 services:
   console:
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}webui:master
-      context: webui
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master
+      context: console
       target: ${TARGET:-development}
     depends_on:
       - controlplane
@@ -14,7 +14,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./webui:/app
+      - ./console:/app
       - /app/node_modules
       - /app/.pnpm-store
 
@@ -27,13 +27,13 @@ services:
       context: controlplane
       target: ${TARGET:-development}
     environment:
-      CARGO_INCREMENTAL: ${CARGO_INCREMENTAL}
-      CONSOLE_URL: ${CONSOLE_URL:-https://console.france-nuage.fr}
+      CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
+      CONSOLE_URL: ${CONSOLE_URL:-http://console:5173}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
-      LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE}
+      LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
-      RUSTFLAGS: ${RUSTFLAGS}
+      RUSTFLAGS: ${RUSTFLAGS:-}
     ports:
       - "8080:8080"
     volumes:

@@ -67,10 +67,10 @@ build:
   only:
     - master
 
-"deploy / webui":
+"deploy / console":
   stage: deploy
   script:
-    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/webui:release --push webui
+    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/console:release --push console
   only:
     - master
 
