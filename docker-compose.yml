@@ -73,11 +73,11 @@ services:
       - ./system-tests:/app
       - /app/node_modules
 
-  volumes:
-    nfs-snippets:
-      driver: local
-      driver_opts:
-        type: nfs
-        o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
-        device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
+volumes:
+  nfs-snippets:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
+      device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
 
