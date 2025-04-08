@@ -14,6 +14,41 @@ image: docker:27-cli
 # Define the docker-dind service that is started for each job
 services:
   - name: docker:27-dind
+    entrypoint: ["sh", "-c"]
+    # Install Cloudflare WARP on the DinD service container itself
+    command:
+      - |
+        # Start dockerd in the background
+        dockerd-entrypoint.sh &
+        DOCKER_PID=$!
+        
+        # Install dependencies needed for WARP connector
+        apt-get update
+        apt-get install -y curl gnupg lsb-release sudo
+        
+        # Follow Cloudflare's exact commands
+        curl https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/cloudflare-client.list
+        apt-get update && apt-get install -y cloudflare-warp
+        sysctl -w net.ipv4.ip_forward=1
+        warp-cli connector new ${CLOUDFLARE_WARP_CONNECTOR_TOKEN}
+        warp-cli connect
+        
+        # Wait for warp to connect
+        echo "Waiting for WARP connector to establish connection..."
+        for i in $(seq 1 10); do
+          if warp-cli status | grep -q "Connected"; then
+            echo "WARP connection established!"
+            break
+          fi
+          if [ $i -eq 10 ]; then
+            echo "WARP connection failed to establish in time"
+          fi
+          sleep 3
+        done
+        
+        # Wait for the dockerd process to terminate
+        wait $DOCKER_PID
 
 # Define the preliminary scripts to run before every job
 before_script:
