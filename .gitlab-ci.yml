@@ -41,6 +41,11 @@ build:
     - docker compose run --no-deps controlplane cargo fmt --check
     - docker compose run --no-deps controlplane cargo clippy
 
+"code style / console":
+  stage: code-style
+  script:
+    - docker compose run --no-deps console pnpm lint
+
 "unit tests / controlplane":
   stage: unit-tests
   variables:
