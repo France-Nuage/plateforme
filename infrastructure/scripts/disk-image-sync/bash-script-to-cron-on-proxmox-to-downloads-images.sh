@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Configuration
-URL_LIST_GIT="https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/raw/master/apps/agent/disk-image-sync/disk-images-url-to-download-locally.txt?ref_type=heads"
+URL_LIST_GIT="https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/raw/master/infrastructure/scripts/disk-image-sync/disk-images-url-to-download-locally.txt?ref_type=heads"
 LOCAL_DIR="/var/lib/vz/images/0"  # Répertoire où stocker les images sur Proxmox
-MAX_STORAGE_GB=15  # Limite maximale en Go
+MAX_STORAGE_GB=30  # Limite maximale en Go
 LOG_FILE="/var/log/cloud-image-sync.log"
 TMP_LIST="/tmp/cloud-images-list.txt"
 TEMP_DIR="/tmp/cloud-image-sync"
