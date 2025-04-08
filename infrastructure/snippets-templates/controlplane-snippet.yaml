@@ -1,0 +1,125 @@
+#cloud-config
+users:
+  - name: france-nuage
+    gecos: "france-nuage"
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - ${SSH_PUBLIC_KEY}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+write_files:
+  - path: /home/france-nuage/docker/controlplane/docker-compose.yaml
+    permissions: '0644'
+    content: |
+      services:
+        app:
+          container_name: controlplane
+          environment:
+            - CONTROLPLANE_ADDR=0.0.0.0:$APP_PORT
+            - PROXMOX_API_URL=$PROXMOX_API_URL
+            - PROXMOX_AUTHORIZATION_HEADER=$PROXMOX_AUTHORIZATION_HEADER
+            - CONSOLE_URL=$CONSOLE_URL
+          image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/controlplane:release
+          labels:
+            - com.centurylinklabs.watchtower.enable=true
+          ports:
+            - '$APP_PORT:$APP_PORT'
+          restart: always
+          pull_policy: always
+          volumes:
+            - type: volume
+              source: nfs-snippets
+              target: /mnt/pve/nfs-snippets
+              volume:
+                nocopy: true
+        watchtower:
+          command: '--interval 300 --label-enable --cleanup'
+          container_name: watchtower
+          environment:
+            - WATCHTOWER_WATCHDOG=true
+          image: containrrr/watchtower:latest
+          restart: always
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+      volumes:
+        nfs-snippets:
+          driver: local
+          driver_opts:
+            type: nfs
+            o: addr=nfs-snippets.france-nuage.fr,rw,nfsvers=4
+            device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox"
+
+  - path: /etc/systemd/system/docker-compose-controlplane.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Docker Compose controlplane Application
+      Requires=docker.service
+      After=docker.service network.target
+      StartLimitIntervalSec=60
+      StartLimitBurst=3
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      WorkingDirectory=/home/france-nuage/docker/controlplane
+      User=france-nuage
+      Group=docker
+      ExecStartPre=/bin/sleep 10
+      ExecStart=/usr/bin/docker compose -f  /home/france-nuage/docker/controlplane/docker-compose.yaml up -d
+      ExecStop=/usr/bin/docker compose -f /home/france-nuage/docker/controlplane/docker-compose.yaml down
+      Restart=on-failure
+      RestartSec=10
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  # Installation de Docker
+  - apt-get update
+  - apt-get install -y ca-certificates curl gnupg lsb-release
+  - mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \$(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin qemu-guest-agent
+  
+  # Configuration agent Qemu
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+  
+  # Configuration Docker
+  - usermod -aG docker france-nuage
+  - systemctl enable docker
+  - systemctl start docker
+  - sleep 10  # Attendre que Docker soit bien démarré
+
+  # Installation du tunnel cloudflared
+  - wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+  - dpkg -i ./cloudflared-linux-amd64.deb
+  - sudo cloudflared service install $CLOUDFLARED_CONTROLPLANE_TOKEN
+
+  # Installation du connecteur WARP
+  - curl https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+  - sudo sysctl -w net.ipv4.ip_forward=1
+  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ bookworm main" >> /etc/apt/sources.list.d/cloudflare-client.list
+  - sudo apt-get update && sudo apt-get install cloudflare-warp -y
+  - warp-cli --accept-tos connector new $CLOUDFLARE_WARP_CONTROLPLANE_TOKEN
+  - warp-cli --accept-tos connect
+  
+  # Préparation des répertoires
+  - mkdir -p ${DOCKER_APP_PATH}
+  - chown -R france-nuage:france-nuage ${DOCKER_APP_PATH}
+  
+  # Configuration du service
+  - systemctl daemon-reload
+  - systemctl enable docker-compose-${DOCKER_APP_NAME}.service
+  - sleep 5  # Attendre que tout soit bien en place
+  - systemctl start docker-compose-${DOCKER_APP_NAME}.service
+
+  # Configuration de fstrim pour rendre du stockage au Proxmox
+  - sudo systemctl enable fstrim.timer
+  - systemctl start fstrim.timer
+
+  # Upgrade de l'image mais sans interaction
+  - DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
