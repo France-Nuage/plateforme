@@ -1,29 +1,29 @@
 <template>
   <div class="flex justify-end gap-4">
     <slot>
-      <b-button
+      <app-button
         size="sm"
         variant="filled"
         v-if="!props.noExport"
         prepend-icon="solar:download-square-bold-duotone"
       >
         Exporter
-      </b-button>
-      <b-button
+      </app-button>
+      <app-button
         size="sm"
         variant="primary"
         prepend-icon="solar:add-circle-bold-duotone"
         @click="router.push(props.to)"
       >
         {{ props.label }}
-      </b-button>
+      </app-button>
     </slot>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import BButton from '@/components/forms/PButton.vue'
+import AppButton from '@/components/forms/app-button.vue'
 
 const router = useRouter()
 

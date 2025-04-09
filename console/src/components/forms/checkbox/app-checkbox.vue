@@ -8,7 +8,7 @@
       :name="name"
     />
     <div class="d-flex gap-4">
-      <p-checkbox-base :checked="isCheckedInGroup" />
+      <app-checkbox-base :checked="isCheckedInGroup" />
       <label v-if="label" class="label">
         <span class="text-white">{{ props.label }}</span>
         <span v-if="props.description" class="lead">{{ props.description }}</span>
@@ -19,12 +19,12 @@
 
 <script lang="ts" setup>
 import { inject, computed } from 'vue'
-import PCheckboxBase from './PCheckboxBase.vue'
+import AppCheckboxBase from './app-checkbox-base.vue'
 
-interface Props {
-  value?: string | number | boolean | undefined
-  modelValue?: (string | number | boolean)[] | boolean
-  onUpdate?: (value: (string | number | boolean)[] | boolean) => void
+interface Props<T = string | number> {
+  value?: T
+  modelValue?: T | T[]
+  onUpdate?: (value: T) => void
   label?: string
   name?: string
   description?: string

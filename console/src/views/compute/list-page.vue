@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import PTable from '@/components/table/PTable.vue'
+import AppTable from '@/components/table/app-table.vue'
 import { onMounted, ref } from 'vue'
 import { list } from '@/services/instance-service'
 import type { InstanceInfo } from '@/protocol/instances'
-import LayoutDefault from '@/components/layouts/LayoutDefault.vue'
+import LayoutDefault from '@/components/layouts/layout-default.vue'
 
 const headers = [
   { key: 'select', label: 'Nom' },
@@ -27,6 +27,6 @@ onMounted(() => {
 <template>
   <layout-default>
     <h1 class="mb-4">Compute</h1>
-    <p-table :headers="headers" :data="instances" name="compute_vm_list" />
+    <app-table :headers="headers" :data="instances" name="compute_vm_list" />
   </layout-default>
 </template>

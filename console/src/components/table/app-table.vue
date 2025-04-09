@@ -12,7 +12,7 @@
               :key="`${header.key}${i}`"
             >
               <div v-if="header.key === 'select'">
-                <p-checkbox
+                <app-checkbox
                   v-model:model-value="selectRowAll"
                   :value="selectRowAll"
                   :name="`table_${name}_checkbox_all`"
@@ -30,7 +30,7 @@
               :key="`${header.key}-${i}`"
             >
               <div v-if="header.key === 'select'">
-                <p-checkbox
+                <app-checkbox
                   v-model="selectRows"
                   :value="entity.id"
                   :name="`table_${name}_checkbox`"
@@ -67,16 +67,11 @@
 import _ from 'lodash'
 import { computed, watch, ref, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import PCheckbox from '@/components/forms/checkbox/PCheckbox.vue'
+import AppCheckbox from '@/components/forms/checkbox/app-checkbox.vue'
 
 // todo: implements all supports of this documentation: https://bootstrap-vue.org/docs/components/table#table
-interface TableRow {
-  [key: string]: CellValue;
-}
 
-type CellValue = string | number | boolean | Date | Record<string, unknown> | unknown[] | null | undefined;
-
-interface Props<T extends TableRow = TableRow> {
+interface Props<T = { [key: string]: unknown }> {
   headers?: Array<{
     key: string
     label: string

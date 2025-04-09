@@ -4,14 +4,14 @@
       {{ props.current * props.limit }} résultats sur environ {{ props.total }} résultats
     </div>
     <div class="flex gap-4">
-      <b-button size="sm" variant="filled" @click="emit('previous')">Précédent</b-button>
-      <b-button size="sm" variant="filled" @click="emit('next')">Suivant</b-button>
+      <app-button size="sm" variant="filled" @click="emit('previous')">Précédent</app-button>
+      <app-button size="sm" variant="filled" @click="emit('next')">Suivant</app-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import BButton from '@/components/forms/PButton.vue'
+import AppButton from '@/components/forms/app-button.vue'
 
 interface Props {
   total: number
