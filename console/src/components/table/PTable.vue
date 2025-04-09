@@ -70,14 +70,20 @@ import { useRouter } from 'vue-router'
 import PCheckbox from '@/components/forms/checkbox/PCheckbox.vue'
 
 // todo: implements all supports of this documentation: https://bootstrap-vue.org/docs/components/table#table
-interface Props {
+interface TableRow {
+  [key: string]: CellValue;
+}
+
+type CellValue = string | number | boolean | Date | Record<string, unknown> | unknown[] | null | undefined;
+
+interface Props<T extends TableRow = TableRow> {
   headers?: Array<{
     key: string
     label: string
     variant?: string
     sortable?: boolean
   }>
-  data?: Array<{ [key: string]: any }>
+  data?: T[];
   name: string
 }
 

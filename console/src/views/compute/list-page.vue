@@ -4,7 +4,6 @@ import { onMounted, ref } from 'vue'
 import { list } from '@/services/instance-service'
 import type { InstanceInfo } from '@/protocol/instances'
 import LayoutDefault from '@/components/layouts/LayoutDefault.vue'
-import PTableActions from '@/components/table/PTableActions.vue'
 
 const headers = [
   { key: 'select', label: 'Nom' },
@@ -28,7 +27,6 @@ onMounted(() => {
 <template>
   <layout-default>
     <h1 class="mb-4">Compute</h1>
-    <p-table-actions to="/compute/create" no-export label="Créer une instance" />
     <p-table :headers="headers" :data="instances" name="compute_vm_list" />
   </layout-default>
 </template>

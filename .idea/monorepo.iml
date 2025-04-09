@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="EMPTY_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/controlplane/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/controlplane/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/hypervisor/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/proto/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/proxmox/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/hypervisor_connector/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/hypervisor_connector_proxmox/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/hypervisor_connector_resolver/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/instance/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/server/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/controlplane/server/tests" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/controlplane/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

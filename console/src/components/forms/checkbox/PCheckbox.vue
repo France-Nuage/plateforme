@@ -23,8 +23,8 @@ import PCheckboxBase from './PCheckboxBase.vue'
 
 interface Props {
   value?: string | number | boolean | undefined
-  modelValue?: any
-  onUpdate?: any
+  modelValue?: (string | number | boolean)[] | boolean
+  onUpdate?: (value: (string | number | boolean)[] | boolean) => void
   label?: string
   name?: string
   description?: string
