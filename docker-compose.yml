@@ -38,6 +38,11 @@ services:
       - "8080:8080"
     volumes:
       - ./controlplane:/app
+      - type: volume
+        source: nfs-snippets
+        target: /mnt/pve/nfs-snippets
+        volume:
+          nocopy: true
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.51.1-noble
@@ -67,3 +72,12 @@ services:
     volumes:
       - ./system-tests:/app
       - /app/node_modules
+
+volumes:
+  nfs-snippets:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
+      device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
+
