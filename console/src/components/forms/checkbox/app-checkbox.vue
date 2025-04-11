@@ -23,7 +23,7 @@ import AppCheckboxBase from './app-checkbox-base.vue'
 
 interface Props<T = string | number> {
   value?: T
-  modelValue?: T | T[]
+  modelValue?: T
   onUpdate?: (value: T) => void
   label?: string
   name?: string

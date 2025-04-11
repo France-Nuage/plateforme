@@ -63,27 +63,25 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup generic="T extends Object[]">
 import _ from 'lodash'
 import { computed, watch, ref, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import AppCheckbox from '@/components/forms/checkbox/app-checkbox.vue'
 
-// todo: implements all supports of this documentation: https://bootstrap-vue.org/docs/components/table#table
-
-interface Props<T = { [key: string]: unknown }> {
+interface Props<T> {
   headers?: Array<{
     key: string
     label: string
     variant?: string
     sortable?: boolean
   }>
-  data?: T[];
+  data?: T;
   name: string
 }
 
+const props = defineProps<Props<T>>()
 const router = useRouter()
-const props = defineProps<Props>()
 const headers = computed(
   () =>
     props.headers ||
