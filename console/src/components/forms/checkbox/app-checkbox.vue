@@ -21,9 +21,9 @@
 import { inject, computed } from 'vue'
 import AppCheckboxBase from './app-checkbox-base.vue'
 
-interface Props<T = string | number> {
+interface Props<T = string | number | undefined> {
   value?: T
-  modelValue?: T
+  modelValue?: T | T[]
   onUpdate?: (value: T) => void
   label?: string
   name?: string
