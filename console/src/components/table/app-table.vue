@@ -11,14 +11,7 @@
               v-for="(header, i) in headers"
               :key="`${header.key}${i}`"
             >
-              <div v-if="header.key === 'select'">
-                <app-checkbox
-                  v-model:model-value="selectRowAll"
-                  :value="selectRowAll"
-                  :name="`table_${name}_checkbox_all`"
-                />
-              </div>
-              <span v-else>{{ header.label }}</span>
+              <span>{{ header.label }}</span>
             </th>
           </tr>
         </thead>
@@ -29,15 +22,7 @@
               v-for="(header, i) in headers"
               :key="`${header.key}-${i}`"
             >
-              <div v-if="header.key === 'select'">
-                <app-checkbox
-                  v-model="selectRows"
-                  :value="entity.id"
-                  :name="`table_${name}_checkbox`"
-                />
-              </div>
               <div
-                v-else
                 @click="
                   () =>
                     instance?.attrs.onClickRow
@@ -65,9 +50,8 @@
 
 <script lang="ts" setup generic="T extends Object[]">
 import _ from 'lodash'
-import { computed, watch, ref, getCurrentInstance } from 'vue'
+import { computed, ref, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import AppCheckbox from '@/components/forms/checkbox/app-checkbox.vue'
 
 interface Props<T> {
   headers?: Array<{
@@ -94,15 +78,5 @@ const headers = computed(
 const instance = ref(getCurrentInstance())
 defineOptions({
   inheritAttrs: false,
-})
-
-const selectRowAll = ref(false)
-const selectRows = ref([])
-watch(selectRowAll, (value) => {
-  if (value) {
-    selectRows.value = props.data.map((_) => _.id)
-  } else {
-    selectRows.value = []
-  }
 })
 </script>

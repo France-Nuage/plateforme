@@ -6,7 +6,6 @@ import type { InstanceInfo } from '@/protocol/instances'
 import LayoutDefault from '@/components/layouts/layout-default.vue'
 
 const headers = [
-  { key: 'select', label: 'Nom' },
   { key: 'id', label: 'Id' },
   { key: 'status', label: 'Status' },
   { key: 'maxCpuCores', label: 'Max CPU' },
