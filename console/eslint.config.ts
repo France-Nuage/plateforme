@@ -17,7 +17,7 @@ export default defineConfigWithVueTs(
 
   {
     name: 'app/files-to-ignore',
-    ignores: ['src/protocol', '**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
+    ignores: ['src/protocol', 'src/vue-shims.d.ts', '**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/playwright-report/**'],
   },
 
   pluginVue.configs['flat/essential'],

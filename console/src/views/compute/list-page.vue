@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import PTable from '@/components/table/PTable.vue'
+import AppTable from '@/components/table/app-table.vue'
 import { onMounted, ref } from 'vue'
 import { list } from '@/services/instance-service'
 import type { InstanceInfo } from '@/protocol/instances'
-import LayoutDefault from '@/components/layouts/LayoutDefault.vue'
-import PTableActions from '@/components/table/PTableActions.vue'
+import LayoutDefault from '@/components/layouts/layout-default.vue'
 
 const headers = [
-  { key: 'select', label: 'Nom' },
   { key: 'id', label: 'Id' },
   { key: 'status', label: 'Status' },
   { key: 'maxCpuCores', label: 'Max CPU' },
@@ -28,7 +26,6 @@ onMounted(() => {
 <template>
   <layout-default>
     <h1 class="mb-4">Compute</h1>
-    <p-table-actions to="/compute/create" no-export label="Créer une instance" />
-    <p-table :headers="headers" :data="instances" name="compute_vm_list" />
+    <app-table :headers="headers" :data="instances" name="compute_vm_list" />
   </layout-default>
 </template>

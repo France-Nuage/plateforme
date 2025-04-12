@@ -98,6 +98,7 @@ Ensure you have the following installed:
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+- [GitLeaks](https://github.com/gitleaks/gitleaks)
 
 ## Running France nuage with Docker
 

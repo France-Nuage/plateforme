@@ -11,14 +11,7 @@
               v-for="(header, i) in headers"
               :key="`${header.key}${i}`"
             >
-              <div v-if="header.key === 'select'">
-                <p-checkbox
-                  v-model:model-value="selectRowAll"
-                  :value="selectRowAll"
-                  :name="`table_${name}_checkbox_all`"
-                />
-              </div>
-              <span v-else>{{ header.label }}</span>
+              <span>{{ header.label }}</span>
             </th>
           </tr>
         </thead>
@@ -29,15 +22,7 @@
               v-for="(header, i) in headers"
               :key="`${header.key}-${i}`"
             >
-              <div v-if="header.key === 'select'">
-                <p-checkbox
-                  v-model="selectRows"
-                  :value="entity.id"
-                  :name="`table_${name}_checkbox`"
-                />
-              </div>
               <div
-                v-else
                 @click="
                   () =>
                     instance?.attrs.onClickRow
@@ -63,26 +48,24 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup generic="T extends Object[]">
 import _ from 'lodash'
-import { computed, watch, ref, getCurrentInstance } from 'vue'
+import { computed, ref, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import PCheckbox from '@/components/forms/checkbox/PCheckbox.vue'
 
-// todo: implements all supports of this documentation: https://bootstrap-vue.org/docs/components/table#table
-interface Props {
+interface Props<T> {
   headers?: Array<{
     key: string
     label: string
     variant?: string
     sortable?: boolean
   }>
-  data?: Array<{ [key: string]: any }>
+  data?: T;
   name: string
 }
 
+const props = defineProps<Props<T>>()
 const router = useRouter()
-const props = defineProps<Props>()
 const headers = computed(
   () =>
     props.headers ||
@@ -95,15 +78,5 @@ const headers = computed(
 const instance = ref(getCurrentInstance())
 defineOptions({
   inheritAttrs: false,
-})
-
-const selectRowAll = ref(false)
-const selectRows = ref([])
-watch(selectRowAll, (value) => {
-  if (value) {
-    selectRows.value = props.data.map((_) => _.id)
-  } else {
-    selectRows.value = []
-  }
 })
 </script>
