@@ -103,3 +103,5 @@ build:
     - pnpm install --ignore-scripts
   script:
     - npx semantic-release
+  only:
+    - master
