@@ -62,7 +62,7 @@ importers:
         version: 5.2.3(vite@6.2.5(@types/node@22.14.0)(jiti@2.4.2)(lightningcss@1.29.2))(vue@3.5.13(typescript@5.7.3))
       '@vitest/eslint-plugin':
         specifier: ^1.1.39
-        version: 1.1.39(@typescript-eslint/utils@8.29.0(eslint@9.23.0(jiti@2.4.2))(typescript@5.7.3))(eslint@9.23.0(jiti@2.4.2))(typescript@5.7.3)(vitest@3.1.1(@types/node@22.14.0)(jiti@2.4.2)(jsdom@26.0.0)(lightningcss@1.29.2))
+        version: 1.1.40(eslint@9.23.0(jiti@2.4.2))(typescript@5.7.3)(vitest@3.1.1(@types/node@22.14.0)(jiti@2.4.2)(jsdom@26.0.0)(lightningcss@1.29.2))
       '@vue/eslint-config-prettier':
         specifier: ^10.2.0
         version: 10.2.0(eslint@9.23.0(jiti@2.4.2))(prettier@3.5.3)
@@ -77,7 +77,7 @@ importers:
         version: 9.23.0(jiti@2.4.2)
       eslint-plugin-oxlint:
         specifier: ^0.16.4
-        version: 0.16.4
+        version: 0.16.5
       eslint-plugin-vue:
         specifier: ^10.0.0
         version: 10.0.0(eslint@9.23.0(jiti@2.4.2))(vue-eslint-parser@10.1.2(eslint@9.23.0(jiti@2.4.2)))
@@ -825,10 +825,9 @@ packages:
       vite: ^5.0.0 || ^6.0.0
       vue: ^3.2.25
 
-  '@vitest/eslint-plugin@1.1.39':
-    resolution: {integrity: sha512-l5/MUFCYI8nxwr62JHlWwXfeQNS8E7xy71lSLGQ3CrjGjBdWLs1Rtee+BvYwy2m4YVPwYqUwdcAIOaZOwPUpfg==}
+  '@vitest/eslint-plugin@1.1.40':
+    resolution: {integrity: sha512-M7RpSSVa98U0gtDcLfoZqLuv4Wk/G7o6TqTULwVbPO/TU7qaw41XNP0t68+JVgtgy/WkVGbxVQMBdj3XsywKcQ==}
     peerDependencies:
-      '@typescript-eslint/utils': ^8.24.0
       eslint: '>= 8.57.0'
       typescript: '>= 5.0.0'
       vitest: '*'
@@ -1179,8 +1178,8 @@ packages:
     peerDependencies:
       eslint: '>=7.0.0'
 
-  eslint-plugin-oxlint@0.16.4:
-    resolution: {integrity: sha512-0H0V+eSW+hIQSoXEtD1PAH0WIBTVPrh4cHsZe9flDH/GxnA4bsfoqTyl3fUBCV3MvLsDJFHguj7F5frkgkme9Q==}
+  eslint-plugin-oxlint@0.16.5:
+    resolution: {integrity: sha512-Hzj4jpPw+eESux/r9bC8qozc4PVh25S2JGLXit1BrlghfAHQJWNU1Yhz56p0Tj4Zd+xLA79NimpwbOmLI2isgg==}
 
   eslint-plugin-prettier@5.2.6:
     resolution: {integrity: sha512-mUcf7QG2Tjk7H055Jk0lGBjbgDnfrvqjhXh9t2xLMSCjZVcw9Rb1V6sVNXO0th3jgeO7zllWPTNRil3JW94TnQ==}
@@ -2814,9 +2813,8 @@ snapshots:
       vite: 6.2.5(@types/node@22.14.0)(jiti@2.4.2)(lightningcss@1.29.2)
       vue: 3.5.13(typescript@5.7.3)
 
-  '@vitest/eslint-plugin@1.1.39(@typescript-eslint/utils@8.29.0(eslint@9.23.0(jiti@2.4.2))(typescript@5.7.3))(eslint@9.23.0(jiti@2.4.2))(typescript@5.7.3)(vitest@3.1.1(@types/node@22.14.0)(jiti@2.4.2)(jsdom@26.0.0)(lightningcss@1.29.2))':
+  '@vitest/eslint-plugin@1.1.40(eslint@9.23.0(jiti@2.4.2))(typescript@5.7.3)(vitest@3.1.1(@types/node@22.14.0)(jiti@2.4.2)(jsdom@26.0.0)(lightningcss@1.29.2))':
     dependencies:
-      '@typescript-eslint/utils': 8.29.0(eslint@9.23.0(jiti@2.4.2))(typescript@5.7.3)
       eslint: 9.23.0(jiti@2.4.2)
     optionalDependencies:
       typescript: 5.7.3
@@ -3216,7 +3214,7 @@ snapshots:
     dependencies:
       eslint: 9.23.0(jiti@2.4.2)
 
-  eslint-plugin-oxlint@0.16.4:
+  eslint-plugin-oxlint@0.16.5:
     dependencies:
       jsonc-parser: 3.3.1
 
