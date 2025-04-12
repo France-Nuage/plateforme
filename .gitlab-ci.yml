@@ -100,8 +100,6 @@ build:
     - pnpm setup
     - source /root/.bashrc
     - git remote set-url origin "https://oauth2:${GITLAB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
-    - pnpm install
+    - pnpm install --ignore-scripts
   script:
     - npx semantic-release
-  only:
-    - master
