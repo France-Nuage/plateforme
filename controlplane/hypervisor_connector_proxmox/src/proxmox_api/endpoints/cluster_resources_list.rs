@@ -49,6 +49,7 @@ impl From<Resource> for hypervisor_connector::InstanceInfo {
             max_cpu_cores: value.maxcpu.unwrap() as u32,
             max_memory_bytes: value.maxmem.unwrap(),
             memory_usage_bytes: value.mem.unwrap(),
+            name: value.name.unwrap_or_else(|| String::from("unnamed")),
             status: value.status.expect("no status in response").into(),
         }
     }
