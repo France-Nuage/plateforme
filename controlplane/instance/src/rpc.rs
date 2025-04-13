@@ -4,8 +4,9 @@ use tonic::{Request, Response, Status};
 use crate::{
     problem::Problem,
     v1::{
-        ListInstancesRequest, ListInstancesResponse, StartInstanceRequest, StartInstanceResponse,
-        StopInstanceRequest, StopInstanceResponse, instances_server::Instances,
+        CreateInstanceRequest, CreateInstanceResponse, ListInstancesRequest, ListInstancesResponse,
+        StartInstanceRequest, StartInstanceResponse, StopInstanceRequest, StopInstanceResponse,
+        instances_server::Instances,
     },
 };
 
@@ -16,6 +17,23 @@ pub struct InstancesRpcService {
 
 #[tonic::async_trait]
 impl Instances for InstancesRpcService {
+    #[doc = " CreateInstance provisions a new instance based on the specified configuration."]
+    #[doc = " Returns details of the newly created instance or a ProblemDetails on failure."]
+    async fn create_instance(
+        &self,
+        request: tonic::Request<CreateInstanceRequest>,
+    ) -> std::result::Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
+        let result =
+            hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
+                .create(request.into_inner().into())
+                .await;
+
+        match result {
+            Ok(id) => Ok(Response::new(CreateInstanceResponse { id })),
+            Err(error) => Err(Problem::from(error).into()),
+        }
+    }
+
     #[doc = " ListInstances retrieves information about all available instances."]
     #[doc = " Returns a collection of instance details including their current status and resource usage."]
     async fn list_instances(

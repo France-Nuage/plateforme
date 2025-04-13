@@ -51,3 +51,17 @@ impl From<hypervisor_connector::InstanceStatus> for InstanceStatus {
         }
     }
 }
+
+/// Converts a `v1::CreateInstanceRequest` into a `hypervisor_connector::InstanceConfig`.
+impl From<CreateInstanceRequest> for hypervisor_connector::InstanceConfig {
+    fn from(value: CreateInstanceRequest) -> Self {
+        hypervisor_connector::InstanceConfig {
+            id: String::from("invalid"),
+            cores: value.cpu_cores as u8,
+            disk_image: value.image,
+            memory: value.memory_bytes as u32,
+            name: value.name,
+            snippet: value.snippet,
+        }
+    }
+}
