@@ -1,6 +1,8 @@
 use hyper::http;
+use hypervisor::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
 use instance::InstancesRpcService;
 use instance::v1::instances_server::InstancesServer;
+use sea_orm::DatabaseConnection;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
 use tokio_stream::wrappers::TcpListenerStream;
@@ -62,6 +64,9 @@ impl Server {
             .layer(cors)
             .add_service(tonic_web::enable(InstancesServer::new(
                 InstancesRpcService::new(config.api_url.clone(), client.clone()),
+            )))
+            .add_service(tonic_web::enable(HypervisorsServer::new(
+                HypervisorsRpcService::new(config.connection.clone()),
             )));
 
         // Return a Server instance
@@ -103,15 +108,17 @@ pub struct ServerConfig {
     pub addr: Option<String>,
     pub api_url: String,
     pub authentication_header: Option<String>,
+    pub connection: DatabaseConnection,
     pub console_url: Option<String>,
 }
 
 impl ServerConfig {
-    pub fn new(api_url: String) -> Self {
+    pub fn new(api_url: String, connection: DatabaseConnection) -> Self {
         ServerConfig {
             addr: None,
             api_url,
             authentication_header: None,
+            connection,
             console_url: None,
         }
     }

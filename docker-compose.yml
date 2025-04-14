@@ -30,6 +30,7 @@ services:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
       CONSOLE_URL: ${CONSOLE_URL:-http://console:5173}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
+      DATABASE_URL: ${DATABASE_URL:-postgres://username:password@host/database?currentSchema=my_schema}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
@@ -80,4 +81,3 @@ volumes:
       type: nfs
       o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
       device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
-

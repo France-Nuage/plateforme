@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package francenuage.fr.api.controlplane.v1.hypervisors;
+
+// Hypervisors service provides operations to manage hypervisors.
+service Hypervisors {
+    rpc RegisterHypervisor (RegisterHypervisorRequest) returns (RegisterHypervisorResponse);
+}
+
+// RegisterHypervisorRequest is an empty message for registering an hypervisor.
+message RegisterHypervisorRequest {
+    Hypervisor hypervisor = 1;
+}
+
+// RegisterHypervisorResponse contains the result of a register hypervisor operation.
+message RegisterHypervisorResponse {}
+
+message Hypervisor {
+    string url = 1;
+}
