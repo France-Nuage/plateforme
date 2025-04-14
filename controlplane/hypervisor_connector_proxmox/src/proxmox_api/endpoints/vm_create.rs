@@ -77,9 +77,9 @@ pub struct VMConfig {
 impl Default for VMConfig {
     fn default() -> Self {
         let snippets_storage =
-            std::env::var("PROXMOX_SNIPPETS_STORAGE").expect("PROXMOX_SNIPPETS_STORAGE not set");
+            std::env::var("PROXMOX_SNIPPETS_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
         let image_storage =
-            std::env::var("PROXMOX_IMAGE_STORAGE").expect("PROXMOX_IMAGE_STORAGE not set");
+            std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
         VMConfig {
             agent: Some(String::from("enabled=1")),
             boot: Some(String::from("c,order=scsi0")),
@@ -108,7 +108,7 @@ impl Default for VMConfig {
 impl VMConfig {
     pub fn from_instance_config(value: InstanceConfig, vmid: u32) -> Self {
         let image_storage =
-            std::env::var("PROXMOX_IMAGE_STORAGE").expect("PROXMOX_IMAGE_STORAGE not set");
+            std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
 
         let volume = format!(
             "{}:0,import-from=local:0/{},discard=on,ssd=1",

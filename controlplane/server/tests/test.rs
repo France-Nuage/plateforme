@@ -36,6 +36,7 @@ async fn test_the_create_instance_procedure_works() -> Result<(), Box<dyn std::e
             cpu_cores: 1,
             memory_bytes: 536870912,
             name: String::from("acme-mgs"),
+            snippet: String::from("acme-snippet.yaml"),
         })
         .await;
 
