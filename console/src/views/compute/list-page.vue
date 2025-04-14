@@ -7,6 +7,7 @@ import LayoutDefault from '@/components/layouts/layout-default.vue'
 
 const headers = [
   { key: 'id', label: 'Id' },
+  { key: 'name', label: 'Name' },
   { key: 'status', label: 'Status' },
   { key: 'maxCpuCores', label: 'Max CPU' },
   { key: 'cpuUsagePercent', label: 'CPU usage percent' },
