@@ -16,7 +16,9 @@ message ListHypervisorsResponse {
 
 // RegisterHypervisorRequest is an empty message for registering an hypervisor.
 message RegisterHypervisorRequest {
-    Hypervisor hypervisor = 1;
+    string url = 1;
+    string authentication_token = 2;
+    string storage_name = 3;
 }
 
 // RegisterHypervisorResponse contains the result of a register hypervisor operation.

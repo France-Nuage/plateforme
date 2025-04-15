@@ -24,9 +24,17 @@ export interface ListHypervisorsResponse {
  */
 export interface RegisterHypervisorRequest {
     /**
-     * @generated from protobuf field: francenuage.fr.api.controlplane.v1.hypervisors.Hypervisor hypervisor = 1;
+     * @generated from protobuf field: string url = 1;
      */
-    hypervisor?: Hypervisor;
+    url: string;
+    /**
+     * @generated from protobuf field: string authentication_token = 2;
+     */
+    authenticationToken: string;
+    /**
+     * @generated from protobuf field: string storage_name = 3;
+     */
+    storageName: string;
 }
 /**
  * RegisterHypervisorResponse contains the result of a register hypervisor operation.
@@ -70,7 +78,9 @@ export const ListHypervisorsResponse = new ListHypervisorsResponse$Type();
 class RegisterHypervisorRequest$Type extends MessageType<RegisterHypervisorRequest> {
     constructor() {
         super("francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorRequest", [
-            { no: 1, name: "hypervisor", kind: "message", T: () => Hypervisor }
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "authentication_token", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "storage_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
 }

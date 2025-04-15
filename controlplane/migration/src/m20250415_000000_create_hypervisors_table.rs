@@ -13,6 +13,8 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(pk_uuid(Hypervisors::Id))
                     .col(string(Hypervisors::Url))
+                    .col(string(Hypervisors::AuthenticationToken))
+                    .col(string(Hypervisors::StorageName))
                     .to_owned(),
             )
             .await
@@ -30,4 +32,6 @@ enum Hypervisors {
     Table,
     Id,
     Url,
+    AuthenticationToken,
+    StorageName,
 }

@@ -19,11 +19,7 @@ impl Hypervisors for HypervisorsRpcService {
         &self,
         request: Request<RegisterHypervisorRequest>,
     ) -> Result<Response<RegisterHypervisorResponse>, Status> {
-        let model: ActiveModel = request
-            .into_inner()
-            .hypervisor
-            .expect("hypervisor required")
-            .into();
+        let model: ActiveModel = request.into_inner().into();
 
         model
             .insert(&self.database_connection)
@@ -58,5 +54,60 @@ impl HypervisorsRpcService {
         Self {
             database_connection,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::{MockDatabase, MockExecResult};
+    use tonic::Request;
+
+    use crate::v1::{
+        ListHypervisorsRequest, RegisterHypervisorRequest, hypervisors_server::Hypervisors,
+    };
+
+    use super::HypervisorsRpcService;
+
+    #[tokio::test]
+    async fn test_register_hypervisor_works() {
+        // Arrange a service
+        let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres)
+            .append_exec_results([MockExecResult {
+                last_insert_id: 1,
+                rows_affected: 1,
+            }])
+            .append_query_results([vec![crate::model::Model::default()]])
+            .into_connection();
+        let service = HypervisorsRpcService::new(connection);
+
+        // Act the call to the register_hypervisor procedure
+        let result = service
+            .register_hypervisor(Request::new(RegisterHypervisorRequest::default()))
+            .await;
+
+        // Assert the procedure result
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_list_hypervisors_works() {
+        // Arrange a service
+        let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres)
+            .append_query_results([vec![
+                crate::model::Model::default(),
+                crate::model::Model::default(),
+            ]])
+            .into_connection();
+        let service = HypervisorsRpcService::new(connection);
+
+        // Act the call to the register_hypervisor procedure
+        let result = service
+            .list_hypervisors(Request::new(ListHypervisorsRequest::default()))
+            .await;
+
+        // Assert the procedure result
+        assert!(result.is_ok());
+        let response = result.unwrap().into_inner();
+        assert_eq!(response.hypervisors.len(), 2);
     }
 }

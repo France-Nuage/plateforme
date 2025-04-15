@@ -20,11 +20,12 @@ async fn test_the_server_starts() -> Result<(), Box<dyn std::error::Error>> {
 #[tokio::test]
 async fn test_the_create_instance_procedure_works() -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
+    let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
     let mock = MockServer::new()
         .await
         .with_cluster_next_id()
         .with_vm_create();
-    let config = ServerConfig::new(mock.url());
+    let config = ServerConfig::new(mock.url(), connection);
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
