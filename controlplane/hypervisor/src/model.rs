@@ -4,7 +4,7 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "hypervisors", schema_name = "public")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: String,
+    pub id: Uuid,
     pub url: String,
     pub authentication_token: String,
     pub storage_name: String,

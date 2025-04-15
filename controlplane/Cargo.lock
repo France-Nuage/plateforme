@@ -1293,6 +1293,7 @@ version = "0.1.0"
 dependencies = [
  "prost",
  "sea-orm",
+ "thiserror",
  "tokio",
  "tonic",
  "tonic-build",

@@ -3,6 +3,7 @@ use tonic::{Request, Response, Status};
 
 use crate::{
     model::ActiveModel,
+    problem::Problem,
     v1::{
         ListHypervisorsRequest, ListHypervisorsResponse, RegisterHypervisorRequest,
         RegisterHypervisorResponse, hypervisors_server::Hypervisors,
@@ -24,9 +25,7 @@ impl Hypervisors for HypervisorsRpcService {
         model
             .insert(&self.database_connection)
             .await
-            .expect("could not insert into database");
-
-        // TODO: use problem and match the result
+            .map_err(Problem::from)?;
 
         Ok(Response::new(RegisterHypervisorResponse {}))
     }
@@ -38,12 +37,10 @@ impl Hypervisors for HypervisorsRpcService {
         let hypervisors = crate::model::Entity::find()
             .all(&self.database_connection)
             .await
-            .expect("could not fetch from database")
+            .map_err(Problem::from)?
             .into_iter()
             .map(|hypervisor| hypervisor.into())
             .collect();
-
-        // TODO: use problem and match the result
 
         Ok(Response::new(ListHypervisorsResponse { hypervisors }))
     }
