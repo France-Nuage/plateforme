@@ -66,7 +66,7 @@ impl Server {
                 InstancesRpcService::new(config.api_url.clone(), client.clone()),
             )))
             .add_service(tonic_web::enable(HypervisorsServer::new(
-                HypervisorsRpcService::new(config.connection.clone()),
+                HypervisorsRpcService::new(config.connection),
             )));
 
         // Return a Server instance

@@ -5,6 +5,7 @@ use instance::v1::{
     ListInstancesRequest, StartInstanceRequest, StopInstanceRequest,
     instances_client::InstancesClient,
 };
+use sea_orm::MockDatabase;
 use server::{Server, ServerConfig};
 
 #[tokio::test]
@@ -18,8 +19,9 @@ async fn test_the_server_starts() -> Result<(), Box<dyn std::error::Error>> {
 #[tokio::test]
 async fn test_the_list_instances_procedure_works() -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
+    let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
     let mock = MockServer::new().await.with_cluster_resource_list();
-    let config = ServerConfig::new(mock.url());
+    let config = ServerConfig::new(mock.url(), connection);
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
@@ -40,8 +42,9 @@ async fn test_the_list_instances_procedure_works() -> Result<(), Box<dyn std::er
 #[tokio::test]
 async fn test_the_start_instance_procedure_works() -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
+    let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
     let mock = MockServer::new().await.with_vm_status_start();
-    let config = ServerConfig::new(mock.url());
+    let config = ServerConfig::new(mock.url(), connection);
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
@@ -65,8 +68,9 @@ async fn test_the_start_instance_procedure_works() -> Result<(), Box<dyn std::er
 #[tokio::test]
 async fn test_the_stop_instance_procedure_works() -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
+    let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
     let mock = MockServer::new().await.with_vm_status_stop();
-    let config = ServerConfig::new(mock.url());
+    let config = ServerConfig::new(mock.url(), connection);
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;

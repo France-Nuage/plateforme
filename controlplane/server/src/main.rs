@@ -1,3 +1,4 @@
+use migration::{Migrator, MigratorTrait};
 use sea_orm::Database;
 use server::{Server, ServerConfig};
 
@@ -5,6 +6,7 @@ use server::{Server, ServerConfig};
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let connection = Database::connect(&database_url).await?;
+    Migrator::up(&connection, None).await?;
 
     let config = ServerConfig {
         addr: Some(

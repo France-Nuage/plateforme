@@ -30,7 +30,7 @@ services:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
       CONSOLE_URL: ${CONSOLE_URL:-http://console:5173}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
-      DATABASE_URL: ${DATABASE_URL:-postgres://username:password@host/database?currentSchema=my_schema}
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
@@ -52,6 +52,18 @@ services:
       - "4444:4444"
     profiles:
       - donotstart
+
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   system-tests:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
@@ -81,3 +93,4 @@ volumes:
       type: nfs
       o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
       device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
+  postgres_data:

@@ -1,7 +1,6 @@
 use sea_orm::DatabaseConnection;
 
 pub mod model;
-pub mod repository;
 pub mod rpc;
 pub mod v1;
 
