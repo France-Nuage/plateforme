@@ -77,6 +77,9 @@ message InstanceInfo {
         gte: 0  // Cannot be negative
         lte: 68719476736,  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
     }];
+
+    // Human-readable name, defined on the instance
+    string name = 7;
 }
 
 // InstanceStatus represents the possible states of a virtual machine instance.

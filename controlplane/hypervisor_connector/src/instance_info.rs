@@ -18,4 +18,7 @@ pub struct InstanceInfo {
 
     /// Current memory utilization (in bytes, cannot exceed max_memory_bytes)
     pub memory_usage_bytes: u64,
+
+    /// Human readable name
+    pub name: String,
 }

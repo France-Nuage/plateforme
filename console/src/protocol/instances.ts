@@ -64,6 +64,12 @@ export interface InstanceInfo {
      * @generated from protobuf field: uint64 memory_usage_bytes = 6;
      */
     memoryUsageBytes: bigint;
+    /**
+     * Human-readable name, defined on the instance
+     *
+     * @generated from protobuf field: string name = 7;
+     */
+    name: string;
 }
 /**
  * ListInstancesRequest is an empty message for listing instances.
@@ -84,56 +90,6 @@ export interface ListInstancesResponse {
      * @generated from protobuf field: repeated francenuage.fr.api.controlplane.v1.instances.InstanceInfo instances = 1;
      */
     instances: InstanceInfo[];
-}
-/**
- * CreateInstanceRequest defines the parameters needed to provision a new instance.
- *
- * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.CreateInstanceRequest
- */
-export interface CreateInstanceRequest {
-    /**
-     * Base image identifier to use for the instance
-     *
-     * @generated from protobuf field: string image = 1;
-     */
-    image: string;
-    /**
-     * Number of CPU cores to allocate to the instance
-     *
-     * @generated from protobuf field: uint32 cpu_cores = 2;
-     */
-    cpuCores: number;
-    /**
-     * Amount of memory in bytes to allocate to the instance
-     *
-     * @generated from protobuf field: uint64 memory_bytes = 3;
-     */
-    memoryBytes: bigint;
-    /**
-     * User-defined name for the instance
-     *
-     * @generated from protobuf field: string name = 4;
-     */
-    name: string;
-    /**
-     * / The snippet to use to bootstrap the instance.
-     *
-     * @generated from protobuf field: string snippet = 5;
-     */
-    snippet: string;
-}
-/**
- * CreateInstanceResponse contains the result of a create instance operation.
- *
- * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.CreateInstanceResponse
- */
-export interface CreateInstanceResponse {
-    /**
-     * Unique identifier of the created instance.
-     *
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
 }
 /**
  * StartInstanceRequest identifies which instance to start.
@@ -270,7 +226,8 @@ class InstanceInfo$Type extends MessageType<InstanceInfo> {
             { no: 3, name: "max_cpu_cores", kind: "scalar", T: 13 /*ScalarType.UINT32*/, options: { "validate.rules": { uint32: { lte: 99, gt: 0 } } } },
             { no: 4, name: "cpu_usage_percent", kind: "scalar", T: 2 /*ScalarType.FLOAT*/, options: { "validate.rules": { float: { lte: 100, gte: 0 } } } },
             { no: 5, name: "max_memory_bytes", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/, options: { "validate.rules": { uint64: { lte: "68719476736", gt: "0" } } } },
-            { no: 6, name: "memory_usage_bytes", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/, options: { "validate.rules": { uint64: { lte: "68719476736", gte: "0" } } } }
+            { no: 6, name: "memory_usage_bytes", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/, options: { "validate.rules": { uint64: { lte: "68719476736", gte: "0" } } } },
+            { no: 7, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
 }
@@ -377,7 +334,6 @@ export const StopInstanceResponse = new StopInstanceResponse$Type();
  */
 export const Instances = new ServiceType("francenuage.fr.api.controlplane.v1.instances.Instances", [
     { name: "ListInstances", options: {}, I: ListInstancesRequest, O: ListInstancesResponse },
-    { name: "CreateInstance", options: {}, I: CreateInstanceRequest, O: CreateInstanceResponse },
     { name: "StartInstance", options: {}, I: StartInstanceRequest, O: StartInstanceResponse },
     { name: "StopInstance", options: {}, I: StopInstanceRequest, O: StopInstanceResponse }
 ]);

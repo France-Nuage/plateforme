@@ -37,6 +37,7 @@ impl From<hypervisor_connector::InstanceInfo> for InstanceInfo {
             cpu_usage_percent: value.cpu_usage_percent,
             max_memory_bytes: value.max_memory_bytes,
             memory_usage_bytes: value.memory_usage_bytes,
+            name: value.name,
         }
     }
 }
