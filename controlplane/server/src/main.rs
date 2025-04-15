@@ -4,9 +4,12 @@ use server::{Server, ServerConfig};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("establishing database connection...");
+
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let connection = Database::connect(&database_url).await?;
     Migrator::up(&connection, None).await?;
+    println!("migrations executed");
 
     let config = ServerConfig {
         addr: Some(

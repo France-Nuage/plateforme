@@ -4,7 +4,14 @@ package francenuage.fr.api.controlplane.v1.hypervisors;
 
 // Hypervisors service provides operations to manage hypervisors.
 service Hypervisors {
+    rpc ListHypervisors (ListHypervisorsRequest) returns (ListHypervisorsResponse);
     rpc RegisterHypervisor (RegisterHypervisorRequest) returns (RegisterHypervisorResponse);
+}
+
+message ListHypervisorsRequest {}
+
+message ListHypervisorsResponse {
+    repeated Hypervisor hypervisors = 1;
 }
 
 // RegisterHypervisorRequest is an empty message for registering an hypervisor.

@@ -1,9 +1,12 @@
-use sea_orm::{ActiveModelTrait, DatabaseConnection};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait};
 use tonic::{Request, Response, Status};
 
 use crate::{
     model::ActiveModel,
-    v1::{RegisterHypervisorRequest, RegisterHypervisorResponse, hypervisors_server::Hypervisors},
+    v1::{
+        ListHypervisorsRequest, ListHypervisorsResponse, RegisterHypervisorRequest,
+        RegisterHypervisorResponse, hypervisors_server::Hypervisors,
+    },
 };
 
 pub struct HypervisorsRpcService {
@@ -27,7 +30,26 @@ impl Hypervisors for HypervisorsRpcService {
             .await
             .expect("could not insert into database");
 
+        // TODO: use problem and match the result
+
         Ok(Response::new(RegisterHypervisorResponse {}))
+    }
+
+    async fn list_hypervisors(
+        &self,
+        _: tonic::Request<ListHypervisorsRequest>,
+    ) -> std::result::Result<Response<ListHypervisorsResponse>, Status> {
+        let hypervisors = crate::model::Entity::find()
+            .all(&self.database_connection)
+            .await
+            .expect("could not fetch from database")
+            .into_iter()
+            .map(|hypervisor| hypervisor.into())
+            .collect();
+
+        // TODO: use problem and match the result
+
+        Ok(Response::new(ListHypervisorsResponse { hypervisors }))
     }
 }
 

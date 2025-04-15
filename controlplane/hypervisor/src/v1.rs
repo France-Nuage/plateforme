@@ -11,3 +11,9 @@ impl From<Hypervisor> for crate::model::ActiveModel {
         }
     }
 }
+
+impl From<crate::model::Model> for Hypervisor {
+    fn from(value: crate::model::Model) -> Self {
+        Hypervisor { url: value.url }
+    }
+}
