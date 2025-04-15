@@ -92,6 +92,56 @@ export interface ListInstancesResponse {
     instances: InstanceInfo[];
 }
 /**
+ * CreateInstanceRequest defines the parameters needed to provision a new instance.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.CreateInstanceRequest
+ */
+export interface CreateInstanceRequest {
+    /**
+     * Base image identifier to use for the instance
+     *
+     * @generated from protobuf field: string image = 1;
+     */
+    image: string;
+    /**
+     * Number of CPU cores to allocate to the instance
+     *
+     * @generated from protobuf field: uint32 cpu_cores = 2;
+     */
+    cpuCores: number;
+    /**
+     * Amount of memory in bytes to allocate to the instance
+     *
+     * @generated from protobuf field: uint64 memory_bytes = 3;
+     */
+    memoryBytes: bigint;
+    /**
+     * User-defined name for the instance
+     *
+     * @generated from protobuf field: string name = 4;
+     */
+    name: string;
+    /**
+     * / The snippet to use to bootstrap the instance.
+     *
+     * @generated from protobuf field: string snippet = 5;
+     */
+    snippet: string;
+}
+/**
+ * CreateInstanceResponse contains the result of a create instance operation.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.CreateInstanceResponse
+ */
+export interface CreateInstanceResponse {
+    /**
+     * Unique identifier of the created instance.
+     *
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
  * StartInstanceRequest identifies which instance to start.
  *
  * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.StartInstanceRequest
@@ -258,6 +308,34 @@ class ListInstancesResponse$Type extends MessageType<ListInstancesResponse> {
  */
 export const ListInstancesResponse = new ListInstancesResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class CreateInstanceRequest$Type extends MessageType<CreateInstanceRequest> {
+    constructor() {
+        super("francenuage.fr.api.controlplane.v1.instances.CreateInstanceRequest", [
+            { no: 1, name: "image", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "cpu_cores", kind: "scalar", T: 13 /*ScalarType.UINT32*/, options: { "validate.rules": { uint32: { lte: 99, gt: 0 } } } },
+            { no: 3, name: "memory_bytes", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/, options: { "validate.rules": { uint64: { lte: "68719476736", gt: "536870912" } } } },
+            { no: 4, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1", maxLen: "128", pattern: "^[a-zA-Z0-9_-]+$" } } } },
+            { no: 5, name: "snippet", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.instances.CreateInstanceRequest
+ */
+export const CreateInstanceRequest = new CreateInstanceRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateInstanceResponse$Type extends MessageType<CreateInstanceResponse> {
+    constructor() {
+        super("francenuage.fr.api.controlplane.v1.instances.CreateInstanceResponse", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.instances.CreateInstanceResponse
+ */
+export const CreateInstanceResponse = new CreateInstanceResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class StartInstanceRequest$Type extends MessageType<StartInstanceRequest> {
     constructor() {
         super("francenuage.fr.api.controlplane.v1.instances.StartInstanceRequest", [
@@ -306,6 +384,7 @@ export const StopInstanceResponse = new StopInstanceResponse$Type();
  */
 export const Instances = new ServiceType("francenuage.fr.api.controlplane.v1.instances.Instances", [
     { name: "ListInstances", options: {}, I: ListInstancesRequest, O: ListInstancesResponse },
+    { name: "CreateInstance", options: {}, I: CreateInstanceRequest, O: CreateInstanceResponse },
     { name: "StartInstance", options: {}, I: StartInstanceRequest, O: StartInstanceResponse },
     { name: "StopInstance", options: {}, I: StopInstanceRequest, O: StopInstanceResponse }
 ]);

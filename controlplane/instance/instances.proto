@@ -9,11 +9,15 @@ service Instances {
     // ListInstances retrieves information about all available instances.
     // Returns a collection of instance details including their current status and resource usage.
     rpc ListInstances (ListInstancesRequest) returns (ListInstancesResponse);
-    
+
+    // CreateInstance provisions a new instance based on the specified configuration.
+    // Returns details of the newly created instance or a ProblemDetails on failure.
+    rpc CreateInstance (CreateInstanceRequest) returns (CreateInstanceResponse);
+
     // StartInstance initiates a specific instance identified by its unique ID.
     // Returns a response indicating success or a ProblemDetails on failure.
     rpc StartInstance (StartInstanceRequest) returns (StartInstanceResponse);
-    
+
     // StopInstance halts a specific instance identified by its unique ID.
     // Returns a response indicating success or a ProblemDetails on failure.
     rpc StopInstance (StopInstanceRequest) returns (StopInstanceResponse);
@@ -121,6 +125,40 @@ message ListInstancesRequest {}
 message ListInstancesResponse {
     // List of instance details
     repeated InstanceInfo instances = 1;
+}
+
+// CreateInstanceRequest defines the parameters needed to provision a new instance.
+message CreateInstanceRequest {
+    // Base image identifier to use for the instance
+    string image = 1;
+
+    // Number of CPU cores to allocate to the instance
+    uint32 cpu_cores = 2 [(validate.rules).uint32 = {
+        gt: 0,  // Must have at least 1 core
+        lte: 99  // Maximum 99 cores
+    }];
+
+    // Amount of memory in bytes to allocate to the instance
+    uint64 memory_bytes = 3 [(validate.rules).uint64 = {
+        gt: 536870912,  // Minimum 512MB (512 * 1024 * 1024)
+        lte: 68719476736  // Maximum 64GB (64 * 1024 * 1024 * 1024)
+    }];
+
+    // User-defined name for the instance
+    string name = 4 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 128,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+
+    /// The snippet to use to bootstrap the instance.
+    string snippet = 5;
+}
+
+// CreateInstanceResponse contains the result of a create instance operation.
+message CreateInstanceResponse {
+    // Unique identifier of the created instance.
+    string id = 1;
 }
 
 // StartInstanceRequest identifies which instance to start.

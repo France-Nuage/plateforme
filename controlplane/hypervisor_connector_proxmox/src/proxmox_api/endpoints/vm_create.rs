@@ -28,6 +28,9 @@ pub struct VMConfig {
     /// Specify guest boot order.
     pub boot: Option<String>,
 
+    /// Specify custom files to replace the automatically generated ones at start.
+    pub cicustom: Option<String>,
+
     /// Emulated CPU type.
     pub cpu: Option<String>,
 
@@ -73,18 +76,24 @@ pub struct VMConfig {
 
 impl Default for VMConfig {
     fn default() -> Self {
+        let snippets_storage =
+            std::env::var("PROXMOX_SNIPPETS_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
+        let image_storage =
+            std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
         VMConfig {
             agent: Some(String::from("enabled=1")),
             boot: Some(String::from("c,order=scsi0")),
+            cicustom: None,
             cpu: Some(String::from("x86-64-v2-AES")),
             cores: Some(1),
-            ide2: Some(String::from("ceph-pool-nvme-01:cloudinit")),
+            ide2: Some(format!("{}:cloudinit", snippets_storage)),
             memory: Some(1024),
             name: None,
             nameserver: Some(String::from("1.1.1.1")),
             net0: Some(String::from("virtio,bridge=vmbr0")),
-            scsi0: Some(String::from(
-                "CephPool:0,import-from=/var/lib/vz/images/0/debian-12-genericcloud-amd64-20241201-1948.qcow2,discard=on,ssd=1",
+            scsi0: Some(format!(
+                "{}:0,import-from=/var/lib/vz/images/0/debian-12-genericcloud-amd64-20241201-1948.qcow2,discard=on,ssd=1",
+                image_storage,
             )),
             scsihw: Some(String::from("virtio-scsi-pci")),
             serial0: Some(String::from("socket")),
@@ -96,14 +105,23 @@ impl Default for VMConfig {
     }
 }
 
-impl From<InstanceConfig> for VMConfig {
-    fn from(value: InstanceConfig) -> Self {
+impl VMConfig {
+    pub fn from_instance_config(value: InstanceConfig, vmid: u32) -> Self {
+        let image_storage =
+            std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
+
+        let volume = format!(
+            "{}:0,import-from=local:0/{},discard=on,ssd=1",
+            image_storage, value.disk_image
+        );
+
         VMConfig {
-            vmid: value
-                .id
-                .parse::<u32>()
-                .expect("could notp;arse the given id to a u32"),
+            cicustom: Some(format!("user=nfs-snippets:snippets/{}", value.snippet)),
+            cores: Some(value.cores),
+            memory: Some(value.memory),
             name: Some(value.name),
+            scsi0: Some(volume),
+            vmid,
             ..Default::default()
         }
     }
