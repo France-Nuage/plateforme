@@ -34,6 +34,8 @@ services:
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
+      PROXMOX_IMAGE_STORAGE: CephPool
+      PROXMOX_SNIPPETS_STORAGE: CephPool
       RUSTFLAGS: ${RUSTFLAGS:-}
     ports:
       - "8080:8080"

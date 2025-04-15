@@ -8,7 +8,10 @@ pub trait InstanceService {
     fn list(&self) -> impl Future<Output = Result<Vec<InstanceInfo>, Problem>> + Send;
 
     /// Creates the instance.
-    fn create(&self, options: InstanceConfig) -> impl Future<Output = Result<(), Problem>> + Send;
+    fn create(
+        &self,
+        options: InstanceConfig,
+    ) -> impl Future<Output = Result<String, Problem>> + Send;
 
     /// Deletes the instance.
     fn delete(&self) -> impl Future<Output = Result<(), Problem>> + Send;

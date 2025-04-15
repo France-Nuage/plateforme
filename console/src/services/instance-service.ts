@@ -1,6 +1,6 @@
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { InstancesClient } from "../protocol/instances.client";
-import { InstanceInfo } from "../protocol/instances";
+import { CreateInstanceRequest, CreateInstanceResponse, InstanceInfo } from "../protocol/instances";
 
 const transport = new GrpcWebFetchTransport({
   baseUrl: import.meta.env.VITE_CONTROLPLANE_URL,
@@ -16,4 +16,10 @@ export function list(): Promise<InstanceInfo[]> {
       .response.then(({ instances }) => resolve(instances))
       .catch((error) => reject(error));
   });
+}
+
+export function create(options: CreateInstanceRequest): Promise<CreateInstanceResponse> {
+  return new Promise((resolve, reject) => {
+    client.createInstance(options).response.then(resolve).catch(reject)
+  })
 }

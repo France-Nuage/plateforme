@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: true
+enable_free_tier: true
+auto_resolve_threads: true
+tone_instructions: 'You are an expert code reviewer in Rust,Vue,TypeScript,PostgreSQL,Proxmox,NodeJS. You work on a cloud (IaaS&PaaS) software dev team, providing concise and clear code review advice. You only elaborate or provide detailed explanations when requested.'
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary_in_walkthrough: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_assign_reviewers: true
+  auto_review:
+    enabled: true
+    drafts: true
+    base_branches: [".*"]
+  path_instructions:
+    - path: "console/**/**.*"
+      instructions: |
+        Review the following frontend console. Ensure that:
+        - Follow best practices for UI/UX on GUI
+        - all error execution path are handled and either recovered or displayed to the user for manual actions
+        - avoid magic numbers or magic strings
+        - TypeScript types are always specified (no any)
+    - path: "controlplane/**/**.*"
+      instructions: |
+        Review the following API (IaaS control-plane) code. Ensure that:
+        - Every endpoint is documented
+        - Repositories and Services layer are used
+        - Every fix comes with a regression test
+        - Every error is wrapped in Problem (RFC7807)
+        - Best gRPC and protobuf practices are respected (e.g. protobuf are fully documentated)
+        - Best Rust practices are respected
+    - path: "system-tests/**/**.*"
+      instructions: |
+        Review the following playwright end-to-end test. Ensure that:
+        - Avoid using wait method in code
+        - Avoid using pause method in code
+        - Avoid using sleep()
+        - Use locator variables for locators
+        - Use data-* attributes for selectors
+        - Avoid Xpaths, Attributes and CSS path
+        - Avoid selectors like .btn.submit
+        - Perform logins via API
+        - Avoid using it.only
+        - Use multiple assertions
+        - Avoid string assertions
+        - Ensure unique filenames
+chat:
+  auto_reply: true
