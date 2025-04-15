@@ -9,10 +9,10 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Hypervisor::Table)
+                    .table(Hypervisors::Table)
                     .if_not_exists()
-                    .col(pk_auto(Hypervisor::Id))
-                    .col(string(Hypervisor::Url))
+                    .col(pk_uuid(Hypervisors::Id))
+                    .col(string(Hypervisors::Url))
                     .to_owned(),
             )
             .await
@@ -20,13 +20,13 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Hypervisor::Table).to_owned())
+            .drop_table(Table::drop().table(Hypervisors::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum Hypervisor {
+enum Hypervisors {
     Table,
     Id,
     Url,

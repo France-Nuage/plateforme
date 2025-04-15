@@ -1,6 +1,7 @@
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { InstancesClient } from "../protocol/instances.client";
 import { CreateInstanceRequest, CreateInstanceResponse, InstanceInfo } from "../protocol/instances";
+import { HypervisorsClient } from "@/protocol/hypervisors.client";
 
 const transport = new GrpcWebFetchTransport({
   baseUrl: import.meta.env.VITE_CONTROLPLANE_URL,
@@ -8,6 +9,7 @@ const transport = new GrpcWebFetchTransport({
 });
 
 const client = new InstancesClient(transport);
+export const hypervisors = new HypervisorsClient(transport);
 
 export function list(): Promise<InstanceInfo[]> {
   return new Promise((resolve, reject) => {

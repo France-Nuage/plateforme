@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppTable from '@/components/table/app-table.vue'
 import { onMounted, ref } from 'vue'
-import { create, list } from '@/services/instance-service'
+import { create, hypervisors, list } from '@/services/instance-service'
 import type { InstanceInfo } from '@/protocol/instances'
 import LayoutDefault from '@/components/layouts/layout-default.vue'
 
@@ -18,6 +18,7 @@ const headers = [
 const instances = ref<InstanceInfo[]>([])
 
 onMounted(() => {
+  hypervisors.listHypervisors({}).response.then((data) => console.log('result', data))
   list().then((response: InstanceInfo[]) => {
     instances.value = response
   })
@@ -35,6 +36,7 @@ const createInstance = () => {
     .catch((error) => console.error("problem", error))
   console.log("creating...");
 }
+
 </script>
 
 <template>
