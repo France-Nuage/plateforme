@@ -1288,19 +1288,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hypervisor"
-version = "0.1.0"
-dependencies = [
- "prost",
- "sea-orm",
- "thiserror",
- "tokio",
- "tonic",
- "tonic-build",
- "uuid",
-]
-
-[[package]]
 name = "hypervisor_connector"
 version = "0.1.0"
 dependencies = [
@@ -1328,6 +1315,19 @@ dependencies = [
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
  "reqwest",
+]
+
+[[package]]
+name = "hypervisors"
+version = "0.1.0"
+dependencies = [
+ "prost",
+ "sea-orm",
+ "thiserror",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "uuid",
 ]
 
 [[package]]
@@ -1532,7 +1532,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "instance"
+name = "instances"
 version = "0.1.0"
 dependencies = [
  "hypervisor_connector",
@@ -2851,9 +2851,9 @@ name = "server"
 version = "0.1.0"
 dependencies = [
  "hyper",
- "hypervisor",
  "hypervisor_connector_proxmox",
- "instance",
+ "hypervisors",
+ "instances",
  "migration",
  "reqwest",
  "sea-orm",

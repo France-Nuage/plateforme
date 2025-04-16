@@ -1,11 +1,11 @@
 [workspace]
 
 members = [
-  "hypervisor",
+  "hypervisors",
   "hypervisor_connector",
   "hypervisor_connector_proxmox",
   "hypervisor_connector_resolver",
-  "instance",
+  "instances",
   "server"
 ]
 

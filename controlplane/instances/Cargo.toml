@@ -1,5 +1,5 @@
 [package]
-name = "instance"
+name = "instances"
 version = "0.1.0"
 edition = "2024"
 

@@ -1,7 +1,7 @@
 use hyper::http;
-use hypervisor::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
-use instance::InstancesRpcService;
-use instance::v1::instances_server::InstancesServer;
+use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
+use instances::InstancesRpcService;
+use instances::v1::instances_server::InstancesServer;
 use sea_orm::DatabaseConnection;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
