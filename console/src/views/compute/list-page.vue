@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppTable from '@/components/table/app-table.vue'
 import { onMounted, ref } from 'vue'
-import { create, list } from '@/services/instance-service'
+import { create, hypervisors, list } from '@/services/instance-service'
 import type { InstanceInfo } from '@/protocol/instances'
 import LayoutDefault from '@/components/layouts/layout-default.vue'
 
@@ -18,6 +18,7 @@ const headers = [
 const instances = ref<InstanceInfo[]>([])
 
 onMounted(() => {
+  hypervisors.listHypervisors({}).response.then((data) => console.log('result', data))
   list().then((response: InstanceInfo[]) => {
     instances.value = response
   })
@@ -35,12 +36,22 @@ const createInstance = () => {
     .catch((error) => console.error("problem", error))
   console.log("creating...");
 }
+
+const registerHypervisor = () => {
+  hypervisors.registerHypervisor({
+    url: "https://pve-poc01-internal.france-nuage.fr",
+    authenticationToken: "root@pam!token-robin-root=00000000-0000-0000-0000-000000000000",
+    storageName: "CephPool",
+  }).response.then(console.log).catch(console.log)
+}
+
 </script>
 
 <template>
   <layout-default>
     <h1 class="mb-4">Compute</h1>
     <button class="bg-indigo-100 border px-4 py-2 rounded" @click="createInstance">Nouvelle instance</button>
+    <button class="bg-indigo-100 border px-4 py-2 rounded" @click="registerHypervisor">Ajouter un hyperviseur</button>
     <app-table :headers="headers" :data="instances" name="compute_vm_list" />
   </layout-default>
 </template>

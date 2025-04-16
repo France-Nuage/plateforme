@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate": "protoc -I ../controlplane/instance/ --ts_out src/protocol --ts_opt optimize_code_size ../controlplane/instance/*.proto"
+    "generate": "protoc -I ../controlplane/instance/ -I ../controlplane/hypervisor/ --ts_out src/protocol --ts_opt optimize_code_size ../controlplane/instance/*.proto ../controlplane/hypervisor/*.proto"
   },
   "dependencies": {
     "@protobuf-ts/grpcweb-transport": "^2.9.6",

@@ -74,8 +74,8 @@ message InstanceInfo {
     
     // Current memory utilization (in bytes, cannot exceed max_memory_bytes)
     uint64 memory_usage_bytes = 6 [(validate.rules).uint64 = {
-        gte: 0  // Cannot be negative
-        lte: 68719476736,  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
+        gte: 0,  // Cannot be negative
+        lte: 68719476736  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
     }];
 
     // Human-readable name, defined on the instance
@@ -151,7 +151,7 @@ message CreateInstanceRequest {
         pattern: "^[a-zA-Z0-9_-]+$"
     }];
 
-    /// The snippet to use to bootstrap the instance.
+    // The snippet to use to bootstrap the instance.
     string snippet = 5;
 }
 

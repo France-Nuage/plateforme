@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package francenuage.fr.api.controlplane.v1.hypervisors;
+
+// Hypervisors service provides operations to manage hypervisors.
+service Hypervisors {
+    // ListHypervisors retrieves information about all registered hypervisors.
+    // Returns a collection of hypervisor details.
+    rpc ListHypervisors (ListHypervisorsRequest) returns (ListHypervisorsResponse);
+
+    // RegisterHypervisor adds a new hypervisor to the system.
+    // Returns an empty response on success or a ProblemDetails on failure.
+    rpc RegisterHypervisor (RegisterHypervisorRequest) returns (RegisterHypervisorResponse);
+}
+
+// ListHypervisorsRequest is an empty message for listing hypervisors.
+message ListHypervisorsRequest {}
+
+// ListHypervisorsResponse contains a collection of hypervisor information.
+message ListHypervisorsResponse {
+    // List of hypervisor details
+    repeated Hypervisor hypervisors = 1;
+}
+
+// RegisterHypervisorRequest contains the necessary information to register a hypervisor.
+message RegisterHypervisorRequest {
+    // URL endpoint of the hypervisor API
+    string url = 1;
+    
+    // Authentication token for secure API access
+    string authentication_token = 2;
+    
+    // Name of the storage to use for instances
+    string storage_name = 3;
+}
+
+// RegisterHypervisorResponse contains the result of a register hypervisor operation.
+message RegisterHypervisorResponse {}
+
+// Hypervisor represents a virtualization platform that can host instances.
+message Hypervisor {
+    // URL endpoint of the hypervisor API
+    string url = 1;
+}
