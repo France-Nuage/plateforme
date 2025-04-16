@@ -1,3 +1,8 @@
+//! Implementation of the gRPC service for hypervisor management.
+//!
+//! This module provides the implementation of the Hypervisors gRPC service,
+//! handling requests to list and register hypervisors.
+
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait};
 use tonic::{Request, Response, Status};
 
@@ -10,12 +15,31 @@ use crate::{
     },
 };
 
+/// Implementation of the Hypervisors gRPC service.
+///
+/// This service handles operations related to hypervisor management,
+/// including listing and registering hypervisors. It uses a database
+/// connection to persist and retrieve hypervisor information.
 pub struct HypervisorsRpcService {
+    /// Database connection used for hypervisor data persistence.
     database_connection: DatabaseConnection,
 }
 
 #[tonic::async_trait]
 impl Hypervisors for HypervisorsRpcService {
+    /// Registers a new hypervisor in the system.
+    ///
+    /// This method persists the hypervisor information provided in the request
+    /// to the database, generating a new UUID for the hypervisor.
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - Contains the hypervisor details to be registered
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Response<RegisterHypervisorResponse>)` - On successful registration
+    /// * `Err(Status)` - If registration fails, with appropriate status code
     async fn register_hypervisor(
         &self,
         request: Request<RegisterHypervisorRequest>,
@@ -30,6 +54,19 @@ impl Hypervisors for HypervisorsRpcService {
         Ok(Response::new(RegisterHypervisorResponse {}))
     }
 
+    /// Lists all registered hypervisors.
+    ///
+    /// This method retrieves all hypervisor records from the database
+    /// and returns them as a collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `_` - Empty request
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Response<ListHypervisorsResponse>)` - Contains the list of hypervisors
+    /// * `Err(Status)` - If retrieval fails, with appropriate status code
     async fn list_hypervisors(
         &self,
         _: tonic::Request<ListHypervisorsRequest>,
@@ -47,6 +84,15 @@ impl Hypervisors for HypervisorsRpcService {
 }
 
 impl HypervisorsRpcService {
+    /// Creates a new instance of the Hypervisors gRPC service.
+    ///
+    /// # Arguments
+    ///
+    /// * `database_connection` - Database connection for hypervisor data persistence
+    ///
+    /// # Returns
+    ///
+    /// A new `HypervisorsRpcService` instance
     pub fn new(database_connection: DatabaseConnection) -> Self {
         Self {
             database_connection,
