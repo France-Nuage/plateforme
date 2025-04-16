@@ -16,7 +16,7 @@ pub enum Problem {
     /// Error returned when a requested hypervisor cannot be found.
     #[error("hypervisor not found")]
     NotFound,
-    
+
     /// A general error that wraps any other error types not explicitly handled.
     #[error("other")]
     Other {

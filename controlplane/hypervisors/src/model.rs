@@ -12,13 +12,13 @@ pub struct Model {
     /// Unique identifier for the hypervisor.
     #[sea_orm(primary_key)]
     pub id: Uuid,
-    
+
     /// URL endpoint of the hypervisor API.
     pub url: String,
-    
+
     /// Authentication token for secure API access.
     pub authentication_token: String,
-    
+
     /// Name of the storage to use for instances on this hypervisor.
     pub storage_name: String,
 }

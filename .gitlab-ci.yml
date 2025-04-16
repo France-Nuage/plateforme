@@ -44,7 +44,7 @@ build:
 "code style / console":
   stage: code-style
   script:
-    - docker compose run --no-deps console pnpm lint
+    - docker compose run --no-deps console npm run lint
 
 "unit tests / controlplane":
   stage: unit-tests
