@@ -5,10 +5,12 @@ use crate::proxmox_api::api_response::{ApiResponse, ApiResponseExt};
 pub async fn vm_list(
     api_url: &str,
     client: &reqwest::Client,
+    authorization: &str,
     node_id: &str,
 ) -> Result<ApiResponse<Vec<VMInfo>>, crate::proxmox_api::Problem> {
     client
         .get(format!("{}/api2/json/nodes/{}/qemu", api_url, node_id))
+        .header(reqwest::header::AUTHORIZATION, authorization)
         .send()
         .await
         .to_api_response()
@@ -51,7 +53,7 @@ mod tests {
     async fn test_vm_list() {
         let client = reqwest::Client::new();
         let server = MockServer::new().await.with_vm_list();
-        let result = vm_list(&server.url(), &client, "pve-node1").await;
+        let result = vm_list(&server.url(), &client, "", "pve-node1").await;
         println!("{:?}", result);
 
         assert!(result.is_ok());

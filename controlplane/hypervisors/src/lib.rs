@@ -12,4 +12,8 @@
 pub mod model;
 pub mod problem;
 pub mod rpc;
+mod service;
 pub mod v1;
+
+pub use model::Model;
+pub use service::HypervisorsService;

@@ -8,9 +8,11 @@ use crate::proxmox_api::{
 pub async fn cluster_resources_list(
     api_url: &str,
     client: &reqwest::Client,
+    authorization: &str,
 ) -> Result<ApiResponse<Vec<Resource>>, crate::proxmox_api::Problem> {
     client
         .get(format!("{}/api2/json/cluster/resources?type=vm", api_url))
+        .header(reqwest::header::AUTHORIZATION, authorization)
         .send()
         .await
         .to_api_response()
@@ -88,7 +90,7 @@ mod tests {
     async fn test_cluster_resource_list() {
         let client = reqwest::Client::new();
         let server = MockServer::new().await.with_cluster_resource_list();
-        let result = cluster_resources_list(&server.url(), &client).await;
+        let result = cluster_resources_list(&server.url(), &client, "").await;
 
         assert!(result.is_ok());
         let resources = result.unwrap().data;

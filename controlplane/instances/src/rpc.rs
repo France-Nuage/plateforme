@@ -1,8 +1,12 @@
+use std::sync::Arc;
+
 use hypervisor_connector::InstanceService;
+use sea_orm::DatabaseConnection;
 use tonic::{Request, Response, Status};
 
 use crate::{
     problem::Problem,
+    service::InstancesService,
     v1::{
         CreateInstanceRequest, CreateInstanceResponse, ListInstancesRequest, ListInstancesResponse,
         StartInstanceRequest, StartInstanceResponse, StopInstanceRequest, StopInstanceResponse,
@@ -13,6 +17,7 @@ use crate::{
 pub struct InstancesRpcService {
     api_url: String,
     client: reqwest::Client,
+    service: InstancesService,
 }
 
 #[tonic::async_trait]
@@ -22,14 +27,13 @@ impl Instances for InstancesRpcService {
     async fn create_instance(
         &self,
         request: tonic::Request<CreateInstanceRequest>,
-    ) -> std::result::Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
-        let result =
-            hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
-                .create(request.into_inner().into())
-                .await;
+    ) -> Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
+        let result = self.service.create(request.into_inner().into()).await;
 
         match result {
-            Ok(id) => Ok(Response::new(CreateInstanceResponse { id })),
+            Ok(model) => Ok(Response::new(CreateInstanceResponse {
+                id: model.id.to_string(),
+            })),
             Err(error) => Err(Problem::from(error).into()),
         }
     }
@@ -40,10 +44,7 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<ListInstancesRequest>,
     ) -> Result<Response<ListInstancesResponse>, Status> {
-        let result =
-            hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
-                .list()
-                .await;
+        let result = self.service.list().await;
 
         match result {
             Ok(instances) => Ok(Response::new(ListInstancesResponse {
@@ -59,16 +60,18 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
-        let result =
-            hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
-                .start()
-                .await;
+        let result = hypervisor_connector_resolver::resolve(
+            self.api_url.clone(),
+            self.client.clone(),
+            String::from(""),
+        )
+        .start()
+        .await;
 
         match result {
             Ok(()) => Ok(Response::new(StartInstanceResponse {})),
             Err(error) => Err(Problem::from(error).into()),
         }
-        // Ok(Response::new(result.into()))
     }
 
     #[doc = " StopInstance halts a specific instance identified by its unique ID."]
@@ -77,10 +80,13 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<StopInstanceRequest>,
     ) -> Result<Response<StopInstanceResponse>, Status> {
-        let result =
-            hypervisor_connector_resolver::resolve(self.api_url.clone(), self.client.clone())
-                .stop()
-                .await;
+        let result = hypervisor_connector_resolver::resolve(
+            self.api_url.clone(),
+            self.client.clone(),
+            String::from(""),
+        )
+        .stop()
+        .await;
 
         match result {
             Ok(()) => Ok(Response::new(StopInstanceResponse {})),
@@ -90,8 +96,12 @@ impl Instances for InstancesRpcService {
 }
 
 impl InstancesRpcService {
-    pub fn new(api_url: String, client: reqwest::Client) -> Self {
-        Self { api_url, client }
+    pub fn new(api_url: String, client: reqwest::Client, db: Arc<DatabaseConnection>) -> Self {
+        Self {
+            api_url,
+            client,
+            service: InstancesService::new(db),
+        }
     }
 }
 
@@ -102,13 +112,15 @@ mod tests {
     use hypervisor_connector_proxmox::mock::{
         MockServer, WithClusterResourceList, WithVMStatusStartMock, WithVMStatusStopMock,
     };
+    use sea_orm::MockDatabase;
     use tonic::Request;
 
     #[tokio::test]
     async fn test_list_instances_works() {
         // Arrange a service and a request for the list_instances procedure
         let server = MockServer::new().await.with_cluster_resource_list();
-        let service = InstancesRpcService::new(server.url(), reqwest::Client::new());
+        let db = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
+        let service = InstancesRpcService::new(server.url(), reqwest::Client::new(), Arc::new(db));
 
         // Act the call to the list_instances procedure
         let result = service
@@ -126,7 +138,8 @@ mod tests {
     async fn test_start_instance_works() {
         // Arrange a service and a request for the start_instance procedure
         let server = MockServer::new().await.with_vm_status_start();
-        let service = InstancesRpcService::new(server.url(), reqwest::Client::new());
+        let db = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
+        let service = InstancesRpcService::new(server.url(), reqwest::Client::new(), Arc::new(db));
 
         // Act the call to the start_instance procedure
         let request = Request::new(StartInstanceRequest {
@@ -142,7 +155,8 @@ mod tests {
     async fn test_stop_instance_works() {
         // Arrange a service and a request for the start_instance procedure
         let server = MockServer::new().await.with_vm_status_stop();
-        let service = InstancesRpcService::new(server.url(), reqwest::Client::new());
+        let db = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
+        let service = InstancesRpcService::new(server.url(), reqwest::Client::new(), Arc::new(db));
 
         // Act the call to the start_instance procedure
         let request = Request::new(crate::v1::StopInstanceRequest {

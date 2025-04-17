@@ -1314,6 +1314,7 @@ version = "0.1.0"
 dependencies = [
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
+ "hypervisors",
  "reqwest",
 ]
 
@@ -1538,12 +1539,15 @@ dependencies = [
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
  "hypervisor_connector_resolver",
+ "hypervisors",
  "prost",
  "reqwest",
+ "sea-orm",
  "thiserror",
  "tokio",
  "tonic",
  "tonic-build",
+ "uuid",
 ]
 
 [[package]]

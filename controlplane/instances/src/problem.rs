@@ -32,6 +32,15 @@ impl From<hypervisor_connector::Problem> for Problem {
     }
 }
 
+/// Converts a `sea_orm::DbErr` into a `instance::Problem`.
+impl From<sea_orm::DbErr> for Problem {
+    fn from(error: sea_orm::DbErr) -> Self {
+        Problem::Other {
+            source: Box::new(error),
+        }
+    }
+}
+
 /// Converts a `instance::Problem` into a `tonic::Status`.
 impl From<Problem> for Status {
     fn from(value: Problem) -> Self {

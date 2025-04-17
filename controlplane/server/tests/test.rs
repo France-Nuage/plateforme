@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use hypervisor_connector_proxmox::mock::{
     MockServer, WithClusterNextId, WithClusterResourceList, WithVMCreateMock,
     WithVMStatusStartMock, WithVMStatusStopMock,
@@ -28,7 +30,7 @@ async fn test_the_create_instance_procedure_works() -> Result<(), Box<dyn std::e
         .await
         .with_cluster_next_id()
         .with_vm_create();
-    let config = ServerConfig::new(mock.url(), connection);
+    let config = ServerConfig::new(mock.url(), Arc::new(connection));
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
@@ -64,7 +66,7 @@ async fn test_the_list_instances_procedure_works() -> Result<(), Box<dyn std::er
     // Arrange the grpc server and a client
     let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
     let mock = MockServer::new().await.with_cluster_resource_list();
-    let config = ServerConfig::new(mock.url(), connection);
+    let config = ServerConfig::new(mock.url(), Arc::new(connection));
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
@@ -87,7 +89,7 @@ async fn test_the_start_instance_procedure_works() -> Result<(), Box<dyn std::er
     // Arrange the grpc server and a client
     let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
     let mock = MockServer::new().await.with_vm_status_start();
-    let config = ServerConfig::new(mock.url(), connection);
+    let config = ServerConfig::new(mock.url(), Arc::new(connection));
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
@@ -113,7 +115,7 @@ async fn test_the_stop_instance_procedure_works() -> Result<(), Box<dyn std::err
     // Arrange the grpc server and a client
     let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
     let mock = MockServer::new().await.with_vm_status_stop();
-    let config = ServerConfig::new(mock.url(), connection);
+    let config = ServerConfig::new(mock.url(), Arc::new(connection));
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
@@ -145,7 +147,7 @@ async fn test_the_register_hypervisor_procedure_works() -> Result<(), Box<dyn st
         .append_query_results([vec![hypervisors::model::Model::default()]])
         .into_connection();
     let mock = MockServer::new().await;
-    let config = ServerConfig::new(mock.url(), connection);
+    let config = ServerConfig::new(mock.url(), Arc::new(connection));
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
@@ -171,7 +173,7 @@ async fn test_the_list_hypervisors_procedure_works() -> Result<(), Box<dyn std::
         .append_query_results([vec![hypervisors::model::Model::default()]])
         .into_connection();
     let mock = MockServer::new().await;
-    let config = ServerConfig::new(mock.url(), connection);
+    let config = ServerConfig::new(mock.url(), Arc::new(connection));
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;

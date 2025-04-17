@@ -3,9 +3,11 @@ use crate::proxmox_api::api_response::{ApiResponse, ApiResponseExt};
 pub async fn cluster_next_id(
     api_url: &str,
     client: &reqwest::Client,
+    authorization: &str,
 ) -> Result<ApiResponse<u32>, crate::proxmox_api::Problem> {
     client
         .get(format!("{}/api2/json/cluster/nextid", api_url))
+        .header(reqwest::header::AUTHORIZATION, authorization)
         .send()
         .await
         .to_api_response::<String>()
@@ -51,7 +53,7 @@ mod tests {
     async fn test_cluster_resource_list() {
         let client = reqwest::Client::new();
         let server = MockServer::new().await.with_cluster_next_id();
-        let result = cluster_next_id(&server.url(), &client).await;
+        let result = cluster_next_id(&server.url(), &client, "").await;
 
         assert!(result.is_ok());
         let next_id = result.unwrap().data;

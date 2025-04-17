@@ -3,9 +3,6 @@
 //! This module provides the implementation of the Hypervisors gRPC service,
 //! handling requests to list and register hypervisors.
 
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait};
-use tonic::{Request, Response, Status};
-
 use crate::{
     model::ActiveModel,
     problem::Problem,
@@ -14,6 +11,9 @@ use crate::{
         RegisterHypervisorResponse, hypervisors_server::Hypervisors,
     },
 };
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait};
+use std::{ops::Deref, sync::Arc};
+use tonic::{Request, Response, Status};
 
 /// Implementation of the Hypervisors gRPC service.
 ///
@@ -22,7 +22,7 @@ use crate::{
 /// connection to persist and retrieve hypervisor information.
 pub struct HypervisorsRpcService {
     /// Database connection used for hypervisor data persistence.
-    database_connection: DatabaseConnection,
+    database_connection: Arc<DatabaseConnection>,
 }
 
 #[tonic::async_trait]
@@ -47,7 +47,7 @@ impl Hypervisors for HypervisorsRpcService {
         let model: ActiveModel = request.into_inner().into();
 
         model
-            .insert(&self.database_connection)
+            .insert(self.database_connection.deref())
             .await
             .map_err(Problem::from)?;
 
@@ -72,7 +72,7 @@ impl Hypervisors for HypervisorsRpcService {
         _: tonic::Request<ListHypervisorsRequest>,
     ) -> std::result::Result<Response<ListHypervisorsResponse>, Status> {
         let hypervisors = crate::model::Entity::find()
-            .all(&self.database_connection)
+            .all(self.database_connection.deref())
             .await
             .map_err(Problem::from)?
             .into_iter()
@@ -93,7 +93,7 @@ impl HypervisorsRpcService {
     /// # Returns
     ///
     /// A new `HypervisorsRpcService` instance
-    pub fn new(database_connection: DatabaseConnection) -> Self {
+    pub fn new(database_connection: Arc<DatabaseConnection>) -> Self {
         Self {
             database_connection,
         }
@@ -102,6 +102,8 @@ impl HypervisorsRpcService {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use sea_orm::{MockDatabase, MockExecResult};
     use tonic::Request;
 
@@ -121,7 +123,7 @@ mod tests {
             }])
             .append_query_results([vec![crate::model::Model::default()]])
             .into_connection();
-        let service = HypervisorsRpcService::new(connection);
+        let service = HypervisorsRpcService::new(Arc::new(connection));
 
         // Act the call to the register_hypervisor procedure
         let result = service
@@ -141,7 +143,7 @@ mod tests {
                 crate::model::Model::default(),
             ]])
             .into_connection();
-        let service = HypervisorsRpcService::new(connection);
+        let service = HypervisorsRpcService::new(Arc::new(connection));
 
         // Act the call to the register_hypervisor procedure
         let result = service
