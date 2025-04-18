@@ -1,19 +1,23 @@
-use std::{ops::Deref, sync::Arc};
+use uuid::Uuid;
 
-use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
-
-use crate::model::{Entity, Model};
+use crate::{model::Hypervisor, problem::Problem, repository};
 
 pub struct HypervisorsService {
-    db: Arc<DatabaseConnection>,
+    pool: sqlx::PgPool,
 }
 
 impl HypervisorsService {
-    pub async fn list(&self) -> Result<Vec<Model>, DbErr> {
-        Entity::find().all(self.db.deref()).await
+    pub async fn list(&self) -> Result<Vec<Hypervisor>, Problem> {
+        repository::list(&self.pool).await.map_err(Problem::from)
     }
 
-    pub fn new(db: Arc<DatabaseConnection>) -> Self {
-        Self { db }
+    pub async fn read(&self, id: Uuid) -> Result<Hypervisor, Problem> {
+        repository::read(&self.pool, id)
+            .await
+            .map_err(Problem::from)
+    }
+
+    pub fn new(pool: sqlx::PgPool) -> Self {
+        Self { pool }
     }
 }

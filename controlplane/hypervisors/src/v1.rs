@@ -3,7 +3,6 @@
 //! This module includes the generated code from the hypervisors.proto file
 //! and provides type conversions between API types and model types.
 
-use sea_orm::ActiveValue;
 use uuid::Uuid;
 
 // Include the generated code from the hypervisors.proto file
@@ -13,13 +12,13 @@ tonic::include_proto!("francenuage.fr.api.controlplane.v1.hypervisors");
 ///
 /// This implementation maps the fields from the API request to the corresponding
 /// fields in the database model, generating a new UUID for the hypervisor ID.
-impl From<RegisterHypervisorRequest> for crate::model::ActiveModel {
+impl From<RegisterHypervisorRequest> for crate::model::Hypervisor {
     fn from(value: RegisterHypervisorRequest) -> Self {
-        crate::model::ActiveModel {
-            id: ActiveValue::Set(Uuid::new_v4()),
-            url: ActiveValue::Set(value.url),
-            authentication_token: ActiveValue::Set(value.authentication_token),
-            storage_name: ActiveValue::Set(value.storage_name),
+        crate::model::Hypervisor {
+            id: Uuid::new_v4(),
+            url: value.url,
+            authorization_token: value.authorization_token,
+            storage_name: value.storage_name,
         }
     }
 }
@@ -28,8 +27,8 @@ impl From<RegisterHypervisorRequest> for crate::model::ActiveModel {
 ///
 /// This implementation maps the fields from the database model to the corresponding
 /// fields in the API response type, which currently only includes the URL.
-impl From<crate::model::Model> for Hypervisor {
-    fn from(value: crate::model::Model) -> Self {
+impl From<crate::model::Hypervisor> for Hypervisor {
+    fn from(value: crate::model::Hypervisor) -> Self {
         Hypervisor { url: value.url }
     }
 }

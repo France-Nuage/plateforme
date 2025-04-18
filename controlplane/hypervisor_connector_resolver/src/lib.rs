@@ -1,4 +1,5 @@
-use hypervisor_connector::InstanceService;
+use hypervisor_connector::{InstanceInfo, InstanceService};
+use hypervisors::Hypervisor;
 
 pub fn resolve(
     api_url: String,
@@ -13,11 +14,11 @@ pub fn resolve(
     }
 }
 
-pub fn resolve_model(model: hypervisors::Model) -> impl InstanceService {
+pub fn resolve_for_hypervisor(hypervisor: &Hypervisor, id: u32) -> impl InstanceService {
     hypervisor_connector_proxmox::ProxmoxInstanceService {
-        api_url: model.url,
+        api_url: hypervisor.url.clone(),
         client: reqwest::Client::new(),
-        authorization: model.authentication_token,
-        id: 100,
+        authorization: hypervisor.authorization_token.clone(),
+        id,
     }
 }

@@ -1,5 +1,6 @@
 use thiserror::Error;
 use tonic::Status;
+use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum Problem {
@@ -7,6 +8,22 @@ pub enum Problem {
     InstanceNotFound {
         id: String,
         source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error(
+        "Invalid distant id: the instance {instance_id} distant id {distant_id} could not be parsed into a proxmox id."
+    )]
+    InvalidDistantId {
+        distant_id: String,
+        instance_id: Uuid,
+    },
+
+    #[error(
+        "The hypervisor {hypervisor_id} attached to the instance {instance_id} could not be found."
+    )]
+    HypervisorNotFound {
+        hypervisor_id: Uuid,
+        instance_id: Uuid,
     },
 
     #[error("other")]
@@ -32,11 +49,32 @@ impl From<hypervisor_connector::Problem> for Problem {
     }
 }
 
-/// Converts a `sea_orm::DbErr` into a `instance::Problem`.
-impl From<sea_orm::DbErr> for Problem {
-    fn from(error: sea_orm::DbErr) -> Self {
-        Problem::Other {
-            source: Box::new(error),
+/// Converts a `sqlx::Error` into a `instance::Problem`.
+impl From<sqlx::Error> for Problem {
+    fn from(error: sqlx::Error) -> Self {
+        match &error {
+            sqlx::Error::RowNotFound => Problem::InstanceNotFound {
+                id: String::from(""),
+                source: Box::new(error),
+            },
+            _ => Problem::Other {
+                source: Box::new(error),
+            },
+        }
+    }
+}
+
+/// Converts a `hypervisors::Problem` into a `instance::Problem`.
+impl From<hypervisors::Problem> for Problem {
+    fn from(value: hypervisors::Problem) -> Self {
+        match &value {
+            hypervisors::Problem::NotFound => Problem::HypervisorNotFound {
+                hypervisor_id: Uuid::default(),
+                instance_id: Uuid::default(),
+            },
+            hypervisors::Problem::Other { source: _ } => Problem::Other {
+                source: Box::new(value),
+            },
         }
     }
 }

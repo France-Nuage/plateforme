@@ -28,7 +28,7 @@ message RegisterHypervisorRequest {
     string url = 1;
     
     // Authentication token for secure API access
-    string authentication_token = 2;
+    string authorization_token = 2;
     
     // Name of the storage to use for instances
     string storage_name = 3;

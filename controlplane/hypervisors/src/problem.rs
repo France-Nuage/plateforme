@@ -3,7 +3,6 @@
 //! This module defines the error types for hypervisor-related operations and
 //! provides conversions to and from other error types.
 
-use sea_orm::DbErr;
 use thiserror::Error;
 use tonic::Status;
 
@@ -29,10 +28,10 @@ pub enum Problem {
 ///
 /// This implementation maps Sea ORM database errors to appropriate
 /// hypervisor `Problem` variants.
-impl From<DbErr> for Problem {
-    fn from(value: DbErr) -> Self {
+impl From<sqlx::Error> for Problem {
+    fn from(value: sqlx::Error) -> Self {
         match value {
-            DbErr::RecordNotFound(_) => Problem::NotFound,
+            sqlx::Error::RowNotFound => Problem::NotFound,
             _ => Problem::Other {
                 source: Box::new(value),
             },
