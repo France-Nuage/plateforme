@@ -1,5 +1,6 @@
 pub use crate::proxmox_api::cluster_next_id::mock::WithClusterNextId;
 pub use crate::proxmox_api::cluster_resources_list::mock::WithClusterResourceList;
+pub use crate::proxmox_api::task_status_read::mock::WithTaskStatusReadMock;
 pub use crate::proxmox_api::vm_create::mock::WithVMCreateMock;
 pub use crate::proxmox_api::vm_delete::mock::WithVMDeleteMock;
 pub use crate::proxmox_api::vm_list::mock::WithVMListMock;
