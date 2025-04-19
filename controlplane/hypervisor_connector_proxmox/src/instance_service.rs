@@ -27,8 +27,7 @@ impl InstanceService for ProxmoxInstanceService {
     async fn create(&self, options: InstanceConfig) -> Result<String, Problem> {
         let next_id =
             crate::proxmox_api::cluster_next_id(&self.api_url, &self.client, &self.authorization)
-                .await
-                .expect("could not process")
+                .await?
                 .data;
 
         let vm_config = VMConfig::from_instance_config(options, next_id);
@@ -40,10 +39,9 @@ impl InstanceService for ProxmoxInstanceService {
             "pve-node1",
             &vm_config,
         )
-        .await
-        .expect("could not process 2");
+        .await?;
 
-        println!("result: {:?}", &result);
+        // TODO: wait for operation completion
 
         Ok(next_id.to_string())
     }
