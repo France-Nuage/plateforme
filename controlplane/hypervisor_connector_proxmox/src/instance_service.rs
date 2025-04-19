@@ -32,7 +32,7 @@ impl InstanceService for ProxmoxInstanceService {
 
         let vm_config = VMConfig::from_instance_config(options, next_id);
 
-        let result = crate::proxmox_api::vm_create(
+        let _result = crate::proxmox_api::vm_create(
             &self.api_url,
             &self.client,
             &self.authorization,

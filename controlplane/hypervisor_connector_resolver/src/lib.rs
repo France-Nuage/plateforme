@@ -1,4 +1,4 @@
-use hypervisor_connector::{InstanceInfo, InstanceService};
+use hypervisor_connector::InstanceService;
 use hypervisors::Hypervisor;
 
 pub fn resolve(
