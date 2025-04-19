@@ -39,7 +39,7 @@ build:
   stage: code-style
   script:
     - docker compose run --no-deps controlplane cargo fmt --check
-    - docker compose run controlplane cargo clippy
+    - docker compose run controlplane cargo install sqlx-cli && sqlx migrate run && cargo clippy
 
 "code style / console":
   stage: code-style
