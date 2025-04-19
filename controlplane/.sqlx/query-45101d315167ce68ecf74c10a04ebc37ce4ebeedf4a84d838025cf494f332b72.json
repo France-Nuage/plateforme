@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, hypervisor_id, distant_id FROM instances WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "hypervisor_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "distant_id",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "45101d315167ce68ecf74c10a04ebc37ce4ebeedf4a84d838025cf494f332b72"
+}
