@@ -15,6 +15,9 @@ pub enum Problem {
     #[error("Proxmox Task #{0} has not completed")]
     TaskNotCompleted(String),
 
+    #[error("Proxmox Unauthorized Error")]
+    Unauthorized,
+
     #[error("Proxmox VM Not Found: {id}")]
     VMNotFound {
         id: String,

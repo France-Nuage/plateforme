@@ -1,6 +1,8 @@
 use regex::Regex;
 use serde::{Deserialize, de::DeserializeOwned};
 
+use super::Problem;
+
 #[derive(Debug, Deserialize, Eq, PartialEq)]
 pub struct ApiResponse<T> {
     pub data: T,
@@ -50,6 +52,7 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
                 }
                 Err(super::problem::Problem::Internal { response })
             }
+            reqwest::StatusCode::UNAUTHORIZED => Err(Problem::Unauthorized),
             _ => panic!("Unexpected response status: {:?}", response.status()),
         }
     }
