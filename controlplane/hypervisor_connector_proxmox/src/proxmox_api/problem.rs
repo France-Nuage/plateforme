@@ -12,6 +12,9 @@ pub enum Problem {
     #[error("Proxmox Validation Error: {}", .response.message)]
     Invalid { response: ApiInvalidResponse },
 
+    #[error("Proxmox Task #{0} has not completed")]
+    TaskNotCompleted(String),
+
     #[error("Proxmox VM Not Found: {id}")]
     VMNotFound {
         id: String,

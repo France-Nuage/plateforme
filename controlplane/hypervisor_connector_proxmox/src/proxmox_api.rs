@@ -1,5 +1,6 @@
 mod api_response;
 mod endpoints;
+pub mod helpers;
 mod problem;
 mod vm_status;
 

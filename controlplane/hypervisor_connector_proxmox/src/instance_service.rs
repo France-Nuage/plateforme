@@ -1,9 +1,7 @@
+use crate::proxmox_api::vm_create::VMConfig;
 use hypervisor_connector::{
     InstanceConfig, InstanceInfo, InstanceService, InstanceStatus, Problem,
 };
-
-use crate::proxmox_api::vm_create::VMConfig;
-
 pub struct ProxmoxInstanceService {
     pub api_url: String,
     pub client: reqwest::Client,
@@ -30,20 +28,29 @@ impl InstanceService for ProxmoxInstanceService {
                 .await?
                 .data;
 
+        let node_id = "pvedev01-dc03";
         let vm_config = VMConfig::from_instance_config(options, next_id);
 
-        let _result = crate::proxmox_api::vm_create(
+        let task_id = crate::proxmox_api::vm_create(
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pve-node1",
+            node_id,
             &vm_config,
         )
-        .await?;
+        .await?
+        .data;
 
-        // TODO: wait for operation completion
-
-        Ok(next_id.to_string())
+        crate::proxmox_api::helpers::wait_for_task_completion(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            node_id,
+            &task_id,
+        )
+        .await
+        .map(|result| result.id)
+        .map_err(Into::into)
     }
 
     /// Deletes the instance.
@@ -52,7 +59,7 @@ impl InstanceService for ProxmoxInstanceService {
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pve-node1",
+            "pvedev01-dc03",
             self.id,
         )
         .await?;
@@ -65,7 +72,7 @@ impl InstanceService for ProxmoxInstanceService {
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pve-node1",
+            "pvedev01-dc03",
             self.id,
         )
         .await?;
@@ -78,7 +85,7 @@ impl InstanceService for ProxmoxInstanceService {
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pve-node1",
+            "pvedev01-dc03",
             self.id,
         )
         .await?;
@@ -91,7 +98,7 @@ impl InstanceService for ProxmoxInstanceService {
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pve-node1",
+            "pvedev01-dc03",
             self.id,
         )
         .await?;

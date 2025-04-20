@@ -35,7 +35,7 @@ services:
       CONTROLPLANE_ADDR: 0.0.0.0:8080
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
-      PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pve-poc01-internal.france-nuage.fr}
+      PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pvedev-dc03-internal.france-nuage.fr}
       PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
       PROXMOX_IMAGE_STORAGE: CephPool
       PROXMOX_SNIPPETS_STORAGE: CephPool
