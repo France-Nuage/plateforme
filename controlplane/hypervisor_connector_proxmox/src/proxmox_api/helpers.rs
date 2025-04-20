@@ -25,8 +25,7 @@ pub async fn wait_for_task_completion(
 
     Retry::spawn(strategy, || async {
         let result =
-            crate::proxmox_api::task_status_read(&api_url, &client, &authorization, node, &task)
-                .await;
+            crate::proxmox_api::task_status_read(api_url, client, authorization, node, task).await;
 
         match result {
             Ok(response) => match response.data.status {
