@@ -36,11 +36,30 @@ pub struct Resource {
     /// Name of the resource.
     pub name: Option<String>,
 
+    /// The node holding the resource,
+    pub node: Option<String>,
+
+    /// Resource type.
+    #[serde(rename = "type")]
+    pub resource_type: ResourceType,
+
     /// Resource type dependent status.
     pub status: Option<VMStatus>,
 
     /// The numerical vmid (for types 'qemu' and 'lxc').
     pub vmid: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ResourceType {
+    Node,
+    Storage,
+    Pool,
+    Qemu,
+    Lxc,
+    Openvz,
+    Sdn,
 }
 
 impl From<Resource> for hypervisor_connector::InstanceInfo {
@@ -102,6 +121,8 @@ mod tests {
                 maxmem: Some(4294967296),
                 mem: Some(1395277824),
                 name: Some(String::from("proxmox-dev")),
+                node: Some(String::from("pve-node1")),
+                resource_type: ResourceType::Qemu,
                 status: Some(VMStatus::Running),
                 vmid: Some(100),
             }]

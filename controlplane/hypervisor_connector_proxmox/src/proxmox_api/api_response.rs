@@ -45,10 +45,14 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
                 let response = response.json::<ApiInternalErrorResponse>().await?;
 
                 if let Some(vm_id) = vm_not_found_rx.captures(&response.message) {
-                    return Err(super::problem::Problem::VMNotFound {
-                        id: vm_id.get(1).unwrap().as_str().to_string(),
-                        response,
-                    });
+                    return Err(super::problem::Problem::VMNotFound(
+                        vm_id
+                            .get(1)
+                            .unwrap()
+                            .as_str()
+                            .parse::<u32>()
+                            .expect("could not parse vm id to string"),
+                    ));
                 }
                 Err(super::problem::Problem::Internal { response })
             }

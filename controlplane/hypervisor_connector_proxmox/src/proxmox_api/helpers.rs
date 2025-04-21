@@ -7,6 +7,7 @@ use tokio_retry::{
 
 use super::{
     Problem,
+    cluster_resources_list::ResourceType,
     task_status_read::{TaskStatus, TaskStatusResponse},
 };
 
@@ -36,4 +37,22 @@ pub async fn wait_for_task_completion(
         }
     })
     .await
+}
+
+pub async fn get_vm_execution_node(
+    api_url: &str,
+    client: &reqwest::Client,
+    authorization: &str,
+    vm: u32,
+) -> Result<String, Problem> {
+    let resource = crate::proxmox_api::cluster_resources_list(api_url, client, authorization)
+        .await?
+        .data
+        .into_iter()
+        .filter(|resource| resource.resource_type == ResourceType::Qemu)
+        .find(|resource| resource.vmid.expect("vmid should be defined") == vm);
+
+    resource
+        .map(|resource| resource.node.expect("node should be defined"))
+        .ok_or(Problem::VMNotFound(vm))
 }

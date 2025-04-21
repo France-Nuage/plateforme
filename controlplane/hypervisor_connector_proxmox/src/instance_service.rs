@@ -1,4 +1,4 @@
-use crate::proxmox_api::vm_create::VMConfig;
+use crate::proxmox_api::{helpers, vm_create::VMConfig};
 use hypervisor_connector::{
     InstanceConfig, InstanceInfo, InstanceService, InstanceStatus, Problem,
 };
@@ -28,6 +28,7 @@ impl InstanceService for ProxmoxInstanceService {
                 .await?
                 .data;
 
+        // TODO: use the (not yet developped) scheduler to select a node
         let node_id = "pvedev01-dc03";
         let vm_config = VMConfig::from_instance_config(options, next_id);
 
@@ -55,11 +56,19 @@ impl InstanceService for ProxmoxInstanceService {
 
     /// Deletes the instance.
     async fn delete(&self) -> Result<(), Problem> {
+        let node_id = helpers::get_vm_execution_node(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            self.id,
+        )
+        .await?;
+
         crate::proxmox_api::vm_delete(
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pvedev01-dc03",
+            &node_id,
             self.id,
         )
         .await?;
@@ -68,11 +77,19 @@ impl InstanceService for ProxmoxInstanceService {
 
     /// Starts the instance.
     async fn start(&self) -> Result<(), Problem> {
+        let node_id = helpers::get_vm_execution_node(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            self.id,
+        )
+        .await?;
+
         crate::proxmox_api::vm_status_start(
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pvedev01-dc03",
+            &node_id,
             self.id,
         )
         .await?;
@@ -81,11 +98,19 @@ impl InstanceService for ProxmoxInstanceService {
 
     /// Gets the instance status.
     async fn status(&self) -> Result<InstanceStatus, Problem> {
+        let node_id = helpers::get_vm_execution_node(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            self.id,
+        )
+        .await?;
+
         let result = crate::proxmox_api::vm_status_read(
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pvedev01-dc03",
+            &node_id,
             self.id,
         )
         .await?;
@@ -94,11 +119,19 @@ impl InstanceService for ProxmoxInstanceService {
 
     /// Stops the instance.
     async fn stop(&self) -> Result<(), Problem> {
+        let node_id = helpers::get_vm_execution_node(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            self.id,
+        )
+        .await?;
+
         crate::proxmox_api::vm_status_stop(
             &self.api_url,
             &self.client,
             &self.authorization,
-            "pvedev01-dc03",
+            &node_id,
             self.id,
         )
         .await?;
