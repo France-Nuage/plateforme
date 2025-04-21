@@ -8,9 +8,11 @@ use crate::proxmox_api::{
 pub async fn cluster_resources_list(
     api_url: &str,
     client: &reqwest::Client,
+    authorization: &str,
 ) -> Result<ApiResponse<Vec<Resource>>, crate::proxmox_api::Problem> {
     client
         .get(format!("{}/api2/json/cluster/resources?type=vm", api_url))
+        .header(reqwest::header::AUTHORIZATION, authorization)
         .send()
         .await
         .to_api_response()
@@ -34,11 +36,30 @@ pub struct Resource {
     /// Name of the resource.
     pub name: Option<String>,
 
+    /// The node holding the resource,
+    pub node: Option<String>,
+
+    /// Resource type.
+    #[serde(rename = "type")]
+    pub resource_type: ResourceType,
+
     /// Resource type dependent status.
     pub status: Option<VMStatus>,
 
     /// The numerical vmid (for types 'qemu' and 'lxc').
     pub vmid: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ResourceType {
+    Node,
+    Storage,
+    Pool,
+    Qemu,
+    Lxc,
+    Openvz,
+    Sdn,
 }
 
 impl From<Resource> for hypervisor_connector::InstanceInfo {
@@ -71,7 +92,7 @@ pub mod mock {
                     "GET",
                     mockito::Matcher::Regex(r"^/api2/json/cluster/resources\?type=vm$".to_string()),
                 )
-                .with_body(r#"{"data":[{"status":"running","maxmem":4294967296,"hastate":"started","diskread":1441248256,"diskwrite":218681344,"maxcpu":1,"netout":33288,"id":"qemu/100","mem":1395277824,"cpu":0.115798987285604,"template":0,"pool":"CephPool","vmid":100,"disk":0,"node":"pve-node3","uptime":20961,"type":"qemu","netin":321018,"maxdisk":53687091200,"name":"proxmox-dev"}]}"#)
+                .with_body(r#"{"data":[{"status":"running","maxmem":4294967296,"hastate":"started","diskread":1441248256,"diskwrite":218681344,"maxcpu":1,"netout":33288,"id":"qemu/100","mem":1395277824,"cpu":0.115798987285604,"template":0,"pool":"CephPool","vmid":100,"disk":0,"node":"pve-node1","uptime":20961,"type":"qemu","netin":321018,"maxdisk":53687091200,"name":"proxmox-dev"}]}"#)
                 .create();
             self.mocks.push(mock);
             self
@@ -88,7 +109,7 @@ mod tests {
     async fn test_cluster_resource_list() {
         let client = reqwest::Client::new();
         let server = MockServer::new().await.with_cluster_resource_list();
-        let result = cluster_resources_list(&server.url(), &client).await;
+        let result = cluster_resources_list(&server.url(), &client, "").await;
 
         assert!(result.is_ok());
         let resources = result.unwrap().data;
@@ -100,6 +121,8 @@ mod tests {
                 maxmem: Some(4294967296),
                 mem: Some(1395277824),
                 name: Some(String::from("proxmox-dev")),
+                node: Some(String::from("pve-node1")),
+                resource_type: ResourceType::Qemu,
                 status: Some(VMStatus::Running),
                 vmid: Some(100),
             }]

@@ -1,6 +1,9 @@
+mod model;
 mod problem;
+pub mod repository;
 mod rpc;
+mod service;
 pub mod v1;
 
-// pub use problem::Problem;
+pub use model::Instance;
 pub use rpc::InstancesRpcService;

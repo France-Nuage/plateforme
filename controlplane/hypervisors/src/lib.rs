@@ -9,7 +9,13 @@
 //! - Type conversions between model and API types
 //! - Error handling for hypervisor operations
 
-pub mod model;
-pub mod problem;
+mod model;
+mod problem;
+pub mod repository;
 pub mod rpc;
+mod service;
 pub mod v1;
+
+pub use model::Hypervisor;
+pub use problem::Problem;
+pub use service::HypervisorsService;

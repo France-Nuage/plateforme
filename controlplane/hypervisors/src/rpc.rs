@@ -3,17 +3,16 @@
 //! This module provides the implementation of the Hypervisors gRPC service,
 //! handling requests to list and register hypervisors.
 
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait};
-use tonic::{Request, Response, Status};
-
 use crate::{
-    model::ActiveModel,
-    problem::Problem,
+    model::Hypervisor,
+    repository,
     v1::{
         ListHypervisorsRequest, ListHypervisorsResponse, RegisterHypervisorRequest,
         RegisterHypervisorResponse, hypervisors_server::Hypervisors,
     },
 };
+use sqlx::PgPool;
+use tonic::{Request, Response, Status};
 
 /// Implementation of the Hypervisors gRPC service.
 ///
@@ -22,7 +21,7 @@ use crate::{
 /// connection to persist and retrieve hypervisor information.
 pub struct HypervisorsRpcService {
     /// Database connection used for hypervisor data persistence.
-    database_connection: DatabaseConnection,
+    pool: sqlx::PgPool,
 }
 
 #[tonic::async_trait]
@@ -44,12 +43,9 @@ impl Hypervisors for HypervisorsRpcService {
         &self,
         request: Request<RegisterHypervisorRequest>,
     ) -> Result<Response<RegisterHypervisorResponse>, Status> {
-        let model: ActiveModel = request.into_inner().into();
+        let model: Hypervisor = request.into_inner().into();
 
-        model
-            .insert(&self.database_connection)
-            .await
-            .map_err(Problem::from)?;
+        repository::create(&self.pool, &model).await?;
 
         Ok(Response::new(RegisterHypervisorResponse {}))
     }
@@ -71,12 +67,10 @@ impl Hypervisors for HypervisorsRpcService {
         &self,
         _: tonic::Request<ListHypervisorsRequest>,
     ) -> std::result::Result<Response<ListHypervisorsResponse>, Status> {
-        let hypervisors = crate::model::Entity::find()
-            .all(&self.database_connection)
-            .await
-            .map_err(Problem::from)?
+        let hypervisors = repository::list(&self.pool)
+            .await?
             .into_iter()
-            .map(|hypervisor| hypervisor.into())
+            .map(Into::into)
             .collect();
 
         Ok(Response::new(ListHypervisorsResponse { hypervisors }))
@@ -93,35 +87,24 @@ impl HypervisorsRpcService {
     /// # Returns
     ///
     /// A new `HypervisorsRpcService` instance
-    pub fn new(database_connection: DatabaseConnection) -> Self {
-        Self {
-            database_connection,
-        }
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use sea_orm::{MockDatabase, MockExecResult};
-    use tonic::Request;
-
     use crate::v1::{
         ListHypervisorsRequest, RegisterHypervisorRequest, hypervisors_server::Hypervisors,
     };
+    use tonic::Request;
 
     use super::HypervisorsRpcService;
 
-    #[tokio::test]
-    async fn test_register_hypervisor_works() {
+    #[sqlx::test(migrations = "../migrations")]
+    async fn test_register_hypervisor_works(pool: sqlx::PgPool) {
         // Arrange a service
-        let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres)
-            .append_exec_results([MockExecResult {
-                last_insert_id: 1,
-                rows_affected: 1,
-            }])
-            .append_query_results([vec![crate::model::Model::default()]])
-            .into_connection();
-        let service = HypervisorsRpcService::new(connection);
+        let service = HypervisorsRpcService::new(pool);
 
         // Act the call to the register_hypervisor procedure
         let result = service
@@ -132,16 +115,10 @@ mod tests {
         assert!(result.is_ok());
     }
 
-    #[tokio::test]
-    async fn test_list_hypervisors_works() {
+    #[sqlx::test(migrations = "../migrations")]
+    async fn test_list_hypervisors_works(pool: sqlx::PgPool) {
         // Arrange a service
-        let connection = MockDatabase::new(sea_orm::DatabaseBackend::Postgres)
-            .append_query_results([vec![
-                crate::model::Model::default(),
-                crate::model::Model::default(),
-            ]])
-            .into_connection();
-        let service = HypervisorsRpcService::new(connection);
+        let service = HypervisorsRpcService::new(pool);
 
         // Act the call to the register_hypervisor procedure
         let result = service
@@ -151,6 +128,6 @@ mod tests {
         // Assert the procedure result
         assert!(result.is_ok());
         let response = result.unwrap().into_inner();
-        assert_eq!(response.hypervisors.len(), 2);
+        assert_eq!(response.hypervisors.len(), 0);
     }
 }

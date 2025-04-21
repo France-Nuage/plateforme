@@ -37,6 +37,8 @@ build:
 
 "code style / controlplane":
   stage: code-style
+  variables:
+    SQLX_OFFLINE: true
   script:
     - docker compose run --no-deps controlplane cargo fmt --check
     - docker compose run --no-deps controlplane cargo clippy
@@ -52,9 +54,10 @@ build:
     CARGO_INCREMENTAL: "0"
     LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
     RUSTFLAGS: "-Cinstrument-coverage"
+    SQLX_OFFLINE: true
   script:
-    - docker compose run --no-deps controlplane cargo test --workspace
-    - docker compose run --no-deps controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
+    - docker compose run controlplane cargo test --workspace
+    - docker compose run controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
     - >
       docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" target/cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'

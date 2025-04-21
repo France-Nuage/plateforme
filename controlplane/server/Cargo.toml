@@ -7,9 +7,8 @@ edition = "2024"
 hyper = "1.6"
 hypervisors = { path = "../hypervisors" }
 instances = { path = "../instances" }
-migration = { path = "../migration" }
 reqwest = { version = "0.12", features = ["json"] }
-sea-orm = { version = "1.1.0", features = [ "sqlx-postgres", "runtime-tokio-rustls", "macros", "mock" ] }
+sqlx = { version = "0.8", features = ["migrate", "postgres", "runtime-tokio-rustls" ]}
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1.17"
 tonic = "0.12"

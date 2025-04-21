@@ -14,14 +14,14 @@ pub trait InstanceService {
     ) -> impl Future<Output = Result<String, Problem>> + Send;
 
     /// Deletes the instance.
-    fn delete(&self) -> impl Future<Output = Result<(), Problem>> + Send;
+    fn delete(&self, id: &str) -> impl Future<Output = Result<(), Problem>> + Send;
 
     /// Starts the instance.
-    fn start(&self) -> impl Future<Output = Result<(), Problem>> + Send;
+    fn start(&self, id: &str) -> impl Future<Output = Result<(), Problem>> + Send;
 
     /// Gets the instance status.
-    fn status(&self) -> impl Future<Output = Result<InstanceStatus, Problem>> + Send;
+    fn status(&self, id: &str) -> impl Future<Output = Result<InstanceStatus, Problem>> + Send;
 
     /// Stops the instance.
-    fn stop(&self) -> impl Future<Output = Result<(), Problem>> + Send;
+    fn stop(&self, id: &str) -> impl Future<Output = Result<(), Problem>> + Send;
 }

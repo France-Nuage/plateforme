@@ -27,8 +27,8 @@ message RegisterHypervisorRequest {
     // URL endpoint of the hypervisor API
     string url = 1;
     
-    // Authentication token for secure API access
-    string authentication_token = 2;
+    // Authorization token for secure API access
+    string authorization_token = 2;
     
     // Name of the storage to use for instances
     string storage_name = 3;

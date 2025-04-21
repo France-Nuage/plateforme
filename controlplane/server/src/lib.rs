@@ -2,7 +2,7 @@ use hyper::http;
 use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
 use instances::InstancesRpcService;
 use instances::v1::instances_server::InstancesServer;
-use sea_orm::DatabaseConnection;
+use sqlx::PgPool;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
 use tokio_stream::wrappers::TcpListenerStream;
@@ -32,22 +32,6 @@ impl Server {
                 .local_addr()?,
         };
 
-        // Create a reqwest client with authentication headers
-        let mut headers = reqwest::header::HeaderMap::new();
-        if let Some(authentication_header) = config.authentication_header {
-            headers.insert(
-                reqwest::header::AUTHORIZATION,
-                reqwest::header::HeaderValue::from_str(&format!(
-                    "PVEAPIToken={}",
-                    authentication_header
-                ))?,
-            );
-        }
-
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()?;
-
         let cors = CorsLayer::new()
             .allow_origin(
                 config
@@ -63,10 +47,10 @@ impl Server {
         let router = server
             .layer(cors)
             .add_service(tonic_web::enable(InstancesServer::new(
-                InstancesRpcService::new(config.api_url.clone(), client.clone()),
+                InstancesRpcService::new(config.pool.clone()),
             )))
             .add_service(tonic_web::enable(HypervisorsServer::new(
-                HypervisorsRpcService::new(config.connection),
+                HypervisorsRpcService::new(config.pool.clone()),
             )));
 
         // Return a Server instance
@@ -103,23 +87,19 @@ impl Server {
 }
 
 /// Define the configuration options for the gRPC server.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ServerConfig {
     pub addr: Option<String>,
-    pub api_url: String,
-    pub authentication_header: Option<String>,
-    pub connection: DatabaseConnection,
     pub console_url: Option<String>,
+    pub pool: sqlx::PgPool,
 }
 
 impl ServerConfig {
-    pub fn new(api_url: String, connection: DatabaseConnection) -> Self {
+    pub fn new(pool: PgPool) -> Self {
         ServerConfig {
             addr: None,
-            api_url,
-            authentication_header: None,
-            connection,
             console_url: None,
+            pool,
         }
     }
 }

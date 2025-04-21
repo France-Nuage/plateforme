@@ -12,11 +12,14 @@ pub enum Problem {
     #[error("Proxmox Validation Error: {}", .response.message)]
     Invalid { response: ApiInvalidResponse },
 
-    #[error("Proxmox VM Not Found: {id}")]
-    VMNotFound {
-        id: String,
-        response: ApiInternalErrorResponse,
-    },
+    #[error("Proxmox Task #{0} has not completed")]
+    TaskNotCompleted(String),
+
+    #[error("Proxmox Unauthorized Error")]
+    Unauthorized,
+
+    #[error("Proxmox VM Not Found: {0}")]
+    VMNotFound(u32),
 
     #[error("Internal error: {0}")]
     Other(Box<dyn std::error::Error + Send + Sync>),
@@ -25,11 +28,8 @@ pub enum Problem {
 impl From<Problem> for hypervisor_connector::Problem {
     fn from(value: Problem) -> Self {
         match &value {
-            Problem::VMNotFound { id, response: _ } => {
-                hypervisor_connector::Problem::InstanceNotFound {
-                    id: id.clone(),
-                    source: Box::new(value),
-                }
+            Problem::VMNotFound(id) => {
+                hypervisor_connector::Problem::DistantInstanceNotFound(id.to_owned().to_string())
             }
             _ => hypervisor_connector::Problem::Other(Box::new(value)),
         }

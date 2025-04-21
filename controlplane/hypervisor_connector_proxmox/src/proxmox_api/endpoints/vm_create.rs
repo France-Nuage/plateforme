@@ -7,11 +7,13 @@ use crate::proxmox_api::api_response::{ApiResponse, ApiResponseExt};
 pub async fn vm_create(
     api_url: &str,
     client: &reqwest::Client,
+    authorization: &str,
     node_id: &str,
     options: &VMConfig,
 ) -> Result<ApiResponse<String>, crate::proxmox_api::problem::Problem> {
     client
         .post(format!("{}/api2/json/nodes/{}/qemu", api_url, node_id))
+        .header(reqwest::header::AUTHORIZATION, authorization)
         .json(options)
         .send()
         .await
@@ -163,7 +165,7 @@ mod tests {
         let options = VMConfig {
             ..Default::default()
         };
-        let result = vm_create(&server.url(), &client, "pve-node1", &options).await;
+        let result = vm_create(&server.url(), &client, "", "pve-node1", &options).await;
 
         assert!(result.is_ok());
     }
