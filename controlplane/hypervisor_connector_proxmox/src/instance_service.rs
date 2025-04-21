@@ -14,6 +14,7 @@ impl InstanceService for ProxmoxInstanceService {
             &self.api_url,
             &self.client,
             &self.authorization,
+            "vm",
         )
         .await?
         .data;
@@ -27,15 +28,28 @@ impl InstanceService for ProxmoxInstanceService {
                 .await?
                 .data;
 
+        let node_id = crate::proxmox_api::cluster_resources_list(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            "node",
+        )
+        .await?
+        .data
+        .first()
+        .ok_or_else(|| crate::proxmox_api::Problem::NoNodesAvailable)?
+        .node
+        .clone()
+        .expect("node should be defined for resource of type node");
+
         // TODO: use the (not yet developped) scheduler to select a node
-        let node_id = "pvedev01-dc03";
         let vm_config = VMConfig::from_instance_config(options, next_id);
 
         let task_id = crate::proxmox_api::vm_create(
             &self.api_url,
             &self.client,
             &self.authorization,
-            node_id,
+            &node_id,
             &vm_config,
         )
         .await?
@@ -45,7 +59,7 @@ impl InstanceService for ProxmoxInstanceService {
             &self.api_url,
             &self.client,
             &self.authorization,
-            node_id,
+            &node_id,
             &task_id,
         )
         .await
