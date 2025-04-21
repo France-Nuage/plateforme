@@ -1,6 +1,6 @@
 use hypervisor_connector_proxmox::mock::{
-    MockServer, WithClusterNextId, WithClusterResourceList, WithVMCreateMock,
-    WithVMStatusStartMock, WithVMStatusStopMock,
+    MockServer, WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock,
+    WithVMCreateMock, WithVMStatusStartMock, WithVMStatusStopMock,
 };
 use hypervisors::{
     Hypervisor,
@@ -33,6 +33,7 @@ async fn test_the_create_instance_procedure_works(
     let mock = MockServer::new()
         .await
         .with_cluster_next_id()
+        .with_task_status_read()
         .with_vm_create();
     let hypervisor = Hypervisor {
         url: mock.url(),
