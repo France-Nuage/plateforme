@@ -113,7 +113,10 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_start_instance_works(pool: sqlx::PgPool) {
         // Arrange a service and a request for the start_instance procedure
-        let server = MockServer::new().await.with_vm_status_start();
+        let server = MockServer::new()
+            .await
+            .with_vm_status_start()
+            .with_cluster_resource_list();
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
@@ -145,7 +148,10 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_stop_instance_works(pool: sqlx::PgPool) {
         // Arrange a service and a request for the start_instance procedure
-        let server = MockServer::new().await.with_vm_status_stop();
+        let server = MockServer::new()
+            .await
+            .with_vm_status_stop()
+            .with_cluster_resource_list();
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()

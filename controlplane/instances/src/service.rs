@@ -17,7 +17,7 @@ impl InstancesService {
 
         let instances: Vec<InstanceInfo> = stream::iter(hypervisors)
             .map(|hypervisor| async move {
-                hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor, 100)
+                hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor)
                     .list()
                     .await
             })
@@ -35,7 +35,7 @@ impl InstancesService {
         let hypervisors = self.hypervisors_service.list().await?;
         let hypervisor = &hypervisors[0];
 
-        let result = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor, 100)
+        let result = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
             .create(options)
             .await?;
 
@@ -52,27 +52,21 @@ impl InstancesService {
     pub async fn start(&self, id: Uuid) -> Result<(), Problem> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self.hypervisors_service.read(id).await?;
-        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(
-            &hypervisor,
-            instance
-                .distant_id
-                .parse::<u32>()
-                .expect("could not parse the distant id"),
-        );
-        connector.start().await.map_err(Problem::from)
+        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
+        connector
+            .start(&instance.distant_id)
+            .await
+            .map_err(Problem::from)
     }
 
     pub async fn stop(&self, id: Uuid) -> Result<(), Problem> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self.hypervisors_service.read(id).await?;
-        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(
-            &hypervisor,
-            instance
-                .distant_id
-                .parse::<u32>()
-                .expect("could not parse the distant id"),
-        );
-        connector.stop().await.map_err(Problem::from)
+        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
+        connector
+            .stop(&instance.distant_id)
+            .await
+            .map_err(Problem::from)
     }
 
     pub fn new(pool: PgPool) -> Self {

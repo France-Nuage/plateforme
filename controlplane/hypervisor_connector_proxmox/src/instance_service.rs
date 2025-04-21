@@ -6,7 +6,6 @@ pub struct ProxmoxInstanceService {
     pub api_url: String,
     pub client: reqwest::Client,
     pub authorization: String,
-    pub id: u32,
 }
 
 impl InstanceService for ProxmoxInstanceService {
@@ -55,12 +54,13 @@ impl InstanceService for ProxmoxInstanceService {
     }
 
     /// Deletes the instance.
-    async fn delete(&self) -> Result<(), Problem> {
+    async fn delete(&self, id: &str) -> Result<(), Problem> {
         let node_id = helpers::get_vm_execution_node(
             &self.api_url,
             &self.client,
             &self.authorization,
-            self.id,
+            id.parse::<u32>()
+                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
         .await?;
 
@@ -69,19 +69,21 @@ impl InstanceService for ProxmoxInstanceService {
             &self.client,
             &self.authorization,
             &node_id,
-            self.id,
+            id.parse::<u32>()
+                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
         .await?;
         Ok(())
     }
 
     /// Starts the instance.
-    async fn start(&self) -> Result<(), Problem> {
+    async fn start(&self, id: &str) -> Result<(), Problem> {
         let node_id = helpers::get_vm_execution_node(
             &self.api_url,
             &self.client,
             &self.authorization,
-            self.id,
+            id.parse::<u32>()
+                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
         .await?;
 
@@ -90,19 +92,21 @@ impl InstanceService for ProxmoxInstanceService {
             &self.client,
             &self.authorization,
             &node_id,
-            self.id,
+            id.parse::<u32>()
+                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
         .await?;
         Ok(())
     }
 
     /// Gets the instance status.
-    async fn status(&self) -> Result<InstanceStatus, Problem> {
+    async fn status(&self, id: &str) -> Result<InstanceStatus, Problem> {
         let node_id = helpers::get_vm_execution_node(
             &self.api_url,
             &self.client,
             &self.authorization,
-            self.id,
+            id.parse::<u32>()
+                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
         .await?;
 
@@ -111,19 +115,21 @@ impl InstanceService for ProxmoxInstanceService {
             &self.client,
             &self.authorization,
             &node_id,
-            self.id,
+            id.parse::<u32>()
+                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
         .await?;
         Ok(result.data.status.into())
     }
 
     /// Stops the instance.
-    async fn stop(&self) -> Result<(), Problem> {
+    async fn stop(&self, id: &str) -> Result<(), Problem> {
         let node_id = helpers::get_vm_execution_node(
             &self.api_url,
             &self.client,
             &self.authorization,
-            self.id,
+            id.parse::<u32>()
+                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
         .await?;
 
@@ -132,7 +138,8 @@ impl InstanceService for ProxmoxInstanceService {
             &self.client,
             &self.authorization,
             &node_id,
-            self.id,
+            id.parse::<u32>()
+                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
         .await?;
         Ok(())

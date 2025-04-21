@@ -114,7 +114,10 @@ async fn test_the_start_instance_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
-    let mock = MockServer::new().await.with_vm_status_start();
+    let mock = MockServer::new()
+        .await
+        .with_vm_status_start()
+        .with_cluster_resource_list();
     let hypervisor = Hypervisor {
         url: mock.url(),
         ..Default::default()
@@ -157,7 +160,10 @@ async fn test_the_stop_instance_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
-    let mock = MockServer::new().await.with_vm_status_stop();
+    let mock = MockServer::new()
+        .await
+        .with_vm_status_stop()
+        .with_cluster_resource_list();
     let hypervisor = Hypervisor {
         url: mock.url(),
         ..Default::default()

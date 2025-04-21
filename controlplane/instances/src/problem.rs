@@ -24,7 +24,7 @@ impl From<hypervisor_connector::Problem> for Problem {
             hypervisor_connector::Problem::DistantInstanceNotFound(id) => {
                 Problem::DistantInstanceNotFound(id.to_owned())
             }
-            hypervisor_connector::Problem::Other(_) => Problem::Other(Box::new(value)),
+            _ => Problem::Other(Box::new(value)),
         }
     }
 }
