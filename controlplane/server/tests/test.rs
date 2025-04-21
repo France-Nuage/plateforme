@@ -33,6 +33,7 @@ async fn test_the_create_instance_procedure_works(
     let mock = MockServer::new()
         .await
         .with_cluster_next_id()
+        .with_cluster_resource_list()
         .with_task_status_read()
         .with_vm_create();
     let hypervisor = Hypervisor {
