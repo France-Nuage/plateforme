@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::model::Hypervisor;
+use crate::{Problem, model::Hypervisor};
 
 pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Hypervisor>, sqlx::Error> {
     sqlx::query_as!(
@@ -25,11 +25,18 @@ pub async fn create(pool: &sqlx::PgPool, hypervisor: &Hypervisor) -> Result<(), 
     Ok(())
 }
 
-pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Hypervisor, sqlx::Error> {
+pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Hypervisor, Problem> {
     sqlx::query_as!(
         Hypervisor,
         "SELECT id, url, authorization_token, storage_name FROM hypervisors WHERE hypervisors.id = $1", id
     )
     .fetch_one(pool)
-    .await
+    .await.map_err(|err| {
+            match err {
+                sqlx::Error::RowNotFound => Problem::NotFound(id),
+                err => Problem::Other { source: Box::new(err) }
+
+
+            }
+        })
 }

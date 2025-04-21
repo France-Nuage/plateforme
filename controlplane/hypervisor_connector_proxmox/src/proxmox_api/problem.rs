@@ -28,10 +28,9 @@ pub enum Problem {
 impl From<Problem> for hypervisor_connector::Problem {
     fn from(value: Problem) -> Self {
         match &value {
-            Problem::VMNotFound(id) => hypervisor_connector::Problem::InstanceNotFound {
-                id: id.to_string(),
-                source: Box::new(value),
-            },
+            Problem::VMNotFound(id) => {
+                hypervisor_connector::Problem::DistantInstanceNotFound(id.to_owned().to_string())
+            }
             _ => hypervisor_connector::Problem::Other(Box::new(value)),
         }
     }

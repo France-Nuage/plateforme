@@ -5,6 +5,7 @@
 
 use thiserror::Error;
 use tonic::Status;
+use uuid::Uuid;
 
 /// Represents errors that can occur during hypervisor operations.
 ///
@@ -14,7 +15,7 @@ use tonic::Status;
 pub enum Problem {
     /// Error returned when a requested hypervisor cannot be found.
     #[error("hypervisor not found")]
-    NotFound,
+    NotFound(Uuid),
 
     /// A general error that wraps any other error types not explicitly handled.
     #[error("other")]
@@ -30,11 +31,8 @@ pub enum Problem {
 /// hypervisor `Problem` variants.
 impl From<sqlx::Error> for Problem {
     fn from(value: sqlx::Error) -> Self {
-        match value {
-            sqlx::Error::RowNotFound => Problem::NotFound,
-            _ => Problem::Other {
-                source: Box::new(value),
-            },
+        Problem::Other {
+            source: Box::new(value),
         }
     }
 }
@@ -46,7 +44,7 @@ impl From<sqlx::Error> for Problem {
 impl From<Problem> for Status {
     fn from(value: Problem) -> Self {
         match value {
-            Problem::NotFound => Status::not_found(value.to_string()),
+            Problem::NotFound(_) => Status::not_found(value.to_string()),
             _ => Status::from_error(Box::new(value)),
         }
     }

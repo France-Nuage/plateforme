@@ -4,47 +4,27 @@ use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum Problem {
-    #[error("instance {id} not found")]
-    InstanceNotFound {
-        id: String,
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
+    #[error("Distant instance #{0} not found.")]
+    DistantInstanceNotFound(String),
 
-    #[error(
-        "Invalid distant id: the instance {instance_id} distant id {distant_id} could not be parsed into a proxmox id."
-    )]
-    InvalidDistantId {
-        distant_id: String,
-        instance_id: Uuid,
-    },
+    #[error("Instance {0} not found.")]
+    InstanceNotFound(Uuid),
 
-    #[error(
-        "The hypervisor {hypervisor_id} attached to the instance {instance_id} could not be found."
-    )]
-    HypervisorNotFound {
-        hypervisor_id: Uuid,
-        instance_id: Uuid,
-    },
+    #[error("The hypervisor {0} could not be found.")]
+    HypervisorNotFound(Uuid),
 
     #[error("other")]
-    Other {
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
+    Other(Box<dyn std::error::Error + Send + Sync>),
 }
 
 /// Converts a `hypervisor_connector::Problem` into a `instance::Problem`.
 impl From<hypervisor_connector::Problem> for Problem {
     fn from(value: hypervisor_connector::Problem) -> Self {
         match &value {
-            hypervisor_connector::Problem::InstanceNotFound { id, .. } => {
-                Problem::InstanceNotFound {
-                    id: id.clone(),
-                    source: Box::new(value),
-                }
+            hypervisor_connector::Problem::DistantInstanceNotFound(id) => {
+                Problem::DistantInstanceNotFound(id.to_owned())
             }
-            hypervisor_connector::Problem::Other(_) => Problem::Other {
-                source: Box::new(value),
-            },
+            hypervisor_connector::Problem::Other(_) => Problem::Other(Box::new(value)),
         }
     }
 }
@@ -52,15 +32,7 @@ impl From<hypervisor_connector::Problem> for Problem {
 /// Converts a `sqlx::Error` into a `instance::Problem`.
 impl From<sqlx::Error> for Problem {
     fn from(error: sqlx::Error) -> Self {
-        match &error {
-            sqlx::Error::RowNotFound => Problem::InstanceNotFound {
-                id: String::from(""),
-                source: Box::new(error),
-            },
-            _ => Problem::Other {
-                source: Box::new(error),
-            },
-        }
+        Problem::Other(Box::new(error))
     }
 }
 
@@ -68,13 +40,8 @@ impl From<sqlx::Error> for Problem {
 impl From<hypervisors::Problem> for Problem {
     fn from(value: hypervisors::Problem) -> Self {
         match &value {
-            hypervisors::Problem::NotFound => Problem::HypervisorNotFound {
-                hypervisor_id: Uuid::default(),
-                instance_id: Uuid::default(),
-            },
-            hypervisors::Problem::Other { source: _ } => Problem::Other {
-                source: Box::new(value),
-            },
+            hypervisors::Problem::NotFound(id) => Problem::HypervisorNotFound(id.to_owned()),
+            hypervisors::Problem::Other { source: _ } => Problem::Other(Box::new(value)),
         }
     }
 }
@@ -83,7 +50,7 @@ impl From<hypervisors::Problem> for Problem {
 impl From<Problem> for Status {
     fn from(value: Problem) -> Self {
         match &value {
-            Problem::InstanceNotFound { .. } => Status::not_found(value.to_string()),
+            Problem::InstanceNotFound(_) => Status::not_found(value.to_string()),
             _ => Status::from_error(Box::new(value)),
         }
     }

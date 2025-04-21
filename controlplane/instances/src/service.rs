@@ -13,7 +13,7 @@ pub struct InstancesService {
 
 impl InstancesService {
     pub async fn list(&self) -> Result<Vec<InstanceInfo>, Problem> {
-        let hypervisors = self.hypervisors_service.list().await.unwrap();
+        let hypervisors = self.hypervisors_service.list().await?;
 
         let instances: Vec<InstanceInfo> = stream::iter(hypervisors)
             .map(|hypervisor| async move {
@@ -32,25 +32,18 @@ impl InstancesService {
     }
 
     pub async fn create(&self, options: InstanceConfig) -> Result<Instance, Problem> {
-        let hypervisors = self.hypervisors_service.list().await.unwrap();
+        let hypervisors = self.hypervisors_service.list().await?;
         let hypervisor = &hypervisors[0];
 
         let result = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor, 100)
             .create(options)
             .await?;
 
-        // TODO: wait for proxmox completion using https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/tasks/{upid}/status
-        println!(
-            "oopsie: we should use the result {:?} to get the distant_id instead of a -1",
-            result
-        );
-
         let instance = Instance {
             id: Uuid::new_v4(),
-            distant_id: String::from("-1"),
             hypervisor_id: hypervisor.id,
+            distant_id: result,
         };
-
         repository::create(&self.pool, &instance).await?;
 
         Ok(instance)
@@ -61,7 +54,10 @@ impl InstancesService {
         let hypervisor = self.hypervisors_service.read(id).await?;
         let connector = hypervisor_connector_resolver::resolve_for_hypervisor(
             &hypervisor,
-            instance.distant_id.parse::<u32>().unwrap(),
+            instance
+                .distant_id
+                .parse::<u32>()
+                .expect("could not parse the distant id"),
         );
         connector.start().await.map_err(Problem::from)
     }
@@ -71,7 +67,10 @@ impl InstancesService {
         let hypervisor = self.hypervisors_service.read(id).await?;
         let connector = hypervisor_connector_resolver::resolve_for_hypervisor(
             &hypervisor,
-            instance.distant_id.parse::<u32>().unwrap(),
+            instance
+                .distant_id
+                .parse::<u32>()
+                .expect("could not parse the distant id"),
         );
         connector.stop().await.map_err(Problem::from)
     }

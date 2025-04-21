@@ -12,9 +12,7 @@ impl HypervisorsService {
     }
 
     pub async fn read(&self, id: Uuid) -> Result<Hypervisor, Problem> {
-        repository::read(&self.pool, id)
-            .await
-            .map_err(Problem::from)
+        repository::read(&self.pool, id).await
     }
 
     pub fn new(pool: sqlx::PgPool) -> Self {
