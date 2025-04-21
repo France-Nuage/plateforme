@@ -33,7 +33,9 @@ impl InstancesService {
 
     pub async fn create(&self, options: InstanceConfig) -> Result<Instance, Problem> {
         let hypervisors = self.hypervisors_service.list().await?;
-        let hypervisor = &hypervisors[0];
+        let hypervisor = &hypervisors
+            .first()
+            .ok_or_else(|| Problem::NoHypervisorsAvaible)?;
 
         let result = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
             .create(options)

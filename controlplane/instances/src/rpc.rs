@@ -1,4 +1,5 @@
 use crate::{
+    problem::Problem,
     service::InstancesService,
     v1::{
         CreateInstanceRequest, CreateInstanceResponse, ListInstancesRequest, ListInstancesResponse,
@@ -48,7 +49,8 @@ impl Instances for InstancesRpcService {
         &self,
         request: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
-        let id = Uuid::parse_str(request.into_inner().id.as_ref()).expect("could not parse id");
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
         self.service.start(id).await?;
         Ok(Response::new(StartInstanceResponse {}))
     }
@@ -59,7 +61,8 @@ impl Instances for InstancesRpcService {
         &self,
         request: Request<StopInstanceRequest>,
     ) -> Result<Response<StopInstanceResponse>, Status> {
-        let id = Uuid::parse_str(request.into_inner().id.as_ref()).expect("could not parse id");
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
         self.service.stop(id).await?;
         Ok(Response::new(StopInstanceResponse {}))
     }

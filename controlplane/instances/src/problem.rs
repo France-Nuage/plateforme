@@ -13,6 +13,12 @@ pub enum Problem {
     #[error("The hypervisor {0} could not be found.")]
     HypervisorNotFound(Uuid),
 
+    #[error("The given instance id #{0} could not be parsed into a valid uuid.")]
+    MalformedInstanceId(String),
+
+    #[error("No hypervisors are available.")]
+    NoHypervisorsAvaible,
+
     #[error("other")]
     Other(Box<dyn std::error::Error + Send + Sync>),
 }

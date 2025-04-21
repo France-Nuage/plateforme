@@ -2,16 +2,17 @@ use uuid::Uuid;
 
 use crate::{Problem, model::Hypervisor};
 
-pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Hypervisor>, sqlx::Error> {
+pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Hypervisor>, Problem> {
     sqlx::query_as!(
         Hypervisor,
         "SELECT id, url, authorization_token, storage_name FROM hypervisors"
     )
     .fetch_all(pool)
     .await
+    .map_err(Into::into)
 }
 
-pub async fn create(pool: &sqlx::PgPool, hypervisor: &Hypervisor) -> Result<(), sqlx::Error> {
+pub async fn create(pool: &sqlx::PgPool, hypervisor: &Hypervisor) -> Result<(), Problem> {
     sqlx::query!(
         "INSERT INTO hypervisors (id, url, authorization_token, storage_name) VALUES ($1, $2, $3, $4)",
         &hypervisor.id,

@@ -5,7 +5,6 @@
 
 use crate::{
     model::Hypervisor,
-    problem::Problem,
     repository,
     v1::{
         ListHypervisorsRequest, ListHypervisorsResponse, RegisterHypervisorRequest,
@@ -46,9 +45,7 @@ impl Hypervisors for HypervisorsRpcService {
     ) -> Result<Response<RegisterHypervisorResponse>, Status> {
         let model: Hypervisor = request.into_inner().into();
 
-        repository::create(&self.pool, &model)
-            .await
-            .map_err(Problem::from)?;
+        repository::create(&self.pool, &model).await?;
 
         Ok(Response::new(RegisterHypervisorResponse {}))
     }
@@ -71,8 +68,7 @@ impl Hypervisors for HypervisorsRpcService {
         _: tonic::Request<ListHypervisorsRequest>,
     ) -> std::result::Result<Response<ListHypervisorsResponse>, Status> {
         let hypervisors = repository::list(&self.pool)
-            .await
-            .map_err(Problem::from)?
+            .await?
             .into_iter()
             .map(Into::into)
             .collect();
