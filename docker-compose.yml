@@ -16,7 +16,6 @@ services:
     volumes:
       - ./console:/app
       - /app/node_modules
-      - /app/.pnpm-store
 
   controlplane:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
@@ -75,6 +74,20 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  storybook:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}storybook:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}storybook:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}storybook:master
+      context: console
+      target: storybook
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./console:/app
+      - /app/node_modules
 
   system-tests:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"

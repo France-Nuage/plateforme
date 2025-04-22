@@ -8,6 +8,10 @@ FROM base AS development
 WORKDIR /app
 CMD ["npm", "run", "dev"]
 
+FROM base AS storybook
+WORKDIR /app
+CMD ["npm", "run", "storybook"]
+
 FROM base AS build
 WORKDIR /app
 ARG VITE_CONTROLPLANE_URL=https://controlplane.france-nuage.fr
