@@ -11,7 +11,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     children: "Card",
-    header: <div>coucou</div>
+    header: <div>coucou</div>,
   },
 } satisfies Meta<typeof AppCard>;
 

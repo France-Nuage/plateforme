@@ -46,8 +46,8 @@ build:
 "code style / console":
   stage: code-style
   script:
-    - docker compose run --no-deps console npm run lint
-
+    - docker compose run --no-deps console npx eslint --check
+    - docker compose run --no-deps console npx prettier --check .
 "unit tests / controlplane":
   stage: unit-tests
   variables:

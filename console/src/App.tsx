@@ -47,8 +47,11 @@ const App = () => {
       </AppDrawer>
       <div className="container mx-auto space-y-4">
         <h1 className="text-3xl">FranceNuage</h1>
-        <HypervisorTable hypervisors={hypervisors} onClick={() => setDrawerOpen(true)} />
-        <InstanceTable instances={instances} onClick={() => { }} />
+        <HypervisorTable
+          hypervisors={hypervisors}
+          onClick={() => setDrawerOpen(true)}
+        />
+        <InstanceTable instances={instances} onClick={() => {}} />
       </div>
     </>
   );

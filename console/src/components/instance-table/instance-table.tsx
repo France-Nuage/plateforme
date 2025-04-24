@@ -19,12 +19,16 @@ const columns: AppTableProps<Instance>["columns"] = [
 export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   instances,
   onClick,
-}) =>
-  <AppCard header={
-    <div className="flex justify-between items-center">
-      <h2>Instances</h2>
-      <AppButton onClick={onClick}>Ajouter une instance</AppButton>
-    </div>
-  } padded={false}>
+}) => (
+  <AppCard
+    header={
+      <div className="flex justify-between items-center">
+        <h2>Instances</h2>
+        <AppButton onClick={onClick}>Ajouter une instance</AppButton>
+      </div>
+    }
+    padded={false}
+  >
     <AppTable columns={columns} rows={instances}></AppTable>
-  </AppCard>;
+  </AppCard>
+);
