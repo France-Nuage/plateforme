@@ -16,7 +16,7 @@ type Story = StoryObj<typeof HypervisorInput>;
 
 export const Primary: Story = {
   render: (props) => {
-    const [value, onChange] = useState<Omit<Hypervisor, 'id'>>(hypervisor());
+    const [value, onChange] = useState<Omit<Hypervisor, "id">>(hypervisor());
     return <HypervisorInput {...props} onChange={onChange} value={value} />;
   },
 };
