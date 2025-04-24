@@ -6,12 +6,12 @@ export type AppTableProps<T> = {
 } & ComponentPropsWithoutRef<"table">;
 
 export const AppTable = <T,>({ columns, rows, ...props }: AppTableProps<T>) => (
-  <table className="min-w-full divide-y divide-gray-300" {...props}>
+  <table className="min-w-full divide-y divide-gray-200" {...props}>
     <thead>
       <tr>
         {columns.map((column) => (
           <th
-            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 capitalize"
+            className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
             key={(typeof column === "object" ? column.key : column) as Key}
           >
             {typeof column === "object" ? column.label : String(column)}

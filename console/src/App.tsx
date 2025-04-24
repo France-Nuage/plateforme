@@ -17,7 +17,7 @@ const App = () => {
   const [instances, setInstances] = useState<Instance[]>([]);
   const hypervisorService = useHypervisorService();
   const instanceService = useInstanceService();
-  const [isDrawerOpen, setDrawerOpen] = useState(true);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     hypervisorService?.list().then(setHypervisors);
@@ -45,18 +45,10 @@ const App = () => {
           Ajouter l&apos;hyperviseur
         </AppButton>
       </AppDrawer>
-      <div className="container mx-auto">
+      <div className="container mx-auto space-y-4">
         <h1 className="text-3xl">FranceNuage</h1>
-
-        <h2 className="text-xl">Hyperviseurs</h2>
-        <AppButton onClick={() => setDrawerOpen(true)}>
-          Ajouter un hyperviseur
-        </AppButton>
-        <HypervisorTable hypervisors={hypervisors} />
-
-        <h2 className="text-xl">Instances</h2>
-        <AppButton>Ajouter une instance</AppButton>
-        <InstanceTable instances={instances} />
+        <HypervisorTable hypervisors={hypervisors} onClick={() => setDrawerOpen(true)} />
+        <InstanceTable instances={instances} onClick={() => { }} />
       </div>
     </>
   );

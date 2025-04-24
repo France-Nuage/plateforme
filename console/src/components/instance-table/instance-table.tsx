@@ -1,9 +1,10 @@
 import { FunctionComponent } from "react";
-import { AppTable, AppTableProps } from "@/components";
+import { AppButton, AppCard, AppTable, AppTableProps } from "@/components";
 import { Instance } from "@/types";
 
 export type InstanceTableProps = {
   instances: Instance[];
+  onClick: () => void;
 };
 
 const columns: AppTableProps<Instance>["columns"] = [
@@ -17,4 +18,13 @@ const columns: AppTableProps<Instance>["columns"] = [
 
 export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   instances,
-}) => <AppTable columns={columns} rows={instances}></AppTable>;
+  onClick,
+}) =>
+  <AppCard header={
+    <div className="flex justify-between items-center">
+      <h2>Instances</h2>
+      <AppButton onClick={onClick}>Ajouter une instance</AppButton>
+    </div>
+  } padded={false}>
+    <AppTable columns={columns} rows={instances}></AppTable>
+  </AppCard>;
