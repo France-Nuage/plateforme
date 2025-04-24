@@ -1,35 +1,25 @@
-import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { useEffect, useState } from "react";
-import {
-  Hypervisor,
-  HypervisorsClient,
-  InstanceInfo,
-  InstancesClient,
-} from "@/protocol";
 import { AppButton, AppDrawer, HypervisorInput } from "./components";
-
-export const transport = new GrpcWebFetchTransport({
-  baseUrl: import.meta.env.VITE_CONTROLPLANE_URL,
-  format: "binary",
-});
-
-const instancesClient = new InstancesClient(transport);
-const hypervisorsClient = new HypervisorsClient(transport);
+import { useHypervisorService, useInstanceService } from "./hooks";
+import { Hypervisor, Instance } from "./types";
 
 const App = () => {
-  const [draftHypervisor, setDraftHypervisor] = useState<Hypervisor>({ url: '' });
+  const [draftHypervisor, setDraftHypervisor] = useState<
+    Omit<Hypervisor, "id">
+  >({ authorizationToken: "", storageName: "", url: "" });
   const [hypervisors, setHypervisors] = useState<Hypervisor[]>([]);
-  const [instances, setInstances] = useState<InstanceInfo[]>([]);
+  const [instances, setInstances] = useState<Instance[]>([]);
+  const hypervisorService = useHypervisorService();
+  const instanceService = useInstanceService();
   const [isDrawerOpen, setDrawerOpen] = useState(true);
 
   useEffect(() => {
-    hypervisorsClient
-      .listHypervisors({})
-      .response.then(({ hypervisors }) => setHypervisors(hypervisors));
-    instancesClient
-      .listInstances({})
-      .response.then(({ instances }) => setInstances(instances));
-  }, []);
+    hypervisorService?.list().then(setHypervisors);
+  }, [hypervisorService]);
+
+  useEffect(() => {
+    instanceService?.list().then(setInstances)
+  }, [instanceService]);
 
   return (
     <>
@@ -38,8 +28,13 @@ const App = () => {
         open={isDrawerOpen}
         title="Ajouter un hyperviseur"
       >
-        <HypervisorInput onChange={setDraftHypervisor} value={draftHypervisor} />
-        <AppButton>Ajouter l'hyperviseur</AppButton>
+        <HypervisorInput
+          onChange={setDraftHypervisor}
+          value={draftHypervisor}
+        />
+        <AppButton className="mt-4" onClick={() => hypervisorService!.create(draftHypervisor)}>
+          Ajouter l&apos;hyperviseur
+        </AppButton>
       </AppDrawer>
       <div className="container mx-auto">
         <h1 className="text-3xl">FranceNuage</h1>
@@ -51,7 +46,7 @@ const App = () => {
         {hypervisors.length > 0 ? (
           <ul>
             {hypervisors.map((hypervisor) => (
-              <li>hypervisor - {hypervisor.url}</li>
+              <li key={hypervisor.id}>hypervisor - {hypervisor.url}</li>
             ))}
           </ul>
         ) : (
@@ -63,7 +58,7 @@ const App = () => {
         {instances.length > 0 ? (
           <ul>
             {instances.map((instance) => (
-              <li>instance - {instance.name}</li>
+              <li key={instance.id}>instance - {instance.name}</li>
             ))}
           </ul>
         ) : (

@@ -12,6 +12,7 @@ export type AppInputProps = {
 
 export const AppInput: FunctionComponent<AppInputProps> = ({
   error,
+  label,
   name,
   onChange,
   value,
@@ -21,7 +22,7 @@ export const AppInput: FunctionComponent<AppInputProps> = ({
     <label
       htmlFor={name}
       className="block text-sm/6 font-medium text-gray-900"
-    ></label>
+    >{label}</label>
     <div className="mt-2 grid grid-cols-1">
       <input
         aria-invalid={!!error}
@@ -29,7 +30,7 @@ export const AppInput: FunctionComponent<AppInputProps> = ({
         name={name}
         className={clsx(
           "col-start-1 row-start-1 block w-full rounded-md bg-white py-1.5 pl-3 pr-10 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:pr-9 sm:text-sm/6",
-          !!error
+          error
             ? "text-red-900 outline-red-300 placeholder:text-red-300 focus:outline-red-600"
             : "text-gray-900 outline-gray-300 placeholder:text-gray-400 focus:outline-indigo-600",
         )}

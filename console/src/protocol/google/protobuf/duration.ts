@@ -140,7 +140,7 @@ class Duration$Type extends MessageType<Duration> {
    * Encode `Duration` to JSON string like "3.000001s".
    */
   internalJsonWrite(message: Duration, options: JsonWriteOptions): JsonValue {
-    let s = PbLong.from(message.seconds).toNumber();
+    const s = PbLong.from(message.seconds).toNumber();
     if (s > 315576000000 || s < -315576000000)
       throw new Error("Duration value out of range.");
     let text = message.seconds.toString();
@@ -170,14 +170,14 @@ class Duration$Type extends MessageType<Duration> {
           typeofJsonValue(json) +
           ". Expected string.",
       );
-    let match = json.match(/^(-?)([0-9]+)(?:\.([0-9]+))?s/);
+    const match = json.match(/^(-?)([0-9]+)(?:\.([0-9]+))?s/);
     if (match === null)
       throw new Error(
         "Unable to parse Duration from JSON string. Invalid format.",
       );
     if (!target) target = this.create();
-    let [, sign, secs, nanos] = match;
-    let longSeconds = PbLong.from(sign + secs);
+    const [, sign, secs, nanos] = match;
+    const longSeconds = PbLong.from(sign + secs);
     if (
       longSeconds.toNumber() > 315576000000 ||
       longSeconds.toNumber() < -315576000000
@@ -187,7 +187,7 @@ class Duration$Type extends MessageType<Duration> {
       );
     target.seconds = longSeconds.toBigInt();
     if (typeof nanos == "string") {
-      let nanosStr = sign + nanos + "0".repeat(9 - nanos.length);
+      const nanosStr = sign + nanos + "0".repeat(9 - nanos.length);
       target.nanos = parseInt(nanosStr);
     }
     return target;

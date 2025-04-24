@@ -7,8 +7,7 @@ const meta = {
   title: "Components / App Drawer",
   component: AppDrawer,
   tags: ["autodocs"],
-  args: {
-  },
+  args: {},
 } satisfies Meta<typeof AppDrawer>;
 
 export default meta;
@@ -22,6 +21,6 @@ export const Primary: Story = {
         <AppButton onClick={() => setOpen(!open)}>Toggle drawer</AppButton>
         <AppDrawer {...props} onClose={() => setOpen(false)} open={open} />
       </>
-    )
-  }
+    );
+  },
 };

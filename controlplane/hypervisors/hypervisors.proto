@@ -24,14 +24,14 @@ message ListHypervisorsResponse {
 
 // RegisterHypervisorRequest contains the necessary information to register a hypervisor.
 message RegisterHypervisorRequest {
-    // URL endpoint of the hypervisor API
-    string url = 1;
-    
     // Authorization token for secure API access
-    string authorization_token = 2;
-    
+    string authorization_token = 1;
+ 
     // Name of the storage to use for instances
-    string storage_name = 3;
+    string storage_name = 2;
+
+    // URL endpoint of the hypervisor API
+    string url = 3;
 }
 
 // RegisterHypervisorResponse contains the result of a register hypervisor operation.
@@ -39,6 +39,12 @@ message RegisterHypervisorResponse {}
 
 // Hypervisor represents a virtualization platform that can host instances.
 message Hypervisor {
+    // Id of the hypervisor
+    string id = 1;
+
+    // Name of the storage to use for instances
+    string storage_name = 2;
+
     // URL endpoint of the hypervisor API
-    string url = 1;
+    string url = 3;
 }

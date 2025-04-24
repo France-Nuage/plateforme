@@ -27,8 +27,8 @@ export const AppSelect = <T,>({
   const [filter, setFilter] = useState("");
   const filteredOptions = filter
     ? options.filter((option) =>
-      format(option).toLowerCase().includes(filter.toLowerCase()),
-    )
+        format(option).toLowerCase().includes(filter.toLowerCase()),
+      )
     : options;
 
   return (

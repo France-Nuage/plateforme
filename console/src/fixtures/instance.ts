@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { InstanceInfo, InstanceStatus } from "../protocol/instances";
 
-// @ts-ignore
+// @ts-expect-error allows to serialize a big int to a string
 BigInt.prototype.toJSON = function () {
   return this.toString();
 };

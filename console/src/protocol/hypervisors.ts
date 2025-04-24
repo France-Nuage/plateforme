@@ -29,23 +29,23 @@ export interface ListHypervisorsResponse {
  */
 export interface RegisterHypervisorRequest {
   /**
-   * URL endpoint of the hypervisor API
-   *
-   * @generated from protobuf field: string url = 1;
-   */
-  url: string;
-  /**
    * Authorization token for secure API access
    *
-   * @generated from protobuf field: string authorization_token = 2;
+   * @generated from protobuf field: string authorization_token = 1;
    */
   authorizationToken: string;
   /**
    * Name of the storage to use for instances
    *
-   * @generated from protobuf field: string storage_name = 3;
+   * @generated from protobuf field: string storage_name = 2;
    */
   storageName: string;
+  /**
+   * URL endpoint of the hypervisor API
+   *
+   * @generated from protobuf field: string url = 3;
+   */
+  url: string;
 }
 /**
  * RegisterHypervisorResponse contains the result of a register hypervisor operation.
@@ -60,9 +60,21 @@ export interface RegisterHypervisorResponse {}
  */
 export interface Hypervisor {
   /**
+   * Id of the hypervisor
+   *
+   * @generated from protobuf field: string id = 1;
+   */
+  id: string;
+  /**
+   * Name of the storage to use for instances
+   *
+   * @generated from protobuf field: string storage_name = 2;
+   */
+  storageName: string;
+  /**
    * URL endpoint of the hypervisor API
    *
-   * @generated from protobuf field: string url = 1;
+   * @generated from protobuf field: string url = 3;
    */
   url: string;
 }
@@ -106,19 +118,19 @@ class RegisterHypervisorRequest$Type extends MessageType<RegisterHypervisorReque
     super(
       "francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorRequest",
       [
-        { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
         {
-          no: 2,
+          no: 1,
           name: "authorization_token",
           kind: "scalar",
           T: 9 /*ScalarType.STRING*/,
         },
         {
-          no: 3,
+          no: 2,
           name: "storage_name",
           kind: "scalar",
           T: 9 /*ScalarType.STRING*/,
         },
+        { no: 3, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
       ],
     );
   }
@@ -144,7 +156,14 @@ export const RegisterHypervisorResponse = new RegisterHypervisorResponse$Type();
 class Hypervisor$Type extends MessageType<Hypervisor> {
   constructor() {
     super("francenuage.fr.api.controlplane.v1.hypervisors.Hypervisor", [
-      { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+      { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 2,
+        name: "storage_name",
+        kind: "scalar",
+        T: 9 /*ScalarType.STRING*/,
+      },
+      { no: 3, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
     ]);
   }
 }
