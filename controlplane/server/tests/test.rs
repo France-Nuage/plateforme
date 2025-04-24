@@ -264,7 +264,11 @@ async fn test_the_list_hypervisors_procedure_works(
     assert!(result.is_ok());
     assert_eq!(
         result.unwrap().into_inner().hypervisors,
-        vec![hypervisors::v1::Hypervisor { url: mock.url() }]
+        vec![hypervisors::v1::Hypervisor {
+            id: String::from("00000000-0000-0000-0000-000000000000"),
+            storage_name: String::from(""),
+            url: mock.url()
+        }]
     );
 
     // Shutdown the server

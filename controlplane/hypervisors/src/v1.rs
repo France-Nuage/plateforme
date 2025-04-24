@@ -29,6 +29,10 @@ impl From<RegisterHypervisorRequest> for crate::model::Hypervisor {
 /// fields in the API response type, which currently only includes the URL.
 impl From<crate::model::Hypervisor> for Hypervisor {
     fn from(value: crate::model::Hypervisor) -> Self {
-        Hypervisor { url: value.url }
+        Hypervisor {
+            id: value.id.to_string(),
+            storage_name: value.storage_name,
+            url: value.url,
+        }
     }
 }

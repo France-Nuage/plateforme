@@ -17,14 +17,26 @@ import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
  * @generated from protobuf service francenuage.fr.api.controlplane.v1.hypervisors.Hypervisors
  */
 export interface IHypervisorsClient {
-    /**
-     * @generated from protobuf rpc: ListHypervisors(francenuage.fr.api.controlplane.v1.hypervisors.ListHypervisorsRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.ListHypervisorsResponse);
-     */
-    listHypervisors(input: ListHypervisorsRequest, options?: RpcOptions): UnaryCall<ListHypervisorsRequest, ListHypervisorsResponse>;
-    /**
-     * @generated from protobuf rpc: RegisterHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorResponse);
-     */
-    registerHypervisor(input: RegisterHypervisorRequest, options?: RpcOptions): UnaryCall<RegisterHypervisorRequest, RegisterHypervisorResponse>;
+  /**
+   * ListHypervisors retrieves information about all registered hypervisors.
+   * Returns a collection of hypervisor details.
+   *
+   * @generated from protobuf rpc: ListHypervisors(francenuage.fr.api.controlplane.v1.hypervisors.ListHypervisorsRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.ListHypervisorsResponse);
+   */
+  listHypervisors(
+    input: ListHypervisorsRequest,
+    options?: RpcOptions,
+  ): UnaryCall<ListHypervisorsRequest, ListHypervisorsResponse>;
+  /**
+   * RegisterHypervisor adds a new hypervisor to the system.
+   * Returns an empty response on success or a ProblemDetails on failure.
+   *
+   * @generated from protobuf rpc: RegisterHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorResponse);
+   */
+  registerHypervisor(
+    input: RegisterHypervisorRequest,
+    options?: RpcOptions,
+  ): UnaryCall<RegisterHypervisorRequest, RegisterHypervisorResponse>;
 }
 /**
  * Hypervisors service provides operations to manage hypervisors.
@@ -32,23 +44,45 @@ export interface IHypervisorsClient {
  * @generated from protobuf service francenuage.fr.api.controlplane.v1.hypervisors.Hypervisors
  */
 export class HypervisorsClient implements IHypervisorsClient, ServiceInfo {
-    typeName = Hypervisors.typeName;
-    methods = Hypervisors.methods;
-    options = Hypervisors.options;
-    constructor(private readonly _transport: RpcTransport) {
-    }
-    /**
-     * @generated from protobuf rpc: ListHypervisors(francenuage.fr.api.controlplane.v1.hypervisors.ListHypervisorsRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.ListHypervisorsResponse);
-     */
-    listHypervisors(input: ListHypervisorsRequest, options?: RpcOptions): UnaryCall<ListHypervisorsRequest, ListHypervisorsResponse> {
-        const method = this.methods[0], opt = this._transport.mergeOptions(options);
-        return stackIntercept<ListHypervisorsRequest, ListHypervisorsResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
-     * @generated from protobuf rpc: RegisterHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorResponse);
-     */
-    registerHypervisor(input: RegisterHypervisorRequest, options?: RpcOptions): UnaryCall<RegisterHypervisorRequest, RegisterHypervisorResponse> {
-        const method = this.methods[1], opt = this._transport.mergeOptions(options);
-        return stackIntercept<RegisterHypervisorRequest, RegisterHypervisorResponse>("unary", this._transport, method, opt, input);
-    }
+  typeName = Hypervisors.typeName;
+  methods = Hypervisors.methods;
+  options = Hypervisors.options;
+  constructor(private readonly _transport: RpcTransport) {}
+  /**
+   * ListHypervisors retrieves information about all registered hypervisors.
+   * Returns a collection of hypervisor details.
+   *
+   * @generated from protobuf rpc: ListHypervisors(francenuage.fr.api.controlplane.v1.hypervisors.ListHypervisorsRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.ListHypervisorsResponse);
+   */
+  listHypervisors(
+    input: ListHypervisorsRequest,
+    options?: RpcOptions,
+  ): UnaryCall<ListHypervisorsRequest, ListHypervisorsResponse> {
+    const method = this.methods[0],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<ListHypervisorsRequest, ListHypervisorsResponse>(
+      "unary",
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * RegisterHypervisor adds a new hypervisor to the system.
+   * Returns an empty response on success or a ProblemDetails on failure.
+   *
+   * @generated from protobuf rpc: RegisterHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorResponse);
+   */
+  registerHypervisor(
+    input: RegisterHypervisorRequest,
+    options?: RpcOptions,
+  ): UnaryCall<RegisterHypervisorRequest, RegisterHypervisorResponse> {
+    const method = this.methods[1],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<
+      RegisterHypervisorRequest,
+      RegisterHypervisorResponse
+    >("unary", this._transport, method, opt, input);
+  }
 }
