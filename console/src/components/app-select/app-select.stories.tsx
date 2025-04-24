@@ -1,9 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { InstanceInfo } from "@/protocol";
-import { instances } from "@/fixtures";
-
-import { AppSelect } from "./app-select";
 import { useState } from "react";
+import type { Meta, StoryObj } from "@storybook/react";
+import { instances } from "@/fixtures";
+import { Instance } from "@/types";
+import { AppSelect } from "./app-select";
 
 const meta = {
   title: "Components / App Select",
@@ -16,10 +15,10 @@ const meta = {
     format: (instance) => instance.name,
     options: instances(5),
   },
-} satisfies Meta<typeof AppSelect<InstanceInfo>>;
+} satisfies Meta<typeof AppSelect<Instance>>;
 
 export default meta;
-type Story = StoryObj<typeof AppSelect<InstanceInfo>>;
+type Story = StoryObj<typeof AppSelect<Instance>>;
 
 export const Primary: Story = {
   render: (props) => {
