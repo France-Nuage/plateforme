@@ -1,18 +1,33 @@
-import { ComponentPropsWithoutRef } from "react";
+import { ComponentPropsWithoutRef, Key } from "react";
 
 export type AppTableProps<T> = {
-  data: T[];
+  columns: (keyof T | { key: keyof T; label: string })[];
+  rows: T[];
 } & ComponentPropsWithoutRef<"table">;
 
-export const AppTable = <T,>({ data, ...props }: AppTableProps<T>) => (
+export const AppTable = <T,>({ columns, rows, ...props }: AppTableProps<T>) => (
   <table className="min-w-full divide-y divide-gray-300" {...props}>
-    <thead></thead>
+    <thead>
+      <tr>
+        {columns.map((column) => (
+          <th
+            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 capitalize"
+            key={(typeof column === "object" ? column.key : column) as Key}
+          >
+            {typeof column === "object" ? column.label : String(column)}
+          </th>
+        ))}
+      </tr>
+    </thead>
     <tbody className="divide-y divide-gray-200">
-      {data.map((row, index) => (
+      {rows.map((row, index) => (
         <tr key={index}>
-          {Object.values(row as object).map((value, index) => (
-            <td key={index} className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-              {String(value)}
+          {columns.map((column) => (
+            <td
+              key={(typeof column === "object" ? column.key : column) as Key}
+              className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
+            >
+              {String(row[typeof column === "object" ? column.key : column])}
             </td>
           ))}
         </tr>

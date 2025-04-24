@@ -2,6 +2,35 @@ export interface Instance {
   // The instance id.
   id: string;
 
+  // Current CPU utilization as a percentage (0.0-100.0)
+  cpuUsagePercent: number;
+
+  // Maximum CPU cores available to the instance (max 99).
+  maxCpuCores: number;
+
+  // Maximum memory available to the instance (in bytes, max 64GB)
+  maxMemoryBytes: string;
+
+  // Current memory utilization (in bytes, cannot exceed max_memory_bytes)
+  memoryUsageBytes: string;
+
   // The instance name.
   name: string;
+
+  // Current operational status of the instance
+  status: InstanceStatus;
+}
+
+export enum InstanceStatus {
+  UndefinedInstanceStatus = "undefined instance status",
+  Running = "running",
+  Stopped = "stopped",
+  Stopping = "stopping",
+  Provisioning = "provisioning",
+  Staging = "staging",
+  Suspended = "suspended",
+  Suspending = "suspending",
+  Terminated = "terminated",
+  Deprovisionning = "deprovisionning",
+  Repairing = "repairing",
 }

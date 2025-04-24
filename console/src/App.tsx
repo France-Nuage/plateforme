@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { AppButton, AppDrawer, HypervisorInput } from "./components";
+import {
+  AppButton,
+  AppDrawer,
+  HypervisorInput,
+  HypervisorTable,
+  InstanceTable,
+} from "./components";
 import { useHypervisorService, useInstanceService } from "./hooks";
 import { Hypervisor, Instance } from "./types";
 
@@ -18,7 +24,7 @@ const App = () => {
   }, [hypervisorService]);
 
   useEffect(() => {
-    instanceService?.list().then(setInstances)
+    instanceService?.list().then(setInstances);
   }, [instanceService]);
 
   return (
@@ -32,7 +38,10 @@ const App = () => {
           onChange={setDraftHypervisor}
           value={draftHypervisor}
         />
-        <AppButton className="mt-4" onClick={() => hypervisorService!.create(draftHypervisor)}>
+        <AppButton
+          className="mt-4"
+          onClick={() => hypervisorService!.create(draftHypervisor)}
+        >
           Ajouter l&apos;hyperviseur
         </AppButton>
       </AppDrawer>
@@ -43,27 +52,11 @@ const App = () => {
         <AppButton onClick={() => setDrawerOpen(true)}>
           Ajouter un hyperviseur
         </AppButton>
-        {hypervisors.length > 0 ? (
-          <ul>
-            {hypervisors.map((hypervisor) => (
-              <li key={hypervisor.id}>hypervisor - {hypervisor.url}</li>
-            ))}
-          </ul>
-        ) : (
-          <div>aucun hyperviseur trouvé</div>
-        )}
+        <HypervisorTable hypervisors={hypervisors} />
 
         <h2 className="text-xl">Instances</h2>
         <AppButton>Ajouter une instance</AppButton>
-        {instances.length > 0 ? (
-          <ul>
-            {instances.map((instance) => (
-              <li key={instance.id}>instance - {instance.name}</li>
-            ))}
-          </ul>
-        ) : (
-          <div>aucune instance trouvée</div>
-        )}
+        <InstanceTable instances={instances} />
       </div>
     </>
   );

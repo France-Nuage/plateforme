@@ -14,7 +14,8 @@ export const AppButton: FunctionComponent<AppButtonProps> = ({
 }) => {
   return (
     <button
-      className={clsx(className,
+      className={clsx(
+        className,
         "bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600",
         sizeClassName[size],
       )}

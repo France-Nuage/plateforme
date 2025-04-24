@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { instances } from "@/fixtures";
-import { InstanceInfo } from "@/protocol";
+import { Instance } from "@/types";
 import { AppTable } from "./app-table";
 
 const meta = {
@@ -11,9 +11,10 @@ const meta = {
   },
   tags: ["autodocs"],
   args: {
-    data: instances(10),
+    columns: ["id", { key: "name", label: "Instance Name" }],
+    rows: instances(5),
   },
-} satisfies Meta<typeof AppTable<InstanceInfo>>;
+} satisfies Meta<typeof AppTable<Instance>>;
 
 export default meta;
 type Story = StoryObj<typeof AppTable>;

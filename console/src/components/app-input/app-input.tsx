@@ -19,10 +19,9 @@ export const AppInput: FunctionComponent<AppInputProps> = ({
   ...props
 }) => (
   <div>
-    <label
-      htmlFor={name}
-      className="block text-sm/6 font-medium text-gray-900"
-    >{label}</label>
+    <label htmlFor={name} className="block text-sm/6 font-medium text-gray-900">
+      {label}
+    </label>
     <div className="mt-2 grid grid-cols-1">
       <input
         aria-invalid={!!error}

@@ -3,8 +3,8 @@ import { Hypervisor } from "@/types";
 import { FunctionComponent } from "react";
 
 export type HypervisorInputProps = {
-  onChange: (value: Omit<Hypervisor, 'id'>) => void;
-  value: Omit<Hypervisor, 'id'>;
+  onChange: (value: Omit<Hypervisor, "id">) => void;
+  value: Omit<Hypervisor, "id">;
 };
 
 export const HypervisorInput: FunctionComponent<HypervisorInputProps> = ({
