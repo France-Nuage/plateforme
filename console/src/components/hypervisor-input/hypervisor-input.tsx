@@ -1,10 +1,10 @@
 import { AppInput } from "@/components";
-import { Hypervisor } from "@/types";
+import { HypervisorFormValue } from "@/types";
 import { FunctionComponent } from "react";
 
 export type HypervisorInputProps = {
-  onChange: (value: Omit<Hypervisor, "id">) => void;
-  value: Omit<Hypervisor, "id">;
+  onChange: (value: HypervisorFormValue) => void;
+  value: HypervisorFormValue;
 };
 
 export const HypervisorInput: FunctionComponent<HypervisorInputProps> = ({

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { Hypervisor } from "@/types";
+import { HypervisorFormValue } from "@/types";
 import { HypervisorInput } from "./hypervisor-input";
 import { hypervisor } from "@/fixtures";
 
@@ -16,7 +16,10 @@ type Story = StoryObj<typeof HypervisorInput>;
 
 export const Primary: Story = {
   render: (props) => {
-    const [value, onChange] = useState<Omit<Hypervisor, "id">>(hypervisor());
+    const [value, onChange] = useState<HypervisorFormValue>({
+      ...hypervisor(),
+      authorizationToken: "",
+    });
     return <HypervisorInput {...props} onChange={onChange} value={value} />;
   },
 };

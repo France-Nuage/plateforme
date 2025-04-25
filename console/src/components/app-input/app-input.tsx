@@ -1,23 +1,22 @@
 import { ExclamationCircleIcon } from "@heroicons/react/16/solid";
 import { clsx } from "clsx";
-import { FunctionComponent } from "react";
 
-export type AppInputProps = {
+export type AppInputProps<T extends string | number = string> = {
   error?: string;
   label: string;
   name: string;
-  onChange: (value: string) => void;
-  value: string;
+  onChange: (value: T) => void;
+  value: T;
 };
 
-export const AppInput: FunctionComponent<AppInputProps> = ({
+export const AppInput = <T extends string | number = string>({
   error,
   label,
   name,
   onChange,
   value,
   ...props
-}) => (
+}: AppInputProps<T>) => (
   <div>
     <label htmlFor={name} className="block text-sm/6 font-medium text-gray-900">
       {label}
@@ -33,7 +32,7 @@ export const AppInput: FunctionComponent<AppInputProps> = ({
             ? "text-red-900 outline-red-300 placeholder:text-red-300 focus:outline-red-600"
             : "text-gray-900 outline-gray-300 placeholder:text-gray-400 focus:outline-indigo-600",
         )}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => onChange(event.target.value as T)}
         value={value}
         {...props}
       />

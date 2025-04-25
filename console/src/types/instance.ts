@@ -1,4 +1,4 @@
-export interface Instance {
+export type Instance = {
   // The instance id.
   id: string;
 
@@ -19,7 +19,12 @@ export interface Instance {
 
   // Current operational status of the instance
   status: InstanceStatus;
-}
+};
+
+export type InstanceFormValue = Pick<
+  Instance,
+  "maxCpuCores" | "maxMemoryBytes" | "name"
+>;
 
 export enum InstanceStatus {
   UndefinedInstanceStatus = "undefined instance status",
