@@ -32,8 +32,8 @@ function fromRpcInstance(instance: RpcInstance): Instance {
     id: instance.id,
     cpuUsagePercent: instance.cpuUsagePercent,
     maxCpuCores: instance.maxCpuCores,
-    maxMemoryBytes: instance.maxMemoryBytes.toString(),
-    memoryUsageBytes: instance.memoryUsageBytes.toString(),
+    maxMemoryBytes: Number(instance.maxMemoryBytes),
+    memoryUsageBytes: Number(instance.memoryUsageBytes),
     name: instance.name,
     status: fromRpcInstanceStatus(instance.status),
   };
