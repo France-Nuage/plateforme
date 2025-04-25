@@ -22,14 +22,14 @@ export const HypervisorInput: FunctionComponent<HypervisorInputProps> = ({
       label="Authorization Token"
       name="hypervisor-authorization-token"
       onChange={(authorizationToken) =>
-        onChange({ ...value, url: authorizationToken })
+        onChange({ ...value, authorizationToken })
       }
       value={value.authorizationToken!}
     />
     <AppInput
       label="Storage Name"
       name="hypervisor-storage-name"
-      onChange={(storageName) => onChange({ ...value, url: storageName })}
+      onChange={(storageName) => onChange({ ...value, storageName })}
       value={value.storageName}
     />
   </div>

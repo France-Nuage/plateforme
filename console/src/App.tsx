@@ -12,7 +12,7 @@ import { Hypervisor, Instance } from "./types";
 const App = () => {
   const [draftHypervisor, setDraftHypervisor] = useState<
     Omit<Hypervisor, "id">
-  >({ authorizationToken: "", storageName: "", url: "" });
+  >({ authorizationToken: "PVEAPIToken=", storageName: "local-lvm", url: "https://pvedev-dc03-internal.france-nuage.fr" });
   const [hypervisors, setHypervisors] = useState<Hypervisor[]>([]);
   const [instances, setInstances] = useState<Instance[]>([]);
   const hypervisorService = useHypervisorService();
@@ -51,7 +51,7 @@ const App = () => {
           hypervisors={hypervisors}
           onClick={() => setDrawerOpen(true)}
         />
-        <InstanceTable instances={instances} onClick={() => {}} />
+        <InstanceTable instances={instances} onClick={() => { }} />
       </div>
     </>
   );
