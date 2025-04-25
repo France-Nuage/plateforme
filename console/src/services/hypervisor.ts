@@ -1,6 +1,6 @@
 import { HypervisorsClient } from "@/protocol/hypervisors.client";
 import { Hypervisor as RpcHypervisor } from "@/protocol/hypervisors";
-import { Hypervisor } from "@/types";
+import { Hypervisor, HypervisorFormValue } from "@/types";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 
 export class HypervisorService {
@@ -26,7 +26,7 @@ export class HypervisorService {
     authorizationToken = "",
     storageName,
     url,
-  }: Omit<Hypervisor, "id">): Promise<void> {
+  }: HypervisorFormValue): Promise<void> {
     return this.client
       .registerHypervisor({ authorizationToken, storageName, url })
       .response.then(() => {});
