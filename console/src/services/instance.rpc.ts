@@ -5,8 +5,10 @@ import {
 } from "@/protocol/instances";
 import { Instance, InstanceStatus } from "@/types";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
+import { InstanceService } from "./instance.interface";
+import { transport } from "./transport.rpc";
 
-export class InstanceService {
+export class InstanceRpcService implements InstanceService {
   /**
    * The gRPC instances client.
    */
@@ -25,6 +27,8 @@ export class InstanceService {
       .response.then(({ instances }) => instances.map(fromRpcInstance));
   }
 }
+
+export const instanceRpcService = new InstanceRpcService(transport);
 
 // Converts a protocol Instance into a concrete Instance.
 function fromRpcInstance(instance: RpcInstance): Instance {

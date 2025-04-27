@@ -2,8 +2,10 @@ import { HypervisorsClient } from "@/protocol/hypervisors.client";
 import { Hypervisor as RpcHypervisor } from "@/protocol/hypervisors";
 import { Hypervisor, HypervisorFormValue } from "@/types";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
+import { HypervisorService } from "./hypervisor.interface";
+import { transport } from "./transport.rpc";
 
-export class HypervisorService {
+export class HypervisorRpcService implements HypervisorService {
   /**
    * The gRPC instances client.
    */
@@ -32,6 +34,9 @@ export class HypervisorService {
       .response.then(() => {});
   }
 }
+
+// Exports an instance of the service.
+export const hypervisorsRpcService = new HypervisorRpcService(transport);
 
 // Converts a protocol Hypervisor into a concrete Hypervisor.
 function fromRpcHypervisor(hypervisor: RpcHypervisor): Hypervisor {
