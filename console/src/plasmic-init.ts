@@ -5,9 +5,8 @@ import { AppButton } from "./components";
 export const PLASMIC = initPlasmicLoader({
   projects: [
     {
-      id: "8hZRXuNQRs8zUDmvMoCc7h",
-      token:
-        "QQ0Mlvm9YpK8VqsEz3d6wuNKTm6L7Kr0exoGgGAwgtUG18TNWfJPKHpbzSG2XL1nLlIEDBqG6r886pJqg",
+      id: import.meta.env.VITE_PLASMIC_ID,
+      token: import.meta.env.VITE_PLASMIC_TOKEN,
     },
   ],
   preview: true,
@@ -19,15 +18,23 @@ PLASMIC.registerComponent(AppButton, {
 });
 
 PLASMIC.registerComponent(ConsoleProvider, {
-  name: "Hypervisors Provider",
+  name: "Console Provider",
   props: {
     children: "slot",
   },
   providesData: true,
   refActions: {
-    add: {
-      description: "Add a new hypervisor",
+    registerHypervisor: {
+      description: "Register a new hypervisor",
       argTypes: [],
+    },
+    createInstance: {
+      description: "Create a new instance",
+      argTypes: [
+        { name: "maxCpuCores", type: "number" },
+        { name: "maxMemory", type: "number" },
+        { name: "name", type: "string" },
+      ],
     },
   },
 });

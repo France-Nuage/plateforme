@@ -4,3 +4,4 @@ export * from "./hypervisor.rpc";
 export * from "./instance.interface";
 export * from "./instance.mock";
 export * from "./instance.rpc";
+export * from "./resolver";

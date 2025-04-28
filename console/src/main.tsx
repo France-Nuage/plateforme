@@ -1,25 +1,34 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.tsx";
 import { BrowserRouter, useLocation } from "react-router";
 import { Routes } from "react-router";
 import { Route } from "react-router";
-import { ComponentRenderData, PageParamsProvider, PlasmicCanvasHost, PlasmicComponent, PlasmicRootProvider } from "@plasmicapp/loader-react";
+import {
+  ComponentRenderData,
+  PageParamsProvider,
+  PlasmicCanvasHost,
+  PlasmicComponent,
+  PlasmicRootProvider,
+} from "@plasmicapp/loader-react";
 import { PLASMIC } from "./plasmic-init.ts";
 import { useSearchParams } from "react-router";
+import { Provider } from "react-redux";
+import { store } from "./store";
 
 createRoot(document.getElementById("root")!).render(
-  <PlasmicRootProvider loader={PLASMIC}>
-    <StrictMode>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<PlasmicApp />} />
-          <Route path="/plasmic-host" element={<PlasmicCanvasHost />} />
-        </Routes>
-      </BrowserRouter>
-    </StrictMode>,
-  </PlasmicRootProvider>
+  <StrictMode>
+    <Provider store={store}>
+      <PlasmicRootProvider loader={PLASMIC}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<PlasmicApp />} />
+            <Route path="/plasmic-host" element={<PlasmicCanvasHost />} />
+          </Routes>
+        </BrowserRouter>
+      </PlasmicRootProvider>
+    </Provider>
+  </StrictMode>,
 );
 
 function PlasmicApp() {
@@ -29,11 +38,12 @@ function PlasmicApp() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    console.log("in effect");
     PLASMIC.maybeFetchComponentData(location.pathname).then((pageData) => {
       setPageData(pageData);
       setLoading(false);
-    })
-  });
+    });
+  }, []);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -43,8 +53,11 @@ function PlasmicApp() {
   }
 
   return (
-    <PageParamsProvider route={location.pathname} query={Object.fromEntries(searchParams)}>
+    <PageParamsProvider
+      route={location.pathname}
+      query={Object.fromEntries(searchParams)}
+    >
       <PlasmicComponent component={location.pathname} />
     </PageParamsProvider>
-  )
+  );
 }

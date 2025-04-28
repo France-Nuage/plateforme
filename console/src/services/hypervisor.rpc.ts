@@ -24,14 +24,14 @@ export class HypervisorRpcService implements HypervisorService {
       .response.then(({ hypervisors }) => hypervisors.map(fromRpcHypervisor));
   }
 
-  public create({
+  public register({
     authorizationToken = "",
     storageName,
     url,
-  }: HypervisorFormValue): Promise<void> {
+  }: HypervisorFormValue): Promise<Hypervisor> {
     return this.client
       .registerHypervisor({ authorizationToken, storageName, url })
-      .response.then(() => {});
+      .response.then(({ hypervisor }) => fromRpcHypervisor(hypervisor!));
   }
 }
 

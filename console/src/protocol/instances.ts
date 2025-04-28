@@ -23,11 +23,11 @@ export interface InstanceConfig {
   name: string;
 }
 /**
- * InstanceInfo contains detailed information about a virtual machine instance.
+ * Instance contains detailed information about a virtual machine instance.
  *
- * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.InstanceInfo
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.Instance
  */
-export interface InstanceInfo {
+export interface Instance {
   /**
    * Unique identifier for the instance
    *
@@ -86,9 +86,9 @@ export interface ListInstancesResponse {
   /**
    * List of instance details
    *
-   * @generated from protobuf field: repeated francenuage.fr.api.controlplane.v1.instances.InstanceInfo instances = 1;
+   * @generated from protobuf field: repeated francenuage.fr.api.controlplane.v1.instances.Instance instances = 1;
    */
-  instances: InstanceInfo[];
+  instances: Instance[];
 }
 /**
  * CreateInstanceRequest defines the parameters needed to provision a new instance.
@@ -134,11 +134,11 @@ export interface CreateInstanceRequest {
  */
 export interface CreateInstanceResponse {
   /**
-   * Unique identifier of the created instance.
+   * The created instance.
    *
-   * @generated from protobuf field: string id = 1;
+   * @generated from protobuf field: francenuage.fr.api.controlplane.v1.instances.Instance instance = 1;
    */
-  id: string;
+  instance?: Instance;
 }
 /**
  * StartInstanceRequest identifies which instance to start.
@@ -289,9 +289,9 @@ class InstanceConfig$Type extends MessageType<InstanceConfig> {
  */
 export const InstanceConfig = new InstanceConfig$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class InstanceInfo$Type extends MessageType<InstanceInfo> {
+class Instance$Type extends MessageType<Instance> {
   constructor() {
-    super("francenuage.fr.api.controlplane.v1.instances.InstanceInfo", [
+    super("francenuage.fr.api.controlplane.v1.instances.Instance", [
       {
         no: 1,
         name: "id",
@@ -352,9 +352,9 @@ class InstanceInfo$Type extends MessageType<InstanceInfo> {
   }
 }
 /**
- * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.instances.InstanceInfo
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.instances.Instance
  */
-export const InstanceInfo = new InstanceInfo$Type();
+export const Instance = new Instance$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ListInstancesRequest$Type extends MessageType<ListInstancesRequest> {
   constructor() {
@@ -379,7 +379,7 @@ class ListInstancesResponse$Type extends MessageType<ListInstancesResponse> {
           name: "instances",
           kind: "message",
           repeat: 1 /*RepeatType.PACKED*/,
-          T: () => InstanceInfo,
+          T: () => Instance,
         },
       ],
     );
@@ -444,7 +444,7 @@ class CreateInstanceResponse$Type extends MessageType<CreateInstanceResponse> {
   constructor() {
     super(
       "francenuage.fr.api.controlplane.v1.instances.CreateInstanceResponse",
-      [{ no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }],
+      [{ no: 1, name: "instance", kind: "message", T: () => Instance }],
     );
   }
 }

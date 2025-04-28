@@ -52,7 +52,14 @@ export interface RegisterHypervisorRequest {
  *
  * @generated from protobuf message francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorResponse
  */
-export interface RegisterHypervisorResponse {}
+export interface RegisterHypervisorResponse {
+  /**
+   * The registered hypervisor.
+   *
+   * @generated from protobuf field: francenuage.fr.api.controlplane.v1.hypervisors.Hypervisor hypervisor = 1;
+   */
+  hypervisor?: Hypervisor;
+}
 /**
  * Hypervisor represents a virtualization platform that can host instances.
  *
@@ -144,7 +151,7 @@ class RegisterHypervisorResponse$Type extends MessageType<RegisterHypervisorResp
   constructor() {
     super(
       "francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorResponse",
-      [],
+      [{ no: 1, name: "hypervisor", kind: "message", T: () => Hypervisor }],
     );
   }
 }

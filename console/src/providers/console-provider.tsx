@@ -1,31 +1,51 @@
-import { forwardRef, ReactNode, useEffect, useImperativeHandle, useState } from "react"
+import { forwardRef, ReactNode, useEffect, useImperativeHandle } from "react";
 import { DataProvider } from "@plasmicapp/loader-react";
-import { hypervisors as seed } from "@/fixtures"
-import { Hypervisor, Instance } from "@/types";
-import { useServices } from "@/hooks/use-services";
+import { useAppDispatch, useAppSelector } from "@/hooks";
+import {
+  addHypervisor,
+  fetchAllHypervisors,
+} from "@/features/hypervisors.slice";
+import { hypervisor } from "@/fixtures";
+import { createInstance, fetchAllInstances } from "@/features/instances.slice";
 
 export type Props = {
-  children: ReactNode,
-}
+  children: ReactNode;
+};
 
-export type Actions = {}
+export type Actions = {
+  registerHypervisor: () => void;
+  createInstance: (
+    maxCpuCores: number,
+    maxMemoryBytes: number,
+    name: string,
+  ) => void;
+};
 
-export const ConsoleProvider = forwardRef<Actions, Props>(({ children }, ref) => {
-  const { hypervisor, instance } = useServices();
-  const [hypervisors, setHypervisors] = useState<Hypervisor[]>([]);
-  const [instances, setInstances] = useState<Instance[]>([]);
+export const ConsoleProvider = forwardRef<Actions, Props>(
+  ({ children }, ref) => {
+    const hypervisors = useAppSelector(
+      (state) => state.hypervisors.hypervisors,
+    );
+    const instances = useAppSelector((state) => state.instances.instances);
+    const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    hypervisor.list().then(setHypervisors);
-  }, [hypervisor]);
+    useEffect(() => {
+      dispatch(fetchAllHypervisors());
+      dispatch(fetchAllInstances());
+    }, []);
 
-  useEffect(() => {
-    instance.list().then(setInstances);
-  }, [instance]);
+    useImperativeHandle(ref, () => ({
+      registerHypervisor: () => dispatch(addHypervisor(hypervisor())),
+      createInstance: (maxCpuCores, maxMemoryBytes, name) =>
+        dispatch(createInstance({ maxCpuCores, maxMemoryBytes, name })),
+    }));
 
-  useImperativeHandle(ref, () => ({
-    add: () => setHypervisors([...hypervisors, ...seed(1)])
-  }));
+    return (
+      <DataProvider name="France Nuage" data={{ hypervisors, instances }}>
+        {children}
+      </DataProvider>
+    );
+  },
+);
 
-  return <DataProvider name="hypervisors" data={hypervisors}>{children}</DataProvider>
-});
+ConsoleProvider.displayName = "Console Provider";

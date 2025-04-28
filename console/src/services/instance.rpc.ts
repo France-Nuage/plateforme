@@ -1,9 +1,9 @@
 import { InstancesClient } from "@/protocol/instances.client";
 import {
-  InstanceInfo as RpcInstance,
+  Instance as RpcInstance,
   InstanceStatus as RpcInstanceStatus,
 } from "@/protocol/instances";
-import { Instance, InstanceStatus } from "@/types";
+import { Instance, InstanceFormValue, InstanceStatus } from "@/types";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { InstanceService } from "./instance.interface";
 import { transport } from "./transport.rpc";
@@ -21,10 +21,24 @@ export class InstanceRpcService implements InstanceService {
     this.client = new InstancesClient(transport);
   }
 
+  /** @inheritdoc */
   public list(): Promise<Instance[]> {
     return this.client
       .listInstances({})
       .response.then(({ instances }) => instances.map(fromRpcInstance));
+  }
+
+  /** @inheritdoc */
+  public create(data: InstanceFormValue): Promise<Instance> {
+    return this.client
+      .createInstance({
+        cpuCores: data.maxCpuCores,
+        image: "",
+        memoryBytes: BigInt(data.maxMemoryBytes),
+        name: data.name,
+        snippet: "",
+      })
+      .response.then(({ instance }) => fromRpcInstance(instance!));
   }
 }
 
