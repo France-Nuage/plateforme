@@ -8,7 +8,7 @@ export const PLASMIC = initPlasmicLoader({
       token: import.meta.env.VITE_PLASMIC_TOKEN,
     },
   ],
-  preview: !!import.meta.env.VITE_PLASMIC_PREVIEW,
+  preview: true,
 });
 
 PLASMIC.registerComponent(ConsoleProvider, {
