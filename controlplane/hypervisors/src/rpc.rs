@@ -43,11 +43,13 @@ impl Hypervisors for HypervisorsRpcService {
         &self,
         request: Request<RegisterHypervisorRequest>,
     ) -> Result<Response<RegisterHypervisorResponse>, Status> {
-        let model: Hypervisor = request.into_inner().into();
+        let hypervisor: Hypervisor = request.into_inner().into();
 
-        repository::create(&self.pool, &model).await?;
+        repository::create(&self.pool, &hypervisor).await?;
 
-        Ok(Response::new(RegisterHypervisorResponse {}))
+        Ok(Response::new(RegisterHypervisorResponse {
+            hypervisor: Some(hypervisor.into()),
+        }))
     }
 
     /// Lists all registered hypervisors.

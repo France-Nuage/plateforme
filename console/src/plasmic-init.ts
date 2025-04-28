@@ -1,6 +1,5 @@
 import { initPlasmicLoader } from "@plasmicapp/loader-react";
 import { ConsoleProvider } from "./providers";
-import { AppButton } from "./components";
 
 export const PLASMIC = initPlasmicLoader({
   projects: [
@@ -10,11 +9,6 @@ export const PLASMIC = initPlasmicLoader({
     },
   ],
   preview: true,
-});
-
-PLASMIC.registerComponent(AppButton, {
-  name: "App Button",
-  props: {},
 });
 
 PLASMIC.registerComponent(ConsoleProvider, {

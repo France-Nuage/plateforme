@@ -69,7 +69,10 @@ async fn test_the_create_instance_procedure_works(
     assert_eq!(
         response.unwrap().into_inner(),
         CreateInstanceResponse {
-            id: instance.id.to_string()
+            instance: Some(instances::v1::Instance {
+                id: instance.id.to_string(),
+                ..Default::default()
+            })
         }
     );
 
