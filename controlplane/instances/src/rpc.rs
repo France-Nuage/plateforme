@@ -26,7 +26,7 @@ impl Instances for InstancesRpcService {
         let instance = self.service.create(request.into_inner().into()).await?;
 
         Ok(Response::new(CreateInstanceResponse {
-            id: instance.id.to_string(),
+            instance: Some(instance.into()),
         }))
     }
 

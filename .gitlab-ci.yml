@@ -46,7 +46,7 @@ build:
 "code style / console":
   stage: code-style
   script:
-    - docker compose run --no-deps console npx eslint
+    - docker compose run --no-deps console npm run lint
     - docker compose run --no-deps console npx prettier --check .
 
 "unit tests / controlplane":
@@ -93,6 +93,7 @@ build:
     - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/console:release --push console
   only:
     - master
+    - plasmic-console
 
 "release":
   image: node:22-alpine

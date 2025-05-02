@@ -35,7 +35,10 @@ message RegisterHypervisorRequest {
 }
 
 // RegisterHypervisorResponse contains the result of a register hypervisor operation.
-message RegisterHypervisorResponse {}
+message RegisterHypervisorResponse {
+    // The registered hypervisor.
+    Hypervisor hypervisor = 1;
+  }
 
 // Hypervisor represents a virtualization platform that can host instances.
 message Hypervisor {

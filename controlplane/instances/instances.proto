@@ -40,8 +40,8 @@ message InstanceConfig {
     }];
 }
 
-// InstanceInfo contains detailed information about a virtual machine instance.
-message InstanceInfo {
+// Instance contains detailed information about a virtual machine instance.
+message Instance {
     // Unique identifier for the instance
     string id = 1 [(validate.rules).string = {
         min_len: 1, 
@@ -124,7 +124,7 @@ message ListInstancesRequest {}
 // ListInstancesResponse contains a collection of instance information.
 message ListInstancesResponse {
     // List of instance details
-    repeated InstanceInfo instances = 1;
+    repeated Instance instances = 1;
 }
 
 // CreateInstanceRequest defines the parameters needed to provision a new instance.
@@ -157,8 +157,8 @@ message CreateInstanceRequest {
 
 // CreateInstanceResponse contains the result of a create instance operation.
 message CreateInstanceResponse {
-    // Unique identifier of the created instance.
-    string id = 1;
+    // The created instance.
+    Instance instance = 1;
 }
 
 // StartInstanceRequest identifies which instance to start.
