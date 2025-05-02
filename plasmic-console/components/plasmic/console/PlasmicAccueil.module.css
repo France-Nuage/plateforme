@@ -43,10 +43,24 @@
   min-width: 0;
   padding: 8px;
 }
-.text__bSKnq {
+.text__bjM18 {
   position: relative;
   width: 100%;
   height: auto;
   max-width: 100%;
   min-width: 0;
+}
+.button:global(.__wab_instance):global(.__wab_instance) {
+  max-width: 100%;
+}
+.svg__hbzQu {
+  position: relative;
+  height: 1em;
+}
+.text__ytmnk {
+  white-space: pre;
+}
+.svg__zyrWm {
+  position: relative;
+  height: 1em;
 }

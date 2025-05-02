@@ -264,6 +264,19 @@
           "scheme": "blackbox",
           "componentType": "page",
           "path": "/contact"
+        },
+        {
+          "id": "BPkDJbnqSOZ0",
+          "name": "Button",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console/PlasmicButton.tsx",
+          "importSpec": {
+            "modulePath": "Button.tsx"
+          },
+          "cssFilePath": "plasmic/console/PlasmicButton.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
         }
       ],
       "icons": [

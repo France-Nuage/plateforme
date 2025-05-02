@@ -60,11 +60,15 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import { ConsoleProvider } from "../../../providers/ConsoleProvider"; // plasmic-import: rxqBhBPu0cU_/codeComponent
+import Button from "../../Button"; // plasmic-import: BPkDJbnqSOZ0/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
 import projectcss from "../react_aria/plasmic.module.css"; // plasmic-import: aqt4bw2qhfo7d76ADZhQFo/projectcss
 import sty from "./PlasmicAccueil.module.css"; // plasmic-import: d1MlGr7C5K9L/css
+
+import CircleIcon from "./icons/PlasmicIcon__Circle"; // plasmic-import: INMXktOfIWiD/icon
+import ChevronDownIcon from "./icons/PlasmicIcon__ChevronDown"; // plasmic-import: BMAZvJUkowiF/icon
 
 createPlasmicElementProxy;
 
@@ -81,6 +85,7 @@ export type PlasmicAccueil__OverridesType = {
   root?: Flex__<"div">;
   consoleProvider?: Flex__<typeof ConsoleProvider>;
   freeBox?: Flex__<"div">;
+  button?: Flex__<typeof Button>;
 };
 
 export interface DefaultAccueilProps {}
@@ -155,7 +160,7 @@ function PlasmicAccueil__RenderFunc(props: {
               sty.text__ifKc4
             )}
           >
-            {"Accueil"}
+            {"Les super instances de la prod vroom vroom"}
           </div>
           <ConsoleProvider
             data-plasmic-name={"consoleProvider"}
@@ -166,39 +171,117 @@ function PlasmicAccueil__RenderFunc(props: {
             }}
           >
             <DataCtxReader__>
-              {$ctx => (
-                <div
-                  data-plasmic-name={"freeBox"}
-                  data-plasmic-override={overrides.freeBox}
-                  className={classNames(projectcss.all, sty.freeBox)}
-                >
-                  <div
-                    className={classNames(
-                      projectcss.all,
-                      projectcss.__wab_text,
-                      sty.text__bSKnq
-                    )}
-                  >
-                    <React.Fragment>
-                      {(() => {
-                        try {
-                          return $ctx["France Nuage"].hypervisors[0];
-                        } catch (e) {
-                          if (
-                            e instanceof TypeError ||
-                            e?.plasmicType === "PlasmicUndefinedDataError"
-                          ) {
-                            return "";
-                          }
-                          throw e;
-                        }
-                      })()}
-                    </React.Fragment>
-                  </div>
-                </div>
-              )}
+              {$ctx =>
+                (_par => (!_par ? [] : Array.isArray(_par) ? _par : [_par]))(
+                  (() => {
+                    try {
+                      return $ctx["France Nuage"].instances;
+                    } catch (e) {
+                      if (
+                        e instanceof TypeError ||
+                        e?.plasmicType === "PlasmicUndefinedDataError"
+                      ) {
+                        return [];
+                      }
+                      throw e;
+                    }
+                  })()
+                ).map((__plasmic_item_0, __plasmic_idx_0) => {
+                  const currentItem = __plasmic_item_0;
+                  const currentIndex = __plasmic_idx_0;
+                  return (
+                    <div
+                      data-plasmic-name={"freeBox"}
+                      data-plasmic-override={overrides.freeBox}
+                      className={classNames(projectcss.all, sty.freeBox)}
+                      key={currentIndex}
+                    >
+                      <div
+                        className={classNames(
+                          projectcss.all,
+                          projectcss.__wab_text,
+                          sty.text__bjM18
+                        )}
+                      >
+                        <React.Fragment>
+                          {(() => {
+                            try {
+                              return currentItem.name;
+                            } catch (e) {
+                              if (
+                                e instanceof TypeError ||
+                                e?.plasmicType === "PlasmicUndefinedDataError"
+                              ) {
+                                return "";
+                              }
+                              throw e;
+                            }
+                          })()}
+                        </React.Fragment>
+                      </div>
+                    </div>
+                  );
+                })
+              }
             </DataCtxReader__>
           </ConsoleProvider>
+          <Button
+            data-plasmic-name={"button"}
+            data-plasmic-override={overrides.button}
+            className={classNames("__wab_instance", sty.button)}
+            label={
+              <div
+                className={classNames(
+                  projectcss.all,
+                  projectcss.__wab_text,
+                  sty.text__ytmnk
+                )}
+              >
+                {"Ajouter une instance hard-cod\u00e9e \u00e0 la prod"}
+              </div>
+            }
+            onClick={async event => {
+              const $steps = {};
+
+              $steps["runActionOnConsoleProvider"] = true
+                ? (() => {
+                    const actionArgs = {
+                      tplRef: "consoleProvider",
+                      action: "createInstance",
+                      args: [
+                        4,
+                        (() => {
+                          try {
+                            return 4 * 2 ** 30;
+                          } catch (e) {
+                            if (
+                              e instanceof TypeError ||
+                              e?.plasmicType === "PlasmicUndefinedDataError"
+                            ) {
+                              return undefined;
+                            }
+                            throw e;
+                          }
+                        })(),
+                        "Mon instance hard-cod\u00e9e"
+                      ]
+                    };
+                    return (({ tplRef, action, args }) => {
+                      return $refs?.[tplRef]?.[action]?.(...(args ?? []));
+                    })?.apply(null, [actionArgs]);
+                  })()
+                : undefined;
+              if (
+                $steps["runActionOnConsoleProvider"] != null &&
+                typeof $steps["runActionOnConsoleProvider"] === "object" &&
+                typeof $steps["runActionOnConsoleProvider"].then === "function"
+              ) {
+                $steps["runActionOnConsoleProvider"] = await $steps[
+                  "runActionOnConsoleProvider"
+                ];
+              }
+            }}
+          />
         </div>
       </div>
     </React.Fragment>
@@ -206,9 +289,10 @@ function PlasmicAccueil__RenderFunc(props: {
 }
 
 const PlasmicDescendants = {
-  root: ["root", "consoleProvider", "freeBox"],
+  root: ["root", "consoleProvider", "freeBox", "button"],
   consoleProvider: ["consoleProvider", "freeBox"],
-  freeBox: ["freeBox"]
+  freeBox: ["freeBox"],
+  button: ["button"]
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -217,6 +301,7 @@ type NodeDefaultElementType = {
   root: "div";
   consoleProvider: typeof ConsoleProvider;
   freeBox: "div";
+  button: typeof Button;
 };
 
 type ReservedPropsType = "variants" | "args" | "overrides";
@@ -281,6 +366,7 @@ export const PlasmicAccueil = Object.assign(
     // Helper components rendering sub-elements
     consoleProvider: makeNodeComponent("consoleProvider"),
     freeBox: makeNodeComponent("freeBox"),
+    button: makeNodeComponent("button"),
 
     // Metadata about props expected for PlasmicAccueil
     internalVariantProps: PlasmicAccueil__VariantProps,
