@@ -4,7 +4,7 @@ module.exports = {
     () => "cargo clippy --fix --allow-dirty --manifest-path=controlplane/Cargo.toml"
   ],
   "console/**/*.(ts|js|vue|json|css|scss|html)": [
-    "npx eslint --fix -c console/eslint.config.js",
-    "npx prettier --write"
+    "cd console && npm run lint",
+    "cd console && npx prettier --write"
   ]
 };
