@@ -7,8 +7,7 @@
     "build": "next build",
     "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ --ts_out protocol --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto",
     "start": "next start",
-    "lint": "next lint",
-    "prepare": "husky"
+    "lint": "next lint"
   },
   "dependencies": {
     "@faker-js/faker": "^9.7.0",
