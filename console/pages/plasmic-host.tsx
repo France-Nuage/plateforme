@@ -19,7 +19,7 @@ export default function PlasmicHost() {
 }
 
 registerComponent(ConsoleProvider, {
-  name: "Console Provider",
+  name: "ConsoleProvider",
   props: {
     children: "slot",
   },
