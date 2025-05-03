@@ -1,3 +1,11 @@
+## [1.0.8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.7...v1.0.8) (2025-05-03)
+
+
+### Bug Fixes
+
+* remove release test branch trigger ([c0809d4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/c0809d401d7aceab6e47001cbba1ac36d03f1e75))
+* remove release test branch trigger ([27814bb](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/27814bb87b375e0ac60a617227f3d15d7b8cdc7b))
+
 ## [1.0.7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.6...v1.0.7) (2025-05-03)
 
 
