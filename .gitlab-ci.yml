@@ -1,12 +1,12 @@
 # Define the pipeline stages
 stages:
+  - release
   - security
   - build
   - code-style
   - unit-tests
   - system-tests
   - deploy
-  - release
 
 # Define the default image
 image: docker:27-cli
