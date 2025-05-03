@@ -93,7 +93,6 @@ build:
     - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/console:release --push console
   only:
     - master
-    - plasmic-console
 
 "release":
   image: node:22-alpine
@@ -109,4 +108,3 @@ build:
     - npx semantic-release
   only:
     - master
-    - fix-release
