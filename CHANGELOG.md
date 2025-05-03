@@ -1,3 +1,10 @@
+## [1.0.7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.6...v1.0.7) (2025-05-03)
+
+
+### Bug Fixes
+
+* remove outdated pnpm-lock.yaml file ([a805682](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a805682f4b0d71859a6c9c08fb03a780eb769fc3))
+
 # 1.0.0 (2025-05-03)
 
 
