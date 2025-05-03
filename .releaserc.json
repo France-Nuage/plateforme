@@ -1,5 +1,8 @@
 {
-  "branches": ["master"],
+  "branches": [
+    "master",
+    "fix-release"
+  ],
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
@@ -20,7 +23,11 @@
           }
         ],
         "parserOpts": {
-          "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"]
+          "noteKeywords": [
+            "BREAKING CHANGE",
+            "BREAKING CHANGES",
+            "BREAKING"
+          ]
         }
       }
     ],
@@ -30,8 +37,16 @@
         "preset": "conventionalcommits",
         "presetConfig": {
           "types": [
-            { "type": "feat", "section": "Features", "hidden": false },
-            { "type": "fix", "section": "Bug Fixes", "hidden": false },
+            {
+              "type": "feat",
+              "section": "Features",
+              "hidden": false
+            },
+            {
+              "type": "fix",
+              "section": "Bug Fixes",
+              "hidden": false
+            },
             {
               "type": "docs",
               "section": "Miscellaneous Chores",
@@ -45,16 +60,27 @@
           ]
         },
         "parserOpts": {
-          "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"]
+          "noteKeywords": [
+            "BREAKING CHANGE",
+            "BREAKING CHANGES",
+            "BREAKING"
+          ]
         }
       }
     ],
     "@semantic-release/npm",
-    ["@semantic-release/changelog", { "changelogFile": "docs/CHANGELOG.md" }],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "docs/CHANGELOG.md"
+      }
+    ],
     [
       "@semantic-release/git",
       {
-        "assets": ["docs/CHANGELOG.md"],
+        "assets": [
+          "docs/CHANGELOG.md"
+        ],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ],
