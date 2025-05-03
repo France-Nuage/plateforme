@@ -1,11 +1,11 @@
 # Define the pipeline stages
 stages:
-  - release
   - security
   - build
   - code-style
   - unit-tests
   - system-tests
+  - release
   - deploy
 
 # Define the default image
