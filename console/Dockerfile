@@ -10,8 +10,8 @@ CMD ["npm", "run", "dev"]
 
 FROM base AS build
 WORKDIR /app
-ARG VITE_CONTROLPLANE_URL=https://controlplane.france-nuage.fr
-ENV VITE_CONTROLPLANE_URL=${VITE_CONTROLPLANE_URL}
+ARG NEXT_PUBLIC_CONTROLPLANE_URL=https://controlplane.france-nuage.fr
+ENV NEXT_PUBLIC_CONTROLPLANE_URL=${NEXT_PUBLIC_CONTROLPLANE_URL}
 RUN npm run build
 
 FROM nginx:1.27-alpine AS release
