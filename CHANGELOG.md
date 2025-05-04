@@ -1,3 +1,17 @@
+# [1.1.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.8...v1.1.0) (2025-05-04)
+
+
+### Bug Fixes
+
+* codestyle ([3537f49](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3537f49febbee0d278649131e3abb8b154df0e33))
+* codestyle ([5240aab](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/5240aab5cf14a07700c4cdc67ab2119deecf59ba))
+* remove extra useEffect ([79e6d02](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/79e6d029522307caf225778d252e7eedc6fac38f))
+
+
+### Features
+
+* display rpc errors with react-toastify ([bd82dad](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/bd82dad3b7b01fabc702d3f5990661d172f2964d))
+
 ## [1.0.8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.7...v1.0.8) (2025-05-03)
 
 
