@@ -21,7 +21,6 @@ export class InstanceRpcService implements InstanceService {
    */
   constructor(transport: GrpcWebFetchTransport) {
     this.client = new InstancesClient(transport);
-    this.client.options;
   }
 
   /** @inheritdoc */
