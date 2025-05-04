@@ -134,7 +134,11 @@ message ListInstancesResponse {
 // CloneInstanceRequest defines the parameters needed to clone an existing instance.
 message CloneInstanceRequest {
     // The id of the instance to clone.
-    string id = 1;
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
 }
 
 // CreateInstanceRequest defines the parameters needed to provision a new instance.

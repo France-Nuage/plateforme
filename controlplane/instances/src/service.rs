@@ -72,7 +72,10 @@ impl InstancesService {
 
     pub async fn start(&self, id: Uuid) -> Result<(), Problem> {
         let instance = repository::read(&self.pool, id).await?;
-        let hypervisor = self.hypervisors_service.read(id).await?;
+        let hypervisor = self
+            .hypervisors_service
+            .read(instance.hypervisor_id)
+            .await?;
         let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
         connector
             .start(&instance.distant_id)
@@ -82,7 +85,10 @@ impl InstancesService {
 
     pub async fn stop(&self, id: Uuid) -> Result<(), Problem> {
         let instance = repository::read(&self.pool, id).await?;
-        let hypervisor = self.hypervisors_service.read(id).await?;
+        let hypervisor = self
+            .hypervisors_service
+            .read(instance.hypervisor_id)
+            .await?;
         let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
         connector
             .stop(&instance.distant_id)
