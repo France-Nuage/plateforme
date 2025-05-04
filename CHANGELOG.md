@@ -1,3 +1,15 @@
+# [1.2.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.1.0...v1.2.0) (2025-05-04)
+
+
+### Bug Fixes
+
+* use the instance associated hypervisor id ([9398f79](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9398f796afc7e179ffb3e9cc6a669d58d1bae0e6))
+
+
+### Features
+
+* add clone instance rpc ([1f5ec1e](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1f5ec1e1d2eee0fee7900751dcd08917f976f9c0))
+
 # [1.1.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.8...v1.1.0) (2025-05-04)
 
 
