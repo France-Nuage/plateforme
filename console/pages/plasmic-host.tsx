@@ -38,7 +38,7 @@ registerComponent(ConsoleProvider, {
       description: "Change the application mode",
       argTypes: [],
     },
-    regiterHypervisor: {
+    registerHypervisor: {
       description: "Register a new hypervisor",
       argTypes: [
         { name: "authorizationToken", type: "string" },
