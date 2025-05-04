@@ -31,6 +31,25 @@ impl InstancesService {
         Ok(instances)
     }
 
+    pub async fn clone(&self, id: Uuid) -> Result<Instance, Problem> {
+        let existing = repository::read(&self.pool, id).await?;
+        let hypervisor = self
+            .hypervisors_service
+            .read(existing.hypervisor_id)
+            .await?;
+        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
+        let new_id = connector.clone(&existing.distant_id).await?;
+
+        let instance = Instance {
+            id: Uuid::new_v4(),
+            hypervisor_id: hypervisor.id,
+            distant_id: new_id,
+        };
+        repository::create(&self.pool, &instance).await?;
+
+        Ok(instance)
+    }
+
     pub async fn create(&self, options: InstanceConfig) -> Result<Instance, Problem> {
         let hypervisors = self.hypervisors_service.list().await?;
         let hypervisor = &hypervisors

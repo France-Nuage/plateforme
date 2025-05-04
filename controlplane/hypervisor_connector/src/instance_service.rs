@@ -7,6 +7,9 @@ pub trait InstanceService {
     /// Lists all instances.
     fn list(&self) -> impl Future<Output = Result<Vec<InstanceInfo>, Problem>> + Send;
 
+    /// Clone the instance.
+    fn clone(&self, source_id: &str) -> impl Future<Output = Result<String, Problem>> + Send;
+
     /// Creates the instance.
     fn create(
         &self,
