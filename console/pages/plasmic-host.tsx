@@ -4,6 +4,7 @@ import {
   registerComponent,
 } from "@plasmicapp/react-web/lib/host";
 import { ConsoleProvider } from "@/providers/ConsoleProvider";
+import { ServiceMode } from "@/types";
 
 // You can register any code components that you want to use here; see
 // https://docs.plasmic.app/learn/code-components-ref/
@@ -25,20 +26,24 @@ registerComponent(ConsoleProvider, {
   },
   providesData: true,
   refActions: {
-    regiterHypervisor: {
-      description: "Register a new hypervisor",
-      argTypes: [
-        { name: "authorizationToken", type: "string" },
-        { name: "storageName", type: "string" },
-        { name: "url", type: "string" },
-      ],
-    },
     createInstance: {
       description: "Create a new instance",
       argTypes: [
         { name: "maxCpuCores", type: "number" },
         { name: "maxMemory", type: "number" },
         { name: "name", type: "string" },
+      ],
+    },
+    changeMode: {
+      description: "Change the application mode",
+      argTypes: [],
+    },
+    regiterHypervisor: {
+      description: "Register a new hypervisor",
+      argTypes: [
+        { name: "authorizationToken", type: "string" },
+        { name: "storageName", type: "string" },
+        { name: "url", type: "string" },
       ],
     },
   },

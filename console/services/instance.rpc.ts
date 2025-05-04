@@ -7,6 +7,8 @@ import { Instance, InstanceFormValue, InstanceStatus } from "@/types";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { InstanceService } from "./instance.interface";
 import { transport } from "./transport.rpc";
+import { toast } from "react-toastify";
+import { RpcError } from "@protobuf-ts/runtime-rpc";
 
 export class InstanceRpcService implements InstanceService {
   /**
@@ -19,13 +21,18 @@ export class InstanceRpcService implements InstanceService {
    */
   constructor(transport: GrpcWebFetchTransport) {
     this.client = new InstancesClient(transport);
+    this.client.options;
   }
 
   /** @inheritdoc */
   public list(): Promise<Instance[]> {
     return this.client
       .listInstances({})
-      .response.then(({ instances }) => instances.map(fromRpcInstance));
+      .response.then(({ instances }) => instances.map(fromRpcInstance))
+      .catch((error: RpcError) => {
+        toast.error(error.toString());
+        return [];
+      });
   }
 
   /** @inheritdoc */

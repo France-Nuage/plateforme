@@ -13,8 +13,9 @@ export const applicationSlice = createSlice({
   name: "application",
   initialState,
   reducers: {
-    setMode: (state, action: PayloadAction<ServiceMode>) => {
-      state.mode = action.payload;
+    setMode: (state, action: PayloadAction<void>) => {
+      state.mode =
+        state.mode === ServiceMode.Rpc ? ServiceMode.Mock : ServiceMode.Rpc;
     },
   },
 });

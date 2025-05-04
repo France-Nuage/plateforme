@@ -3,6 +3,7 @@ import {
   fetchAllHypervisors,
   fetchAllInstances,
   registerHypervisor,
+  setMode,
 } from "@/features";
 import { useAppDispatch, useAppSelector } from "@/hooks";
 import { DataProvider } from "@plasmicapp/react-web/lib/host";
@@ -13,6 +14,7 @@ export type Props = {
 };
 
 export type Actions = {
+  changeMode: () => void;
   createInstance: (
     maxCpuCores: number,
     maxMemoryBytes: number,
@@ -32,8 +34,10 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
       (state) => state.hypervisors.hypervisors,
     );
     const instances = useAppSelector((state) => state.instances.instances);
+    const application = useAppSelector((state) => state.application);
 
     useImperativeHandle(ref, () => ({
+      changeMode: () => dispatch(setMode()),
       createInstance: (maxCpuCores, maxMemoryBytes, name) =>
         dispatch(createInstance({ maxCpuCores, maxMemoryBytes, name })),
       registerHypervisor: (authorizationToken, storageName, url) =>
@@ -41,12 +45,16 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
     }));
 
     useEffect(() => {
+      console.log("in effect");
       dispatch(fetchAllHypervisors());
       dispatch(fetchAllInstances());
-    }, [dispatch]);
+    }, [application.mode, dispatch]);
 
     return (
-      <DataProvider name="France Nuage" data={{ hypervisors, instances }}>
+      <DataProvider
+        name="France Nuage"
+        data={{ application, hypervisors, instances }}
+      >
         {children}
       </DataProvider>
     );

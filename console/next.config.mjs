@@ -3,7 +3,6 @@ const nextConfig = {
   output: "export",
   eslint: {
     ignoreDuringBuilds: true,
-    extends: ["next", "prettier"],
     dirs: ["features", "fixtures", "hooks", "providers", "services", "types"],
   },
   trailingSlash: true,

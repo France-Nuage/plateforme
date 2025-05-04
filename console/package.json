@@ -22,7 +22,8 @@
     "next-redux-wrapper": "^8.1.0",
     "react": "^18",
     "react-dom": "^18",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

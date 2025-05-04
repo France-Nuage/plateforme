@@ -735,7 +735,7 @@
           "componentImportPath": "@plasmicapp/react-web/lib/data-sources"
         },
         {
-          "id": "rxqBhBPu0cU_",
+          "id": "vWN9dmdYefpY",
           "name": "ConsoleProvider",
           "displayName": "ConsoleProvider",
           "componentImportPath": "./providers/ConsoleProvider"

@@ -8,6 +8,7 @@
   justify-items: center;
   justify-content: flex-start;
   align-items: center;
+  background: #ffffff;
   min-width: 0;
   min-height: 0;
   grid-template-columns:
@@ -21,16 +22,16 @@
 .root > * {
   grid-column: 4;
 }
+.consoleProvider:global(.__wab_instance) {
+  max-width: 100%;
+  object-fit: cover;
+}
 .text__ifKc4 {
   position: relative;
   width: 100%;
   height: auto;
   max-width: 100%;
   min-width: 0;
-}
-.consoleProvider:global(.__wab_instance) {
-  max-width: 100%;
-  object-fit: cover;
 }
 .freeBox {
   display: flex;
@@ -50,7 +51,7 @@
   max-width: 100%;
   min-width: 0;
 }
-.button:global(.__wab_instance):global(.__wab_instance) {
+.button__aFuXe:global(.__wab_instance):global(.__wab_instance) {
   max-width: 100%;
 }
 .svg__hbzQu {
@@ -61,6 +62,27 @@
   white-space: pre;
 }
 .svg__zyrWm {
+  position: relative;
+  height: 1em;
+}
+.text__a5S3 {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+.button__qZXmK:global(.__wab_instance):global(.__wab_instance) {
+  max-width: 100%;
+}
+.svg__nTtdg {
+  position: relative;
+  height: 1em;
+}
+.text__jtoai {
+  white-space: pre;
+}
+.svg__z69H {
   position: relative;
   height: 1em;
 }

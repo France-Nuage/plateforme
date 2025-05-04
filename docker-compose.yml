@@ -10,7 +10,7 @@ services:
     depends_on:
       - controlplane
     environment:
-      VITE_CONTROLPLANE_URL: ${VITE_CONTROLPLANE_URL:-http://controlplane:8080}
+      NEXT_PUBLIC_CONTROLPLANE_URL: ${NEXT_PUBLIC_CONTROLPLANE_URL:-http://controlplane:8080}
     ports:
       - "5173:5173"
     volumes:
