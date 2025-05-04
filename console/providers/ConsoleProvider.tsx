@@ -45,10 +45,6 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
     }));
 
     useEffect(() => {
-useEffect(() => {
-  dispatch(fetchAllHypervisors());
-  dispatch(fetchAllInstances());
-}, [application.mode, dispatch]);
       dispatch(fetchAllHypervisors());
       dispatch(fetchAllInstances());
     }, [application.mode, dispatch]);
