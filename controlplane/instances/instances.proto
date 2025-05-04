@@ -10,6 +10,10 @@ service Instances {
     // Returns a collection of instance details including their current status and resource usage.
     rpc ListInstances (ListInstancesRequest) returns (ListInstancesResponse);
 
+    // CloneInstance provisions a new instance based on a given existing instance.
+    // Returns the cloned instance.
+    rpc CloneInstance (CloneInstanceRequest) returns (Instance);
+  
     // CreateInstance provisions a new instance based on the specified configuration.
     // Returns details of the newly created instance or a ProblemDetails on failure.
     rpc CreateInstance (CreateInstanceRequest) returns (CreateInstanceResponse);
@@ -125,6 +129,16 @@ message ListInstancesRequest {}
 message ListInstancesResponse {
     // List of instance details
     repeated Instance instances = 1;
+}
+
+// CloneInstanceRequest defines the parameters needed to clone an existing instance.
+message CloneInstanceRequest {
+    // The id of the instance to clone.
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
 }
 
 // CreateInstanceRequest defines the parameters needed to provision a new instance.

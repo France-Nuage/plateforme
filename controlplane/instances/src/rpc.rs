@@ -2,9 +2,9 @@ use crate::{
     problem::Problem,
     service::InstancesService,
     v1::{
-        CreateInstanceRequest, CreateInstanceResponse, ListInstancesRequest, ListInstancesResponse,
-        StartInstanceRequest, StartInstanceResponse, StopInstanceRequest, StopInstanceResponse,
-        instances_server::Instances,
+        CloneInstanceRequest, CreateInstanceRequest, CreateInstanceResponse, Instance,
+        ListInstancesRequest, ListInstancesResponse, StartInstanceRequest, StartInstanceResponse,
+        StopInstanceRequest, StopInstanceResponse, instances_server::Instances,
     },
 };
 use sqlx::PgPool;
@@ -28,6 +28,18 @@ impl Instances for InstancesRpcService {
         Ok(Response::new(CreateInstanceResponse {
             instance: Some(instance.into()),
         }))
+    }
+
+    #[doc = " CloneInstance provisions a new instance based on a given existing instance."]
+    #[doc = " Returns the cloned instance."]
+    async fn clone_instance(
+        &self,
+        request: tonic::Request<CloneInstanceRequest>,
+    ) -> std::result::Result<tonic::Response<Instance>, tonic::Status> {
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+        let instance = self.service.clone(id).await?;
+        Ok(Response::new(instance.into()))
     }
 
     #[doc = " ListInstances retrieves information about all available instances."]
@@ -84,7 +96,8 @@ mod tests {
         v1::{ListInstancesRequest, StartInstanceRequest},
     };
     use hypervisor_connector_proxmox::mock::{
-        MockServer, WithClusterResourceList, WithVMStatusStartMock, WithVMStatusStopMock,
+        MockServer, WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock,
+        WithVMCloneMock, WithVMStatusStartMock, WithVMStatusStopMock,
     };
     use hypervisors::Hypervisor;
 
@@ -111,6 +124,43 @@ mod tests {
         let response = result.unwrap().into_inner();
         // Check that we have a Success result
         assert_eq!(response.instances.len(), 1);
+    }
+
+    #[sqlx::test(migrations = "../migrations")]
+    async fn test_clone_instance_works(pool: sqlx::PgPool) {
+        // Arrange a service and a request for the start_instance procedure
+        let server = MockServer::new()
+            .await
+            .with_cluster_next_id()
+            .with_cluster_resource_list()
+            .with_vm_clone()
+            .with_task_status_read();
+        let hypervisor = Hypervisor {
+            url: server.url(),
+            ..Default::default()
+        };
+        hypervisors::repository::create(&pool, &hypervisor)
+            .await
+            .expect("could not create hypervisor");
+
+        let instance = Instance {
+            hypervisor_id: hypervisor.id,
+            distant_id: String::from("100"),
+            ..Default::default()
+        };
+        crate::repository::create(&pool, &instance)
+            .await
+            .expect("could not create instance");
+        let service = InstancesRpcService::new(pool);
+
+        // Act the call to the start_instance procedure
+        let request = Request::new(CloneInstanceRequest {
+            id: instance.id.to_string(),
+        });
+        let result = service.clone_instance(request).await;
+
+        // Assert the procedure result
+        assert!(result.is_ok());
     }
 
     #[sqlx::test(migrations = "../migrations")]

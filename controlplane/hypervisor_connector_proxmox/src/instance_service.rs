@@ -1,4 +1,4 @@
-use crate::proxmox_api::{helpers, vm_create::VMConfig};
+use crate::proxmox_api::{self, helpers, vm_clone::VMCloneOptions, vm_create::VMConfig};
 use hypervisor_connector::{
     InstanceConfig, InstanceInfo, InstanceService, InstanceStatus, Problem,
 };
@@ -19,6 +19,46 @@ impl InstanceService for ProxmoxInstanceService {
         .await?
         .data;
         Ok(response.into_iter().map(Into::into).collect())
+    }
+
+    /// Clones the instance.
+    async fn clone(&self, id: &str) -> Result<String, Problem> {
+        let id = id
+            .parse::<u32>()
+            .map_err(|_| Problem::MalformedVmId(id.to_owned()))?;
+
+        let next_id =
+            crate::proxmox_api::cluster_next_id(&self.api_url, &self.client, &self.authorization)
+                .await?
+                .data;
+
+        let node_id =
+            helpers::get_vm_execution_node(&self.api_url, &self.client, &self.authorization, id)
+                .await?;
+
+        let options = VMCloneOptions { newid: next_id };
+
+        let task = crate::proxmox_api::vm_clone(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            &node_id,
+            id,
+            &options,
+        )
+        .await?
+        .data;
+
+        proxmox_api::helpers::wait_for_task_completion(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            &node_id,
+            &task,
+        )
+        .await?;
+
+        Ok(next_id.to_string())
     }
 
     /// Creates the instance.
