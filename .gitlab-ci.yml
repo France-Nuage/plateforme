@@ -37,8 +37,9 @@ gitleaks:
   before_script:
     - cd console
     - npm install @plasmicapp/cli prettier
+    - export PROJECT_ID="${PLASMIC_CONSOLE_PROJECT_ID}"
   script:
-    - plasmic sync --projects "${PLASMIC_CONSOLE_PROJECT_ID}" --yes --force
+    - plasmic sync --projects "$PROJECT_ID" --yes --force
     - npx prettier --write .
   artifacts:
     paths:
