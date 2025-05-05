@@ -1,6 +1,7 @@
 # Define the pipeline stages
 stages:
   - security
+  - sync
   - build
   - code-style
   - unit-tests
@@ -28,6 +29,20 @@ gitleaks:
       - gitleaks-report.json
     when: always
     expire_in: 1 week
+
+sync-project-with-plasmic:
+  stage: sync
+  image: node:22-alpine
+  before_script:
+    - npm install -g @plasmicapp/cli
+  script:
+    - plasmic sync --projects aqt4bw2qhfo7d76ADZhQFo --yes --force
+  artifacts:
+    paths:
+      - ./components/
+      - ./pages/
+      - ./styles/
+    expire_in: 1 hour
 
 build:
   stage: build
