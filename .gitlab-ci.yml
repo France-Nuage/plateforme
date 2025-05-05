@@ -40,9 +40,9 @@ sync-project-with-plasmic:
     - plasmic sync --projects aqt4bw2qhfo7d76ADZhQFo --yes --force
   artifacts:
     paths:
-      - ./components/
-      - ./pages/
-      - ./styles/
+      - ./console/components/
+      - ./console/pages/
+      - ./console/styles/
     expire_in: 1 hour
 
 build:
