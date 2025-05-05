@@ -36,8 +36,7 @@ gitleaks:
   image: node:22-alpine
   before_script:
     - cd console
-    - npm install -g @plasmicapp/cli
-    - npm install --save-dev prettier
+    - npm install @plasmicapp/cli prettier
   script:
     - plasmic sync --projects aqt4bw2qhfo7d76ADZhQFo --yes --force
     - npx prettier --write .
