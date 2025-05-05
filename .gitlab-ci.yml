@@ -34,6 +34,7 @@ sync-project-with-plasmic:
   stage: sync
   image: node:22-alpine
   before_script:
+    - cd console
     - npm install -g @plasmicapp/cli
   script:
     - plasmic sync --projects aqt4bw2qhfo7d76ADZhQFo --yes --force
