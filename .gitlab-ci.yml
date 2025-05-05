@@ -34,13 +34,12 @@ gitleaks:
 "sync console with plasmic":
   stage: sync
   image: node:22-alpine
-  variables:
-    PROJECT_ID: "${PLASMIC_CONSOLE_PROJECT_ID}"
   before_script:
     - cd console
-    - npm install @plasmicapp/cli prettier
+    - npm install -g global @plasmicapp/cli
+    - npm install --save-dev prettier
   script:
-    - plasmic sync --projects $PROJECT_ID --yes --force
+    - plasmic sync --projects ${PLASMIC_CONSOLE_PROJECT_ID} --yes --force
     - npx prettier --write .
   artifacts:
     paths:
