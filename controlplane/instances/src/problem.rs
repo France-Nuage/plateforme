@@ -19,8 +19,11 @@ pub enum Problem {
     #[error("No hypervisors are available.")]
     NoHypervisorsAvaible,
 
-    #[error("other")]
+    #[error("Other")]
     Other(Box<dyn std::error::Error + Send + Sync>),
+
+    #[error("Unexpected instance status, got '{0}'")]
+    UnexpectedInstanceStatus(String),
 }
 
 /// Converts a `hypervisor_connector::Problem` into a `instance::Problem`.

@@ -12,7 +12,7 @@ services:
     environment:
       NEXT_PUBLIC_CONTROLPLANE_URL: ${NEXT_PUBLIC_CONTROLPLANE_URL:-http://controlplane:8080}
     ports:
-      - "5173:5173"
+      - "3000:3000"
     volumes:
       - ./console:/app
       - /app/node_modules
@@ -30,7 +30,7 @@ services:
         condition: service_healthy
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
-      CONSOLE_URL: ${CONSOLE_URL:-http://console:5173}
+      CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}

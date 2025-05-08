@@ -1,6 +1,6 @@
 use futures::{StreamExt, TryStreamExt, stream};
-use hypervisor_connector::{InstanceConfig, InstanceInfo, InstanceService};
-use hypervisors::HypervisorsService;
+use hypervisor_connector::{InstanceConfig, InstanceService};
+use hypervisors::{Hypervisor, HypervisorsService};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -12,21 +12,54 @@ pub struct InstancesService {
 }
 
 impl InstancesService {
-    pub async fn list(&self) -> Result<Vec<InstanceInfo>, Problem> {
-        let hypervisors = self.hypervisors_service.list().await?;
+    pub async fn list(&self) -> Result<Vec<Instance>, Problem> {
+        self.sync().await
+    }
 
-        let instances: Vec<InstanceInfo> = stream::iter(hypervisors)
-            .map(|hypervisor| async move {
-                hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor)
-                    .list()
-                    .await
-            })
+    pub async fn sync(&self) -> Result<Vec<Instance>, Problem> {
+        let hypervisors = self.hypervisors_service.list().await?;
+        let instances = stream::iter(hypervisors)
+            .map(|hypervisor| async move { self.sync_hypervisor_instances(&hypervisor).await })
             .buffer_unordered(4)
-            .try_collect::<Vec<Vec<InstanceInfo>>>()
+            .try_collect::<Vec<Vec<Instance>>>()
             .await?
             .into_iter()
             .flatten()
             .collect();
+
+        Ok(instances)
+    }
+
+    pub async fn sync_hypervisor_instances(
+        &self,
+        hypervisor: &Hypervisor,
+    ) -> Result<Vec<Instance>, Problem> {
+        let distant_instances = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
+            .list()
+            .await?;
+
+        let instances = stream::iter(distant_instances)
+            .map(|distant_instance| async move {
+                repository::find_one_by_distant_id(&self.pool, &distant_instance.id)
+                    .await
+                    .map(|result| {
+                        let existing = result.unwrap_or(Instance {
+                            id: Uuid::new_v4(),
+                            ..Default::default()
+                        });
+
+                        Instance {
+                            id: existing.id,
+                            hypervisor_id: hypervisor.id,
+                            ..distant_instance.into()
+                        }
+                    })
+            })
+            .buffer_unordered(4)
+            .try_collect::<Vec<Instance>>()
+            .await?;
+
+        repository::upsert(&self.pool, &instances).await?;
 
         Ok(instances)
     }
@@ -42,8 +75,8 @@ impl InstancesService {
 
         let instance = Instance {
             id: Uuid::new_v4(),
-            hypervisor_id: hypervisor.id,
             distant_id: new_id,
+            ..existing
         };
         repository::create(&self.pool, &instance).await?;
 
@@ -64,6 +97,7 @@ impl InstancesService {
             id: Uuid::new_v4(),
             hypervisor_id: hypervisor.id,
             distant_id: result,
+            ..Default::default()
         };
         repository::create(&self.pool, &instance).await?;
 
