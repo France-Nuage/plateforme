@@ -5,7 +5,7 @@ import { HypervisorsClient } from "../protocol/hypervisors.client";
 import { InstancesClient } from "../protocol/instances.client";
 import { Hypervisor } from "../protocol/hypervisors";
 
-const requiredEnvVars = ['CONTROLPLANE_URL', 'PROXMOX_TEST_AUTHORIZATION_TOKEN', 'PROXMOX_TEST_STORAGE_NAME', 'PROXMOX_TEST_URL'];
+const requiredEnvVars = ['CONTROLPLANE_URL', 'PROXMOX_DEV_AUTHORIZATION_TOKEN', 'PROXMOX_DEV_STORAGE_NAME', 'PROXMOX_DEV_URL', 'PROXMOX_TEST_AUTHORIZATION_TOKEN', 'PROXMOX_TEST_STORAGE_NAME', 'PROXMOX_TEST_URL'];
 
 for (const variable of requiredEnvVars) {
   if (!process.env[variable]) {
@@ -83,8 +83,15 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   hypervisor: [async ({ grpc, production }, use) => {
-    // clone the test hypervisor template
-    const clone = await production.instances.cloneInstance({ id: '6969' }).response;
+    // Register the dev hypervisor which holds the test hypervisor instance template
+    let devHypervisor = await grpc.hypervisors.registerHypervisor({
+      authorizationToken: process.env.PROXMOX_DEV_AUTHORIZATION_TOKEN!,
+      storageName: process.env.PROXMOX_DEV_STORAGE_NAME!,
+      url: process.env.PROXMOX_DEV_URL!,
+    }).response;
+
+    const list = await production.instances.listInstances({}).response;
+    const clone = await production.instances.cloneInstance({ id: '6969', hypervisorId: devHypervisor.id }).response;
     console.log(clone);
 
     const result = await grpc.hypervisors.registerHypervisor({
