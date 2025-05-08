@@ -1,3 +1,27 @@
+# [1.3.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.2.0...v1.3.0) (2025-05-05)
+
+
+### Bug Fixes
+
+* add commit step ([a58bc4f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a58bc4f28db5c0b0763ce0b06953552751ba2b74))
+* add prettier to synced plsmic files ([52794d3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/52794d3b3d3e41343ea0f5adb8c2dbd6979494b6))
+* bad var replacement ([31f04bc](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/31f04bc670b041504374de383431431945f7e858))
+* change way of referencing ([08dab2a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/08dab2a68d5d420c5810628ba4432d2e4c8dfb8e))
+* expand variable replacement ([f9a7292](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f9a72927cf9425cf9681717f7ec59b2423372799))
+* go to console directory ([a39f99a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a39f99a10f7a2d459b9636d9640264c805d57dcd))
+* nitty gritty ([7247ec4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7247ec40bd0d4011d7ec6f7bdc56b75a25b4d65b))
+* no dash in dependency ([30938ac](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/30938ac8de9204e20133a025d79a8b557a7144e5))
+* on variabilise l'id projet plasmic de la console ([32be595](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/32be595db2bf9550952b50b801a81383442b845a))
+* path of artifacts ([73eb568](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/73eb568112634847651b5872f1dfa160f4898ff1))
+* remove the deprecated "only: -master" condition to replace it with rules ([fa5b0e2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/fa5b0e2a24d2b13b1efa1e913078b9beabc0d7cb))
+* try another way of substitution ([f703fd4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f703fd4900a177e0b7ea566918ab14882f7a7a41))
+* wrong install type ([ced2a5b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ced2a5be306a0dd138c103abbe6c1ab6fe36824a))
+
+
+### Features
+
+* try the first step ([0d9b065](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/0d9b065dc7a2c4064d6d78db528033874963460d))
+
 # [1.2.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.1.0...v1.2.0) (2025-05-04)
 
 
