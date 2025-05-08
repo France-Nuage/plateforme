@@ -88,7 +88,7 @@ services:
       - controlplane
       - playwright
     environment:
-      CONSOLE_URL: http://console:5173
+      CONSOLE_URL: http://console:3000
       CONTROLPLANE_URL: http://controlplane:8080
       PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
       PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
