@@ -18,6 +18,10 @@ service Instances {
     // Returns details of the newly created instance or a ProblemDetails on failure.
     rpc CreateInstance (CreateInstanceRequest) returns (CreateInstanceResponse);
 
+    // DeleteInstance deletes a given instance.
+    // Returns an empty message or a ProblemDetails on failure.
+    rpc DeleteInstance (DeleteInstanceRequest) returns (DeleteInstanceResponse);
+
     // StartInstance initiates a specific instance identified by its unique ID.
     // Returns a response indicating success or a ProblemDetails on failure.
     rpc StartInstance (StartInstanceRequest) returns (StartInstanceResponse);
@@ -130,6 +134,19 @@ message ListInstancesResponse {
     // List of instance details
     repeated Instance instances = 1;
 }
+
+// DeleteInstanceRequest defines the parameters needed to delete an existing instance.
+message DeleteInstanceRequest {
+    // The id of the instance to clone.
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
+}
+
+// DeleteInstanceResponse contains the result of a DeleteInstance operation.
+message DeleteInstanceResponse {}
 
 // CloneInstanceRequest defines the parameters needed to clone an existing instance.
 message CloneInstanceRequest {

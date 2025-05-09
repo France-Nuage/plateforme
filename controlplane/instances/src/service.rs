@@ -104,6 +104,19 @@ impl InstancesService {
         Ok(instance)
     }
 
+    pub async fn delete(&self, id: Uuid) -> Result<(), Problem> {
+        let instance = repository::read(&self.pool, id).await?;
+        let hypervisor = self
+            .hypervisors_service
+            .read(instance.hypervisor_id)
+            .await?;
+        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
+        connector
+            .delete(&instance.distant_id)
+            .await
+            .map_err(Problem::from)
+    }
+
     pub async fn start(&self, id: Uuid) -> Result<(), Problem> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self
