@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, hypervisor_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes , memory_usage_bytes, name, status FROM instances",
+  "query": "SELECT id, hypervisor_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -47,12 +47,26 @@
         "ordinal": 8,
         "name": "status",
         "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid"
+      ]
     },
     "nullable": [
+      false,
+      false,
       false,
       false,
       false,
@@ -64,5 +78,5 @@
       false
     ]
   },
-  "hash": "3697763f9672df0b7b9daf1cd1f331af49f88bdfd0a478bd158f907e9df9a021"
+  "hash": "84652db1c0526cb8573c2255ca03fde99f4d30c00cc50b5544fc7b3bf28b725f"
 }

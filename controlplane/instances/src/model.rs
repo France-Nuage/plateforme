@@ -4,6 +4,7 @@ use std::fmt::Display;
 
 use hypervisor_connector::InstanceInfo;
 use serde::{Deserialize, Serialize};
+use sqlx::types::chrono;
 use uuid::Uuid;
 
 #[derive(Debug, Default, sqlx::FromRow)]
@@ -27,6 +28,10 @@ pub struct Instance {
     /// Current operational status of the instance
     #[sqlx(try_from = "String")]
     pub status: InstanceStatus,
+    // Creation time of the instance
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    // Time of the instance last update
+    pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
@@ -82,6 +87,8 @@ impl From<InstanceInfo> for Instance {
             memory_usage_bytes: value.memory_usage_bytes as i64,
             name: value.name,
             status: value.status.into(),
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
         }
     }
 }

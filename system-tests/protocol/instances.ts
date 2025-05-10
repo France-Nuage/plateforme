@@ -3,6 +3,7 @@
 // tslint:disable
 import { ServiceType } from "@protobuf-ts/runtime-rpc";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Timestamp } from "./google/protobuf/timestamp";
 /**
  * InstanceConfig contains basic configuration information for a virtual machine instance.
  *
@@ -70,6 +71,18 @@ export interface Instance {
      * @generated from protobuf field: string name = 7;
      */
     name: string;
+    /**
+     * Creation time of the instance
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp created_at = 10;
+     */
+    createdAt?: Timestamp;
+    /**
+     * Time of the instance last change
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp updated_at = 11;
+     */
+    updatedAt?: Timestamp;
 }
 /**
  * ListInstancesRequest is an empty message for listing instances.
@@ -90,6 +103,26 @@ export interface ListInstancesResponse {
      * @generated from protobuf field: repeated francenuage.fr.api.controlplane.v1.instances.Instance instances = 1;
      */
     instances: Instance[];
+}
+/**
+ * DeleteInstanceRequest defines the parameters needed to delete an existing instance.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.DeleteInstanceRequest
+ */
+export interface DeleteInstanceRequest {
+    /**
+     * The id of the instance to clone.
+     *
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * DeleteInstanceResponse contains the result of a DeleteInstance operation.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.instances.DeleteInstanceResponse
+ */
+export interface DeleteInstanceResponse {
 }
 /**
  * CloneInstanceRequest defines the parameters needed to clone an existing instance.
@@ -290,7 +323,9 @@ class Instance$Type extends MessageType<Instance> {
             { no: 4, name: "cpu_usage_percent", kind: "scalar", T: 2 /*ScalarType.FLOAT*/, options: { "validate.rules": { float: { lte: 100, gte: 0 } } } },
             { no: 5, name: "max_memory_bytes", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/, options: { "validate.rules": { uint64: { lte: "68719476736", gt: "0" } } } },
             { no: 6, name: "memory_usage_bytes", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/, options: { "validate.rules": { uint64: { lte: "68719476736", gte: "0" } } } },
-            { no: 7, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 7, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "created_at", kind: "message", T: () => Timestamp },
+            { no: 11, name: "updated_at", kind: "message", T: () => Timestamp }
         ]);
     }
 }
@@ -320,6 +355,28 @@ class ListInstancesResponse$Type extends MessageType<ListInstancesResponse> {
  * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.instances.ListInstancesResponse
  */
 export const ListInstancesResponse = new ListInstancesResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteInstanceRequest$Type extends MessageType<DeleteInstanceRequest> {
+    constructor() {
+        super("francenuage.fr.api.controlplane.v1.instances.DeleteInstanceRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1", maxLen: "36", pattern: "^[a-zA-Z0-9_-]+$" } } } }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.instances.DeleteInstanceRequest
+ */
+export const DeleteInstanceRequest = new DeleteInstanceRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteInstanceResponse$Type extends MessageType<DeleteInstanceResponse> {
+    constructor() {
+        super("francenuage.fr.api.controlplane.v1.instances.DeleteInstanceResponse", []);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.instances.DeleteInstanceResponse
+ */
+export const DeleteInstanceResponse = new DeleteInstanceResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CloneInstanceRequest$Type extends MessageType<CloneInstanceRequest> {
     constructor() {
@@ -411,6 +468,7 @@ export const Instances = new ServiceType("francenuage.fr.api.controlplane.v1.ins
     { name: "ListInstances", options: {}, I: ListInstancesRequest, O: ListInstancesResponse },
     { name: "CloneInstance", options: {}, I: CloneInstanceRequest, O: Instance },
     { name: "CreateInstance", options: {}, I: CreateInstanceRequest, O: CreateInstanceResponse },
+    { name: "DeleteInstance", options: {}, I: DeleteInstanceRequest, O: DeleteInstanceResponse },
     { name: "StartInstance", options: {}, I: StartInstanceRequest, O: StartInstanceResponse },
     { name: "StopInstance", options: {}, I: StopInstanceRequest, O: StopInstanceResponse }
 ]);

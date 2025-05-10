@@ -3,6 +3,7 @@ syntax = "proto3";
 package francenuage.fr.api.controlplane.v1.instances;
 
 import "validate.proto";
+import "google/protobuf/timestamp.proto";
 
 // Instances service provides operations to manage instances.
 service Instances {
@@ -88,6 +89,13 @@ message Instance {
 
     // Human-readable name, defined on the instance
     string name = 7;
+
+    // Creation time of the instance
+    google.protobuf.Timestamp created_at = 10;
+
+    // Time of the instance last change
+    google.protobuf.Timestamp updated_at = 11;
+
 }
 
 // InstanceStatus represents the possible states of a virtual machine instance.

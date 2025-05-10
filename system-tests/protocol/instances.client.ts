@@ -8,6 +8,8 @@ import type { StopInstanceResponse } from "./instances";
 import type { StopInstanceRequest } from "./instances";
 import type { StartInstanceResponse } from "./instances";
 import type { StartInstanceRequest } from "./instances";
+import type { DeleteInstanceResponse } from "./instances";
+import type { DeleteInstanceRequest } from "./instances";
 import type { CreateInstanceResponse } from "./instances";
 import type { CreateInstanceRequest } from "./instances";
 import type { Instance } from "./instances";
@@ -44,6 +46,13 @@ export interface IInstancesClient {
      * @generated from protobuf rpc: CreateInstance(francenuage.fr.api.controlplane.v1.instances.CreateInstanceRequest) returns (francenuage.fr.api.controlplane.v1.instances.CreateInstanceResponse);
      */
     createInstance(input: CreateInstanceRequest, options?: RpcOptions): UnaryCall<CreateInstanceRequest, CreateInstanceResponse>;
+    /**
+     * DeleteInstance deletes a given instance.
+     * Returns an empty message or a ProblemDetails on failure.
+     *
+     * @generated from protobuf rpc: DeleteInstance(francenuage.fr.api.controlplane.v1.instances.DeleteInstanceRequest) returns (francenuage.fr.api.controlplane.v1.instances.DeleteInstanceResponse);
+     */
+    deleteInstance(input: DeleteInstanceRequest, options?: RpcOptions): UnaryCall<DeleteInstanceRequest, DeleteInstanceResponse>;
     /**
      * StartInstance initiates a specific instance identified by its unique ID.
      * Returns a response indicating success or a ProblemDetails on failure.
@@ -101,13 +110,23 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
         return stackIntercept<CreateInstanceRequest, CreateInstanceResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * DeleteInstance deletes a given instance.
+     * Returns an empty message or a ProblemDetails on failure.
+     *
+     * @generated from protobuf rpc: DeleteInstance(francenuage.fr.api.controlplane.v1.instances.DeleteInstanceRequest) returns (francenuage.fr.api.controlplane.v1.instances.DeleteInstanceResponse);
+     */
+    deleteInstance(input: DeleteInstanceRequest, options?: RpcOptions): UnaryCall<DeleteInstanceRequest, DeleteInstanceResponse> {
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeleteInstanceRequest, DeleteInstanceResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * StartInstance initiates a specific instance identified by its unique ID.
      * Returns a response indicating success or a ProblemDetails on failure.
      *
      * @generated from protobuf rpc: StartInstance(francenuage.fr.api.controlplane.v1.instances.StartInstanceRequest) returns (francenuage.fr.api.controlplane.v1.instances.StartInstanceResponse);
      */
     startInstance(input: StartInstanceRequest, options?: RpcOptions): UnaryCall<StartInstanceRequest, StartInstanceResponse> {
-        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<StartInstanceRequest, StartInstanceResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -117,7 +136,7 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
      * @generated from protobuf rpc: StopInstance(francenuage.fr.api.controlplane.v1.instances.StopInstanceRequest) returns (francenuage.fr.api.controlplane.v1.instances.StopInstanceResponse);
      */
     stopInstance(input: StopInstanceRequest, options?: RpcOptions): UnaryCall<StopInstanceRequest, StopInstanceResponse> {
-        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
         return stackIntercept<StopInstanceRequest, StopInstanceResponse>("unary", this._transport, method, opt, input);
     }
 }

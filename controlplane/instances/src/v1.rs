@@ -25,6 +25,8 @@
 //! The conversions in this module simplify implementing gRPC service handlers by providing
 //! automatic conversion from internal result types to protocol message responses.
 
+use std::time::SystemTime;
+
 tonic::include_proto!("francenuage.fr.api.controlplane.v1.instances");
 
 /// Converts a `crate::model::Instance` into a protocol compatible `v1::InstanceInfo`.
@@ -38,6 +40,8 @@ impl From<crate::model::Instance> for Instance {
             memory_usage_bytes: value.memory_usage_bytes as u64,
             name: value.name,
             status: value.status as i32,
+            created_at: Some(SystemTime::from(value.created_at).into()),
+            updated_at: Some(SystemTime::from(value.updated_at).into()),
         }
     }
 }

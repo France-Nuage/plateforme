@@ -1,6 +1,7 @@
 # Base Stage
 FROM rust:1.86-alpine AS base
 RUN apk add --no-cache musl-dev openssl-dev openssl-libs-static protobuf-dev protoc zlib-dev zlib-static libxml2-utils
+RUN cargo install sqlx-cli
 RUN cargo install grcov
 RUN rustup default nightly
 RUN rustup component add clippy

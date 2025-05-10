@@ -4,6 +4,8 @@ import { ComputePage } from "./pages/compute.page";
 import { HypervisorsClient } from "../protocol/hypervisors.client";
 import { InstancesClient } from "../protocol/instances.client";
 import { Hypervisor } from "../protocol/hypervisors";
+import { Instance } from "../protocol/instances";
+import { minBy } from "lodash";
 
 const requiredEnvVars = ['CONTROLPLANE_URL', 'PROXMOX_DEV_AUTHORIZATION_TOKEN', 'PROXMOX_DEV_STORAGE_NAME', 'PROXMOX_DEV_URL', 'PROXMOX_TEST_AUTHORIZATION_TOKEN', 'PROXMOX_TEST_STORAGE_NAME', 'PROXMOX_TEST_URL'];
 
@@ -83,16 +85,30 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   hypervisor: [async ({ grpc, production }, use) => {
-    // Register the dev hypervisor which holds the test hypervisor instance template
-    let devHypervisor = await grpc.hypervisors.registerHypervisor({
-      authorizationToken: process.env.PROXMOX_DEV_AUTHORIZATION_TOKEN!,
-      storageName: process.env.PROXMOX_DEV_STORAGE_NAME!,
-      url: process.env.PROXMOX_DEV_URL!,
-    }).response;
+    // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
+    let hypervisor = await grpc.hypervisors.listHypervisors({}).response.then(({ hypervisors }) => hypervisors.find((hypervisor) => hypervisor.url === process.env.PROXMOX_DEV_URL));
+    if (!hypervisor) {
+      hypervisor = await grpc.hypervisors.registerHypervisor({
+        authorizationToken: process.env.PROXMOX_DEV_AUTHORIZATION_TOKEN!,
+        storageName: process.env.PROXMOX_DEV_STORAGE_NAME!,
+        url: process.env.PROXMOX_DEV_URL!,
+      }).response.then((response) => response.hypervisor!);
+    }
+    console.log('hypervisor', hypervisor);
 
-    const list = await production.instances.listInstances({}).response;
-    const clone = await production.instances.cloneInstance({ id: '6969', hypervisorId: devHypervisor.id }).response;
-    console.log(clone);
+    const list = await grpc.instances.listInstances({}).response;
+    const { template, instance } = elect(list.instances);
+    console.log(template, instance);
+
+
+    if (!!instance) {
+      await grpc.instances.stopInstance({ id: instance.id }).response;
+      await grpc.instances.deleteInstance({ id: instance.id }).response;
+    }
+
+    const clone = await grpc.instances.cloneInstance({ id: template.id }).response;
+    const startInstanceResponse = await grpc.instances.startInstance({ id: clone.id }).response;
+    console.log('start instance response', startInstanceResponse);
 
     const result = await grpc.hypervisors.registerHypervisor({
       authorizationToken: process.env.PROXMOX_TEST_AUTHORIZATION_TOKEN!,
@@ -103,6 +119,10 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     console.log('result is fetched', result);
     use(result.hypervisor!);
     console.log('in cleanup');
+    const stopInstanceResponse = await grpc.instances.stopInstance({ id: clone.id }).response;
+    console.log('stop instance response', stopInstanceResponse);
+    const deleteInstanceResponse = await grpc.instances.deleteInstance({ id: clone.id }).response;
+    console.log('delete instance response', deleteInstanceResponse);
   }, { auto: true, scope: 'worker' }],
 
   /**
@@ -118,4 +138,28 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 });
 
 export { expect } from "@playwright/test";
+
+const elect = (instances: Instance[]) => {
+  // extract templates from the instances list.
+  const templates = instances.filter((instance) => /^pve\d+-test\d+-template$/.test(instance.name));
+
+  // create a dictionary of template-instance association
+  const dictionary: Record<string, { template: Instance, instance?: Instance }> = templates.reduce((acc, curr) => ({
+    ...acc,
+    [curr.name]: {
+      template: curr,
+      instance: instances.find((instance) => instance.name === `Copy-of-VM-${curr.name}`),
+    }
+  }), {});
+
+  // get the first template that does not have an associated instance, if any
+  const emptySlot = Object.values(dictionary).find(({ instance }) => !instance);
+
+  if (emptySlot) {
+    return emptySlot;
+  }
+
+  // otherwise elect a template
+  return minBy(Object.values(dictionary), ({ instance }) => instance!.updatedAt!.seconds)!
+}
 

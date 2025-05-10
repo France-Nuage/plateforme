@@ -22,5 +22,9 @@
     "@protobuf-ts/runtime-rpc": "^2.9.6",
     "@types/node": "^22.14.0",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.17.16",
+    "lodash": "^4.17.21"
   }
 }
