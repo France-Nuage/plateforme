@@ -15,6 +15,10 @@ impl HypervisorsService {
         repository::read(&self.pool, id).await
     }
 
+    pub async fn delete(&self, id: Uuid) -> Result<(), Problem> {
+        repository::delete(&self.pool, id).await
+    }
+
     pub fn new(pool: sqlx::PgPool) -> Self {
         Self { pool }
     }

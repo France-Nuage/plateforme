@@ -50,7 +50,7 @@ impl From<hypervisors::Problem> for Problem {
     fn from(value: hypervisors::Problem) -> Self {
         match &value {
             hypervisors::Problem::NotFound(id) => Problem::HypervisorNotFound(id.to_owned()),
-            hypervisors::Problem::Other { source: _ } => Problem::Other(Box::new(value)),
+            _ => Problem::Other(Box::new(value)),
         }
     }
 }
