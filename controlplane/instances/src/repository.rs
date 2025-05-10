@@ -110,14 +110,8 @@ pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), P
     let distant_ids: Vec<String> = instances.iter().map(|i| i.distant_id.clone()).collect();
     let cpu_usage_percents: Vec<f64> = instances.iter().map(|i| i.cpu_usage_percent).collect();
     let max_cpu_cores: Vec<i32> = instances.iter().map(|i| i.max_cpu_cores).collect();
-    let max_memory_bytes: Vec<i64> = instances
-        .iter()
-        .map(|i| i.max_memory_bytes)
-        .collect();
-    let memory_usage_bytes: Vec<i64> = instances
-        .iter()
-        .map(|i| i.memory_usage_bytes)
-        .collect();
+    let max_memory_bytes: Vec<i64> = instances.iter().map(|i| i.max_memory_bytes).collect();
+    let memory_usage_bytes: Vec<i64> = instances.iter().map(|i| i.memory_usage_bytes).collect();
     let names: Vec<String> = instances.iter().map(|i| i.name.clone()).collect();
     let statuses: Vec<String> = instances.iter().map(|i| i.status.to_string()).collect();
 
