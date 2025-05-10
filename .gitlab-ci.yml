@@ -49,7 +49,7 @@ gitleaks:
       - ./console/public/
     expire_in: 1 hour
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "master"'
       when: on_success
     - when: never
 
@@ -122,7 +122,7 @@ build:
   dependencies:
     - "sync console with plasmic"
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "master"'
       when: on_success
     - when: never
 
