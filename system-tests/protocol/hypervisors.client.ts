@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Hypervisors } from "./hypervisors";
+import type { DetachHypervisorResponse } from "./hypervisors";
+import type { DetachHypervisorRequest } from "./hypervisors";
 import type { RegisterHypervisorResponse } from "./hypervisors";
 import type { RegisterHypervisorRequest } from "./hypervisors";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
@@ -31,6 +33,10 @@ export interface IHypervisorsClient {
      * @generated from protobuf rpc: RegisterHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.RegisterHypervisorResponse);
      */
     registerHypervisor(input: RegisterHypervisorRequest, options?: RpcOptions): UnaryCall<RegisterHypervisorRequest, RegisterHypervisorResponse>;
+    /**
+     * @generated from protobuf rpc: DetachHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorResponse);
+     */
+    detachHypervisor(input: DetachHypervisorRequest, options?: RpcOptions): UnaryCall<DetachHypervisorRequest, DetachHypervisorResponse>;
 }
 /**
  * Hypervisors service provides operations to manage hypervisors.
@@ -62,5 +68,12 @@ export class HypervisorsClient implements IHypervisorsClient, ServiceInfo {
     registerHypervisor(input: RegisterHypervisorRequest, options?: RpcOptions): UnaryCall<RegisterHypervisorRequest, RegisterHypervisorResponse> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
         return stackIntercept<RegisterHypervisorRequest, RegisterHypervisorResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: DetachHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorResponse);
+     */
+    detachHypervisor(input: DetachHypervisorRequest, options?: RpcOptions): UnaryCall<DetachHypervisorRequest, DetachHypervisorResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DetachHypervisorRequest, DetachHypervisorResponse>("unary", this._transport, method, opt, input);
     }
 }

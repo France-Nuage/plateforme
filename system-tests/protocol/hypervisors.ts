@@ -62,6 +62,26 @@ export interface RegisterHypervisorResponse {
     hypervisor?: Hypervisor;
 }
 /**
+ * DetachHypervisorRequest contains the necessary information to detach a hypervisor.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorRequest
+ */
+export interface DetachHypervisorRequest {
+    /**
+     * Id of the hypervisor
+     *
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * DetachHypervisorResponse contains the result of a DetachHypervisor operation.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorResponse
+ */
+export interface DetachHypervisorResponse {
+}
+/**
  * Hypervisor represents a virtualization platform that can host instances.
  *
  * @generated from protobuf message francenuage.fr.api.controlplane.v1.hypervisors.Hypervisor
@@ -135,6 +155,28 @@ class RegisterHypervisorResponse$Type extends MessageType<RegisterHypervisorResp
  */
 export const RegisterHypervisorResponse = new RegisterHypervisorResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class DetachHypervisorRequest$Type extends MessageType<DetachHypervisorRequest> {
+    constructor() {
+        super("francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorRequest
+ */
+export const DetachHypervisorRequest = new DetachHypervisorRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DetachHypervisorResponse$Type extends MessageType<DetachHypervisorResponse> {
+    constructor() {
+        super("francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorResponse", []);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorResponse
+ */
+export const DetachHypervisorResponse = new DetachHypervisorResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Hypervisor$Type extends MessageType<Hypervisor> {
     constructor() {
         super("francenuage.fr.api.controlplane.v1.hypervisors.Hypervisor", [
@@ -153,5 +195,6 @@ export const Hypervisor = new Hypervisor$Type();
  */
 export const Hypervisors = new ServiceType("francenuage.fr.api.controlplane.v1.hypervisors.Hypervisors", [
     { name: "ListHypervisors", options: {}, I: ListHypervisorsRequest, O: ListHypervisorsResponse },
-    { name: "RegisterHypervisor", options: {}, I: RegisterHypervisorRequest, O: RegisterHypervisorResponse }
+    { name: "RegisterHypervisor", options: {}, I: RegisterHypervisorRequest, O: RegisterHypervisorResponse },
+    { name: "DetachHypervisor", options: {}, I: DetachHypervisorRequest, O: DetachHypervisorResponse }
 ]);

@@ -48,18 +48,6 @@ type WorkerFixtures = {
    * living in database and ready to be used in tests.
    */
   hypervisor: Hypervisor;
-  /**
-   * Provides access to the production hypervisor.
-   *
-   * Access to the production instances allows to provision specific resources,
-   * namely a test cluster, as the test engine has to run the cluster somewhere.
-   * Production access is only meant for the test engine initialization and
-   * concrete tests should rely on the test cluster exposed under the `grpc`
-   * fixture key.
-   */
-  production: {
-    instances: InstancesClient;
-  }
 };
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
@@ -84,57 +72,47 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   /**
    * @inheritdoc
    */
-  hypervisor: [async ({ grpc, production }, use) => {
+  hypervisor: [async ({ grpc }, use) => {
     // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
-    let hypervisor = await grpc.hypervisors.listHypervisors({}).response.then(({ hypervisors }) => hypervisors.find((hypervisor) => hypervisor.url === process.env.PROXMOX_DEV_URL));
-    if (!hypervisor) {
-      hypervisor = await grpc.hypervisors.registerHypervisor({
+    let devHypervisor = await grpc.hypervisors.listHypervisors({}).response.then(({ hypervisors }) => hypervisors.find((hypervisor) => hypervisor.url === process.env.PROXMOX_DEV_URL));
+    if (!devHypervisor) {
+      devHypervisor = await grpc.hypervisors.registerHypervisor({
         authorizationToken: process.env.PROXMOX_DEV_AUTHORIZATION_TOKEN!,
         storageName: process.env.PROXMOX_DEV_STORAGE_NAME!,
         url: process.env.PROXMOX_DEV_URL!,
       }).response.then((response) => response.hypervisor!);
     }
-    console.log('hypervisor', hypervisor);
 
-    const list = await grpc.instances.listInstances({}).response;
-    const { template, instance } = elect(list.instances);
-    console.log(template, instance);
+    // Elect a proxmox template to use an instantiated hypervisor
+    const { instances } = await grpc.instances.listInstances({}).response.catch((error) => {
+      console.log('failed listing', error);
+      throw error;
+    });
+    const { template, instance } = elect(instances);
 
-
+    // If there is an associated instance with the template, stop and delete it
     if (!!instance) {
       await grpc.instances.stopInstance({ id: instance.id }).response;
       await grpc.instances.deleteInstance({ id: instance.id }).response;
     }
 
+    // Clone, start and register the template as a hypervisor
     const clone = await grpc.instances.cloneInstance({ id: template.id }).response;
-    const startInstanceResponse = await grpc.instances.startInstance({ id: clone.id }).response;
-    console.log('start instance response', startInstanceResponse);
+    await grpc.instances.startInstance({ id: clone.id }).response;
 
-    const result = await grpc.hypervisors.registerHypervisor({
+    const { hypervisor } = await grpc.hypervisors.registerHypervisor({
       authorizationToken: process.env.PROXMOX_TEST_AUTHORIZATION_TOKEN!,
       storageName: process.env.PROXMOX_TEST_STORAGE_NAME!,
       url: process.env.PROXMOX_TEST_URL!,
     }).response;
 
-    console.log('result is fetched', result);
-    use(result.hypervisor!);
-    console.log('in cleanup');
-    const stopInstanceResponse = await grpc.instances.stopInstance({ id: clone.id }).response;
-    console.log('stop instance response', stopInstanceResponse);
-    const deleteInstanceResponse = await grpc.instances.deleteInstance({ id: clone.id }).response;
-    console.log('delete instance response', deleteInstanceResponse);
-  }, { auto: true, scope: 'worker' }],
+    await use(hypervisor!);
 
-  /**
-   * @inheritdoc
-   */
-  production: [async ({ }, use) => {
-    const transport = new GrpcWebFetchTransport({ baseUrl: 'https://controlplane.france-nuage.fr', format: 'binary' });
-    const instances = new InstancesClient(transport);
-
-    use({ instances });
-
-  }, { auto: true, scope: 'worker' }]
+    // cleanup
+    await grpc.instances.stopInstance({ id: clone.id }).response;
+    await grpc.instances.deleteInstance({ id: clone.id }).response;
+    await grpc.hypervisors.detachHypervisor({ id: hypervisor!.id });
+  }, { auto: true, scope: 'worker', timeout: 1200000 }],
 });
 
 export { expect } from "@playwright/test";
