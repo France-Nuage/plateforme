@@ -32,6 +32,18 @@ impl Server {
                 .local_addr()?,
         };
 
+        let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
+        health_reporter
+            .set_serving::<HypervisorsServer<HypervisorsRpcService>>()
+            .await;
+        health_reporter
+            .set_serving::<InstancesServer<InstancesRpcService>>()
+            .await;
+
+        let hypervisors_service =
+            HypervisorsServer::new(HypervisorsRpcService::new(config.pool.clone()));
+        let instances_service = InstancesServer::new(InstancesRpcService::new(config.pool.clone()));
+
         let cors = CorsLayer::new()
             .allow_origin(
                 config
@@ -46,12 +58,9 @@ impl Server {
         let server = TonicServer::builder().accept_http1(true);
         let router = server
             .layer(cors)
-            .add_service(tonic_web::enable(InstancesServer::new(
-                InstancesRpcService::new(config.pool.clone()),
-            )))
-            .add_service(tonic_web::enable(HypervisorsServer::new(
-                HypervisorsRpcService::new(config.pool.clone()),
-            )));
+            .add_service(health_service)
+            .add_service(tonic_web::enable(hypervisors_service))
+            .add_service(tonic_web::enable(instances_service));
 
         // Return a Server instance
         Ok(Server { addr, router })

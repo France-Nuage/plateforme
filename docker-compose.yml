@@ -28,6 +28,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:8080"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
       CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
@@ -80,9 +85,12 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:master
       context: system-tests
     depends_on:
-      - console
-      - controlplane
-      - playwright
+      console:
+        condition: service_healthy
+      controlplane:
+        condition: service_healthy
+      playwright:
+        condition: service_started
     environment:
       CONSOLE_URL: http://console:3000
       CONTROLPLANE_URL: http://controlplane:8080
