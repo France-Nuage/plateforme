@@ -16,7 +16,7 @@ export interface GlobalContextsProviderProps {
 }
 
 export default function GlobalContextsProvider(
-  props: GlobalContextsProviderProps,
+  props: GlobalContextsProviderProps
 ) {
   const { children, antdConfigProviderProps } = props;
 
@@ -97,8 +97,8 @@ export default function GlobalContextsProvider(
         antdConfigProviderProps && "themeStyles" in antdConfigProviderProps
           ? antdConfigProviderProps.themeStyles!
           : true
-            ? {}
-            : undefined
+          ? {}
+          : undefined
       }
       wireframe={
         antdConfigProviderProps && "wireframe" in antdConfigProviderProps
