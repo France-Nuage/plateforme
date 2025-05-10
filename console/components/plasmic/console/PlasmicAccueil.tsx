@@ -51,19 +51,22 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName,
+  wrapWithClassName
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions,
+  useGlobalActions
 } from "@plasmicapp/react-web/lib/host";
 
+import Breadcrumbs from "../../Breadcrumbs"; // plasmic-import: PEgOxZRQTA56/component
+import SideBar from "../../SideBar"; // plasmic-import: WgBKdGHdVFBy/component
 import { ConsoleProvider } from "../../../providers/ConsoleProvider"; // plasmic-import: vWN9dmdYefpY/codeComponent
 import Button from "../../Button"; // plasmic-import: BPkDJbnqSOZ0/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
+import plasmic_antd_5_hostless_css from "../antd_5_hostless/plasmic.module.css"; // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
 import projectcss from "../react_aria/plasmic.module.css"; // plasmic-import: aqt4bw2qhfo7d76ADZhQFo/projectcss
 import sty from "./PlasmicAccueil.module.css"; // plasmic-import: d1MlGr7C5K9L/css
 
@@ -83,8 +86,11 @@ export const PlasmicAccueil__ArgProps = new Array<ArgPropType>();
 
 export type PlasmicAccueil__OverridesType = {
   root?: Flex__<"div">;
+  breadcrumbs?: Flex__<typeof Breadcrumbs>;
+  sideBar?: Flex__<typeof SideBar>;
   consoleProvider?: Flex__<typeof ConsoleProvider>;
   freeBox?: Flex__<"div">;
+  svg?: Flex__<"svg">;
 };
 
 export interface DefaultAccueilProps {}
@@ -111,15 +117,15 @@ function PlasmicAccueil__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined),
-        ),
+          Object.entries(props.args).filter(([_, v]) => v !== undefined)
+        )
       ),
-    [props.args],
+    [props.args]
   );
 
   const $props = {
     ...args,
-    ...variants,
+    ...variants
   };
 
   const __nextRouter = useNextRouter();
@@ -150,31 +156,43 @@ function PlasmicAccueil__RenderFunc(props: {
             projectcss.plasmic_default_styles,
             projectcss.plasmic_mixins,
             projectcss.plasmic_tokens,
-            sty.root,
+            plasmic_antd_5_hostless_css.plasmic_tokens,
+            sty.root
           )}
         >
+          <Breadcrumbs
+            data-plasmic-name={"breadcrumbs"}
+            data-plasmic-override={overrides.breadcrumbs}
+            className={classNames("__wab_instance", sty.breadcrumbs)}
+          />
+
+          <SideBar
+            data-plasmic-name={"sideBar"}
+            data-plasmic-override={overrides.sideBar}
+            className={classNames("__wab_instance", sty.sideBar)}
+          />
+
           <ConsoleProvider
             data-plasmic-name={"consoleProvider"}
             data-plasmic-override={overrides.consoleProvider}
             className={classNames("__wab_instance", sty.consoleProvider)}
-            ref={(ref) => {
+            ref={ref => {
               $refs["consoleProvider"] = ref;
             }}
           >
             <DataCtxReader__>
-              {($ctx) => (
+              {$ctx => (
                 <React.Fragment>
                   <div
                     className={classNames(
                       projectcss.all,
                       projectcss.__wab_text,
-                      sty.text__ifKc4,
+                      sty.text__ifKc4
                     )}
                   >
                     {"Les super instances de la prod vroom vroom"}
                   </div>
-                  {((_par) =>
-                    !_par ? [] : Array.isArray(_par) ? _par : [_par])(
+                  {(_par => (!_par ? [] : Array.isArray(_par) ? _par : [_par]))(
                     (() => {
                       try {
                         return $ctx["France Nuage"].instances;
@@ -187,7 +205,7 @@ function PlasmicAccueil__RenderFunc(props: {
                         }
                         throw e;
                       }
-                    })(),
+                    })()
                   ).map((__plasmic_item_0, __plasmic_idx_0) => {
                     const currentItem = __plasmic_item_0;
                     const currentIndex = __plasmic_idx_0;
@@ -202,7 +220,7 @@ function PlasmicAccueil__RenderFunc(props: {
                           className={classNames(
                             projectcss.all,
                             projectcss.__wab_text,
-                            sty.text__bjM18,
+                            sty.text__bjM18
                           )}
                         >
                           <React.Fragment>
@@ -226,18 +244,26 @@ function PlasmicAccueil__RenderFunc(props: {
                   })}
                   <Button
                     className={classNames("__wab_instance", sty.button__aFuXe)}
+                    end={
+                      <ChevronDownIcon
+                        data-plasmic-name={"svg"}
+                        data-plasmic-override={overrides.svg}
+                        className={classNames(projectcss.all, sty.svg)}
+                        role={"img"}
+                      />
+                    }
                     label={
                       <div
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__ytmnk,
+                          sty.text__ytmnk
                         )}
                       >
                         {"Ajouter une instance hard-cod\u00e9e \u00e0 la prod"}
                       </div>
                     }
-                    onClick={async (event) => {
+                    onClick={async event => {
                       const $steps = {};
 
                       $steps["runActionOnConsoleProvider"] = true
@@ -261,12 +287,12 @@ function PlasmicAccueil__RenderFunc(props: {
                                     throw e;
                                   }
                                 })(),
-                                "Mon instance hard-cod\u00e9e",
-                              ],
+                                "Mon instance hard-cod\u00e9e"
+                              ]
                             };
                             return (({ tplRef, action, args }) => {
                               return $refs?.[tplRef]?.[action]?.(
-                                ...(args ?? []),
+                                ...(args ?? [])
                               );
                             })?.apply(null, [actionArgs]);
                           })()
@@ -278,8 +304,9 @@ function PlasmicAccueil__RenderFunc(props: {
                         typeof $steps["runActionOnConsoleProvider"].then ===
                           "function"
                       ) {
-                        $steps["runActionOnConsoleProvider"] =
-                          await $steps["runActionOnConsoleProvider"];
+                        $steps["runActionOnConsoleProvider"] = await $steps[
+                          "runActionOnConsoleProvider"
+                        ];
                       }
                     }}
                   />
@@ -288,7 +315,7 @@ function PlasmicAccueil__RenderFunc(props: {
                     className={classNames(
                       projectcss.all,
                       projectcss.__wab_text,
-                      sty.text__a5S3,
+                      sty.text__a5S3
                     )}
                   >
                     <React.Fragment>
@@ -314,13 +341,13 @@ function PlasmicAccueil__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__jtoai,
+                          sty.text__jtoai
                         )}
                       >
                         {"Change application mode"}
                       </div>
                     }
-                    onClick={async (event) => {
+                    onClick={async event => {
                       const $steps = {};
 
                       $steps["runActionOnConsoleProvider"] = true
@@ -328,11 +355,11 @@ function PlasmicAccueil__RenderFunc(props: {
                             const actionArgs = {
                               tplRef: "consoleProvider",
                               action: "changeMode",
-                              args: [undefined],
+                              args: [undefined]
                             };
                             return (({ tplRef, action, args }) => {
                               return $refs?.[tplRef]?.[action]?.(
-                                ...(args ?? []),
+                                ...(args ?? [])
                               );
                             })?.apply(null, [actionArgs]);
                           })()
@@ -344,8 +371,9 @@ function PlasmicAccueil__RenderFunc(props: {
                         typeof $steps["runActionOnConsoleProvider"].then ===
                           "function"
                       ) {
-                        $steps["runActionOnConsoleProvider"] =
-                          await $steps["runActionOnConsoleProvider"];
+                        $steps["runActionOnConsoleProvider"] = await $steps[
+                          "runActionOnConsoleProvider"
+                        ];
                       }
                     }}
                   />
@@ -360,17 +388,23 @@ function PlasmicAccueil__RenderFunc(props: {
 }
 
 const PlasmicDescendants = {
-  root: ["root", "consoleProvider", "freeBox"],
-  consoleProvider: ["consoleProvider", "freeBox"],
+  root: ["root", "breadcrumbs", "sideBar", "consoleProvider", "freeBox", "svg"],
+  breadcrumbs: ["breadcrumbs"],
+  sideBar: ["sideBar"],
+  consoleProvider: ["consoleProvider", "freeBox", "svg"],
   freeBox: ["freeBox"],
+  svg: ["svg"]
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
   (typeof PlasmicDescendants)[T][number];
 type NodeDefaultElementType = {
   root: "div";
+  breadcrumbs: typeof Breadcrumbs;
+  sideBar: typeof SideBar;
   consoleProvider: typeof ConsoleProvider;
   freeBox: "div";
+  svg: "svg";
 };
 
 type ReservedPropsType = "variants" | "args" | "overrides";
@@ -401,7 +435,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>,
+    props: T & StrictProps<T, PropsType>
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -409,15 +443,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicAccueil__ArgProps,
-          internalVariantPropNames: PlasmicAccueil__VariantProps,
+          internalVariantPropNames: PlasmicAccueil__VariantProps
         }),
-      [props, nodeName],
+      [props, nodeName]
     );
     return PlasmicAccueil__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName,
+      forNode: nodeName
     });
   };
   if (nodeName === "root") {
@@ -433,8 +467,11 @@ export const PlasmicAccueil = Object.assign(
   makeNodeComponent("root"),
   {
     // Helper components rendering sub-elements
+    breadcrumbs: makeNodeComponent("breadcrumbs"),
+    sideBar: makeNodeComponent("sideBar"),
     consoleProvider: makeNodeComponent("consoleProvider"),
     freeBox: makeNodeComponent("freeBox"),
+    svg: makeNodeComponent("svg"),
 
     // Metadata about props expected for PlasmicAccueil
     internalVariantProps: PlasmicAccueil__VariantProps,
@@ -445,9 +482,9 @@ export const PlasmicAccueil = Object.assign(
       title: "",
       description: "",
       ogImageSrc: "",
-      canonical: "",
-    },
-  },
+      canonical: ""
+    }
+  }
 );
 
 export default PlasmicAccueil;
