@@ -11,6 +11,11 @@ services:
       - controlplane
     environment:
       NEXT_PUBLIC_CONTROLPLANE_URL: ${NEXT_PUBLIC_CONTROLPLANE_URL:-http://controlplane:8080}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
     ports:
       - "3000:3000"
     volumes:
