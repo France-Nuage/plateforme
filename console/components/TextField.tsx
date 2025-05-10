@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicTextField,
-  DefaultTextFieldProps
+  DefaultTextFieldProps,
 } from "./plasmic/console/PlasmicTextField";
 
 // Your component props start with props for variants and slots you defined

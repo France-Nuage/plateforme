@@ -22,7 +22,7 @@ export function HomeIcon(props: HomeIconProps) {
       className={classNames(
         "plasmic-default__svg",
         className,
-        "lucide lucide-house-icon lucide-house"
+        "lucide lucide-house-icon lucide-house",
       )}
       viewBox={"0 0 24 24"}
       style={style}

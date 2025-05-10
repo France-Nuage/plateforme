@@ -22,7 +22,7 @@ export function Icon4Icon(props: Icon4IconProps) {
       className={classNames(
         "plasmic-default__svg",
         className,
-        "lucide lucide-bell-icon lucide-bell"
+        "lucide lucide-bell-icon lucide-bell",
       )}
       viewBox={"0 0 24 24"}
       style={style}

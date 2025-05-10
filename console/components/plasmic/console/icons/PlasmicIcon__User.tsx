@@ -22,7 +22,7 @@ export function UserIcon(props: UserIconProps) {
       className={classNames(
         "plasmic-default__svg",
         className,
-        "lucide lucide-users-icon lucide-users"
+        "lucide lucide-users-icon lucide-users",
       )}
       viewBox={"0 0 24 24"}
       style={style}

@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import Breadcrumbs from "../../Breadcrumbs"; // plasmic-import: PEgOxZRQTA56/component
@@ -117,15 +117,15 @@ function PlasmicAccueil__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -157,7 +157,7 @@ function PlasmicAccueil__RenderFunc(props: {
             projectcss.plasmic_mixins,
             projectcss.plasmic_tokens,
             plasmic_antd_5_hostless_css.plasmic_tokens,
-            sty.root
+            sty.root,
           )}
         >
           <Breadcrumbs
@@ -176,23 +176,24 @@ function PlasmicAccueil__RenderFunc(props: {
             data-plasmic-name={"consoleProvider"}
             data-plasmic-override={overrides.consoleProvider}
             className={classNames("__wab_instance", sty.consoleProvider)}
-            ref={ref => {
+            ref={(ref) => {
               $refs["consoleProvider"] = ref;
             }}
           >
             <DataCtxReader__>
-              {$ctx => (
+              {($ctx) => (
                 <React.Fragment>
                   <div
                     className={classNames(
                       projectcss.all,
                       projectcss.__wab_text,
-                      sty.text__ifKc4
+                      sty.text__ifKc4,
                     )}
                   >
                     {"Les super instances de la prod vroom vroom"}
                   </div>
-                  {(_par => (!_par ? [] : Array.isArray(_par) ? _par : [_par]))(
+                  {((_par) =>
+                    !_par ? [] : Array.isArray(_par) ? _par : [_par])(
                     (() => {
                       try {
                         return $ctx["France Nuage"].instances;
@@ -205,7 +206,7 @@ function PlasmicAccueil__RenderFunc(props: {
                         }
                         throw e;
                       }
-                    })()
+                    })(),
                   ).map((__plasmic_item_0, __plasmic_idx_0) => {
                     const currentItem = __plasmic_item_0;
                     const currentIndex = __plasmic_idx_0;
@@ -220,7 +221,7 @@ function PlasmicAccueil__RenderFunc(props: {
                           className={classNames(
                             projectcss.all,
                             projectcss.__wab_text,
-                            sty.text__bjM18
+                            sty.text__bjM18,
                           )}
                         >
                           <React.Fragment>
@@ -257,13 +258,13 @@ function PlasmicAccueil__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__ytmnk
+                          sty.text__ytmnk,
                         )}
                       >
                         {"Ajouter une instance hard-cod\u00e9e \u00e0 la prod"}
                       </div>
                     }
-                    onClick={async event => {
+                    onClick={async (event) => {
                       const $steps = {};
 
                       $steps["runActionOnConsoleProvider"] = true
@@ -287,12 +288,12 @@ function PlasmicAccueil__RenderFunc(props: {
                                     throw e;
                                   }
                                 })(),
-                                "Mon instance hard-cod\u00e9e"
-                              ]
+                                "Mon instance hard-cod\u00e9e",
+                              ],
                             };
                             return (({ tplRef, action, args }) => {
                               return $refs?.[tplRef]?.[action]?.(
-                                ...(args ?? [])
+                                ...(args ?? []),
                               );
                             })?.apply(null, [actionArgs]);
                           })()
@@ -304,9 +305,8 @@ function PlasmicAccueil__RenderFunc(props: {
                         typeof $steps["runActionOnConsoleProvider"].then ===
                           "function"
                       ) {
-                        $steps["runActionOnConsoleProvider"] = await $steps[
-                          "runActionOnConsoleProvider"
-                        ];
+                        $steps["runActionOnConsoleProvider"] =
+                          await $steps["runActionOnConsoleProvider"];
                       }
                     }}
                   />
@@ -315,7 +315,7 @@ function PlasmicAccueil__RenderFunc(props: {
                     className={classNames(
                       projectcss.all,
                       projectcss.__wab_text,
-                      sty.text__a5S3
+                      sty.text__a5S3,
                     )}
                   >
                     <React.Fragment>
@@ -341,13 +341,13 @@ function PlasmicAccueil__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__jtoai
+                          sty.text__jtoai,
                         )}
                       >
                         {"Change application mode"}
                       </div>
                     }
-                    onClick={async event => {
+                    onClick={async (event) => {
                       const $steps = {};
 
                       $steps["runActionOnConsoleProvider"] = true
@@ -355,11 +355,11 @@ function PlasmicAccueil__RenderFunc(props: {
                             const actionArgs = {
                               tplRef: "consoleProvider",
                               action: "changeMode",
-                              args: [undefined]
+                              args: [undefined],
                             };
                             return (({ tplRef, action, args }) => {
                               return $refs?.[tplRef]?.[action]?.(
-                                ...(args ?? [])
+                                ...(args ?? []),
                               );
                             })?.apply(null, [actionArgs]);
                           })()
@@ -371,9 +371,8 @@ function PlasmicAccueil__RenderFunc(props: {
                         typeof $steps["runActionOnConsoleProvider"].then ===
                           "function"
                       ) {
-                        $steps["runActionOnConsoleProvider"] = await $steps[
-                          "runActionOnConsoleProvider"
-                        ];
+                        $steps["runActionOnConsoleProvider"] =
+                          await $steps["runActionOnConsoleProvider"];
                       }
                     }}
                   />
@@ -393,7 +392,7 @@ const PlasmicDescendants = {
   sideBar: ["sideBar"],
   consoleProvider: ["consoleProvider", "freeBox", "svg"],
   freeBox: ["freeBox"],
-  svg: ["svg"]
+  svg: ["svg"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -435,7 +434,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -443,15 +442,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicAccueil__ArgProps,
-          internalVariantPropNames: PlasmicAccueil__VariantProps
+          internalVariantPropNames: PlasmicAccueil__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicAccueil__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -482,9 +481,9 @@ export const PlasmicAccueil = Object.assign(
       title: "",
       description: "",
       ogImageSrc: "",
-      canonical: ""
-    }
-  }
+      canonical: "",
+    },
+  },
 );
 
 export default PlasmicAccueil;

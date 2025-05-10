@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicBtnSideBar,
-  DefaultBtnSideBarProps
+  DefaultBtnSideBarProps,
 } from "./plasmic/console/PlasmicBtnSideBar";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 

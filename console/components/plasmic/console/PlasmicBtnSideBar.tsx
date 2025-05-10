@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import "@plasmicapp/react-web/lib/plasmic.css";
@@ -77,7 +77,7 @@ export type PlasmicBtnSideBar__VariantsArgs = {
 };
 type VariantPropType = keyof PlasmicBtnSideBar__VariantsArgs;
 export const PlasmicBtnSideBar__VariantProps = new Array<VariantPropType>(
-  "pressed2"
+  "pressed2",
 );
 
 export type PlasmicBtnSideBar__ArgsType = {
@@ -89,7 +89,7 @@ type ArgPropType = keyof PlasmicBtnSideBar__ArgsType;
 export const PlasmicBtnSideBar__ArgProps = new Array<ArgPropType>(
   "nom",
   "children",
-  "link"
+  "link",
 );
 
 export type PlasmicBtnSideBar__OverridesType = {
@@ -126,18 +126,18 @@ function PlasmicBtnSideBar__RenderFunc(props: {
     () =>
       Object.assign(
         {
-          nom: "txt"
+          nom: "txt",
         },
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -152,16 +152,16 @@ function PlasmicBtnSideBar__RenderFunc(props: {
         path: "pressed2",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.pressed2
-      }
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.pressed2,
+      },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx, $refs],
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs
+    $refs,
   });
 
   return (
@@ -180,7 +180,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
         sty.root,
-        { [sty.rootpressed2]: hasVariant($state, "pressed2", "pressed2") }
+        { [sty.rootpressed2]: hasVariant($state, "pressed2", "pressed2") },
       )}
     >
       {renderPlasmicSlot({
@@ -191,7 +191,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
           />
         ),
 
-        value: args.children
+        value: args.children,
       })}
       <PlasmicLink__
         data-plasmic-name={"link"}
@@ -201,7 +201,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
           projectcss.a,
           projectcss.__wab_text,
           sty.link,
-          { [sty.linkpressed2]: hasVariant($state, "pressed2", "pressed2") }
+          { [sty.linkpressed2]: hasVariant($state, "pressed2", "pressed2") },
         )}
         component={Link}
         href={(() => {
@@ -241,7 +241,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
 
 const PlasmicDescendants = {
   root: ["root", "link"],
-  link: ["link"]
+  link: ["link"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -279,7 +279,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -287,15 +287,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicBtnSideBar__ArgProps,
-          internalVariantPropNames: PlasmicBtnSideBar__VariantProps
+          internalVariantPropNames: PlasmicBtnSideBar__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicBtnSideBar__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -315,8 +315,8 @@ export const PlasmicBtnSideBar = Object.assign(
 
     // Metadata about props expected for PlasmicBtnSideBar
     internalVariantProps: PlasmicBtnSideBar__VariantProps,
-    internalArgProps: PlasmicBtnSideBar__ArgProps
-  }
+    internalArgProps: PlasmicBtnSideBar__ArgProps,
+  },
 );
 
 export default PlasmicBtnSideBar;

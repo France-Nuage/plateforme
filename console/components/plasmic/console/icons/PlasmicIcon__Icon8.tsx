@@ -22,7 +22,7 @@ export function Icon8Icon(props: Icon8IconProps) {
       className={classNames(
         "plasmic-default__svg",
         className,
-        "lucide lucide-settings-icon lucide-settings"
+        "lucide lucide-settings-icon lucide-settings",
       )}
       viewBox={"0 0 24 24"}
       style={style}

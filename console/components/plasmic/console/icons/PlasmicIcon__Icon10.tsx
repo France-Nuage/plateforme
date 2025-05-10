@@ -22,7 +22,7 @@ export function Icon10Icon(props: Icon10IconProps) {
       className={classNames(
         "plasmic-default__svg",
         className,
-        "lucide lucide-circle-help-icon lucide-circle-help"
+        "lucide lucide-circle-help-icon lucide-circle-help",
       )}
       viewBox={"0 0 24 24"}
       style={style}

@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicBreadcrumbs,
-  DefaultBreadcrumbsProps
+  DefaultBreadcrumbsProps,
 } from "./plasmic/console/PlasmicBreadcrumbs";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 

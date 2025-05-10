@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicDescription,
-  DefaultDescriptionProps
+  DefaultDescriptionProps,
 } from "./plasmic/console/PlasmicDescription";
 
 // Your component props start with props for variants and slots you defined

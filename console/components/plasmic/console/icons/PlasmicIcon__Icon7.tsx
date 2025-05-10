@@ -22,7 +22,7 @@ export function Icon7Icon(props: Icon7IconProps) {
       className={classNames(
         "plasmic-default__svg",
         className,
-        "lucide lucide-receipt-text-icon lucide-receipt-text"
+        "lucide lucide-receipt-text-icon lucide-receipt-text",
       )}
       viewBox={"0 0 24 24"}
       style={style}
