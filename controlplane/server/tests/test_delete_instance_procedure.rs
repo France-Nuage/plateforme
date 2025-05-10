@@ -16,8 +16,8 @@ async fn test_the_clone_instance_procedure_works(
     let mock = MockServer::new()
         .await
         .with_cluster_resource_list()
-        .with_vm_delete()
-        .with_task_status_read();
+        .with_task_status_read()
+        .with_vm_delete();
 
     let hypervisor = Hypervisor {
         url: mock.url(),

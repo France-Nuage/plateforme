@@ -82,7 +82,6 @@ impl InstanceService for ProxmoxInstanceService {
         .clone()
         .expect("node should be defined for resource of type node");
 
-        // TODO: use the (not yet developped) scheduler to select a node
         let vm_config = VMConfig::from_instance_config(options, next_id);
 
         let task_id = crate::proxmox_api::vm_create(
@@ -118,7 +117,7 @@ impl InstanceService for ProxmoxInstanceService {
         )
         .await?;
 
-        crate::proxmox_api::vm_delete(
+        let task = crate::proxmox_api::vm_delete(
             &self.api_url,
             &self.client,
             &self.authorization,
@@ -126,7 +125,18 @@ impl InstanceService for ProxmoxInstanceService {
             id.parse::<u32>()
                 .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
+        .await?
+        .data;
+
+        proxmox_api::helpers::wait_for_task_completion(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            &node_id,
+            &task,
+        )
         .await?;
+
         Ok(())
     }
 
@@ -141,7 +151,7 @@ impl InstanceService for ProxmoxInstanceService {
         )
         .await?;
 
-        crate::proxmox_api::vm_status_start(
+        let task = crate::proxmox_api::vm_status_start(
             &self.api_url,
             &self.client,
             &self.authorization,
@@ -149,7 +159,18 @@ impl InstanceService for ProxmoxInstanceService {
             id.parse::<u32>()
                 .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
+        .await?
+        .data;
+
+        proxmox_api::helpers::wait_for_task_completion(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            &node_id,
+            &task,
+        )
         .await?;
+
         Ok(())
     }
 
@@ -187,7 +208,7 @@ impl InstanceService for ProxmoxInstanceService {
         )
         .await?;
 
-        crate::proxmox_api::vm_status_stop(
+        let task = crate::proxmox_api::vm_status_stop(
             &self.api_url,
             &self.client,
             &self.authorization,
@@ -195,7 +216,18 @@ impl InstanceService for ProxmoxInstanceService {
             id.parse::<u32>()
                 .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
         )
+        .await?
+        .data;
+
+        proxmox_api::helpers::wait_for_task_completion(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            &node_id,
+            &task,
+        )
         .await?;
+
         Ok(())
     }
 }

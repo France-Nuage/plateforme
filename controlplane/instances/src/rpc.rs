@@ -217,8 +217,9 @@ mod tests {
         // Arrange a service and a request for the start_instance procedure
         let server = MockServer::new()
             .await
-            .with_vm_status_start()
-            .with_cluster_resource_list();
+            .with_cluster_resource_list()
+            .with_task_status_read()
+            .with_vm_status_start();
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
@@ -252,8 +253,9 @@ mod tests {
         // Arrange a service and a request for the start_instance procedure
         let server = MockServer::new()
             .await
-            .with_vm_status_stop()
-            .with_cluster_resource_list();
+            .with_cluster_resource_list()
+            .with_task_status_read()
+            .with_vm_status_stop();
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()

@@ -1,5 +1,5 @@
 use hypervisor_connector_proxmox::mock::{
-    MockServer, WithClusterResourceList, WithVMStatusStartMock,
+    MockServer, WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStartMock,
 };
 use hypervisors::Hypervisor;
 use instances::{
@@ -15,8 +15,9 @@ async fn test_the_start_instance_procedure_works(
     // Arrange the grpc server and a client
     let mock = MockServer::new()
         .await
-        .with_vm_status_start()
-        .with_cluster_resource_list();
+        .with_cluster_resource_list()
+        .with_task_status_read()
+        .with_vm_status_start();
     let hypervisor = Hypervisor {
         url: mock.url(),
         ..Default::default()
