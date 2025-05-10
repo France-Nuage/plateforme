@@ -59,11 +59,14 @@ import {
   useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
+import Breadcrumbs from "../../Breadcrumbs"; // plasmic-import: PEgOxZRQTA56/component
+import SideBar from "../../SideBar"; // plasmic-import: WgBKdGHdVFBy/component
 import { ConsoleProvider } from "../../../providers/ConsoleProvider"; // plasmic-import: vWN9dmdYefpY/codeComponent
 import Button from "../../Button"; // plasmic-import: BPkDJbnqSOZ0/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
+import plasmic_antd_5_hostless_css from "../antd_5_hostless/plasmic.module.css"; // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
 import projectcss from "../react_aria/plasmic.module.css"; // plasmic-import: aqt4bw2qhfo7d76ADZhQFo/projectcss
 import sty from "./PlasmicAccueil.module.css"; // plasmic-import: d1MlGr7C5K9L/css
 
@@ -83,8 +86,11 @@ export const PlasmicAccueil__ArgProps = new Array<ArgPropType>();
 
 export type PlasmicAccueil__OverridesType = {
   root?: Flex__<"div">;
+  breadcrumbs?: Flex__<typeof Breadcrumbs>;
+  sideBar?: Flex__<typeof SideBar>;
   consoleProvider?: Flex__<typeof ConsoleProvider>;
   freeBox?: Flex__<"div">;
+  svg?: Flex__<"svg">;
 };
 
 export interface DefaultAccueilProps {}
@@ -150,9 +156,22 @@ function PlasmicAccueil__RenderFunc(props: {
             projectcss.plasmic_default_styles,
             projectcss.plasmic_mixins,
             projectcss.plasmic_tokens,
+            plasmic_antd_5_hostless_css.plasmic_tokens,
             sty.root,
           )}
         >
+          <Breadcrumbs
+            data-plasmic-name={"breadcrumbs"}
+            data-plasmic-override={overrides.breadcrumbs}
+            className={classNames("__wab_instance", sty.breadcrumbs)}
+          />
+
+          <SideBar
+            data-plasmic-name={"sideBar"}
+            data-plasmic-override={overrides.sideBar}
+            className={classNames("__wab_instance", sty.sideBar)}
+          />
+
           <ConsoleProvider
             data-plasmic-name={"consoleProvider"}
             data-plasmic-override={overrides.consoleProvider}
@@ -226,6 +245,14 @@ function PlasmicAccueil__RenderFunc(props: {
                   })}
                   <Button
                     className={classNames("__wab_instance", sty.button__aFuXe)}
+                    end={
+                      <ChevronDownIcon
+                        data-plasmic-name={"svg"}
+                        data-plasmic-override={overrides.svg}
+                        className={classNames(projectcss.all, sty.svg)}
+                        role={"img"}
+                      />
+                    }
                     label={
                       <div
                         className={classNames(
@@ -360,17 +387,23 @@ function PlasmicAccueil__RenderFunc(props: {
 }
 
 const PlasmicDescendants = {
-  root: ["root", "consoleProvider", "freeBox"],
-  consoleProvider: ["consoleProvider", "freeBox"],
+  root: ["root", "breadcrumbs", "sideBar", "consoleProvider", "freeBox", "svg"],
+  breadcrumbs: ["breadcrumbs"],
+  sideBar: ["sideBar"],
+  consoleProvider: ["consoleProvider", "freeBox", "svg"],
   freeBox: ["freeBox"],
+  svg: ["svg"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
   (typeof PlasmicDescendants)[T][number];
 type NodeDefaultElementType = {
   root: "div";
+  breadcrumbs: typeof Breadcrumbs;
+  sideBar: typeof SideBar;
   consoleProvider: typeof ConsoleProvider;
   freeBox: "div";
+  svg: "svg";
 };
 
 type ReservedPropsType = "variants" | "args" | "overrides";
@@ -433,8 +466,11 @@ export const PlasmicAccueil = Object.assign(
   makeNodeComponent("root"),
   {
     // Helper components rendering sub-elements
+    breadcrumbs: makeNodeComponent("breadcrumbs"),
+    sideBar: makeNodeComponent("sideBar"),
     consoleProvider: makeNodeComponent("consoleProvider"),
     freeBox: makeNodeComponent("freeBox"),
+    svg: makeNodeComponent("svg"),
 
     // Metadata about props expected for PlasmicAccueil
     internalVariantProps: PlasmicAccueil__VariantProps,

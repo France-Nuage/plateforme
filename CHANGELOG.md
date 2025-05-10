@@ -1,3 +1,16 @@
+# [1.4.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.3.0...v1.4.0) (2025-05-10)
+
+
+### Bug Fixes
+
+* add only on trigger for sync and commit ([50c1259](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/50c12592ac6e350e8baa951e18a1408e928d7b0f))
+
+
+### Features
+
+* add plasmic changes [ci skip] ([1ba4032](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1ba4032f4d1ded97d704d43ff9dba05635f9da35))
+* add plasmic changes [ci skip] ([8ee1fe1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/8ee1fe191c68e6409e67a66c6e03f31c87aae8f5))
+
 # [1.3.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.2.0...v1.3.0) (2025-05-05)
 
 
