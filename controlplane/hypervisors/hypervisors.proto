@@ -12,6 +12,8 @@ service Hypervisors {
     // Returns an empty response on success or a ProblemDetails on failure.
     rpc RegisterHypervisor (RegisterHypervisorRequest) returns (RegisterHypervisorResponse);
 
+    // DetachHypervisor removes a hypervisor from the system.
+    // Returns an empty response on success or a ProblemDetails on failure.
     rpc DetachHypervisor (DetachHypervisorRequest) returns (DetachHypervisorResponse);
 }
 
