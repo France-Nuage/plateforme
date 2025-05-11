@@ -48,6 +48,7 @@ impl From<hypervisor_connector::InstanceStatus> for InstanceStatus {
         match value {
             hypervisor_connector::InstanceStatus::Running => InstanceStatus::Running,
             hypervisor_connector::InstanceStatus::Stopped => InstanceStatus::Stopped,
+            hypervisor_connector::InstanceStatus::Unknown => InstanceStatus::Unknown,
         }
     }
 }

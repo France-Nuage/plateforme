@@ -45,12 +45,14 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
+      RUST_LOG: ${RUST_LOG:-info}
       RUSTFLAGS: ${RUSTFLAGS:-}
       SQLX_OFFLINE: ${SQLX_OFFLINE:-false}
     ports:
       - "8080:8080"
     volumes:
       - ./controlplane:/app
+      - /app/target
       - type: volume
         source: nfs-snippets
         target: /mnt/pve/nfs-snippets

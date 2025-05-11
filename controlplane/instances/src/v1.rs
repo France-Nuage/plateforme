@@ -46,17 +46,6 @@ impl From<crate::model::Instance> for Instance {
     }
 }
 
-/// Converts a `hypervisor_connector::InstanceStatus` into a protocol compatible
-/// `v1::InstanceStatus`.
-impl From<hypervisor_connector::InstanceStatus> for InstanceStatus {
-    fn from(value: hypervisor_connector::InstanceStatus) -> Self {
-        match value {
-            hypervisor_connector::InstanceStatus::Running => InstanceStatus::Running,
-            hypervisor_connector::InstanceStatus::Stopped => InstanceStatus::Stopped,
-        }
-    }
-}
-
 /// Converts a `v1::CreateInstanceRequest` into a `hypervisor_connector::InstanceConfig`.
 impl From<CreateInstanceRequest> for hypervisor_connector::InstanceConfig {
     fn from(value: CreateInstanceRequest) -> Self {

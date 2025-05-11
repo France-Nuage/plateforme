@@ -74,6 +74,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    */
   hypervisor: [async ({ grpc }, use) => {
     // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
+    console.log('retrieving or registering dev hypervisor...');
     let devHypervisor = await grpc.hypervisors.listHypervisors({}).response.then(({ hypervisors }) => hypervisors.find((hypervisor) => hypervisor.url === process.env.PROXMOX_DEV_URL));
     if (!devHypervisor) {
       devHypervisor = await grpc.hypervisors.registerHypervisor({
@@ -84,6 +85,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     }
 
     // Elect a proxmox template to use an instantiated hypervisor
+    console.log('selecting a proxmox template to clone...');
     const { instances } = await grpc.instances.listInstances({}).response.catch((error) => {
       console.log('failed listing', error);
       throw error;
@@ -92,26 +94,35 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
     // If there is an associated instance with the template, stop and delete it
     if (!!instance) {
+      console.log('removing previous clone...');
       await grpc.instances.stopInstance({ id: instance.id }).response;
       await grpc.instances.deleteInstance({ id: instance.id }).response;
     }
 
     // Clone, start and register the template as a hypervisor
+    console.log('cloning the proxmox template...');
     const clone = await grpc.instances.cloneInstance({ id: template.id }).response;
+    console.log('starting the proxmox clone...');
     await grpc.instances.startInstance({ id: clone.id }).response;
 
+    console.log('registering the proxmox clone as a hypervisor...');
     const { hypervisor } = await grpc.hypervisors.registerHypervisor({
       authorizationToken: process.env.PROXMOX_TEST_AUTHORIZATION_TOKEN!,
       storageName: process.env.PROXMOX_TEST_STORAGE_NAME!,
       url: process.env.PROXMOX_TEST_URL!,
     }).response;
 
+    console.log('setup done!')
+    console.log("\n\n");
     await use(hypervisor!);
+    console.log("\n\n");
 
     // cleanup
+    console.log('tests done, cleaning up...');
     await grpc.instances.stopInstance({ id: clone.id }).response;
     await grpc.instances.deleteInstance({ id: clone.id }).response;
     await grpc.hypervisors.detachHypervisor({ id: hypervisor!.id });
+
   }, { auto: true, scope: 'worker', timeout: 1200000 }],
 });
 
