@@ -99,10 +99,13 @@ build:
     NEXT_PUBLIC_CONTROLPLANE_URL: https://controlplane.france-nuage.fr
   script:
     - docker compose run system-tests npm run test:ci
+  after_script:
+    - docker compose logs > docker-compose-logs.txt
   artifacts:
     when: always
     paths:
       - system-tests/playwright-report/
+      - docker-compose-logs.txt
     expire_in: 1 week
 
 "commit new plasmic code":
