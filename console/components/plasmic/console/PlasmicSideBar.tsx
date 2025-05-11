@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import TextField from "../../TextField"; // plasmic-import: GyTJhs9veKrj/component
@@ -133,15 +133,15 @@ function PlasmicSideBar__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -156,22 +156,22 @@ function PlasmicSideBar__RenderFunc(props: {
         path: "textField.value",
         type: "private",
         variableType: "text",
-        initFunc: ({ $props, $state, $queries, $ctx }) => undefined
+        initFunc: ({ $props, $state, $queries, $ctx }) => undefined,
       },
       {
         path: "activeSidebarItem",
         type: "private",
         variableType: "text",
-        initFunc: ({ $props, $state, $queries, $ctx }) => "Tableau de bord"
-      }
+        initFunc: ({ $props, $state, $queries, $ctx }) => "Tableau de bord",
+      },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx, $refs],
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs
+    $refs,
   });
 
   return (
@@ -187,7 +187,7 @@ function PlasmicSideBar__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.root
+        sty.root,
       )}
     >
       <Stack__
@@ -224,7 +224,7 @@ function PlasmicSideBar__RenderFunc(props: {
                   className={classNames(
                     projectcss.all,
                     projectcss.__wab_text,
-                    sty.text___7W2Hx
+                    sty.text___7W2Hx,
                   )}
                 >
                   {"Label"}
@@ -233,7 +233,7 @@ function PlasmicSideBar__RenderFunc(props: {
               onChange={async (...eventArgs: any) => {
                 generateStateOnChangeProp($state, ["textField", "value"]).apply(
                   null,
-                  eventArgs
+                  eventArgs,
                 );
 
                 if (
@@ -271,7 +271,7 @@ function PlasmicSideBar__RenderFunc(props: {
                   projectcss.all,
                   projectcss.a,
                   projectcss.__wab_text,
-                  sty.link__z95Q7
+                  sty.link__z95Q7,
                 )}
                 component={Link}
                 href={"https://www.plasmic.app/"}
@@ -361,7 +361,7 @@ function PlasmicSideBar__RenderFunc(props: {
               className={classNames(
                 projectcss.all,
                 projectcss.__wab_text,
-                sty.text__aGplf
+                sty.text__aGplf,
               )}
             >
               {"PROJET"}
@@ -381,7 +381,7 @@ function PlasmicSideBar__RenderFunc(props: {
                   projectcss.all,
                   projectcss.a,
                   projectcss.__wab_text,
-                  sty.link___35TtG
+                  sty.link___35TtG,
                 )}
                 component={Link}
                 href={"https://www.plasmic.app/"}
@@ -405,7 +405,7 @@ function PlasmicSideBar__RenderFunc(props: {
                   projectcss.all,
                   projectcss.a,
                   projectcss.__wab_text,
-                  sty.link__oYrVb
+                  sty.link__oYrVb,
                 )}
                 component={Link}
                 href={"https://www.plasmic.app/"}
@@ -429,7 +429,7 @@ function PlasmicSideBar__RenderFunc(props: {
                   projectcss.all,
                   projectcss.a,
                   projectcss.__wab_text,
-                  sty.link___998AI
+                  sty.link___998AI,
                 )}
                 component={Link}
                 href={"https://www.plasmic.app/"}
@@ -453,7 +453,7 @@ function PlasmicSideBar__RenderFunc(props: {
                   projectcss.all,
                   projectcss.a,
                   projectcss.__wab_text,
-                  sty.link__s6Hfv
+                  sty.link__s6Hfv,
                 )}
                 component={Link}
                 href={"https://www.plasmic.app/"}
@@ -492,7 +492,7 @@ function PlasmicSideBar__RenderFunc(props: {
                 projectcss.all,
                 projectcss.a,
                 projectcss.__wab_text,
-                sty.link___2570G
+                sty.link___2570G,
               )}
               component={Link}
               href={"https://www.plasmic.app/"}
@@ -516,7 +516,7 @@ function PlasmicSideBar__RenderFunc(props: {
                 projectcss.all,
                 projectcss.a,
                 projectcss.__wab_text,
-                sty.link___0W0QO
+                sty.link___0W0QO,
               )}
               component={Link}
               href={"https://www.plasmic.app/"}
@@ -545,7 +545,7 @@ const PlasmicDescendants = {
     "divider2",
     "projet",
     "divider3",
-    "profil"
+    "profil",
   ],
   recherche: ["recherche", "textField"],
   textField: ["textField"],
@@ -558,7 +558,7 @@ const PlasmicDescendants = {
   divider2: ["divider2"],
   projet: ["projet"],
   divider3: ["divider3"],
-  profil: ["profil"]
+  profil: ["profil"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -607,7 +607,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -615,15 +615,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicSideBar__ArgProps,
-          internalVariantPropNames: PlasmicSideBar__VariantProps
+          internalVariantPropNames: PlasmicSideBar__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicSideBar__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -654,8 +654,8 @@ export const PlasmicSideBar = Object.assign(
 
     // Metadata about props expected for PlasmicSideBar
     internalVariantProps: PlasmicSideBar__VariantProps,
-    internalArgProps: PlasmicSideBar__ArgProps
-  }
+    internalArgProps: PlasmicSideBar__ArgProps,
+  },
 );
 
 export default PlasmicSideBar;
