@@ -20,8 +20,10 @@ tokio-stream = "0.1.17"
 tonic = "0.12"
 tonic-health = "0.12"
 tonic-web = "0.12"
-tower-http = { version = "0.6", features = ["cors"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
 tower-layer = "0.3"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
 hypervisor_connector_proxmox = { path = "../hypervisor_connector_proxmox", features = [

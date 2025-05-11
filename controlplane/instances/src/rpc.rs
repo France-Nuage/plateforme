@@ -76,7 +76,9 @@ impl Instances for InstancesRpcService {
     ) -> Result<Response<StartInstanceResponse>, Status> {
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
-        self.service.start(id).await?;
+        self.service.start(id).await.inspect_err(|err| {
+            println!("error: {:?}", &err);
+        })?;
         Ok(Response::new(StartInstanceResponse {}))
     }
 
