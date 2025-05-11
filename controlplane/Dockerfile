@@ -15,10 +15,11 @@ RUN apk add --no-cache wget && \
 
 WORKDIR /app
 COPY . .
+RUN cargo build
 
 # Development Stage
 FROM base AS development
-CMD ["cargo", "run", "--bin=server"]
+CMD ["target/debug/server"]
 
 # Build Stage
 FROM base AS builder

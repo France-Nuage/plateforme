@@ -47,7 +47,7 @@ services:
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       RUST_LOG: ${RUST_LOG:-info}
       RUSTFLAGS: ${RUSTFLAGS:-}
-      SQLX_OFFLINE: ${SQLX_OFFLINE:-false}
+      SQLX_OFFLINE: ${SQLX_OFFLINE:-true}
     ports:
       - "8080:8080"
     volumes:
