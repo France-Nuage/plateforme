@@ -153,16 +153,32 @@ build:
   stage: documentation
   image: golang:1.19-alpine
   before_script:
-    - apk add --no-cache grpc-plugins protobuf-dev
+    # Installation des dépendances
+    - apk add --no-cache grpc-plugins protobuf-dev bash
+
+    # Installation de protoc-gen-doc
     - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
-    - which go
-    - ls /usr/local/go/bin/go
-    - chmod +x /usr/local/go/bin/go/bin/protoc-gen-doc
-    - export PATH=$PATH:/usr/local/go/bin/go
+
+    # Vérification de l'installation et identification du chemin exact
+    - which protoc-gen-doc || echo "Non trouvé dans PATH"
+    - find /root/go -name "protoc-gen-doc" -type f
+    - ls -la /root/go/bin/
+
+    # Rendre l'exécutable explicitement disponible et exécutable
+    - chmod +x /root/go/bin/protoc-gen-doc
+
+    # Ajouter directement au PATH pour cette session
+    - export PATH=$PATH:/root/go/bin
     - echo "PATH=$PATH"
   script:
+    # Vérification finale avant exécution
+    - which protoc-gen-doc || echo "toujours non trouvé dans PATH"
+
+    # Création du répertoire et génération de la documentation
     - mkdir -p docs
-    - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --plugin=protoc-gen-doc=$HOME/go/bin/protoc-gen-doc --doc_out=./docs --doc_opt=html,index.html  ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
+    - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --doc_out=./docs --doc_opt=html,index.html ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
+
+    # Vérification du résultat
     - ls -la ./docs
   artifacts:
     paths:
