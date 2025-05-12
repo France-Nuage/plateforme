@@ -158,14 +158,15 @@ build:
 
     # Installation de protoc-gen-doc
     - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
+    - ls /go
 
     # Vérification de l'installation et identification du chemin exact
     - which protoc-gen-doc || echo "Non trouvé dans PATH"
-    - find /root/go -name "protoc-gen-doc" -type f
-    - ls -la /root/go/bin/
+    - find /go -name "protoc-gen-doc" -type f
+    - ls -la /go/bin/
 
     # Rendre l'exécutable explicitement disponible et exécutable
-    - chmod +x /root/go/bin/protoc-gen-doc
+    - chmod +x /go/bin/protoc-gen-doc
 
     # Ajouter directement au PATH pour cette session
     - export PATH=$PATH:/root/go/bin
