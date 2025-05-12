@@ -182,7 +182,7 @@ build:
     - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --doc_out=./controlplane/docs --doc_opt=html,index.html ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
 
     # Checking the result
-    - ls -la ./controleplane/docs
+    - ls -la ./controlplane/docs
 
     # Deployment On cloudflare pages
     - echo "🚀 Déploiement sur Cloudflare Pages..."
