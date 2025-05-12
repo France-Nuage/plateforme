@@ -153,33 +153,31 @@ build:
   stage: documentation
   image: golang:1.19-alpine
   before_script:
-    # Installation des dépendances
+    # Installing dependencies
     - apk add --no-cache grpc-plugins protobuf-dev bash
 
-    # Installation de protoc-gen-doc
+    # Installing protoc-gen-doc
     - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
-    - ls /go
 
-    # Vérification de l'installation et identification du chemin exact
-    - which protoc-gen-doc || echo "Non trouvé dans PATH"
+    # Checking installation and identifying exact path
+    - which protoc-gen-doc || echo "Not found in PATH"
     - find /go -name "protoc-gen-doc" -type f
-    - ls -la /go/bin/
 
-    # Rendre l'exécutable explicitement disponible et exécutable
+    # Making the executable explicitly available and executable
     - chmod +x /go/bin/protoc-gen-doc
 
-    # Ajouter directement au PATH pour cette session
-    - export PATH=$PATH:/root/go/bin
-    - echo "PATH=$PATH"
+    # Adding directly to PATH for this session
+    - export PATH=$PATH:/go/bin
+    - echo "Current PATH = $PATH"
   script:
-    # Vérification finale avant exécution
-    - which protoc-gen-doc || echo "toujours non trouvé dans PATH"
+    # Final check before execution
+    - which protoc-gen-doc || echo "Still not found in PATH"
 
-    # Création du répertoire et génération de la documentation
+    # Creating directory and generating documentation
     - mkdir -p docs
     - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --doc_out=./docs --doc_opt=html,index.html ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
 
-    # Vérification du résultat
+    # Checking the result
     - ls -la ./docs
   artifacts:
     paths:
