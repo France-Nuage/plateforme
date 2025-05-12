@@ -153,7 +153,7 @@ build:
   stage: documentation
   image: golang:1.19-alpine
   before_script:
-    - apk add --no-cache grpc-plugins protobuf protobuf-dev
+    - apk add --no-cache grpc-plugins protobuf-dev
     - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
     - echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.bashrc
     - source ~/.bashrc
