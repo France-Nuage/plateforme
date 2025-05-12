@@ -189,6 +189,7 @@ build:
 
     # Configuring Cloudflare Authentication
     - echo "CLOUDFLARE_API_TOKEN=$CF_API_TOKEN" > .env
+    - export CLOUDFLARE_API_TOKEN="$CF_API_TOKEN"
 
     - export CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID"
 
