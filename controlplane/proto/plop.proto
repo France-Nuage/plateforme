@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+/**
+ * This is a leading comment for a message
+ */
+message SomeMessage {
+  // this is another leading comment
+  string value = 1;
+}
+
+enum MyEnum {
+  DEFAULT = 0; // the default value
+  OTHER   = 1; // the other value
+}
+
+/**
+ * @exclude
+ * This comment won't be rendered
+ */
+message ExcludedMessage {
+  string id   = 1; // the id of this message.
+  string name = 2; // @exclude the name of this message
+
+  /* @exclude the value of this message. */
+  int32 value = 3;
+}
