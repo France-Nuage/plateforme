@@ -155,11 +155,35 @@ build:
   before_script:
     - apk add --no-cache grpc-plugins protobuf-dev
     - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
-    - echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.bashrc
-    - source ~/.bashrc
+    - chmod +x /root/go/bin/protoc-gen-doc
+    - export PATH=$PATH:/root/go/bin
+    - echo "PATH=$PATH"
   script:
-    - mkdir docs
+    - mkdir -p docs
     - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --plugin=protoc-gen-doc=$HOME/go/bin/protoc-gen-doc --doc_out=./docs --doc_opt=html,index.html  ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
+    - ls -la ./docs
+  artifacts:
+    paths:
+      - docs/
+    expire_in: 1 week
+
+
+"documentation / controlplane 2":
+  stage: documentation
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - docker info
+  script:
+    - mkdir -p docs
+    # Utilisation de l'image Docker officielle de protoc-gen-doc
+    - docker run --rm
+      -v $(pwd)/docs:/out
+      -v $(pwd)/controlplane:/protos
+      pseudomuto/protoc-gen-doc
+      --doc_opt=html,index.html
+      /protos/instances/*.proto /protos/hypervisors/*.proto
     - ls -la ./docs
   artifacts:
     paths:
