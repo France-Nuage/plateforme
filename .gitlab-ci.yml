@@ -155,6 +155,7 @@ build:
   before_script:
     - apk add --no-cache grpc-plugins protobuf-dev
     - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
+    - which go
     - ls $HOME/go/bin
     - chmod +x $HOME/go/bin/protoc-gen-doc
     - export PATH=$PATH:$HOME/go/bin
