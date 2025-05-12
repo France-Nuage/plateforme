@@ -153,11 +153,12 @@ build:
   stage: documentation
   image: golang:1.19-alpine
   before_script:
-    - apk add --no-cache grpc-plugins protobuf
+    - apk add --no-cache grpc-plugins protobuf protobuf-dev
     - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
     - echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.bashrc
     - source ~/.bashrc
   script:
+    - mkdir docs
     - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --plugin=protoc-gen-doc=$HOME/go/bin/protoc-gen-doc --doc_out=./docs --doc_opt=html,index.html  ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
     - ls -la ./docs
   artifacts:
