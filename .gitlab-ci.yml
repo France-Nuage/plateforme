@@ -155,6 +155,7 @@ build:
   before_script:
     # Installing dependencies
     - apk add --no-cache grpc-plugins protobuf-dev bash
+    - apk add --update nodejs npm
 
     # Installing protoc-gen-doc
     - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
@@ -169,20 +170,42 @@ build:
     # Adding directly to PATH for this session
     - export PATH=$PATH:/go/bin
     - echo "Current PATH = $PATH"
+
+    # Installing Wrangler for Cloudflare deployment
+    - npm install -g wrangler
   script:
     # Final check before execution
     - which protoc-gen-doc || echo "Still not found in PATH"
 
     # Creating directory and generating documentation
-    - mkdir -p docs
-    - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --doc_out=./docs --doc_opt=html,index.html ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
+    - mkdir -p ./controlplane/docs
+    - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --doc_out=./controlplane/docs --doc_opt=html,index.html ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
 
     # Checking the result
-    - ls -la ./docs
-  artifacts:
-    paths:
-      - docs/
-    expire_in: 1 week
+    - ls -la ./controleplane/docs
+
+    # Deployment On cloudflare pages
+    - echo "🚀 Déploiement sur Cloudflare Pages..."
+
+    # Configuring Cloudflare Authentication
+    - echo "CLOUDFLARE_API_TOKEN=$CF_API_TOKEN" > .env
+
+    - export CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID"
+
+    - |
+      cd controlplane/docs && wrangler pages publish . \
+        --project-name "controlplane-documentation-reference" \
+        --branch ${CI_COMMIT_REF_NAME} \
+        --commit-hash ${CI_COMMIT_REF_NAME} \
+        --commit-message="Updated protobuf documentation - ${CI_COMMIT_MESSAGE}"
+      
+      # Displaying the deployment URL
+      - |
+      echo "✅ Documentation successfully deployed on:"
+      echo "🔗 https://france-nuage.com/docs/controlplane/references"
+      echo "💡 The deployment may take a few minutes to fully propagate across the Cloudflare network."
+  only:
+    - master
 
 "release":
   image: node:22-alpine
