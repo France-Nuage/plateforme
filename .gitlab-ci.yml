@@ -204,8 +204,8 @@ build:
       echo "✅ Documentation successfully deployed on:"
       echo "🔗 https://france-nuage.com/docs/controlplane/references"
       echo "💡 The deployment may take a few minutes to fully propagate across the Cloudflare network."
-  only:
-    - master
+#  only:
+#    - master
 
 "release":
   image: node:22-alpine
