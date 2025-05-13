@@ -190,11 +190,11 @@ build:
     # Configuring Cloudflare Authentication
     - cd controlplane/docs
 
-    - export CLOUDFLARE_API_TOKEN="$CF_API_TOKEN"
+    - export CLOUDFLARE_API_TOKEN=zcqpsc4kJLjP0gKMdNvUQBjPFtZ-b_qFoOZzay5l
     - export CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID"
-    - export JOB_CLOUDFLARE_API_TOKEN="$CLOUDFLARE_API_TOKEN"
+    - export JOB_CLOUDFLARE_API_TOKEN=zcqpsc4kJLjP0gKMdNvUQBjPFtZ-b_qFoOZzay5l
 
-    - echo "CLOUDFLARE_API_TOKEN=${CF_API_TOKEN}" > .env
+    - echo "CLOUDFLARE_API_TOKEN=zcqpsc4kJLjP0gKMdNvUQBjPFtZ-b_qFoOZzay5l" > .env
     - echo "CLOUDFLARE_ACCOUNT_ID=${CF_ACCOUNT_ID}" >> .env
 
     - wrangler pages deploy . --project-name "controlplane-documentation-reference" --branch ${CI_COMMIT_REF_NAME} --commit-hash ${CI_COMMIT_SHA} --commit-message="Updated protobuf documentation - ${CI_COMMIT_MESSAGE}"
