@@ -96,7 +96,7 @@ build:
   stage: system-tests
   variables:
     TARGET: release
-    NEXT_PUBLIC_CONTROLPLANE_URL: https://controlplane.france-nuage.fr
+    CONSOLE_URL: http://console
   script:
     - docker compose run system-tests npm run test:ci
   after_script:

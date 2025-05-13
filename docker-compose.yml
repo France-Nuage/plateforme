@@ -8,16 +8,18 @@ services:
       context: console
       target: ${TARGET:-development}
     depends_on:
-      - controlplane
+      controlplane:
+        condition: service_healthy
     environment:
-      NEXT_PUBLIC_CONTROLPLANE_URL: ${NEXT_PUBLIC_CONTROLPLANE_URL:-http://controlplane:8080}
+      NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "curl", "-f", "${CONSOLE_URL:-http://localhost:3000}"]
       interval: 5s
       timeout: 5s
       retries: 24
     ports:
       - "3000:3000"
+      - "80:80"
     volumes:
       - ./console:/app
       - /app/node_modules
@@ -99,8 +101,8 @@ services:
       playwright:
         condition: service_started
     environment:
-      CONSOLE_URL: http://console:3000
-      CONTROLPLANE_URL: http://controlplane:8080
+      CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
+      CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
       PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
       PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
       PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev-dc03-internal.france-nuage.fr}
