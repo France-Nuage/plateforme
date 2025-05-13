@@ -194,8 +194,8 @@ build:
 
     - cd controlplane/docs && wrangler pages deploy . --project-name "controlplane-documentation-reference" --branch ${CI_COMMIT_REF_NAME} --commit-hash ${CI_COMMIT_SHA} --commit-message="Updated protobuf documentation - ${CI_COMMIT_MESSAGE}"
       
-      # Displaying the deployment URL
-      - |
+    # Displaying the deployment URL
+    - |
       echo "✅ Documentation successfully deployed on:"
       echo "🔗 https://france-nuage.com/docs/controlplane/references"
       echo "💡 The deployment may take a few minutes to fully propagate across the Cloudflare network."
