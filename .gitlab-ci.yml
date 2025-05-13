@@ -82,15 +82,15 @@ build:
     SQLX_OFFLINE: true
   script:
     - docker compose run controlplane cargo test --workspace
-    - docker compose run controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
+    - docker compose run controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
     - >
-      docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" target/cobertura.xml"
+      docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: controlplane/target/cobertura.xml
+        path: controlplane/cobertura.xml
 
 "system tests / console":
   stage: system-tests
