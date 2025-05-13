@@ -190,8 +190,6 @@ build:
     # Configuring Cloudflare Authentication
     - cd controlplane/docs
 
-    - export CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID"
-
     - echo "CLOUDFLARE_API_TOKEN=zcqpsc4kJLjP0gKMdNvUQBjPFtZ-b_qFoOZzay5l" > .env
     - echo "CLOUDFLARE_ACCOUNT_ID=6acf4e3d4f4bc14fc68cebebd17cc1d4" >> .env
 
