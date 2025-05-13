@@ -192,12 +192,7 @@ build:
     - export CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID"
     - echo "CLOUDFLARE_API_TOKEN=$CF_API_TOKEN" > .env
 
-    - |
-      cd controlplane/docs && wrangler pages publish . \
-        --project-name "controlplane-documentation-reference" \
-        --branch ${CI_COMMIT_REF_NAME} \
-        --commit-hash ${CI_COMMIT_REF_NAME} \
-        --commit-message="Updated protobuf documentation - ${CI_COMMIT_MESSAGE}"
+    - cd controlplane/docs && wrangler pages deploy . --project-name "controlplane-documentation-reference" --branch ${CI_COMMIT_REF_NAME} --commit-hash ${CI_COMMIT_SHA} --commit-message="Updated protobuf documentation - ${CI_COMMIT_MESSAGE}"
       
       # Displaying the deployment URL
       - |
