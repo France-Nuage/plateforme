@@ -15,7 +15,7 @@ RUN apk add --no-cache wget && \
 
 WORKDIR /app
 COPY . .
-RUN cargo build
+RUN SQLX_OFFLINE=true cargo build
 
 # Development Stage
 FROM base AS development

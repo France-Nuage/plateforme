@@ -52,6 +52,7 @@ services:
       - "8080:8080"
     volumes:
       - ./controlplane:/app
+      - /app/target
       - type: volume
         source: nfs-snippets
         target: /mnt/pve/nfs-snippets
