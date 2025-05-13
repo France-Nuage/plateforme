@@ -110,6 +110,7 @@ services:
       PROXMOX_TEST_STORAGE_NAME: ${PROXMOX_TEST_STORAGE_NAME:-local-lvm}
       PROXMOX_TEST_URL: ${PROXMOX_TEST_URL:-https://pve01-test01.france-nuage.fr}
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
+      PW_TEST_HTML_REPORT_OPEN: never
     ports:
       - "9000:9000"
     profiles:
