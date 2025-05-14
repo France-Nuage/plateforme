@@ -35,4 +35,3 @@ RUN mkdir -p ./docs && \
 WORKDIR /app/docs
 
 ENTRYPOINT ["wrangler", "pages", "deploy", ".", "--project-name", "controlplane-documentation-reference"]
-CMD ["--project-name", "controlplane-documentation-reference"]
