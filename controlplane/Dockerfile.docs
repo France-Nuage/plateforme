@@ -34,5 +34,5 @@ RUN mkdir -p ./docs && \
 # Set working directory to docs for deployment
 WORKDIR /app/docs
 
-ENTRYPOINT ["wrangler", "pages", "deploy", "."]
+ENTRYPOINT ["wrangler", "pages", "deploy", ".", "--project-name", "controlplane-documentation-reference""]
 CMD ["--project-name", "controlplane-documentation-reference"]
