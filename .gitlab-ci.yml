@@ -159,10 +159,10 @@ build:
       --branch ${CI_COMMIT_REF_NAME}
       --commit-hash ${CI_COMMIT_SHA}
       --commit-message="Documentation mise à jour - ${CI_COMMIT_MESSAGE}"
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      when: on_success
-    - when: never
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#      when: on_success
+#    - when: never
 
 "release":
   image: node:22-alpine
