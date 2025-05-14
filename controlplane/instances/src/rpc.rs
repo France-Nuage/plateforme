@@ -61,7 +61,11 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<ListInstancesRequest>,
     ) -> Result<Response<ListInstancesResponse>, Status> {
-        let instances = self.service.list().await?;
+        let instances = self
+            .service
+            .list()
+            .await
+            .inspect_err(|err| println!("error: {:?}", &err))?;
 
         Ok(Response::new(ListInstancesResponse {
             instances: instances.into_iter().map(Into::into).collect(),

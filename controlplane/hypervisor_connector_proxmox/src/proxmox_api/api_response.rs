@@ -56,6 +56,23 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
                 }
                 Err(super::problem::Problem::Internal { response })
             }
+            reqwest::StatusCode::FOUND => {
+                let location = response
+                    .headers()
+                    .get(reqwest::header::LOCATION)
+                    .expect("a 302 response should have a location header")
+                    .to_str()
+                    .expect("a location header value should be parsable to a string");
+                let url = url::Url::parse(location)
+                    .expect("a location string should be parsable into a url");
+                let host = url.host_str().expect("a Url should have a host");
+
+                if host.ends_with("cloudflareaccess.com") {
+                    Err(Problem::GuardedByCloudflare)
+                } else {
+                    Err(Problem::UnexpectedRedirect(url))
+                }
+            }
             reqwest::StatusCode::UNAUTHORIZED => Err(Problem::Unauthorized),
             _ => panic!("Unexpected response status: {:?}", response.status()),
         }
