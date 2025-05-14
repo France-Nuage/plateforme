@@ -1,5 +1,6 @@
 # Define the pipeline stages
 stages:
+  - documentation
   - security
   - sync
   - build
@@ -7,7 +8,6 @@ stages:
   - unit-tests
   - system-tests
   - commit
-  - documentation
   - release
   - deploy
 
@@ -149,57 +149,20 @@ build:
 
 "documentation / controlplane":
   stage: documentation
-  image: golang:1.19-alpine
-  before_script:
-    # Installing dependencies
-    - apk add --no-cache grpc-plugins protobuf-dev bash
-    - apk add --update nodejs npm
-
-    # Installing protoc-gen-doc
-    - go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
-
-    # Checking installation and identifying exact path
-    - which protoc-gen-doc || echo "Not found in PATH"
-    - find /go -name "protoc-gen-doc" -type f
-
-    # Making the executable explicitly available and executable
-    - chmod +x /go/bin/protoc-gen-doc
-
-    # Adding directly to PATH for this session
-    - export PATH=$PATH:/go/bin
-    - echo "Current PATH = $PATH"
-
-    # Installing Wrangler for Cloudflare deployment
-    - npm install -g wrangler
   script:
-    # Final check before execution
-    - which protoc-gen-doc || echo "Still not found in PATH"
-
-    # Creating directory and generating documentation
-    - mkdir -p ./controlplane/docs
-    - protoc -I ./controlplane/instances/ -I ./controlplane/hypervisors/ --doc_out=./controlplane/docs --doc_opt=html,index.html ./controlplane/instances/*.proto ./controlplane/hypervisors/*.proto
-
-    # Checking the result
-    - ls -la ./controlplane/docs
-
-    # Deployment On cloudflare pages
-    - echo "🚀 Deployment on Cloudflare Pages..."
-
-    # Configuring Cloudflare Authentication
-    - cd controlplane/docs
-
-    - echo "CLOUDFLARE_API_TOKEN=$CF_API_TOKEN" > .env
-    - echo "CLOUDFLARE_ACCOUNT_ID=$CF_ACCOUNT_ID" >> .env
-
-    - wrangler pages deploy . --project-name "controlplane-documentation-reference" --branch ${CI_COMMIT_REF_NAME} --commit-hash ${CI_COMMIT_SHA} --commit-message="Updated protobuf documentation - ${CI_COMMIT_MESSAGE}"
-      
-    # Displaying the deployment URL
-    - |
-      echo "✅ Documentation successfully deployed on:"
-      echo "🔗 https://france-nuage.com/docs/controlplane/references"
-      echo "💡 The deployment may take a few minutes to fully propagate across the Cloudflare network."
-  only:
-    - master
+    - docker build -f controlplane/Dockerfile.docs -t ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG} controlplane
+    - >
+      docker run 
+      -e CLOUDFLARE_API_TOKEN=$CF_API_TOKEN 
+      -e CLOUDFLARE_ACCOUNT_ID=$CF_ACCOUNT_ID 
+      ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG}
+      --branch ${CI_COMMIT_REF_NAME}
+      --commit-hash ${CI_COMMIT_SHA}
+      --commit-message="Documentation mise à jour - ${CI_COMMIT_MESSAGE}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
 
 "release":
   image: node:22-alpine
