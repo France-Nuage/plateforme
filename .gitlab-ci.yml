@@ -16,8 +16,7 @@ image: docker:27-cli
 
 # Define the docker-dind service that is started for each job
 services:
-  dind:
-    - name: docker:27-dind
+  - dind
 
 # Define the preliminary scripts to run before every job
 before_script:
