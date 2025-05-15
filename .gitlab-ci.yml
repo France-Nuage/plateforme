@@ -13,6 +13,8 @@ stages:
 
 # Define the default image
 image: docker:27-cli
+variables:
+  DOCKER_HOST: tcp://127.0.0.1:2376
 
 # Define the docker-dind service that is started for each job
 services:
