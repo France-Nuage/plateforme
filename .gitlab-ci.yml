@@ -57,7 +57,6 @@ gitleaks:
 build:
   stage: build
   script:
-    - sleep 3600
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
