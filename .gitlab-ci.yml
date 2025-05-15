@@ -1,11 +1,11 @@
 # Define the pipeline stages
 stages:
-  - system-tests
   - security
   - sync
   - build
   - code-style
   - unit-tests
+  - system-tests
   - commit
   - documentation
   - release
@@ -17,7 +17,6 @@ image: docker:27-cli
 # Define the docker-dind service that is started for each job
 services:
   - name: docker:27-dind
-    command: ["dockerd", "--network=host"]
 
 # Define the preliminary scripts to run before every job
 before_script:
