@@ -1,0 +1,37 @@
+# Dockerfile for documentation generation
+FROM golang:1.19-alpine
+
+# Install dependencies
+RUN apk add --no-cache \
+    grpc-plugins \
+    protobuf-dev \
+    bash \
+    nodejs \
+    npm
+
+# Install protoc-gen-doc
+RUN go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
+
+# Install Wrangler for Cloudflare deployment
+RUN npm install -g wrangler
+
+WORKDIR /app
+
+# Copy only proto files needed for documentation
+COPY ./instances/ ./instances/
+COPY ./hypervisors/ ./hypervisors/
+
+# Set executable permissions
+RUN chmod +x /go/bin/protoc-gen-doc
+
+# Generate documentation
+RUN mkdir -p ./docs && \
+    protoc -I ./instances/ -I ./hypervisors/ \
+    --doc_out=./docs \
+    --doc_opt=html,index.html \
+    ./instances/*.proto ./hypervisors/*.proto
+
+# Set working directory to docs for deployment
+WORKDIR /app/docs
+
+ENTRYPOINT ["wrangler", "pages", "deploy", ".", "--project-name", "controlplane-documentation-reference"]
