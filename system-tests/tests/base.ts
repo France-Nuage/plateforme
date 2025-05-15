@@ -74,6 +74,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    */
   hypervisor: [async ({ grpc }, use) => {
     // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
+    console.log('sleeping for having time to debug');
+    await new Promise((resolve) => setTimeout(resolve, 60 * 60 * 1000));
     console.log('retrieving or registering dev hypervisor...');
     let devHypervisor = await grpc.hypervisors.listHypervisors({}).response.then(({ hypervisors }) => hypervisors.find((hypervisor) => hypervisor.url === process.env.PROXMOX_DEV_URL));
     if (!devHypervisor) {
