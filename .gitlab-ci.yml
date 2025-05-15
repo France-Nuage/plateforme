@@ -12,7 +12,7 @@ stages:
   - deploy
 
 # Define the default image
-image: docker:27-cli
+image: docker:27-dind
 variables:
   DOCKER_HOST: tcp://127.0.0.1:2376
 
