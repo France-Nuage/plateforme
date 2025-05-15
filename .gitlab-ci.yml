@@ -1,8 +1,8 @@
 # Define the pipeline stages
 stages:
+  - build
   - security
   - sync
-  - build
   - code-style
   - unit-tests
   - system-tests
@@ -16,7 +16,8 @@ image: docker:27-cli
 
 # Define the docker-dind service that is started for each job
 services:
-  - name: docker:27-dind
+  dind:
+    - name: docker:27-dind
 
 # Define the preliminary scripts to run before every job
 before_script:
@@ -57,6 +58,7 @@ gitleaks:
 build:
   stage: build
   script:
+    - sleep 3600
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
 
