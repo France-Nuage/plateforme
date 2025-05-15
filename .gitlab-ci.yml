@@ -16,12 +16,10 @@ image: docker:27-cli
 variables:
   DOCKER_HOST: tcp://127.0.0.1:2376
 
-# Define the docker-dind service that is started for each job
-services:
-  - name: docker:27-dind
-
 # Define the preliminary scripts to run before every job
 before_script:
+  - dockerd-entrypoint.sh --host=tcp://127.0.0.1:2376 &
+  - sleep 5  # attendre que dockerd soit prêt
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 gitleaks:
