@@ -7,6 +7,7 @@ stages:
   - unit-tests
   - system-tests
   - commit
+  - documentation
   - release
   - deploy
 
@@ -145,6 +146,23 @@ build:
     - when: never
   dependencies:
     - "sync console with plasmic"
+
+"documentation / controlplane":
+  stage: documentation
+  script:
+    - docker build -f controlplane/Dockerfile.docs -t ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG} controlplane
+    - >
+      docker run 
+      -e CLOUDFLARE_API_TOKEN=$CF_API_TOKEN 
+      -e CLOUDFLARE_ACCOUNT_ID=$CF_ACCOUNT_ID 
+      ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG}
+      --branch ${CI_COMMIT_REF_NAME}
+      --commit-hash ${CI_COMMIT_SHA}
+      --commit-message="Documentation mise à jour - ${CI_COMMIT_MESSAGE}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
 
 "release":
   image: node:22-alpine
