@@ -19,8 +19,11 @@ pub enum Problem {
     #[error("No hypervisors are available.")]
     NoHypervisorsAvaible,
 
-    #[error("other")]
+    #[error("Other")]
     Other(Box<dyn std::error::Error + Send + Sync>),
+
+    #[error("Unexpected instance status, got '{0}'")]
+    UnexpectedInstanceStatus(String),
 }
 
 /// Converts a `hypervisor_connector::Problem` into a `instance::Problem`.
@@ -47,7 +50,7 @@ impl From<hypervisors::Problem> for Problem {
     fn from(value: hypervisors::Problem) -> Self {
         match &value {
             hypervisors::Problem::NotFound(id) => Problem::HypervisorNotFound(id.to_owned()),
-            hypervisors::Problem::Other { source: _ } => Problem::Other(Box::new(value)),
+            _ => Problem::Other(Box::new(value)),
         }
     }
 }

@@ -11,6 +11,10 @@ service Hypervisors {
     // RegisterHypervisor adds a new hypervisor to the system.
     // Returns an empty response on success or a ProblemDetails on failure.
     rpc RegisterHypervisor (RegisterHypervisorRequest) returns (RegisterHypervisorResponse);
+
+    // DetachHypervisor removes a hypervisor from the system.
+    // Returns an empty response on success or a ProblemDetails on failure.
+    rpc DetachHypervisor (DetachHypervisorRequest) returns (DetachHypervisorResponse);
 }
 
 // ListHypervisorsRequest is an empty message for listing hypervisors.
@@ -38,7 +42,16 @@ message RegisterHypervisorRequest {
 message RegisterHypervisorResponse {
     // The registered hypervisor.
     Hypervisor hypervisor = 1;
-  }
+}
+
+// DetachHypervisorRequest contains the necessary information to detach a hypervisor.
+message DetachHypervisorRequest {
+    // Id of the hypervisor
+    string id = 1;
+}
+
+// DetachHypervisorResponse contains the result of a DetachHypervisor operation.
+message DetachHypervisorResponse {}
 
 // Hypervisor represents a virtualization platform that can host instances.
 message Hypervisor {

@@ -8,11 +8,18 @@ services:
       context: console
       target: ${TARGET:-development}
     depends_on:
-      - controlplane
+      controlplane:
+        condition: service_healthy
     environment:
-      NEXT_PUBLIC_CONTROLPLANE_URL: ${NEXT_PUBLIC_CONTROLPLANE_URL:-http://controlplane:8080}
+      NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "${CONSOLE_URL:-http://localhost:3000}"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
     ports:
-      - "5173:5173"
+      - "3000:3000"
+      - "80:80"
     volumes:
       - ./console:/app
       - /app/node_modules
@@ -28,23 +35,26 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:8080"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
-      CONSOLE_URL: ${CONSOLE_URL:-http://console:5173}
+      CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
-      PROXMOX_API_URL: ${PROXMOX_API_URL:-https://pvedev-dc03-internal.france-nuage.fr}
-      PROXMOX_AUTHORIZATION_HEADER: ${PROXMOX_AUTHORIZATION_HEADER}
-      PROXMOX_IMAGE_STORAGE: CephPool
-      PROXMOX_SNIPPETS_STORAGE: CephPool
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
+      RUST_LOG: ${RUST_LOG:-info}
       RUSTFLAGS: ${RUSTFLAGS:-}
-      SQLX_OFFLINE: ${SQLX_OFFLINE:-false}
+      SQLX_OFFLINE: ${SQLX_OFFLINE:-true}
     ports:
       - "8080:8080"
     volumes:
       - ./controlplane:/app
+      - /app/target
       - type: volume
         source: nfs-snippets
         target: /mnt/pve/nfs-snippets
@@ -84,11 +94,23 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:master
       context: system-tests
     depends_on:
-      - console
-      - playwright
+      console:
+        condition: service_healthy
+      controlplane:
+        condition: service_healthy
+      playwright:
+        condition: service_started
     environment:
-      CONSOLE_URL: http://console
+      CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
+      CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
+      PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
+      PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
+      PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev-dc03-internal.france-nuage.fr}
+      PROXMOX_TEST_AUTHORIZATION_TOKEN: ${PROXMOX_TEST_AUTHORIZATION_TOKEN}
+      PROXMOX_TEST_STORAGE_NAME: ${PROXMOX_TEST_STORAGE_NAME:-local-lvm}
+      PROXMOX_TEST_URL: ${PROXMOX_TEST_URL:-https://pve01-test01.france-nuage.fr}
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
+      PW_TEST_HTML_REPORT_OPEN: never
     ports:
       - "9000:9000"
     profiles:

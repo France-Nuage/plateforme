@@ -54,6 +54,8 @@ async fn test_the_create_instance_procedure_works(
         CreateInstanceResponse {
             instance: Some(instances::v1::Instance {
                 id: instance.id.to_string(),
+                created_at: Some(prost_types::Timestamp::default()),
+                updated_at: Some(prost_types::Timestamp::default()),
                 ..Default::default()
             })
         }

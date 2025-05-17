@@ -7,7 +7,13 @@ use std::net::SocketAddr;
 use tokio::sync::oneshot;
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic::transport::Server as TonicServer;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::{
+    classify::{GrpcErrorsAsFailures, SharedClassifier},
+    cors::{Any, CorsLayer},
+    trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
+};
+use tower_layer::{Identity, Stack};
+use tracing::Level;
 
 /// Provide a gRPC tonic server.
 ///
@@ -17,7 +23,18 @@ use tower_http::cors::{Any, CorsLayer};
 pub struct Server {
     pub addr: SocketAddr,
     pub router: tonic::transport::server::Router<
-        tower_layer::Stack<tower_http::cors::CorsLayer, tower_layer::Identity>,
+        Stack<
+            tower_http::cors::CorsLayer,
+            Stack<
+                TraceLayer<
+                    SharedClassifier<GrpcErrorsAsFailures>,
+                    DefaultMakeSpan,
+                    DefaultOnRequest,
+                    DefaultOnResponse,
+                >,
+                Identity,
+            >,
+        >,
     >,
 }
 
@@ -32,6 +49,18 @@ impl Server {
                 .local_addr()?,
         };
 
+        let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
+        health_reporter
+            .set_serving::<HypervisorsServer<HypervisorsRpcService>>()
+            .await;
+        health_reporter
+            .set_serving::<InstancesServer<InstancesRpcService>>()
+            .await;
+
+        let hypervisors_service =
+            HypervisorsServer::new(HypervisorsRpcService::new(config.pool.clone()));
+        let instances_service = InstancesServer::new(InstancesRpcService::new(config.pool.clone()));
+
         let cors = CorsLayer::new()
             .allow_origin(
                 config
@@ -42,16 +71,18 @@ impl Server {
             )
             .allow_methods(Any)
             .allow_headers(Any);
+
+        let trace = TraceLayer::new_for_grpc()
+            .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+            .on_response(DefaultOnResponse::new().level(Level::INFO));
         // Create the tonic router
         let server = TonicServer::builder().accept_http1(true);
         let router = server
+            .layer(trace)
             .layer(cors)
-            .add_service(tonic_web::enable(InstancesServer::new(
-                InstancesRpcService::new(config.pool.clone()),
-            )))
-            .add_service(tonic_web::enable(HypervisorsServer::new(
-                HypervisorsRpcService::new(config.pool.clone()),
-            )));
+            .add_service(health_service)
+            .add_service(tonic_web::enable(hypervisors_service))
+            .add_service(tonic_web::enable(instances_service));
 
         // Return a Server instance
         Ok(Server { addr, router })

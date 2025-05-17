@@ -41,3 +41,10 @@ pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Hypervisor, Problem> 
             }
         })
 }
+
+pub async fn delete(pool: &sqlx::PgPool, id: Uuid) -> Result<(), Problem> {
+    sqlx::query!("DELETE FROM hypervisors WHERE id = $1", &id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}

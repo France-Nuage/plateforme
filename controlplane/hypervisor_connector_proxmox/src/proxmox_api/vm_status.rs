@@ -8,6 +8,9 @@ pub enum VMStatus {
 
     #[serde(rename = "stopped")]
     Stopped,
+
+    #[serde(rename = "unknown")]
+    Unknown,
 }
 
 impl From<VMStatus> for InstanceStatus {
@@ -15,6 +18,7 @@ impl From<VMStatus> for InstanceStatus {
         match value {
             VMStatus::Running => InstanceStatus::Running,
             VMStatus::Stopped => InstanceStatus::Stopped,
+            VMStatus::Unknown => InstanceStatus::Unknown,
         }
     }
 }

@@ -10,6 +10,13 @@
 /// be used by different virtualization platforms, mapping them to a consistent set
 /// of states that can be used throughout the application.
 pub enum InstanceStatus {
+    /// Instance status is unknown.
+    ///
+    /// The instance exists but its status is unknown. Its configuration is preserved,
+    /// but it is not consuming compute resources or able to process workloads.
+    /// This corresponds to the UNDEFINED_INSTANCE_STATUS (0) state in the protocol specification.
+    Unknown,
+
     /// Instance is active and operational.
     ///
     /// The instance is running, consuming resources, and able to process workloads.

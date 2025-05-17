@@ -6,6 +6,6 @@ export class ComputePage extends BasePage {
    * @inheritdoc
    */
   public constructor(page: Page) {
-    super(page, "/compute");
+    super(page, "/compute/");
   }
 }

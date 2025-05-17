@@ -2,9 +2,10 @@ use crate::{
     problem::Problem,
     service::InstancesService,
     v1::{
-        CloneInstanceRequest, CreateInstanceRequest, CreateInstanceResponse, Instance,
-        ListInstancesRequest, ListInstancesResponse, StartInstanceRequest, StartInstanceResponse,
-        StopInstanceRequest, StopInstanceResponse, instances_server::Instances,
+        CloneInstanceRequest, CreateInstanceRequest, CreateInstanceResponse, DeleteInstanceRequest,
+        DeleteInstanceResponse, Instance, ListInstancesRequest, ListInstancesResponse,
+        StartInstanceRequest, StartInstanceResponse, StopInstanceRequest, StopInstanceResponse,
+        instances_server::Instances,
     },
 };
 use sqlx::PgPool;
@@ -30,6 +31,18 @@ impl Instances for InstancesRpcService {
         }))
     }
 
+    #[doc = " DeleteInstance deletes a given instance."]
+    #[doc = " Returns an empty message or a ProblemDetails on failure."]
+    async fn delete_instance(
+        &self,
+        request: tonic::Request<DeleteInstanceRequest>,
+    ) -> std::result::Result<tonic::Response<DeleteInstanceResponse>, tonic::Status> {
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+        self.service.delete(id).await?;
+        Ok(Response::new(DeleteInstanceResponse {}))
+    }
+
     #[doc = " CloneInstance provisions a new instance based on a given existing instance."]
     #[doc = " Returns the cloned instance."]
     async fn clone_instance(
@@ -48,7 +61,11 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<ListInstancesRequest>,
     ) -> Result<Response<ListInstancesResponse>, Status> {
-        let instances = self.service.list().await?;
+        let instances = self
+            .service
+            .list()
+            .await
+            .inspect_err(|err| println!("error: {:?}", &err))?;
 
         Ok(Response::new(ListInstancesResponse {
             instances: instances.into_iter().map(Into::into).collect(),
@@ -97,7 +114,7 @@ mod tests {
     };
     use hypervisor_connector_proxmox::mock::{
         MockServer, WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock,
-        WithVMCloneMock, WithVMStatusStartMock, WithVMStatusStopMock,
+        WithVMCloneMock, WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
     };
     use hypervisors::Hypervisor;
 
@@ -164,12 +181,49 @@ mod tests {
     }
 
     #[sqlx::test(migrations = "../migrations")]
+    async fn test_delete_instance_works(pool: sqlx::PgPool) {
+        // Arrange a service and a request for the start_instance procedure
+        let server = MockServer::new()
+            .await
+            .with_cluster_resource_list()
+            .with_vm_delete()
+            .with_task_status_read();
+        let hypervisor = Hypervisor {
+            url: server.url(),
+            ..Default::default()
+        };
+        hypervisors::repository::create(&pool, &hypervisor)
+            .await
+            .expect("could not create hypervisor");
+
+        let instance = Instance {
+            hypervisor_id: hypervisor.id,
+            distant_id: String::from("100"),
+            ..Default::default()
+        };
+        crate::repository::create(&pool, &instance)
+            .await
+            .expect("could not create instance");
+        let service = InstancesRpcService::new(pool);
+
+        // Act the call to the start_instance procedure
+        let request = Request::new(DeleteInstanceRequest {
+            id: instance.id.to_string(),
+        });
+        let result = service.delete_instance(request).await;
+
+        // Assert the procedure result
+        assert!(result.is_ok());
+    }
+
+    #[sqlx::test(migrations = "../migrations")]
     async fn test_start_instance_works(pool: sqlx::PgPool) {
         // Arrange a service and a request for the start_instance procedure
         let server = MockServer::new()
             .await
-            .with_vm_status_start()
-            .with_cluster_resource_list();
+            .with_cluster_resource_list()
+            .with_task_status_read()
+            .with_vm_status_start();
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
@@ -203,8 +257,9 @@ mod tests {
         // Arrange a service and a request for the start_instance procedure
         let server = MockServer::new()
             .await
-            .with_vm_status_stop()
-            .with_cluster_resource_list();
+            .with_cluster_resource_list()
+            .with_task_status_read()
+            .with_vm_status_stop();
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()

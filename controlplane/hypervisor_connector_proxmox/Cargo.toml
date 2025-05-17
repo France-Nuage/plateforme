@@ -18,7 +18,7 @@ serde_with = { version = "3.12" }
 thiserror = "2.0"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 tokio-retry = "0.3"
+url = "2.0"
 
 [dev-dependencies]
 mockito = "1.6.0"
-

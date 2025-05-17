@@ -1,10 +1,14 @@
 use super::api_response::{ApiInternalErrorResponse, ApiInvalidResponse};
 use thiserror::Error;
+use url::Url;
 
 #[derive(Debug, Error)]
 pub enum Problem {
     #[error("Proxmox Connectivity Error: {0:?}")]
     Connectivity(#[from] reqwest::Error),
+
+    #[error("The resource is guarded by Cloudflare")]
+    GuardedByCloudflare,
 
     #[error("Proxmox Internal Server Error: {}", .response.message)]
     Internal { response: ApiInternalErrorResponse },
@@ -20,6 +24,9 @@ pub enum Problem {
 
     #[error("Proxmox Unauthorized Error")]
     Unauthorized,
+
+    #[error("Unexpected redirect: #{0}")]
+    UnexpectedRedirect(Url),
 
     #[error("Proxmox VM Not Found: {0}")]
     VMNotFound(u32),

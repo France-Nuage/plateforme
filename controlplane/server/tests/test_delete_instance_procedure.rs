@@ -1,15 +1,15 @@
 use hypervisor_connector_proxmox::mock::{
-    MockServer, WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStartMock,
+    MockServer, WithClusterResourceList, WithTaskStatusReadMock, WithVMDeleteMock,
 };
 use hypervisors::Hypervisor;
 use instances::{
     Instance,
-    v1::{StartInstanceRequest, instances_client::InstancesClient},
+    v1::{DeleteInstanceRequest, instances_client::InstancesClient},
 };
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_the_start_instance_procedure_works(
+async fn test_the_clone_instance_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
@@ -17,7 +17,8 @@ async fn test_the_start_instance_procedure_works(
         .await
         .with_cluster_resource_list()
         .with_task_status_read()
-        .with_vm_status_start();
+        .with_vm_delete();
+
     let hypervisor = Hypervisor {
         url: mock.url(),
         ..Default::default()
@@ -42,7 +43,7 @@ async fn test_the_start_instance_procedure_works(
 
     // Act the request to the test_the_status_procedure_works
     let response = client
-        .start_instance(StartInstanceRequest {
+        .delete_instance(DeleteInstanceRequest {
             id: instance.id.to_string(),
         })
         .await;

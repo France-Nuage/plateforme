@@ -3,6 +3,7 @@ syntax = "proto3";
 package francenuage.fr.api.controlplane.v1.instances;
 
 import "validate.proto";
+import "google/protobuf/timestamp.proto";
 
 // Instances service provides operations to manage instances.
 service Instances {
@@ -17,6 +18,10 @@ service Instances {
     // CreateInstance provisions a new instance based on the specified configuration.
     // Returns details of the newly created instance or a ProblemDetails on failure.
     rpc CreateInstance (CreateInstanceRequest) returns (CreateInstanceResponse);
+
+    // DeleteInstance deletes a given instance.
+    // Returns an empty message or a ProblemDetails on failure.
+    rpc DeleteInstance (DeleteInstanceRequest) returns (DeleteInstanceResponse);
 
     // StartInstance initiates a specific instance identified by its unique ID.
     // Returns a response indicating success or a ProblemDetails on failure.
@@ -84,6 +89,13 @@ message Instance {
 
     // Human-readable name, defined on the instance
     string name = 7;
+
+    // Creation time of the instance
+    google.protobuf.Timestamp created_at = 10;
+
+    // Time of the instance last change
+    google.protobuf.Timestamp updated_at = 11;
+
 }
 
 // InstanceStatus represents the possible states of a virtual machine instance.
@@ -130,6 +142,19 @@ message ListInstancesResponse {
     // List of instance details
     repeated Instance instances = 1;
 }
+
+// DeleteInstanceRequest defines the parameters needed to delete an existing instance.
+message DeleteInstanceRequest {
+    // The id of the instance to clone.
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
+}
+
+// DeleteInstanceResponse contains the result of a DeleteInstance operation.
+message DeleteInstanceResponse {}
 
 // CloneInstanceRequest defines the parameters needed to clone an existing instance.
 message CloneInstanceRequest {

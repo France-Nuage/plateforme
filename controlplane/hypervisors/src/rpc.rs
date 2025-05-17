@@ -4,15 +4,18 @@
 //! handling requests to list and register hypervisors.
 
 use crate::{
+    Problem,
     model::Hypervisor,
     repository,
     v1::{
-        ListHypervisorsRequest, ListHypervisorsResponse, RegisterHypervisorRequest,
-        RegisterHypervisorResponse, hypervisors_server::Hypervisors,
+        DetachHypervisorRequest, DetachHypervisorResponse, ListHypervisorsRequest,
+        ListHypervisorsResponse, RegisterHypervisorRequest, RegisterHypervisorResponse,
+        hypervisors_server::Hypervisors,
     },
 };
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
+use uuid::Uuid;
 
 /// Implementation of the Hypervisors gRPC service.
 ///
@@ -77,6 +80,31 @@ impl Hypervisors for HypervisorsRpcService {
 
         Ok(Response::new(ListHypervisorsResponse { hypervisors }))
     }
+
+    /// Detaches a new hypervisor in the system.
+    ///
+    /// This method detaches the hypervisor from the controlplane, removing
+    /// its info from the database without deleting the concrete hypervisor.
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - Contains the hypervisor details to be detached
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Response<DetachHypervisorResponse>)` - On successful registration
+    /// * `Err(Status)` - If operation fails, with appropriate status code
+    async fn detach_hypervisor(
+        &self,
+        request: Request<DetachHypervisorRequest>,
+    ) -> Result<Response<DetachHypervisorResponse>, Status> {
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedHypervisorId(id))?;
+
+        repository::delete(&self.pool, id).await?;
+
+        Ok(Response::new(DetachHypervisorResponse {}))
+    }
 }
 
 impl HypervisorsRpcService {
@@ -96,8 +124,12 @@ impl HypervisorsRpcService {
 
 #[cfg(test)]
 mod tests {
-    use crate::v1::{
-        ListHypervisorsRequest, RegisterHypervisorRequest, hypervisors_server::Hypervisors,
+    use crate::{
+        Hypervisor, repository,
+        v1::{
+            DetachHypervisorRequest, ListHypervisorsRequest, RegisterHypervisorRequest,
+            hypervisors_server::Hypervisors,
+        },
     };
     use tonic::Request;
 
@@ -131,5 +163,23 @@ mod tests {
         assert!(result.is_ok());
         let response = result.unwrap().into_inner();
         assert_eq!(response.hypervisors.len(), 0);
+    }
+
+    #[sqlx::test(migrations = "../migrations")]
+    async fn test_detach_hypervisor_works(pool: sqlx::PgPool) {
+        // Arrange a service
+        let hypervisor = Hypervisor::default();
+        repository::create(&pool, &hypervisor).await.unwrap();
+        let service = HypervisorsRpcService::new(pool);
+
+        // Act the call to the detach_hypervisor procedure
+        let result = service
+            .detach_hypervisor(Request::new(DetachHypervisorRequest {
+                id: hypervisor.id.to_string(),
+            }))
+            .await;
+
+        // Assert the procedure result
+        assert!(result.is_ok());
     }
 }

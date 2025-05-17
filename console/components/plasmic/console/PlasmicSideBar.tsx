@@ -299,6 +299,7 @@ function PlasmicSideBar__RenderFunc(props: {
                 data-plasmic-name={"tableauDeBord"}
                 data-plasmic-override={overrides.tableauDeBord}
                 className={classNames("__wab_instance", sty.tableauDeBord)}
+                link={`/`}
                 nom={"Tableau de bord"}
               >
                 <HomeIcon
@@ -312,6 +313,7 @@ function PlasmicSideBar__RenderFunc(props: {
                 data-plasmic-name={"equipes2"}
                 data-plasmic-override={overrides.equipes2}
                 className={classNames("__wab_instance", sty.equipes2)}
+                link={`/`}
                 nom={"\u00c9quipes"}
               />
             </div>
@@ -320,6 +322,7 @@ function PlasmicSideBar__RenderFunc(props: {
                 data-plasmic-name={"plan"}
                 data-plasmic-override={overrides.plan}
                 className={classNames("__wab_instance", sty.plan)}
+                link={`/`}
                 nom={"Plan et facturation"}
               >
                 <FactureIcon
@@ -332,6 +335,7 @@ function PlasmicSideBar__RenderFunc(props: {
               data-plasmic-name={"parametre"}
               data-plasmic-override={overrides.parametre}
               className={classNames("__wab_instance", sty.parametre)}
+              link={`/`}
               nom={"Param\u00e8tres g\u00e9n\u00e9raux"}
             >
               <SettingsIcon

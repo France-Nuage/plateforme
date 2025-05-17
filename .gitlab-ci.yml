@@ -1,8 +1,8 @@
 # Define the pipeline stages
 stages:
+  - build
   - security
   - sync
-  - build
   - code-style
   - unit-tests
   - system-tests
@@ -12,14 +12,14 @@ stages:
   - deploy
 
 # Define the default image
-image: docker:27-cli
-
-# Define the docker-dind service that is started for each job
-services:
-  - name: docker:27-dind
+image: docker:27-dind
 
 # Define the preliminary scripts to run before every job
 before_script:
+  - export DOCKER_PORT=$((20000 + $CI_JOB_ID % 10000)) # random port for dind exec in ||
+  - export DOCKER_HOST=tcp://127.0.0.1:$DOCKER_PORT
+  - dockerd-entrypoint.sh --host=tcp://127.0.0.1:$DOCKER_PORT &
+  - sleep 5  # attendre que dockerd soit prêt
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 gitleaks:
@@ -83,27 +83,30 @@ build:
     SQLX_OFFLINE: true
   script:
     - docker compose run controlplane cargo test --workspace
-    - docker compose run controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/cobertura.xml
+    - docker compose run controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
     - >
-      docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" target/cobertura.xml"
+      docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: controlplane/target/cobertura.xml
+        path: controlplane/cobertura.xml
 
 "system tests / console":
   stage: system-tests
   variables:
     TARGET: release
-    NEXT_PUBLIC_CONTROLPLANE_URL: https://controlplane.france-nuage.fr
+    CONSOLE_URL: http://console
   script:
     - docker compose run system-tests npm run test:ci
+  after_script:
+    - docker compose logs > docker-compose-logs.txt
   artifacts:
     when: always
     paths:
       - system-tests/playwright-report/
+      - docker-compose-logs.txt
     expire_in: 1 week
 
 "commit new plasmic code":

@@ -13,6 +13,9 @@ use uuid::Uuid;
 /// with appropriate error messages and source error information.
 #[derive(Debug, Error)]
 pub enum Problem {
+    #[error("The given hypervisor id #{0} could not be parsed into a valid uuid.")]
+    MalformedHypervisorId(String),
+
     /// Error returned when a requested hypervisor cannot be found.
     #[error("hypervisor not found")]
     NotFound(Uuid),

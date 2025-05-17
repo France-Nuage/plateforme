@@ -16,7 +16,10 @@ pub fn resolve(
 pub fn resolve_for_hypervisor(hypervisor: &Hypervisor) -> impl InstanceService {
     hypervisor_connector_proxmox::ProxmoxInstanceService {
         api_url: hypervisor.url.clone(),
-        client: reqwest::Client::new(),
+        client: reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .unwrap(),
         authorization: hypervisor.authorization_token.clone(),
     }
 }
