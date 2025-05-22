@@ -6,7 +6,6 @@ const nextConfig = {
     dirs: ["features", "fixtures", "hooks", "providers", "services", "types"],
   },
   trailingSlash: true,
-  reactStrictMode: true,
 };
 
 export default nextConfig;

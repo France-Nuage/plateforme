@@ -5,3 +5,4 @@ export * from "./instance.interface";
 export * from "./instance.mock";
 export * from "./instance.rpc";
 export * from "./resolver";
+export * from "./user-manager";

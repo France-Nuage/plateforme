@@ -1,11 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { applicationSlice, hypervisorsSlice, instancesSlice } from "@/features";
+import { applicationSlice, authenticationSlice, hypervisorsSlice, instancesSlice } from "@/features";
 import { createWrapper } from "next-redux-wrapper";
 
 const makeStore = () =>
   configureStore({
     reducer: {
       [applicationSlice.name]: applicationSlice.reducer,
+      [authenticationSlice.name]: authenticationSlice.reducer,
       [hypervisorsSlice.name]: hypervisorsSlice.reducer,
       [instancesSlice.name]: instancesSlice.reducer,
     },
