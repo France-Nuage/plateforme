@@ -2,10 +2,10 @@ import { UserManager } from "oidc-client-ts";
 
 // Validate required environment variables
 const requiredEnvVars = [
-  'NEXT_PUBLIC_CONSOLE_URL',
-  'NEXT_PUBLIC_OIDC_CLIENT_ID',
-  'NEXT_PUBLIC_OIDC_PROVIDER_NAME',
-  'NEXT_PUBLIC_OIDC_PROVIDER_URL',
+  "NEXT_PUBLIC_CONSOLE_URL",
+  "NEXT_PUBLIC_OIDC_CLIENT_ID",
+  "NEXT_PUBLIC_OIDC_PROVIDER_NAME",
+  "NEXT_PUBLIC_OIDC_PROVIDER_URL",
 ];
 
 for (const envVar of requiredEnvVars) {
