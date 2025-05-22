@@ -12,7 +12,7 @@ stages:
   - deploy
 
 # Define the default image
-image: docker:27-dind
+image: docker:28-dind
 
 # Define the preliminary scripts to run before every job
 before_script:
