@@ -8,12 +8,12 @@ import { User } from "@/types";
 type AuthenticationState = {
   token?: string;
   user?: User;
-}
+};
 
 /**
  * The initial authentication state, matching an unauthenticated user.
  */
-const initialState: AuthenticationState = {}
+const initialState: AuthenticationState = {};
 
 /**
  * The authentication slice.
@@ -32,17 +32,21 @@ export const authenticationSlice = createSlice({
     /**
      * Set the authenthentication state to represent a logged in user.
      */
-    setOIDCUser: (state, action: PayloadAction<Pick<OIDCUser, 'id_token' | 'profile'>>) => {
+    setOIDCUser: (
+      state,
+      action: PayloadAction<Pick<OIDCUser, "id_token" | "profile">>,
+    ) => {
       state.token = action.payload.id_token;
       state.user = {
         email: action.payload.profile.email!,
         name: action.payload.profile.name,
         picture: action.payload.profile.picture,
-      }
+      };
     },
   },
 });
 
-export const { clearAuthenticationState, setOIDCUser } = authenticationSlice.actions;
+export const { clearAuthenticationState, setOIDCUser } =
+  authenticationSlice.actions;
 
 export default authenticationSlice;

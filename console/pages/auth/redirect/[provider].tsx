@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
  * `oidc-client-ts` internally handles all the logic of collecting query
  * parameters and finalizing the authentication code flow with PKCE.
  *
- * On completion, dispatch an action to populate the state with the 
+ * On completion, dispatch an action to populate the state with the
  * authenticated user and rewrite the browser history to set the user on the
  * home page.
  *
@@ -27,18 +27,21 @@ const AuthRedirect: FunctionComponent = () => {
   const router = useRouter();
 
   useEffect(() => {
-    userManager.signinCallback().then((user) => {
-      if (!user) {
-        throw new Error('Error: user could not be retrieved.');
-      }
-      dispatch(setOIDCUser(user));
-      router.replace('/');
-    }).catch((error: Error) => {
-      toast.error(error.toString());
-    });
+    userManager
+      .signinCallback()
+      .then((user) => {
+        if (!user) {
+          throw new Error("Error: user could not be retrieved.");
+        }
+        dispatch(setOIDCUser(user));
+        router.replace("/");
+      })
+      .catch((error: Error) => {
+        toast.error(error.toString());
+      });
   }, [dispatch, userManager]);
 
-  return <div>loading</div>
+  return <div>loading</div>;
 };
 
 export default AuthRedirect;

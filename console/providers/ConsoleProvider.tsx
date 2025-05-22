@@ -23,7 +23,7 @@ export type Props = {
  * - a meaningful name and meaningful parameters names
  * - primitive types as parameters (rather than objects)
  *
- * This allows for a better vizualisation of how to use the action in the 
+ * This allows for a better vizualisation of how to use the action in the
  * studio.
  */
 export type Actions = {
@@ -83,7 +83,7 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
       },
     }));
 
-    // Load data on provider instantiation. This should be moved to the 
+    // Load data on provider instantiation. This should be moved to the
     // ApplicationLoader component.
     useEffect(() => {
       dispatch(fetchAllHypervisors());

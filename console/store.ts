@@ -1,5 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { applicationSlice, authenticationSlice, hypervisorsSlice, instancesSlice } from "@/features";
+import {
+  applicationSlice,
+  authenticationSlice,
+  hypervisorsSlice,
+  instancesSlice,
+} from "@/features";
 import { createWrapper } from "next-redux-wrapper";
 
 const makeStore = () =>

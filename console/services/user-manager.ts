@@ -8,6 +8,6 @@ export const userManager = new UserManager({
   client_secret: process.env.NEXT_PUBLIC_OIDC_CLIENT_SECRET!,
   redirect_uri: `${process.env.NEXT_PUBLIC_CONSOLE_URL}/auth/redirect/${process.env.NEXT_PUBLIC_OIDC_PROVIDER_NAME}`,
   silent_redirect_uri: `${process.env.NEXT_PUBLIC_CONSOLE_URL}/auth/silent-redirect/${process.env.NEXT_PUBLIC_OIDC_PROVIDER_NAME}`,
-  response_type: 'code',
-  scope: 'openid profile email',
+  response_type: "code",
+  scope: "openid profile email",
 });

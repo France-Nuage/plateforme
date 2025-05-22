@@ -14,9 +14,9 @@ const AuthRedirect: FunctionComponent = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    userManager.signinSilentCallback()
+    userManager.signinSilentCallback();
   }, [dispatch, userManager]);
   return null;
-}
+};
 
 export default AuthRedirect;

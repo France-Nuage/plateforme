@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 
 export type ApplicationLoaderProps = {
   children: ReactNode;
-}
+};
 
 /**
  * The application loaded component.
@@ -20,21 +20,26 @@ export type ApplicationLoaderProps = {
  * we rely on it for authentication persistance, rather than a custom-brewed
  * redux persistance middleware.
  */
-export const ApplicationLoader: FunctionComponent<ApplicationLoaderProps> = ({ children }) => {
+export const ApplicationLoader: FunctionComponent<ApplicationLoaderProps> = ({
+  children,
+}) => {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState<boolean>(true);
 
   // Attempt to retrieve the persisted user, then mark the app as loaded
   useEffect(() => {
-    userManager.getUser().then((user) => {
-      if (user) {
-        dispatch(setOIDCUser({ ...user }))
-      } else {
-        dispatch(clearAuthenticationState())
-      }
-      setLoading(false);
-    }).catch(toast.error);
+    userManager
+      .getUser()
+      .then((user) => {
+        if (user) {
+          dispatch(setOIDCUser({ ...user }));
+        } else {
+          dispatch(clearAuthenticationState());
+        }
+        setLoading(false);
+      })
+      .catch(toast.error);
   }, []);
 
-  return loading ? 'loading' : children;
-}
+  return loading ? "loading" : children;
+};
