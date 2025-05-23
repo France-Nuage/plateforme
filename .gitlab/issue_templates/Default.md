@@ -1,34 +1,40 @@
+## 🧾 Description
+
+<!-- Describe the issue clearly and concisely -->
+
 ---
-name: Default Issue
-about: Standard issue template
-confidential: true
----
 
-## Description
-
-<!-- Describe the issue here -->
-
-## Expected Behavior
+## 🎯 Expected Behavior
 
 <!-- What should happen? -->
 
-## Current Behavior
+---
+
+## 🚫 Current Behavior
 
 <!-- What is happening instead? -->
 
-## Steps to Reproduce
+---
 
-<!-- How can someone else reproduce this issue? -->
+## 🔁 Steps to Reproduce
 
-## Additional Context
+1. Step one
+2. Step two
+3. Step three
+4. 🔍 Observe the issue
 
-<!-- Any other information that would help -->
+---
 
-## Definition of Done
+## 🧩 Additional Context
+
+<!-- Any other information that would help, such as logs or screenshots -->
+
+---
+
+## ✅ Definition of Done
 
 <!-- What criteria must be met for this issue to be considered complete? -->
 
-<!--
-IMPORTANT: This issue has been automatically marked as confidential.
-Please ensure it should remain confidential before submitting.
--->
+---
+
+> ⚠️ **Confidential:** If sensible content, please ensure this issue should remain confidential before submitting.

@@ -1,9 +1,3 @@
----
-name: VM Deployment Issue
-about: Steps to deploy VMs
-confidential: true
----
-
 # Déploiement de VM
 
 ## Etapes de déploiement :
