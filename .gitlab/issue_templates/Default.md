@@ -1,40 +1,42 @@
-## 🧾 Description
+## 🧭 Contexte
 
-<!-- Describe the issue clearly and concisely -->
+<!-- Décrire le contexte du système au moment de l'incident (déploiement récent, charge élevée, etc.) -->
 
----
+## 🕒 Horodatage
 
-## 🎯 Expected Behavior
+- **Détection** : <!-- YYYY-MM-DD HH:MM -->
+- **Résolution** : <!-- YYYY-MM-DD HH:MM -->
+- **Durée** : <!-- XX minutes/heures -->
 
-<!-- What should happen? -->
+## 🚨 Description de l'incident
 
----
+<!-- Que s'est-il passé ? Quels systèmes/services sont impactés ? -->
 
-## 🚫 Current Behavior
+## 🧪 Symptômes observés
 
-<!-- What is happening instead? -->
+<!-- Logs, erreurs, alertes de monitoring, comportements utilisateurs... -->
 
----
+## 🧑‍💻 Actions entreprises
 
-## 🔁 Steps to Reproduce
+- [ ] Étape 1
+- [ ] Étape 2
+- [ ] ...
 
-1. Step one
-2. Step two
-3. Step three
-4. 🔍 Observe the issue
+## 🔍 Analyse de la cause racine (RCA)
 
----
+<!-- Quelle est la cause principale ? Comment a-t-elle été identifiée ? -->
 
-## 🧩 Additional Context
+## ✅ Résolution
 
-<!-- Any other information that would help, such as logs or screenshots -->
+<!-- Quelles actions ont permis de résoudre l'incident ? -->
 
----
+## 📈 Prévention
 
-## ✅ Definition of Done
+- [ ] Ajouter un test/alerte
+- [ ] Améliorer les logs
+- [ ] Automatiser une vérification
+- [ ] ...
 
-<!-- What criteria must be met for this issue to be considered complete? -->
+## 📝 Commentaires supplémentaires
 
----
-
-> ⚠️ **Confidential:** If sensible content, please ensure this issue should remain confidential before submitting.
+<!-- Toute autre information utile -->
