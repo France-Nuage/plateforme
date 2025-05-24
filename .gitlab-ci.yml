@@ -1,11 +1,11 @@
 # Define the pipeline stages
 stages:
+  - system-tests
   - build
   - security
   - sync
   - code-style
   - unit-tests
-  - system-tests
   - commit
   - documentation
   - release
