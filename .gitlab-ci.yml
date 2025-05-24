@@ -99,7 +99,7 @@ build:
     TARGET: release
     CONSOLE_URL: http://console
   script:
-    - docker compose run system-tests npm run test:ci, TEST_EXIT_CODE=$?
+    - docker compose run system-tests npm run test:ci || TEST_EXIT_CODE=$?
     - docker compose logs > docker-compose-logs.txt
     - exit $TEST_EXIT_CODE
   artifacts:
