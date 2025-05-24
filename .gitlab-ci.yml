@@ -1,11 +1,11 @@
 # Define the pipeline stages
 stages:
-  - system-tests
   - build
   - security
   - sync
   - code-style
   - unit-tests
+  - system-tests
   - commit
   - documentation
   - release
@@ -99,11 +99,7 @@ build:
     TARGET: release
     CONSOLE_URL: http://console
   script:
-    - docker compose up -d
-    - docker compose run system-tests npm run test:ci || TEST_EXIT_CODE=$?
-    - docker compose logs > docker-compose-logs.txt
-    - sleep 3600
-    - exit $TEST_EXIT_CODE
+    - docker compose run system-tests npm run test:ci
   artifacts:
     when: always
     paths:
