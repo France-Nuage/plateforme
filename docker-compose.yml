@@ -2,6 +2,12 @@ services:
   console:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
+      args:
+        NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:-b637aaac8a74582baf4f2e54bd05d3ea530d3985b818597a5a83a73ce2287e78}
+        NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${NEXT_PUBLIC_OIDC_PROVIDER_NAME:-gitlab}
+        NEXT_PUBLIC_OIDC_PROVIDER_URL: ${NEXT_PUBLIC_OIDC_PROVIDER_URL:-https://gitlab.com}
+        NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
+        NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master
@@ -11,6 +17,10 @@ services:
       controlplane:
         condition: service_healthy
     environment:
+      NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:-b637aaac8a74582baf4f2e54bd05d3ea530d3985b818597a5a83a73ce2287e78}
+      NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${NEXT_PUBLIC_OIDC_PROVIDER_NAME:-gitlab}
+      NEXT_PUBLIC_OIDC_PROVIDER_URL: ${NEXT_PUBLIC_OIDC_PROVIDER_URL:-https://gitlab.com}
+      NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
       NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
     healthcheck:
       test: ["CMD", "curl", "-f", "${CONSOLE_URL:-http://localhost:3000}"]
