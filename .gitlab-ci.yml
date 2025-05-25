@@ -24,15 +24,16 @@ variables:
 gitleaks:
   stage: security
   script:
-    - docker run --rm \
-        -v "$CI_PROJECT_DIR":/src \
-        -v "$CI_PROJECT_DIR/.git":/src/.git \
-        zricethezav/gitleaks:v8.24.2 detect \
-        --source /src \
-        --verbose \
-        --report-format json \
-        --report-path /src/gitleaks-report.json \
-        --exit-code 1
+    - >
+      docker run --rm
+      -v "$CI_PROJECT_DIR":/src
+      -v "$CI_PROJECT_DIR/.git":/src/.git
+      zricethezav/gitleaks:v8.24.2 detect
+      --source /src
+      --verbose
+      --report-format json
+      --report-path /src/gitleaks-report.json
+      --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
