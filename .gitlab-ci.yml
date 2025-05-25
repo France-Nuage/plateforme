@@ -74,12 +74,18 @@ build:
   stage: code-style
   variables:
     SQLX_OFFLINE: true
+  before_script:
+    - mkdir -p /cache/controlplane
+    - cp -r controlplane/* /cache/controlplane/
   script:
     - docker compose -f docker-compose.yml -f docker-compose.ci.yml run --no-deps --remove-orphans controlplane cargo fmt --check
     - docker compose -f docker-compose.yml -f docker-compose.ci.yml run --no-deps --remove-orphans controlplane cargo clippy
 
 "code style / console":
   stage: code-style
+  before_script:
+    - mkdir -p /cache/console
+    - cp -r console/* /cache/console/
   script:
     - docker compose -f docker-compose.yml -f docker-compose.ci.yml run --no-deps --remove-orphans console npm run lint
     - docker compose -f docker-compose.yml -f docker-compose.ci.yml run --no-deps --remove-orphans console npx prettier --check .
