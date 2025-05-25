@@ -11,10 +11,8 @@ stages:
   - release
   - deploy
 
-# Define the default image
 image: docker:cli
 
-# Define the preliminary scripts to run before every job
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
@@ -30,12 +28,13 @@ gitleaks:
     entrypoint: [""]
   before_script: []
   script:
-    - gitleaks detect \
-        --source . \
-        --verbose \
-        --report-format json \
-        --report-path gitleaks-report.json \
-        --exit-code 1
+    - >
+      gitleaks detect
+      --source .
+      --verbose
+      --report-format json
+      --report-path gitleaks-report.json
+      --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
@@ -98,7 +97,7 @@ build:
     - docker compose run --remove-orphans controlplane cargo test --workspace
     - docker compose run --remove-orphans controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
     - >
-      docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
+      docker compose run --remove-orphans --build --no-deps controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
