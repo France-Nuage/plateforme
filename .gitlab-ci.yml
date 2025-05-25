@@ -24,10 +24,12 @@ variables:
 
 gitleaks:
   stage: security
+  image: zricethezav/gitleaks:v8.24.2
   variables:
     GIT_STRATEGY: clone
+    GIT_DEPTH: 0
   script:
-    - docker run --rm -v $(pwd):/src -v $(pwd)/.git:/src/.git zricethezav/gitleaks:v8.24.2 detect --source /src --verbose --report-format json --report-path /src/gitleaks-report.json --exit-code 1
+    - gitleaks detect --source . --verbose --report-format json --report-path gitleaks-report.json --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
