@@ -82,7 +82,7 @@ build:
 "code style / console":
   stage: code-style
   script:
-    - docker compose run --no-deps --remove-orphans console npm run lint
+    - docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm --remove-orphans --no-deps console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
 "unit tests / controlplane":
