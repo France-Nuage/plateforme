@@ -82,7 +82,7 @@ build:
 "code style / console":
   stage: code-style
   script:
-    - docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm --remove-orphans --no-deps console npm run lint
+    - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
 "unit tests / controlplane":
@@ -93,8 +93,8 @@ build:
     RUSTFLAGS: "-Cinstrument-coverage"
     SQLX_OFFLINE: true
   script:
-    - docker compose run controlplane cargo test --workspace
-    - docker compose run controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
+    - docker compose run --remove-orphans controlplane cargo test --workspace
+    - docker compose run --remove-orphans controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
     - >
       docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
@@ -110,7 +110,7 @@ build:
     TARGET: release
     CONSOLE_URL: http://console
   script:
-    - docker compose run system-tests npm run test:ci
+    - docker compose run --remove-orphans system-tests npm run test:ci
   artifacts:
     when: always
     paths:
@@ -165,6 +165,7 @@ build:
     - docker build -f controlplane/Dockerfile.docs -t ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG} controlplane
     - >
       docker run 
+      --remove-orphans
       -e CLOUDFLARE_API_TOKEN=$CF_API_TOKEN 
       -e CLOUDFLARE_ACCOUNT_ID=$CF_ACCOUNT_ID 
       ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG}
