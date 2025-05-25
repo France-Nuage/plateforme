@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --experimental-https",
     "build": "next build",
     "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ --ts_out protocol --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto",
     "start": "next start",
