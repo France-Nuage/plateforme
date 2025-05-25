@@ -23,23 +23,8 @@ variables:
 
 gitleaks:
   stage: security
-  variables:
-    GIT_DEPTH: 0  # Ensure full clone
-  before_script:
-    - git config --global --add safe.directory /builds/$CI_PROJECT_PATH
   script:
-    - >
-      docker run --rm
-      -v "$CI_PROJECT_DIR":/src
-      -w /src
-      -e GIT_DISCOVERY_ACROSS_FILESYSTEM=1
-      zricethezav/gitleaks:v8.24.2 detect
-      --source .
-      --verbose
-      --report-format json
-      --report-path gitleaks-report.json
-      --no-git || true
-    - test -f gitleaks-report.json || echo '{"results":[]}' > gitleaks-report.json
+    - docker run --rm -v $(pwd):/src zricethezav/gitleaks:v8.24.2 detect --source /src --verbose --report-format json --report-path /src/gitleaks-report.json --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
