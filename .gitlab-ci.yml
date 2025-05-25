@@ -27,9 +27,13 @@ gitleaks:
   image: zricethezav/gitleaks:v8.24.2
   variables:
     GIT_STRATEGY: clone
-    GIT_DEPTH: 0
   script:
-    - gitleaks detect --source . --verbose --report-format json --report-path gitleaks-report.json --exit-code 1
+    - gitleaks detect \
+        --source . \
+        --verbose \
+        --report-format json \
+        --report-path gitleaks-report.json \
+        --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
