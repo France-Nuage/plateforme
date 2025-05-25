@@ -20,11 +20,14 @@ before_script:
 
 variables:
   DOCKER_HOST: unix:///var/run/docker.sock
+  GIT_DEPTH: 0
 
 gitleaks:
   stage: security
+  variables:
+    GIT_STRATEGY: clone
   script:
-    - docker run --rm -v $(pwd):/src zricethezav/gitleaks:v8.24.2 detect --source /src --verbose --report-format json --report-path /src/gitleaks-report.json --exit-code 1
+    - docker run --rm -v $(pwd):/src -v $(pwd)/.git:/src/.git zricethezav/gitleaks:v8.24.2 detect --source /src --verbose --report-format json --report-path /src/gitleaks-report.json --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
