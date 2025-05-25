@@ -119,8 +119,6 @@ build:
 
 "commit new plasmic code":
   stage: commit
-  variables:
-    GIT_STRATEGY: clone
   before_script:
     - apk add --no-cache git
     - git config --global user.email "gitlab@france-nuage.fr"
