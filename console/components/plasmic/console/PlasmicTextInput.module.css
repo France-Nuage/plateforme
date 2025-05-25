@@ -8,7 +8,7 @@
   width: 100%;
   position: relative;
   outline-style: none;
-  background: var(--token-jgohepLVeKvh);
+  background: var(--token-Bml44OgekI9b);
   min-width: 0;
   border-radius: var(--token-yByw3KgAJ_yl);
   padding: var(--token-yByw3KgAJ_yl) var(--token-GWDIjBMG5yGU);
@@ -57,4 +57,7 @@
 }
 .ariaInputpadded_right:global(.__wab_instance) {
   padding-right: var(--token-nbISxqLGpGTD);
+}
+.ariaInputcontour:global(.__wab_instance) {
+  border: 1px solid var(--token-PKw3mKbzBr62);
 }

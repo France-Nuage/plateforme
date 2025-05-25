@@ -23,7 +23,7 @@
 .root > :global(.__wab_flex-container) > :global(.__wab_slot) > picture > img {
   margin-left: 8px;
 }
-.rootpressed2 {
+.rootisActive {
   width: 100%;
   height: auto;
   max-width: 100%;
@@ -36,7 +36,7 @@
   border-radius: 12px;
   padding: 8px;
 }
-.rootpressed2 > :global(.__wab_flex-container) {
+.rootisActive > :global(.__wab_flex-container) {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
@@ -46,10 +46,10 @@
   margin-top: calc(0px - 0px);
   height: calc(100% + 0px);
 }
-.rootpressed2 > :global(.__wab_flex-container) > *,
-.rootpressed2 > :global(.__wab_flex-container) > :global(.__wab_slot) > *,
-.rootpressed2 > :global(.__wab_flex-container) > picture > img,
-.rootpressed2
+.rootisActive > :global(.__wab_flex-container) > *,
+.rootisActive > :global(.__wab_flex-container) > :global(.__wab_slot) > *,
+.rootisActive > :global(.__wab_flex-container) > picture > img,
+.rootisActive
   > :global(.__wab_flex-container)
   > :global(.__wab_slot)
   > picture

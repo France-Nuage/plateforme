@@ -51,13 +51,15 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName,
+  wrapWithClassName
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions,
+  useGlobalActions
 } from "@plasmicapp/react-web/lib/host";
+
+import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -70,14 +72,14 @@ import UserIcon from "./icons/PlasmicIcon__User"; // plasmic-import: HOWLf5KCV6x
 createPlasmicElementProxy;
 
 export type PlasmicBtnSideBar__VariantMembers = {
-  pressed2: "pressed2";
+  isActive: "isActive";
 };
 export type PlasmicBtnSideBar__VariantsArgs = {
-  pressed2?: SingleBooleanChoiceArg<"pressed2">;
+  isActive?: SingleBooleanChoiceArg<"isActive">;
 };
 type VariantPropType = keyof PlasmicBtnSideBar__VariantsArgs;
 export const PlasmicBtnSideBar__VariantProps = new Array<VariantPropType>(
-  "pressed2",
+  "isActive"
 );
 
 export type PlasmicBtnSideBar__ArgsType = {
@@ -89,7 +91,7 @@ type ArgPropType = keyof PlasmicBtnSideBar__ArgsType;
 export const PlasmicBtnSideBar__ArgProps = new Array<ArgPropType>(
   "nom",
   "children",
-  "link",
+  "link"
 );
 
 export type PlasmicBtnSideBar__OverridesType = {
@@ -101,7 +103,7 @@ export interface DefaultBtnSideBarProps {
   nom?: string;
   children?: React.ReactNode;
   link?: string;
-  pressed2?: SingleBooleanChoiceArg<"pressed2">;
+  isActive?: SingleBooleanChoiceArg<"isActive">;
   className?: string;
 }
 
@@ -127,17 +129,18 @@ function PlasmicBtnSideBar__RenderFunc(props: {
       Object.assign(
         {
           nom: "txt",
+          link: "#"
         },
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined),
-        ),
+          Object.entries(props.args).filter(([_, v]) => v !== undefined)
+        )
       ),
-    [props.args],
+    [props.args]
   );
 
   const $props = {
     ...args,
-    ...variants,
+    ...variants
   };
 
   const __nextRouter = useNextRouter();
@@ -149,19 +152,23 @@ function PlasmicBtnSideBar__RenderFunc(props: {
   const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
     () => [
       {
-        path: "pressed2",
+        path: "isActive",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.pressed2,
-      },
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.isActive
+      }
     ],
-    [$props, $ctx, $refs],
+    [$props, $ctx, $refs]
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs,
+    $refs
+  });
+
+  const globalVariants = ensureGlobalVariants({
+    screen: useScreenVariantseEvMbXdv1ZEe()
   });
 
   return (
@@ -180,7 +187,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
         sty.root,
-        { [sty.rootpressed2]: hasVariant($state, "pressed2", "pressed2") },
+        { [sty.rootisActive]: hasVariant($state, "isActive", "isActive") }
       )}
     >
       {renderPlasmicSlot({
@@ -191,7 +198,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
           />
         ),
 
-        value: args.children,
+        value: args.children
       })}
       <PlasmicLink__
         data-plasmic-name={"link"}
@@ -201,7 +208,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
           projectcss.a,
           projectcss.__wab_text,
           sty.link,
-          { [sty.linkpressed2]: hasVariant($state, "pressed2", "pressed2") },
+          { [sty.linkisActive]: hasVariant($state, "isActive", "isActive") }
         )}
         component={Link}
         href={(() => {
@@ -228,7 +235,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
                 e instanceof TypeError ||
                 e?.plasmicType === "PlasmicUndefinedDataError"
               ) {
-                return "\u00c9quipes";
+                return "#";
               }
               throw e;
             }
@@ -241,7 +248,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
 
 const PlasmicDescendants = {
   root: ["root", "link"],
-  link: ["link"],
+  link: ["link"]
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -279,7 +286,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>,
+    props: T & StrictProps<T, PropsType>
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -287,15 +294,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicBtnSideBar__ArgProps,
-          internalVariantPropNames: PlasmicBtnSideBar__VariantProps,
+          internalVariantPropNames: PlasmicBtnSideBar__VariantProps
         }),
-      [props, nodeName],
+      [props, nodeName]
     );
     return PlasmicBtnSideBar__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName,
+      forNode: nodeName
     });
   };
   if (nodeName === "root") {
@@ -315,8 +322,8 @@ export const PlasmicBtnSideBar = Object.assign(
 
     // Metadata about props expected for PlasmicBtnSideBar
     internalVariantProps: PlasmicBtnSideBar__VariantProps,
-    internalArgProps: PlasmicBtnSideBar__ArgProps,
-  },
+    internalArgProps: PlasmicBtnSideBar__ArgProps
+  }
 );
 
 export default PlasmicBtnSideBar;

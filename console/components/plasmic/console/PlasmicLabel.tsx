@@ -51,15 +51,17 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName,
+  wrapWithClassName
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions,
+  useGlobalActions
 } from "@plasmicapp/react-web/lib/host";
 
 import { BaseLabel } from "@plasmicpkgs/react-aria/skinny/registerLabel";
+
+import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -80,7 +82,7 @@ export type PlasmicLabel__VariantsArgs = {
 type VariantPropType = keyof PlasmicLabel__VariantsArgs;
 export const PlasmicLabel__VariantProps = new Array<VariantPropType>(
   "size",
-  "requirementIndicator",
+  "requirementIndicator"
 );
 
 export type PlasmicLabel__ArgsType = { children?: React.ReactNode };
@@ -122,15 +124,15 @@ function PlasmicLabel__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined),
-        ),
+          Object.entries(props.args).filter(([_, v]) => v !== undefined)
+        )
       ),
-    [props.args],
+    [props.args]
   );
 
   const $props = {
     ...args,
-    ...variants,
+    ...variants
   };
 
   const __nextRouter = useNextRouter();
@@ -145,23 +147,27 @@ function PlasmicLabel__RenderFunc(props: {
         path: "size",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.size,
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.size
       },
       {
         path: "requirementIndicator",
         type: "private",
         variableType: "variant",
         initFunc: ({ $props, $state, $queries, $ctx }) =>
-          $props.requirementIndicator,
-      },
+          $props.requirementIndicator
+      }
     ],
-    [$props, $ctx, $refs],
+    [$props, $ctx, $refs]
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs,
+    $refs
+  });
+
+  const globalVariants = ensureGlobalVariants({
+    screen: useScreenVariantseEvMbXdv1ZEe()
   });
 
   return (
@@ -182,16 +188,16 @@ function PlasmicLabel__RenderFunc(props: {
           [sty.rootrequirementIndicator_optional]: hasVariant(
             $state,
             "requirementIndicator",
-            "optional",
+            "optional"
           ),
           [sty.rootrequirementIndicator_required]: hasVariant(
             $state,
             "requirementIndicator",
-            "required",
+            "required"
           ),
           [sty.rootsize_lg]: hasVariant($state, "size", "lg"),
-          [sty.rootsize_sm]: hasVariant($state, "size", "sm"),
-        },
+          [sty.rootsize_sm]: hasVariant($state, "size", "sm")
+        }
       )}
     >
       <Stack__
@@ -203,10 +209,10 @@ function PlasmicLabel__RenderFunc(props: {
           [sty.freeBoxrequirementIndicator_optional]: hasVariant(
             $state,
             "requirementIndicator",
-            "optional",
+            "optional"
           ),
           [sty.freeBoxsize_lg]: hasVariant($state, "size", "lg"),
-          [sty.freeBoxsize_sm]: hasVariant($state, "size", "sm"),
+          [sty.freeBoxsize_sm]: hasVariant($state, "size", "sm")
         })}
       >
         {renderPlasmicSlot({
@@ -216,16 +222,16 @@ function PlasmicLabel__RenderFunc(props: {
             [sty.slotTargetChildrenrequirementIndicator_optional]: hasVariant(
               $state,
               "requirementIndicator",
-              "optional",
+              "optional"
             ),
             [sty.slotTargetChildrenrequirementIndicator_required]: hasVariant(
               $state,
               "requirementIndicator",
-              "required",
+              "required"
             ),
             [sty.slotTargetChildrensize_lg]: hasVariant($state, "size", "lg"),
-            [sty.slotTargetChildrensize_sm]: hasVariant($state, "size", "sm"),
-          }),
+            [sty.slotTargetChildrensize_sm]: hasVariant($state, "size", "sm")
+          })
         })}
         <div
           data-plasmic-name={"text"}
@@ -238,14 +244,14 @@ function PlasmicLabel__RenderFunc(props: {
               [sty.textrequirementIndicator_optional]: hasVariant(
                 $state,
                 "requirementIndicator",
-                "optional",
+                "optional"
               ),
               [sty.textrequirementIndicator_required]: hasVariant(
                 $state,
                 "requirementIndicator",
-                "required",
-              ),
-            },
+                "required"
+              )
+            }
           )}
         >
           {hasVariant($state, "requirementIndicator", "required")
@@ -260,7 +266,7 @@ function PlasmicLabel__RenderFunc(props: {
 const PlasmicDescendants = {
   root: ["root", "freeBox", "text"],
   freeBox: ["freeBox", "text"],
-  text: ["text"],
+  text: ["text"]
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -299,7 +305,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>,
+    props: T & StrictProps<T, PropsType>
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -307,15 +313,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicLabel__ArgProps,
-          internalVariantPropNames: PlasmicLabel__VariantProps,
+          internalVariantPropNames: PlasmicLabel__VariantProps
         }),
-      [props, nodeName],
+      [props, nodeName]
     );
     return PlasmicLabel__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName,
+      forNode: nodeName
     });
   };
   if (nodeName === "root") {
@@ -336,8 +342,8 @@ export const PlasmicLabel = Object.assign(
 
     // Metadata about props expected for PlasmicLabel
     internalVariantProps: PlasmicLabel__VariantProps,
-    internalArgProps: PlasmicLabel__ArgProps,
-  },
+    internalArgProps: PlasmicLabel__ArgProps
+  }
 );
 
 export default PlasmicLabel;

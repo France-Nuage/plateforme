@@ -1,11 +1,11 @@
 import { test as base } from "@playwright/test";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
-import { ComputePage } from "./pages/compute.page";
 import { HypervisorsClient } from "../protocol/hypervisors.client";
 import { InstancesClient } from "../protocol/instances.client";
 import { Hypervisor } from "../protocol/hypervisors";
 import { Instance } from "../protocol/instances";
 import { minBy } from "lodash";
+import { ComputePage, HomePage, LoginPage } from "./pages";
 
 const requiredEnvVars = ['CONTROLPLANE_URL', 'PROXMOX_DEV_AUTHORIZATION_TOKEN', 'PROXMOX_DEV_STORAGE_NAME', 'PROXMOX_DEV_URL', 'PROXMOX_TEST_AUTHORIZATION_TOKEN', 'PROXMOX_TEST_STORAGE_NAME', 'PROXMOX_TEST_URL'];
 
@@ -21,6 +21,8 @@ for (const variable of requiredEnvVars) {
 type TestFixtures = {
   pages: {
     compute: ComputePage;
+    home: HomePage;
+    login: LoginPage;
   };
 
 }
@@ -56,6 +58,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    */
   pages: async ({ page }, use) => use({
     compute: new ComputePage(page),
+    home: new HomePage(page),
+    login: new LoginPage(page),
   }),
 
   /**
