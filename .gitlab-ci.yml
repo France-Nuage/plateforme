@@ -11,9 +11,6 @@ stages:
   - release
   - deploy
 
-services:
-  - docker:dind
-
 # Define the default image
 image: docker:cli
 
