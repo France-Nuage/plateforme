@@ -37,7 +37,6 @@ services:
 
   controlplane:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
-    working_dir: /app
     build:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
