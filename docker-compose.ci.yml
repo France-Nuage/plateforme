@@ -4,4 +4,4 @@ services:
       - ${CI_PROJECT_DIR}/controlplane:/app
   console:
     volumes:
-      - ${CI_PROJECT_DIR}/controlplane:/app
+      - ${CI_PROJECT_DIR}/console:/app
