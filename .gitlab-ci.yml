@@ -27,18 +27,20 @@ gitleaks:
     - >
       docker run --rm
       -v "$CI_PROJECT_DIR":/src
-      -v "$CI_PROJECT_DIR/.git":/src/.git
+      -w /src
       zricethezav/gitleaks:v8.24.2 detect
-      --source /src
+      --source .
       --verbose
       --report-format json
-      --report-path /src/gitleaks-report.json
+      --report-path gitleaks-report.json
       --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
     when: always
     expire_in: 1 week
+    reports:
+      junit: gitleaks-report.json
 
 "sync console with plasmic":
   stage: sync
