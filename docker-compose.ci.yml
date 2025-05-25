@@ -1,7 +1,0 @@
-services:
-  controlplane:
-    volumes:
-      - /cache/controlplane:/app
-  console:
-    volumes:
-      - /cache/console:/app
