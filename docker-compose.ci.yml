@@ -1,0 +1,7 @@
+services:
+  controlplane:
+    volumes:
+      - ${CI_PROJECT_DIR}/controlplane:/app
+  console:
+    volumes:
+      - ${CI_PROJECT_DIR}/controlplane:/app
