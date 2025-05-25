@@ -75,7 +75,7 @@ build:
   variables:
     SQLX_OFFLINE: true
   script:
-    - git clone "$CI_REPOSITORY_URL" .
+    - ls -la
     - docker compose run --no-deps --remove-orphans controlplane cargo fmt --check
     - docker compose run --no-deps --remove-orphans controlplane cargo clippy
 
