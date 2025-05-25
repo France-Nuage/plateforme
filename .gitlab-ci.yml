@@ -76,14 +76,14 @@ build:
   variables:
     SQLX_OFFLINE: true
   script:
-    - docker compose run --no-deps controlplane cargo fmt --check
-    - docker compose run --no-deps controlplane cargo clippy
+    - docker compose run --no-deps --remove-orphans controlplane cargo fmt --check
+    - docker compose run --no-deps --remove-orphans controlplane cargo clippy
 
 "code style / console":
   stage: code-style
   script:
-    - docker compose run --no-deps console npm run lint
-    - docker compose run --no-deps console npx prettier --check .
+    - docker compose run --no-deps --remove-orphans console npm run lint
+    - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
 "unit tests / controlplane":
   stage: unit-tests
