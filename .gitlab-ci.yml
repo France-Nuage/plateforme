@@ -21,14 +21,13 @@ before_script:
 variables:
   DOCKER_HOST: unix:///var/run/docker.sock
   GIT_DEPTH: 0
+  GIT_STRATEGY: clone
 
 gitleaks:
   stage: security
   image:
     name: zricethezav/gitleaks:v8.24.2
     entrypoint: [""]
-  variables:
-    GIT_STRATEGY: clone
   before_script: []
   script:
     - gitleaks detect \
