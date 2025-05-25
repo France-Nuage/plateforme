@@ -29,6 +29,7 @@ gitleaks:
     entrypoint: [""]
   variables:
     GIT_STRATEGY: clone
+  before_script: []
   script:
     - gitleaks detect \
         --source . \
