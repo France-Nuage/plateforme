@@ -24,8 +24,9 @@ variables:
 
 gitleaks:
   stage: security
-  image: zricethezav/gitleaks:v8.24.2
-  entrypoint: [""]
+  image:
+    name: zricethezav/gitleaks:v8.24.2
+    entrypoint: [""]
   variables:
     GIT_STRATEGY: clone
   script:
