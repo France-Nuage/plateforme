@@ -73,9 +73,6 @@ build:
   stage: code-style
   variables:
     SQLX_OFFLINE: true
-  before_script:
-    - mkdir -p /cache/controlplane
-    - cp -r controlplane/* /cache/controlplane/
   script:
     - docker compose run --no-deps --remove-orphans controlplane cargo fmt --check
     - docker compose run --no-deps --remove-orphans controlplane cargo clippy
