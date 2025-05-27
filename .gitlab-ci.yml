@@ -1,7 +1,7 @@
 # Define the pipeline stages
 stages:
-  - build
   - security
+  - build
   - sync
   - code-style
   - unit-tests
@@ -11,21 +11,30 @@ stages:
   - release
   - deploy
 
-# Define the default image
-image: docker:27-dind
+image: docker:cli
 
-# Define the preliminary scripts to run before every job
 before_script:
-  - export DOCKER_PORT=$((20000 + $CI_JOB_ID % 10000)) # random port for dind exec in ||
-  - export DOCKER_HOST=tcp://127.0.0.1:$DOCKER_PORT
-  - dockerd-entrypoint.sh --host=tcp://127.0.0.1:$DOCKER_PORT &
-  - sleep 5 # attendre que dockerd soit prêt
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+variables:
+  DOCKER_HOST: unix:///var/run/docker.sock
+  GIT_DEPTH: 0
+  GIT_STRATEGY: clone
 
 gitleaks:
   stage: security
+  image:
+    name: zricethezav/gitleaks:v8.24.2
+    entrypoint: [""]
+  before_script: []
   script:
-    - docker run --rm -v $(pwd):/src zricethezav/gitleaks:v8.24.2 detect --source /src --verbose --report-format json --report-path /src/gitleaks-report.json --exit-code 1
+    - >
+      gitleaks detect
+      --source .
+      --verbose
+      --report-format json
+      --report-path gitleaks-report.json
+      --exit-code 1
   artifacts:
     paths:
       - gitleaks-report.json
@@ -65,14 +74,14 @@ build:
   variables:
     SQLX_OFFLINE: true
   script:
-    - docker compose run --no-deps controlplane cargo fmt --check
-    - docker compose run --no-deps controlplane cargo clippy
+    - docker compose run --no-deps --remove-orphans controlplane cargo fmt --check
+    - docker compose run --no-deps --remove-orphans controlplane cargo clippy
 
 "code style / console":
   stage: code-style
   script:
-    - docker compose run --no-deps console npm run lint
-    - docker compose run --no-deps console npx prettier --check .
+    - docker compose run --no-deps --remove-orphans console npm run lint
+    - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
 "unit tests / controlplane":
   stage: unit-tests
@@ -82,10 +91,10 @@ build:
     RUSTFLAGS: "-Cinstrument-coverage"
     SQLX_OFFLINE: true
   script:
-    - docker compose run controlplane cargo test --workspace
-    - docker compose run controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
+    - docker compose run --remove-orphans controlplane cargo test --workspace
+    - docker compose run --remove-orphans controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
     - >
-      docker compose run --build --no-deps --remove-orphans controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
+      docker compose run --remove-orphans --build --no-deps controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
@@ -99,7 +108,7 @@ build:
     TARGET: release
     CONSOLE_URL: http://console
   script:
-    - docker compose run system-tests npm run test:ci
+    - docker compose run --remove-orphans system-tests npm run test:ci
   artifacts:
     when: always
     paths:
@@ -109,8 +118,6 @@ build:
 
 "commit new plasmic code":
   stage: commit
-  variables:
-    GIT_STRATEGY: clone
   before_script:
     - apk add --no-cache git
     - git config --global user.email "gitlab@france-nuage.fr"
@@ -154,6 +161,7 @@ build:
     - docker build -f controlplane/Dockerfile.docs -t ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG} controlplane
     - >
       docker run 
+      --remove-orphans
       -e CLOUDFLARE_API_TOKEN=$CF_API_TOKEN 
       -e CLOUDFLARE_ACCOUNT_ID=$CF_ACCOUNT_ID 
       ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG}
