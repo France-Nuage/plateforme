@@ -3,9 +3,9 @@ services:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       args:
-        NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:-b637aaac8a74582baf4f2e54bd05d3ea530d3985b818597a5a83a73ce2287e78}
-        NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${NEXT_PUBLIC_OIDC_PROVIDER_NAME:-gitlab}
-        NEXT_PUBLIC_OIDC_PROVIDER_URL: ${NEXT_PUBLIC_OIDC_PROVIDER_URL:-https://gitlab.com}
+        NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+        NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
+        NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
         NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
         NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
       cache_from:
@@ -17,9 +17,9 @@ services:
       controlplane:
         condition: service_healthy
     environment:
-      NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:-b637aaac8a74582baf4f2e54bd05d3ea530d3985b818597a5a83a73ce2287e78}
-      NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${NEXT_PUBLIC_OIDC_PROVIDER_NAME:-gitlab}
-      NEXT_PUBLIC_OIDC_PROVIDER_URL: ${NEXT_PUBLIC_OIDC_PROVIDER_URL:-https://gitlab.com}
+      NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+      NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
+      NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
       NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
       NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
     healthcheck:
@@ -71,6 +71,15 @@ services:
         volume:
           nocopy: true
 
+  oidc:
+    build:
+      context: oidc-server
+    environment:
+      CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+    ports:
+      - 4000:4000
+
   playwright:
     image: mcr.microsoft.com/playwright:v1.51.1-noble
     command: /bin/sh -c "npx -y playwright@1.51.1 run-server --port 4444 --host 0.0.0.0"
@@ -113,6 +122,9 @@ services:
     environment:
       CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
       CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+      OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
       PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
       PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
       PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev-dc03-internal.france-nuage.fr}
