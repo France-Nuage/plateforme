@@ -5,9 +5,9 @@ services:
       args:
         NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
         NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
-        NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
-        NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
-        NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
+        NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
+        NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console}
+        NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master
@@ -21,17 +21,23 @@ services:
     environment:
       NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
       NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
-      NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
-      NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
-      NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
+      NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
+      NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console}
+      NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
+      PORT: 80
+    expose:
+      - "80"
     healthcheck:
-      test: ["CMD", "curl", "-f", "${CONSOLE_URL:-https://localhost:3000}"]
+      test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 5s
       timeout: 5s
       retries: 24
-    ports:
-      - "3000:3000"
-      - "80:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.console.rule=Host(`console`)"
+      - "traefik.http.routers.console.entrypoints=websecure"
+      - "traefik.http.routers.console.tls=true"
+      - "traefik.http.services.console.loadbalancer.server.port=80"
     volumes:
       - ./console:/app
       - /app/node_modules
@@ -48,22 +54,28 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:8080"]
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:80"]
       interval: 5s
       timeout: 5s
       retries: 24
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
-      CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
-      CONTROLPLANE_ADDR: 0.0.0.0:8080
+      CONSOLE_URL: ${CONSOLE_URL:-https://console}
+      CONTROLPLANE_ADDR: 0.0.0.0:80
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       RUST_LOG: ${RUST_LOG:-info}
       RUSTFLAGS: ${RUSTFLAGS:-}
       SQLX_OFFLINE: ${SQLX_OFFLINE:-true}
-    ports:
-      - "8080:8080"
+    expose:
+      - 80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.controlplane.rule=Host(`controlplane`)"
+      - "traefik.http.routers.controlplane.entrypoints=websecure"
+      - "traefik.http.routers.controlplane.tls=true"
+      - "traefik.http.services.controlplane.loadbalancer.server.port=80"
     volumes:
       - ./controlplane:/app
       - /app/target
@@ -77,26 +89,30 @@ services:
     build:
       context: oidc-server
     environment:
-      CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
+      CONSOLE_URL: ${CONSOLE_URL:-https://console}
+      PORT: 80
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+    expose:
+      - 80
     healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "--insecure",
-          "-f",
-          "${OIDC_PROVIDER_URL:-https://oidc:4000}/health",
-        ]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 5s
       timeout: 5s
       retries: 24
-    ports:
-      - 4000:4000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.oidc.rule=Host(`oidc`)"
+      - "traefik.http.routers.oidc.entrypoints=websecure"
+      - "traefik.http.routers.oidc.tls=true"
+      - "traefik.http.services.oidc.loadbalancer.server.port=80"
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.51.1-noble
     command: /bin/sh -c "npx -y playwright@1.51.1 run-server --port 4444 --host 0.0.0.0"
+    extra_hosts:
+      - "console:host-gateway"
+      - "oidc:host-gateway"
+      - "controlplane:host-gateway"
     ports:
       - "4444:4444"
     profiles:
@@ -134,11 +150,11 @@ services:
       playwright:
         condition: service_started
     environment:
-      CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
-      CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
+      CONSOLE_URL: ${CONSOLE_URL:-https://console}
+      CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
       NODE_TLS_REJECT_UNAUTHORIZED: 0
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-      OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
+      OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
       PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
       PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
       PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev-dc03-internal.france-nuage.fr}
@@ -147,6 +163,10 @@ services:
       PROXMOX_TEST_URL: ${PROXMOX_TEST_URL:-https://pve01-test01.france-nuage.fr}
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
       PW_TEST_HTML_REPORT_OPEN: never
+    extra_hosts:
+      - "console:host-gateway"
+      - "oidc:host-gateway"
+      - "controlplane:host-gateway"
     ports:
       - "9000:9000"
     profiles:
@@ -154,6 +174,21 @@ services:
     volumes:
       - ./system-tests:/app
       - /app/node_modules
+
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 volumes:
   nfs-snippets:

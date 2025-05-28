@@ -1,4 +1,4 @@
-export const createUser = () => fetch('https://oidc:4000/api/users', {
+export const createUser = () => fetch(`${process.env.OIDC_PROVIDER_URL}/api/users`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',

@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "oidc-provider": "^9.1.1",
-    "selfsigned": "^2.4.1"
+    "oidc-provider": "^9.1.1"
   }
 }
