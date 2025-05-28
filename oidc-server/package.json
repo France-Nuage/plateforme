@@ -1,0 +1,25 @@
+{
+  "name": "oidc-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.21",
+    "@types/oidc-provider": "^9.1.0",
+    "tsx": "^4.6.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "oidc-provider": "^9.1.1",
+    "selfsigned": "^2.4.1"
+  }
+}

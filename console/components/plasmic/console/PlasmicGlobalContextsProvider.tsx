@@ -7,18 +7,28 @@
 import * as React from "react";
 import { hasVariant, ensureGlobalVariants } from "@plasmicapp/react-web";
 import { AntdConfigProvider } from "@plasmicpkgs/antd5/skinny/registerConfigProvider";
+import { CmsCredentialsProvider } from "@plasmicpkgs/plasmic-cms";
+import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
 
 export interface GlobalContextsProviderProps {
   children?: React.ReactElement;
   antdConfigProviderProps?: Partial<
     Omit<React.ComponentProps<typeof AntdConfigProvider>, "children">
   >;
+  cmsCredentialsProviderProps?: Partial<
+    Omit<React.ComponentProps<typeof CmsCredentialsProvider>, "children">
+  >;
 }
 
 export default function GlobalContextsProvider(
   props: GlobalContextsProviderProps,
 ) {
-  const { children, antdConfigProviderProps } = props;
+  const { children, antdConfigProviderProps, cmsCredentialsProviderProps } =
+    props;
+
+  const globalVariants = ensureGlobalVariants({
+    screen: useScreenVariantseEvMbXdv1ZEe(),
+  });
 
   return (
     <AntdConfigProvider
@@ -96,16 +106,25 @@ export default function GlobalContextsProvider(
       themeStyles={
         antdConfigProviderProps && "themeStyles" in antdConfigProviderProps
           ? antdConfigProviderProps.themeStyles!
-          : true
+          : hasVariant(globalVariants, "screen", "mobile")
             ? {
-                fontFamily: "Inter",
+                fontFamily: "Lato",
                 fontSize: "16px",
                 fontWeight: "400",
                 lineHeight: "1.5",
-                color: "#535353",
+                color: "#1C274D",
                 letterSpacing: "normal",
               }
-            : undefined
+            : true
+              ? {
+                  fontFamily: "Lato",
+                  fontSize: "16px",
+                  fontWeight: "400",
+                  lineHeight: "1.5",
+                  color: "#030712",
+                  letterSpacing: "normal",
+                }
+              : undefined
       }
       wireframe={
         antdConfigProviderProps && "wireframe" in antdConfigProviderProps
@@ -113,7 +132,33 @@ export default function GlobalContextsProvider(
           : false
       }
     >
-      {children}
+      <CmsCredentialsProvider
+        {...cmsCredentialsProviderProps}
+        databaseId={
+          cmsCredentialsProviderProps &&
+          "databaseId" in cmsCredentialsProviderProps
+            ? cmsCredentialsProviderProps.databaseId!
+            : undefined
+        }
+        databaseToken={
+          cmsCredentialsProviderProps &&
+          "databaseToken" in cmsCredentialsProviderProps
+            ? cmsCredentialsProviderProps.databaseToken!
+            : undefined
+        }
+        host={
+          cmsCredentialsProviderProps && "host" in cmsCredentialsProviderProps
+            ? cmsCredentialsProviderProps.host!
+            : "https://data.plasmic.app"
+        }
+        locale={
+          cmsCredentialsProviderProps && "locale" in cmsCredentialsProviderProps
+            ? cmsCredentialsProviderProps.locale!
+            : undefined
+        }
+      >
+        {children}
+      </CmsCredentialsProvider>
     </AntdConfigProvider>
   );
 }

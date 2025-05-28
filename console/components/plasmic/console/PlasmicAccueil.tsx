@@ -64,6 +64,8 @@ import SideBar from "../../SideBar"; // plasmic-import: WgBKdGHdVFBy/component
 import { ConsoleProvider } from "../../../providers/ConsoleProvider"; // plasmic-import: vWN9dmdYefpY/codeComponent
 import Button from "../../Button"; // plasmic-import: BPkDJbnqSOZ0/component
 
+import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
+
 import "@plasmicapp/react-web/lib/plasmic.css";
 
 import plasmic_antd_5_hostless_css from "../antd_5_hostless/plasmic.module.css"; // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
@@ -134,6 +136,10 @@ function PlasmicAccueil__RenderFunc(props: {
   const refsRef = React.useRef({});
   const $refs = refsRef.current;
 
+  const globalVariants = ensureGlobalVariants({
+    screen: useScreenVariantseEvMbXdv1ZEe(),
+  });
+
   return (
     <React.Fragment>
       <Head></Head>
@@ -183,15 +189,6 @@ function PlasmicAccueil__RenderFunc(props: {
             <DataCtxReader__>
               {($ctx) => (
                 <React.Fragment>
-                  <div
-                    className={classNames(
-                      projectcss.all,
-                      projectcss.__wab_text,
-                      sty.text__ifKc4,
-                    )}
-                  >
-                    {"Les super instances de la prod vroom vroom"}
-                  </div>
                   {((_par) =>
                     !_par ? [] : Array.isArray(_par) ? _par : [_par])(
                     (() => {
@@ -352,11 +349,7 @@ function PlasmicAccueil__RenderFunc(props: {
 
                       $steps["runActionOnConsoleProvider"] = true
                         ? (() => {
-                            const actionArgs = {
-                              tplRef: "consoleProvider",
-                              action: "changeMode",
-                              args: [undefined],
-                            };
+                            const actionArgs = { tplRef: "consoleProvider" };
                             return (({ tplRef, action, args }) => {
                               return $refs?.[tplRef]?.[action]?.(
                                 ...(args ?? []),

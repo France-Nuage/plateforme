@@ -62,6 +62,8 @@ import {
 import TextField from "../../TextField"; // plasmic-import: GyTJhs9veKrj/component
 import BtnSideBar from "../../BtnSideBar"; // plasmic-import: A9xYAhwSD6i3/component
 
+import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
+
 import "@plasmicapp/react-web/lib/plasmic.css";
 
 import plasmic_antd_5_hostless_css from "../antd_5_hostless/plasmic.module.css"; // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
@@ -174,6 +176,10 @@ function PlasmicSideBar__RenderFunc(props: {
     $refs,
   });
 
+  const globalVariants = ensureGlobalVariants({
+    screen: useScreenVariantseEvMbXdv1ZEe(),
+  });
+
   return (
     <div
       data-plasmic-name={"root"}
@@ -274,7 +280,7 @@ function PlasmicSideBar__RenderFunc(props: {
                   sty.link__z95Q7,
                 )}
                 component={Link}
-                href={"https://www.plasmic.app/"}
+                href={"#"}
                 platform={"nextjs"}
               >
                 {"Notification"}

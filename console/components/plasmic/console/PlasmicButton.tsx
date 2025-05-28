@@ -61,6 +61,8 @@ import {
 
 import { BaseButton } from "@plasmicpkgs/react-aria/skinny/registerButton";
 
+import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
+
 import "@plasmicapp/react-web/lib/plasmic.css";
 
 import plasmic_antd_5_hostless_css from "../antd_5_hostless/plasmic.module.css"; // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
@@ -80,6 +82,7 @@ export type PlasmicButton__VariantMembers = {
   iconEnd: "iconEnd";
   roundedFull: "roundedFull";
   flatSide: "top" | "right" | "bottom" | "left";
+  contour: "contour";
 };
 export type PlasmicButton__VariantsArgs = {
   color?: SingleChoiceArg<
@@ -91,6 +94,7 @@ export type PlasmicButton__VariantsArgs = {
   iconEnd?: SingleBooleanChoiceArg<"iconEnd">;
   roundedFull?: SingleBooleanChoiceArg<"roundedFull">;
   flatSide?: MultiChoiceArg<"top" | "right" | "bottom" | "left">;
+  contour?: SingleBooleanChoiceArg<"contour">;
 };
 type VariantPropType = keyof PlasmicButton__VariantsArgs;
 export const PlasmicButton__VariantProps = new Array<VariantPropType>(
@@ -101,6 +105,7 @@ export const PlasmicButton__VariantProps = new Array<VariantPropType>(
   "iconEnd",
   "roundedFull",
   "flatSide",
+  "contour",
 );
 
 export type PlasmicButton__ArgsType = {
@@ -156,6 +161,7 @@ export interface DefaultButtonProps {
   iconEnd?: SingleBooleanChoiceArg<"iconEnd">;
   roundedFull?: SingleBooleanChoiceArg<"roundedFull">;
   flatSide?: MultiChoiceArg<"top" | "right" | "bottom" | "left">;
+  contour?: SingleBooleanChoiceArg<"contour">;
   className?: string;
 }
 
@@ -245,6 +251,12 @@ function PlasmicButton__RenderFunc(props: {
         variableType: "variant",
         initFunc: ({ $props, $state, $queries, $ctx }) => $props.flatSide,
       },
+      {
+        path: "contour",
+        type: "private",
+        variableType: "variant",
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.contour,
+      },
     ],
     [$props, $ctx, $refs],
   );
@@ -253,6 +265,10 @@ function PlasmicButton__RenderFunc(props: {
     $ctx,
     $queries: {},
     $refs,
+  });
+
+  const globalVariants = ensureGlobalVariants({
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
@@ -322,6 +338,7 @@ function PlasmicButton__RenderFunc(props: {
           [sty.rootcolor_warning_type_bordered]:
             hasVariant($state, "color", "warning") &&
             hasVariant($state, "type", "bordered"),
+          [sty.rootcontour]: hasVariant($state, "contour", "contour"),
           [sty.rootflatSide_bottom]: hasVariant($state, "flatSide", "bottom"),
           [sty.rootflatSide_left]: hasVariant($state, "flatSide", "left"),
           [sty.rootflatSide_right]: hasVariant($state, "flatSide", "right"),
@@ -491,6 +508,11 @@ function PlasmicButton__RenderFunc(props: {
             "color",
             "warning",
           ),
+          [sty.interactionEffectcontour]: hasVariant(
+            $state,
+            "contour",
+            "contour",
+          ),
           [sty.interactionEffectroundedFull]: hasVariant(
             $state,
             "roundedFull",
@@ -532,6 +554,11 @@ function PlasmicButton__RenderFunc(props: {
           [sty.freeBoxcolor_success_type_bordered___5UFrc7G9DYk5I3]:
             hasVariant($state, "color", "success") &&
             hasVariant($state, "type", "bordered"),
+          [sty.freeBoxcontour___5UFrcsq21Q]: hasVariant(
+            $state,
+            "contour",
+            "contour",
+          ),
           [sty.freeBoxroundedFull___5UFrcau5E2]: hasVariant(
             $state,
             "roundedFull",

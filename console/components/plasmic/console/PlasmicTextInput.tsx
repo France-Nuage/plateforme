@@ -62,6 +62,8 @@ import {
 import { BaseInput } from "@plasmicpkgs/react-aria/skinny/registerInput";
 import { inputHelpers as BaseInput_Helpers } from "@plasmicpkgs/react-aria/skinny/registerInput";
 
+import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
+
 import "@plasmicapp/react-web/lib/plasmic.css";
 
 import plasmic_antd_5_hostless_css from "../antd_5_hostless/plasmic.module.css"; // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
@@ -74,17 +76,20 @@ export type PlasmicTextInput__VariantMembers = {
   type: "soft" | "plain";
   flat: "top" | "right" | "bottom" | "left";
   padded: "left" | "right";
+  contour: "contour";
 };
 export type PlasmicTextInput__VariantsArgs = {
   type?: SingleChoiceArg<"soft" | "plain">;
   flat?: MultiChoiceArg<"top" | "right" | "bottom" | "left">;
   padded?: MultiChoiceArg<"left" | "right">;
+  contour?: SingleBooleanChoiceArg<"contour">;
 };
 type VariantPropType = keyof PlasmicTextInput__VariantsArgs;
 export const PlasmicTextInput__VariantProps = new Array<VariantPropType>(
   "type",
   "flat",
   "padded",
+  "contour",
 );
 
 export type PlasmicTextInput__ArgsType = {
@@ -265,6 +270,7 @@ export interface DefaultTextInputProps {
   type?: SingleChoiceArg<"soft" | "plain">;
   flat?: MultiChoiceArg<"top" | "right" | "bottom" | "left">;
   padded?: MultiChoiceArg<"left" | "right">;
+  contour?: SingleBooleanChoiceArg<"contour">;
   className?: string;
 }
 
@@ -337,6 +343,12 @@ function PlasmicTextInput__RenderFunc(props: {
         variableType: "variant",
         initFunc: ({ $props, $state, $queries, $ctx }) => $props.padded,
       },
+      {
+        path: "contour",
+        type: "private",
+        variableType: "variant",
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.contour,
+      },
     ],
     [$props, $ctx, $refs],
   );
@@ -345,6 +357,10 @@ function PlasmicTextInput__RenderFunc(props: {
     $ctx,
     $queries: {},
     $refs,
+  });
+
+  const globalVariants = ensureGlobalVariants({
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
@@ -381,6 +397,7 @@ function PlasmicTextInput__RenderFunc(props: {
         plasmic_antd_5_hostless_css.plasmic_tokens,
         sty.ariaInput,
         {
+          [sty.ariaInputcontour]: hasVariant($state, "contour", "contour"),
           [sty.ariaInputflat_bottom]: hasVariant($state, "flat", "bottom"),
           [sty.ariaInputflat_left]: hasVariant($state, "flat", "left"),
           [sty.ariaInputflat_right]: hasVariant($state, "flat", "right"),

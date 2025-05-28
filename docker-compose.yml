@@ -3,10 +3,10 @@ services:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       args:
-        NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:-b637aaac8a74582baf4f2e54bd05d3ea530d3985b818597a5a83a73ce2287e78}
-        NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${NEXT_PUBLIC_OIDC_PROVIDER_NAME:-gitlab}
-        NEXT_PUBLIC_OIDC_PROVIDER_URL: ${NEXT_PUBLIC_OIDC_PROVIDER_URL:-https://gitlab.com}
-        NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
+        NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+        NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
+        NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
+        NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
         NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
@@ -16,14 +16,16 @@ services:
     depends_on:
       controlplane:
         condition: service_healthy
+      oidc:
+        condition: service_healthy
     environment:
-      NEXT_PUBLIC_OIDC_CLIENT_ID: ${NEXT_PUBLIC_OIDC_CLIENT_ID:-b637aaac8a74582baf4f2e54bd05d3ea530d3985b818597a5a83a73ce2287e78}
-      NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${NEXT_PUBLIC_OIDC_PROVIDER_NAME:-gitlab}
-      NEXT_PUBLIC_OIDC_PROVIDER_URL: ${NEXT_PUBLIC_OIDC_PROVIDER_URL:-https://gitlab.com}
-      NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
+      NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+      NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
+      NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
+      NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
       NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
     healthcheck:
-      test: ["CMD", "curl", "-f", "${CONSOLE_URL:-http://localhost:3000}"]
+      test: ["CMD", "curl", "-f", "${CONSOLE_URL:-https://localhost:3000}"]
       interval: 5s
       timeout: 5s
       retries: 24
@@ -52,7 +54,7 @@ services:
       retries: 24
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
-      CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
+      CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
       CONTROLPLANE_ADDR: 0.0.0.0:8080
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
@@ -70,6 +72,27 @@ services:
         target: /mnt/pve/nfs-snippets
         volume:
           nocopy: true
+
+  oidc:
+    build:
+      context: oidc-server
+    environment:
+      CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "--insecure",
+          "-f",
+          "${OIDC_PROVIDER_URL:-https://oidc:4000}/health",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    ports:
+      - 4000:4000
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.51.1-noble
@@ -111,8 +134,11 @@ services:
       playwright:
         condition: service_started
     environment:
-      CONSOLE_URL: ${CONSOLE_URL:-http://console:3000}
+      CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
       CONTROLPLANE_URL: ${CONTROLPLANE_URL:-http://controlplane:8080}
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+      OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc:4000}
       PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
       PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
       PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev-dc03-internal.france-nuage.fr}

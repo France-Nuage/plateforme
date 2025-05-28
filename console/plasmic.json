@@ -233,7 +233,7 @@
     {
       "projectId": "aqt4bw2qhfo7d76ADZhQFo",
       "projectApiToken": "oggrsyL9bKt9fkVg2U0qIfGIUIkGgdeJ9FQSldQGMB7cKioSbXZeLm2f2gAxqQfE1NidaptbjnjhFuenDDZkQ",
-      "projectName": "Console",
+      "projectName": "console.france-nuage.fr",
       "version": "latest",
       "cssFilePath": "plasmic/react_aria/plasmic.module.css",
       "components": [
@@ -394,6 +394,190 @@
           "cssFilePath": "plasmic/console/PlasmicBtnSideBar.module.css",
           "scheme": "blackbox",
           "componentType": "component"
+        },
+        {
+          "id": "orxAMMfZ74Z0",
+          "name": "Instances",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicInstances.tsx",
+          "importSpec": {
+            "modulePath": "../pages/instance.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicInstances.module.css",
+          "scheme": "blackbox",
+          "componentType": "page",
+          "path": "/instance"
+        },
+        {
+          "id": "p-wD1wOjqe01",
+          "name": "ConsoleLayout",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicConsoleLayout.tsx",
+          "importSpec": {
+            "modulePath": "ConsoleLayout.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicConsoleLayout.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "tYFejTQb0c1A",
+          "name": "Modal",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicModal.tsx",
+          "importSpec": {
+            "modulePath": "Modal.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicModal.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "7igOedWgPhE0",
+          "name": "MenuItem",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuItem.tsx",
+          "importSpec": {
+            "modulePath": "MenuItem.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuItem.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "KPbEJV0fyfV4",
+          "name": "MenuSection",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuSection.tsx",
+          "importSpec": {
+            "modulePath": "MenuSection.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuSection.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "w32J7NYCC69P",
+          "name": "MenuPopover",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuPopover.tsx",
+          "importSpec": {
+            "modulePath": "MenuPopover.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuPopover.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "zvVpUAXrpLDn",
+          "name": "Select",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicSelect.tsx",
+          "importSpec": {
+            "modulePath": "Select.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSelect.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "2MR3Rnvxp1rh",
+          "name": "SliderThumb",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicSliderThumb.tsx",
+          "importSpec": {
+            "modulePath": "SliderThumb.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSliderThumb.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "LO3RxoimlbTk",
+          "name": "Slider",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicSlider.tsx",
+          "importSpec": {
+            "modulePath": "Slider.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSlider.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "1VSU1092sLjX",
+          "name": "Combobox",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicCombobox.tsx",
+          "importSpec": {
+            "modulePath": "Combobox.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicCombobox.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "bnJQhPYJszXW",
+          "name": "Loader",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicLoader.tsx",
+          "importSpec": {
+            "modulePath": "Loader.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicLoader.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "trzu8wWyS9lH",
+          "name": "Cards",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicCards.tsx",
+          "importSpec": {
+            "modulePath": "Cards.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicCards.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
+        },
+        {
+          "id": "H_HoE5avRiQs",
+          "name": "Login",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicLogin.tsx",
+          "importSpec": {
+            "modulePath": "../pages/login.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicLogin.module.css",
+          "scheme": "blackbox",
+          "componentType": "page",
+          "path": "/login"
+        },
+        {
+          "id": "TeN_RMngOPqj",
+          "name": "Radio",
+          "type": "managed",
+          "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+          "renderModuleFilePath": "plasmic/console_france_nuage_fr/PlasmicRadio.tsx",
+          "importSpec": {
+            "modulePath": "Radio.tsx"
+          },
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicRadio.module.css",
+          "scheme": "blackbox",
+          "componentType": "component"
         }
       ],
       "icons": [
@@ -546,6 +730,16 @@
           "id": "Wuq7R1xx4mKS",
           "name": "Icon12Icon",
           "moduleFilePath": "plasmic/console/icons/PlasmicIcon__Icon12.tsx"
+        },
+        {
+          "id": "UzBQNk26CWL2",
+          "name": "IconLeft3Icon",
+          "moduleFilePath": "plasmic/console_france_nuage_fr/icons/PlasmicIcon__IconLeft3.tsx"
+        },
+        {
+          "id": "XegYPrYvUV2e",
+          "name": "GitLabLogoSvgIcon",
+          "moduleFilePath": "plasmic/console_france_nuage_fr/icons/PlasmicIcon__GitLabLogoSvg.tsx"
         }
       ],
       "images": [
@@ -943,6 +1137,41 @@
           "id": "Rpalmysqfum_",
           "name": "cloud model.svg",
           "filePath": "../public/plasmic/console/images/cloudModelSvg.svg"
+        },
+        {
+          "id": "Xt_lbIHexoh2",
+          "name": "image",
+          "filePath": "../public/plasmic/console_france_nuage_fr/images/image.gif"
+        },
+        {
+          "id": "aT43vmjze81f",
+          "name": "Icon left",
+          "filePath": "../public/plasmic/console_france_nuage_fr/images/iconLeft.svg"
+        },
+        {
+          "id": "87vgCSOmPWrH",
+          "name": "Icon right",
+          "filePath": "../public/plasmic/console_france_nuage_fr/images/iconRight.svg"
+        },
+        {
+          "id": "8lPSHpE1AZ09",
+          "name": "Icon left 2",
+          "filePath": "../public/plasmic/console_france_nuage_fr/images/iconLeft2.svg"
+        },
+        {
+          "id": "OzfmJA601qJZ",
+          "name": "Enter-Password-6--Streamline-Brooklyn.svg",
+          "filePath": "../public/plasmic/console_france_nuage_fr/images/enterPassword6StreamlineBrooklynSvg.svg"
+        },
+        {
+          "id": "hGcMuOqI1rcV",
+          "name": "cloud logo",
+          "filePath": "../public/plasmic/console_france_nuage_fr/images/cloudLogo.svg"
+        },
+        {
+          "id": "0Uia7jn1g0Af",
+          "name": "image 2",
+          "filePath": "../public/plasmic/console_france_nuage_fr/images/image2.png"
         }
       ],
       "indirect": false,
@@ -1452,6 +1681,86 @@
       ],
       "customFunctions": [],
       "jsBundleThemes": []
+    },
+    {
+      "projectId": "kS7YGZfVr6mU43XDQjXELc",
+      "projectApiToken": "ByNEUEKB7Hd9g2PkeOVot8RZTanYGn3rlmcjYTbULlTb9TEjfypxJ4uDH0HeEMQazKWvfHB4CFNXVgy8YmEyA",
+      "projectName": "react-chartjs-2",
+      "version": ">0.0.0",
+      "cssFilePath": "plasmic/react_chartjs_2/plasmic.module.css",
+      "components": [],
+      "icons": [],
+      "images": [],
+      "indirect": true,
+      "globalContextsFilePath": "",
+      "splitsProviderFilePath": "",
+      "codeComponents": [
+        {
+          "id": "0Qywk3bhW-8",
+          "name": "SimpleChart",
+          "displayName": "hostless-react-chartjs-2-simple-chart",
+          "componentImportPath": "@plasmicpkgs/react-chartjs-2"
+        }
+      ],
+      "customFunctions": []
+    },
+    {
+      "projectId": "hjKYmYi6HMwK6TRyk7ew5R",
+      "projectApiToken": "L5kqyh9xqKCqpdc8gqCglVcLZTxdkkP1Dt9pLUlWpyKVItIbbXr5272ePgMpZZiezhSe0AIOuQB353jQnw",
+      "projectName": "plasmic-cms",
+      "version": ">0.0.0",
+      "cssFilePath": "plasmic/plasmic_cms/plasmic.module.css",
+      "components": [],
+      "icons": [],
+      "images": [],
+      "indirect": true,
+      "globalContextsFilePath": "plasmic/plasmic_cms/PlasmicGlobalContextsProvider.tsx",
+      "splitsProviderFilePath": "",
+      "codeComponents": [
+        {
+          "id": "w6HdOz-Pcn",
+          "name": "CmsRowField",
+          "displayName": "hostless-plasmic-cms-row-field",
+          "componentImportPath": "@plasmicpkgs/plasmic-cms"
+        },
+        {
+          "id": "Ds6UdKRHmq",
+          "name": "CmsRowLink",
+          "displayName": "hostless-plasmic-cms-row-link",
+          "componentImportPath": "@plasmicpkgs/plasmic-cms"
+        },
+        {
+          "id": "dj_Vc2QmFA",
+          "name": "CmsRowImage",
+          "displayName": "hostless-plasmic-cms-row-image",
+          "componentImportPath": "@plasmicpkgs/plasmic-cms"
+        },
+        {
+          "id": "r3UO4W-xcR",
+          "name": "CmsRowFieldValue",
+          "displayName": "hostless-plasmic-cms-row-value",
+          "componentImportPath": "@plasmicpkgs/plasmic-cms"
+        },
+        {
+          "id": "OREVbGCcgN",
+          "name": "CmsCredentialsProvider",
+          "displayName": "hostless-plasmic-cms-credentials-provider",
+          "componentImportPath": "@plasmicpkgs/plasmic-cms"
+        },
+        {
+          "id": "8N9-WfZSaq",
+          "name": "CmsQueryRepeater",
+          "displayName": "hostless-plasmic-cms-query-repeater",
+          "componentImportPath": "@plasmicpkgs/plasmic-cms"
+        },
+        {
+          "id": "8uEaibqi6348",
+          "name": "CmsCount",
+          "displayName": "hostless-plasmic-cms-count",
+          "componentImportPath": "@plasmicpkgs/plasmic-cms"
+        }
+      ],
+      "customFunctions": []
     }
   ],
   "globalVariants": {
@@ -1461,6 +1770,12 @@
         "name": "UnnamedGlobalGroupOfVariants",
         "projectId": "aqt4bw2qhfo7d76ADZhQFo",
         "contextFilePath": "plasmic/console/PlasmicGlobalVariant__UnnamedGlobalGroupOfVariants.tsx"
+      },
+      {
+        "id": "eEvMBXdv1ZEe",
+        "name": "Screen",
+        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+        "contextFilePath": "plasmic/console_france_nuage_fr/PlasmicGlobalVariant__Screen.tsx"
       }
     ]
   },

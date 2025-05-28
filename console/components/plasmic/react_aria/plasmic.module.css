@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Inconsolata%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Lato%3Aital%2Cwght%400%2C400%3B0%2C700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lato%3Aital%2Cwght%400%2C400%3B0%2C700&family=Inconsolata%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Inter%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Outfit%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Nunito+Sans%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&display=swap");
 
 .plasmic_tokens {
   --token-PKw3mKbzBr62: #1a4ce5;
@@ -113,6 +113,33 @@
   --plasmic-token-bg-stack: var(--token-9BvQ2cxVEs4b);
   --token-ZQpiPlj-4OYJ: #dbe6f2;
   --plasmic-token-contour-stack: var(--token-ZQpiPlj-4OYJ);
+  --token-xI_MJejjjCRj: 12px;
+  --plasmic-token-system-s: var(--token-xI_MJejjjCRj);
+  --token-AVjrb1VpMneH: #ffffff;
+  --plasmic-token-basic-container-background: var(--token-AVjrb1VpMneH);
+  --token-NqA2b1_MYJ-V: Inter;
+  --plasmic-token-sans-serif: var(--token-NqA2b1_MYJ-V);
+  --token-ZKnSqz-AoN98: 1rem;
+  --plasmic-token-size-16: var(--token-ZKnSqz-AoN98);
+  --token-uzx5vY_oUTDL: #0a0a0a80;
+  --plasmic-token-basic-overlay-background: var(--token-uzx5vY_oUTDL);
+  --token-Vt2lVL-M8Erm: 1.5rem;
+  --plasmic-token-size-24: var(--token-Vt2lVL-M8Erm);
+  --token-7nCJEcCaJ2mS: #e5e7eb;
+  --plasmic-token-basic-input-background: var(--token-7nCJEcCaJ2mS);
+  --token-LndKBjsKUOCP: 1.25rem;
+  --plasmic-token-size-20: var(--token-LndKBjsKUOCP);
+  --token-fnZm-7SHBYMc: #9ca3af;
+  --plasmic-token-basic-ring: var(--token-fnZm-7SHBYMc);
+}
+
+@media (max-width: 414px) {
+  .plasmic_tokens {
+    --token-9DYAKh_l4jQS: #4b547f;
+    --plasmic-token-basic-text-secondary: var(--token-9DYAKh_l4jQS);
+    --token-74Qsc5U_cwQo: #1c274d;
+    --plasmic-token-basic-text-primary: var(--token-74Qsc5U_cwQo);
+  }
 }
 
 .plasmic_tokens {
@@ -129,11 +156,11 @@
 .plasmic_default_styles:where(
     .global_unnamedGlobalGroupOfVariants_unnamedVariant
   ) {
-  --mixin-26niuRMbjDv7_font-family: "Inter", sans-serif;
+  --mixin-26niuRMbjDv7_font-family: var(--token-xJyIxpbdm7M0);
   --mixin-26niuRMbjDv7_font-size: 16px;
   --mixin-26niuRMbjDv7_font-weight: 400;
   --mixin-26niuRMbjDv7_font-style: normal;
-  --mixin-26niuRMbjDv7_color: #535353;
+  --mixin-26niuRMbjDv7_color: var(--token-74Qsc5U_cwQo);
   --mixin-26niuRMbjDv7_text-align: left;
   --mixin-26niuRMbjDv7_text-transform: none;
   --mixin-26niuRMbjDv7_line-height: 1.5;

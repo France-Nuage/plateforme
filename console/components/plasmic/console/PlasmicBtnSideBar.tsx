@@ -59,6 +59,8 @@ import {
   useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
+import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
+
 import "@plasmicapp/react-web/lib/plasmic.css";
 
 import plasmic_antd_5_hostless_css from "../antd_5_hostless/plasmic.module.css"; // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
@@ -70,14 +72,14 @@ import UserIcon from "./icons/PlasmicIcon__User"; // plasmic-import: HOWLf5KCV6x
 createPlasmicElementProxy;
 
 export type PlasmicBtnSideBar__VariantMembers = {
-  pressed2: "pressed2";
+  isActive: "isActive";
 };
 export type PlasmicBtnSideBar__VariantsArgs = {
-  pressed2?: SingleBooleanChoiceArg<"pressed2">;
+  isActive?: SingleBooleanChoiceArg<"isActive">;
 };
 type VariantPropType = keyof PlasmicBtnSideBar__VariantsArgs;
 export const PlasmicBtnSideBar__VariantProps = new Array<VariantPropType>(
-  "pressed2",
+  "isActive",
 );
 
 export type PlasmicBtnSideBar__ArgsType = {
@@ -101,7 +103,7 @@ export interface DefaultBtnSideBarProps {
   nom?: string;
   children?: React.ReactNode;
   link?: string;
-  pressed2?: SingleBooleanChoiceArg<"pressed2">;
+  isActive?: SingleBooleanChoiceArg<"isActive">;
   className?: string;
 }
 
@@ -127,6 +129,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
       Object.assign(
         {
           nom: "txt",
+          link: "#",
         },
         Object.fromEntries(
           Object.entries(props.args).filter(([_, v]) => v !== undefined),
@@ -149,10 +152,10 @@ function PlasmicBtnSideBar__RenderFunc(props: {
   const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
     () => [
       {
-        path: "pressed2",
+        path: "isActive",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.pressed2,
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.isActive,
       },
     ],
     [$props, $ctx, $refs],
@@ -162,6 +165,10 @@ function PlasmicBtnSideBar__RenderFunc(props: {
     $ctx,
     $queries: {},
     $refs,
+  });
+
+  const globalVariants = ensureGlobalVariants({
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -180,7 +187,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
         sty.root,
-        { [sty.rootpressed2]: hasVariant($state, "pressed2", "pressed2") },
+        { [sty.rootisActive]: hasVariant($state, "isActive", "isActive") },
       )}
     >
       {renderPlasmicSlot({
@@ -201,7 +208,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
           projectcss.a,
           projectcss.__wab_text,
           sty.link,
-          { [sty.linkpressed2]: hasVariant($state, "pressed2", "pressed2") },
+          { [sty.linkisActive]: hasVariant($state, "isActive", "isActive") },
         )}
         component={Link}
         href={(() => {
@@ -228,7 +235,7 @@ function PlasmicBtnSideBar__RenderFunc(props: {
                 e instanceof TypeError ||
                 e?.plasmicType === "PlasmicUndefinedDataError"
               ) {
-                return "\u00c9quipes";
+                return "#";
               }
               throw e;
             }
