@@ -106,7 +106,6 @@ build:
   stage: system-tests
   variables:
     TARGET: release
-    CONSOLE_URL: http://console
   script:
     - docker compose run --remove-orphans system-tests npm run test:ci
   artifacts:
