@@ -16,6 +16,8 @@ services:
     depends_on:
       controlplane:
         condition: service_healthy
+      oidc:
+        condition: service_healthy
     environment:
       NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
       NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
@@ -77,6 +79,18 @@ services:
     environment:
       CONSOLE_URL: ${CONSOLE_URL:-https://console:3000}
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "--insecure",
+          "-f",
+          "${OIDC_PROVIDER_URL:-https://oidc:4000}/health",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
     ports:
       - 4000:4000
 

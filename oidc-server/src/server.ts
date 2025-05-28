@@ -25,6 +25,10 @@ const oidc = new Provider(config.issuer, {
   scopes: ['openid', 'profile', 'email', 'offline_access'],
 });
 
+app.get('/health', async (req, res) => {
+  res.status(200).send();
+});
+
 app.post('/api/users', async (req, res) => {
   const { username = 'rstraub', email = 'robin@straub.pro', name = 'Robin Straub' } = req.body;
 

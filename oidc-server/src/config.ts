@@ -4,5 +4,5 @@ export default {
   clientSecret: process.env.OIDC_CLIENT_SECRET ?? 'francenuage',
   host: process.env.HOST ?? 'oidc',
   port: process.env.PORT ?? 4000,
-  issuer: `${process.env.HOST ?? 'oidc'}:${process.env.port ?? 4000}`,
+  issuer: `https://${process.env.HOST ?? 'oidc'}:${process.env.port ?? 4000}`,
 }
