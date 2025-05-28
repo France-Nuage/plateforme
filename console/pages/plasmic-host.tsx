@@ -46,6 +46,14 @@ registerComponent(ConsoleProvider, {
         { name: "url", type: "string" },
       ],
     },
+    signin: {
+      description: "Redirects the user to the authentication server.",
+      argTypes: [],
+    },
+    signout: {
+      description: "Signs the user out.",
+      argTypes: [],
+    },
   },
   importPath: "./providers/ConsoleProvider",
 });
