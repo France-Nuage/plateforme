@@ -160,8 +160,7 @@ build:
   script:
     - docker build -f controlplane/Dockerfile.docs -t ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG} controlplane
     - >
-      docker run 
-      --remove-orphans
+      docker run
       -e CLOUDFLARE_API_TOKEN=$CF_API_TOKEN 
       -e CLOUDFLARE_ACCOUNT_ID=$CF_ACCOUNT_ID 
       ${CI_REGISTRY_IMAGE}/docs:${CI_COMMIT_REF_SLUG}
