@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicLoader,
-  DefaultLoaderProps
+  DefaultLoaderProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicLoader";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 

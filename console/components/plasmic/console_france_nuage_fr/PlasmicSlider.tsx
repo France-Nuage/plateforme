@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { BaseSlider } from "@plasmicpkgs/react-aria/skinny/registerSlider";
@@ -112,7 +112,7 @@ export const PlasmicSlider__ArgProps = new Array<ArgPropType>(
   "onChange",
   "ariaLabel",
   "label",
-  "thumbs"
+  "thumbs",
 );
 
 export type PlasmicSlider__OverridesType = {
@@ -167,18 +167,18 @@ function PlasmicSlider__RenderFunc(props: {
           showLabel: true,
           showOutputText: true,
           showDescription: false,
-          filled: true
+          filled: true,
         },
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -195,37 +195,37 @@ function PlasmicSlider__RenderFunc(props: {
         variableType: "number",
 
         valueProp: "value",
-        onChangeProp: "onChange"
-      }
+        onChangeProp: "onChange",
+      },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx, $refs],
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs
+    $refs,
   });
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
     Record<string, boolean>
   >({
-    disabled: false
+    disabled: false,
   });
   const updateVariant = React.useCallback(
     (changes: Record<string, boolean>) => {
-      setDollarCcVariants(prev => {
-        if (!Object.keys(changes).some(k => prev[k] !== changes[k])) {
+      setDollarCcVariants((prev) => {
+        if (!Object.keys(changes).some((k) => prev[k] !== changes[k])) {
           return prev;
         }
         return { ...prev, ...changes };
       });
     },
-    []
+    [],
   );
 
   return (
@@ -242,7 +242,7 @@ function PlasmicSlider__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.ariaSlider
+        sty.ariaSlider,
       )}
       defaultValue={0}
       isDisabled={args.disabled}
@@ -251,7 +251,7 @@ function PlasmicSlider__RenderFunc(props: {
       onChange={async (...eventArgs: any) => {
         generateStateOnChangeProp($state, ["ariaSlider", "value"]).apply(
           null,
-          eventArgs
+          eventArgs,
         );
       }}
       orientation={"horizontal"}
@@ -277,13 +277,13 @@ function PlasmicSlider__RenderFunc(props: {
                     className={classNames(
                       projectcss.all,
                       projectcss.__wab_text,
-                      sty.text__c8DFd
+                      sty.text__c8DFd,
                     )}
                   >
                     {"Label"}
                   </div>
                 ),
-                value: args.label
+                value: args.label,
               })}
             </Label>
           ) : null}
@@ -337,12 +337,12 @@ function PlasmicSlider__RenderFunc(props: {
                 <SliderThumb
                   className={classNames(
                     "__wab_instance",
-                    sty.sliderThumb__mG3Kx
+                    sty.sliderThumb__mG3Kx,
                   )}
                 />
               ),
 
-              value: args.thumbs
+              value: args.thumbs,
             })}
           </BaseSliderTrack>
         </div>
@@ -366,14 +366,14 @@ const PlasmicDescendants = {
     "background",
     "ariaSliderTrack",
     "foreground",
-    "description"
+    "description",
   ],
   label: ["label"],
   ariaSliderOutput: ["ariaSliderOutput"],
   background: ["background", "ariaSliderTrack", "foreground"],
   ariaSliderTrack: ["ariaSliderTrack", "foreground"],
   foreground: ["foreground"],
-  description: ["description"]
+  description: ["description"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -416,7 +416,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -424,15 +424,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicSlider__ArgProps,
-          internalVariantPropNames: PlasmicSlider__VariantProps
+          internalVariantPropNames: PlasmicSlider__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicSlider__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "ariaSlider") {
@@ -457,8 +457,8 @@ export const PlasmicSlider = Object.assign(
 
     // Metadata about props expected for PlasmicSlider
     internalVariantProps: PlasmicSlider__VariantProps,
-    internalArgProps: PlasmicSlider__ArgProps
-  }
+    internalArgProps: PlasmicSlider__ArgProps,
+  },
 );
 
 export default PlasmicSlider;

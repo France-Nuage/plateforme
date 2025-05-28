@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicCombobox,
-  DefaultComboboxProps
+  DefaultComboboxProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicCombobox";
 
 // Your component props start with props for variants and slots you defined

@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "./PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
@@ -110,15 +110,15 @@ function PlasmicLoader__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -128,7 +128,7 @@ function PlasmicLoader__RenderFunc(props: {
   const $refs = refsRef.current;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -144,7 +144,7 @@ function PlasmicLoader__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.root
+        sty.root,
       )}
     >
       <PlasmicImg__
@@ -163,7 +163,7 @@ function PlasmicLoader__RenderFunc(props: {
           src: "/plasmic/console_france_nuage_fr/images/image.gif",
           fullWidth: 301,
           fullHeight: 300,
-          aspectRatio: undefined
+          aspectRatio: undefined,
         }}
       />
 
@@ -181,7 +181,7 @@ function PlasmicLoader__RenderFunc(props: {
 const PlasmicDescendants = {
   root: ["root", "img", "text"],
   img: ["img"],
-  text: ["text"]
+  text: ["text"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -220,7 +220,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -228,15 +228,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicLoader__ArgProps,
-          internalVariantPropNames: PlasmicLoader__VariantProps
+          internalVariantPropNames: PlasmicLoader__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicLoader__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -257,8 +257,8 @@ export const PlasmicLoader = Object.assign(
 
     // Metadata about props expected for PlasmicLoader
     internalVariantProps: PlasmicLoader__VariantProps,
-    internalArgProps: PlasmicLoader__ArgProps
-  }
+    internalArgProps: PlasmicLoader__ArgProps,
+  },
 );
 
 export default PlasmicLoader;

@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { BaseRadio } from "@plasmicpkgs/react-aria/skinny/registerRadio";
@@ -89,7 +89,7 @@ export const PlasmicRadio__ArgProps = new Array<ArgPropType>(
   "label",
   "autoFocus",
   "disabled",
-  "ariaLabel"
+  "ariaLabel",
 );
 
 export type PlasmicRadio__OverridesType = {
@@ -127,15 +127,15 @@ function PlasmicRadio__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -145,7 +145,7 @@ function PlasmicRadio__RenderFunc(props: {
   const $refs = refsRef.current;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
@@ -157,18 +157,18 @@ function PlasmicRadio__RenderFunc(props: {
     focused: false,
     focusVisible: false,
     disabled: false,
-    readonly: false
+    readonly: false,
   });
   const updateVariant = React.useCallback(
     (changes: Record<string, boolean>) => {
-      setDollarCcVariants(prev => {
-        if (!Object.keys(changes).some(k => prev[k] !== changes[k])) {
+      setDollarCcVariants((prev) => {
+        if (!Object.keys(changes).some((k) => prev[k] !== changes[k])) {
           return prev;
         }
         return { ...prev, ...changes };
       });
     },
-    []
+    [],
   );
 
   return (
@@ -186,7 +186,7 @@ function PlasmicRadio__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.ariaRadio
+        sty.ariaRadio,
       )}
       isDisabled={args.disabled}
       plasmicUpdateVariant={updateVariant}
@@ -197,14 +197,14 @@ function PlasmicRadio__RenderFunc(props: {
       </div>
       {renderPlasmicSlot({
         defaultContents: "Option",
-        value: args.label
+        value: args.label,
       })}
     </BaseRadio>
   ) as React.ReactElement | null;
 }
 
 const PlasmicDescendants = {
-  ariaRadio: ["ariaRadio"]
+  ariaRadio: ["ariaRadio"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -241,7 +241,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -249,15 +249,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicRadio__ArgProps,
-          internalVariantPropNames: PlasmicRadio__VariantProps
+          internalVariantPropNames: PlasmicRadio__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicRadio__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "ariaRadio") {
@@ -276,8 +276,8 @@ export const PlasmicRadio = Object.assign(
 
     // Metadata about props expected for PlasmicRadio
     internalVariantProps: PlasmicRadio__VariantProps,
-    internalArgProps: PlasmicRadio__ArgProps
-  }
+    internalArgProps: PlasmicRadio__ArgProps,
+  },
 );
 
 export default PlasmicRadio;

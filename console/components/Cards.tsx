@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicCards,
-  DefaultCardsProps
+  DefaultCardsProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicCards";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 

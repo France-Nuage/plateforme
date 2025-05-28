@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicModal,
-  DefaultModalProps
+  DefaultModalProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicModal";
 
 // Your component props start with props for variants and slots you defined

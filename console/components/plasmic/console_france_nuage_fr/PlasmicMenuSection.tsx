@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { BaseSection } from "@plasmicpkgs/react-aria/skinny/registerSection";
@@ -84,7 +84,7 @@ export type PlasmicMenuSection__ArgsType = {
 type ArgPropType = keyof PlasmicMenuSection__ArgsType;
 export const PlasmicMenuSection__ArgProps = new Array<ArgPropType>(
   "header",
-  "items"
+  "items",
 );
 
 export type PlasmicMenuSection__OverridesType = {
@@ -120,15 +120,15 @@ function PlasmicMenuSection__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -138,7 +138,7 @@ function PlasmicMenuSection__RenderFunc(props: {
   const $refs = refsRef.current;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -154,7 +154,7 @@ function PlasmicMenuSection__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.root
+        sty.root,
       )}
       header={
         <div
@@ -165,7 +165,7 @@ function PlasmicMenuSection__RenderFunc(props: {
           {renderPlasmicSlot({
             defaultContents: "Section Header",
             value: args.header,
-            className: classNames(sty.slotTargetHeader)
+            className: classNames(sty.slotTargetHeader),
           })}
         </div>
       }
@@ -179,7 +179,7 @@ function PlasmicMenuSection__RenderFunc(props: {
             <MenuItem label={"Section Item 3"} value={"section-item-3"} />
           </React.Fragment>
         ),
-        value: args.items
+        value: args.items,
       })}
     />
   ) as React.ReactElement | null;
@@ -187,7 +187,7 @@ function PlasmicMenuSection__RenderFunc(props: {
 
 const PlasmicDescendants = {
   root: ["root", "freeBox"],
-  freeBox: ["freeBox"]
+  freeBox: ["freeBox"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -225,7 +225,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -233,15 +233,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicMenuSection__ArgProps,
-          internalVariantPropNames: PlasmicMenuSection__VariantProps
+          internalVariantPropNames: PlasmicMenuSection__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicMenuSection__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -261,8 +261,8 @@ export const PlasmicMenuSection = Object.assign(
 
     // Metadata about props expected for PlasmicMenuSection
     internalVariantProps: PlasmicMenuSection__VariantProps,
-    internalArgProps: PlasmicMenuSection__ArgProps
-  }
+    internalArgProps: PlasmicMenuSection__ArgProps,
+  },
 );
 
 export default PlasmicMenuSection;

@@ -33,12 +33,9 @@
   flex-direction: column;
   flex-shrink: 0;
   width: 100%;
-  background: radial-gradient(
-        ellipse 40% 60% at 20% 20%,
-        #1a4ce530 0%,
-        #f9faff00 100%
-      )
-      0% 0% / 100% 100% repeat,
+  background:
+    radial-gradient(ellipse 40% 60% at 20% 20%, #1a4ce530 0%, #f9faff00 100%) 0%
+      0% / 100% 100% repeat,
     radial-gradient(
         ellipse 31% 48% at 83% 82%,
         #1a4ce54a 0%,

@@ -8,7 +8,7 @@ import { createUseScreenVariants } from "@plasmicapp/react-web";
 
 export type ScreenValue = "mobile";
 export const ScreenContext = React.createContext<ScreenValue[] | undefined>(
-  "PLEASE_RENDER_INSIDE_PROVIDER" as any
+  "PLEASE_RENDER_INSIDE_PROVIDER" as any,
 );
 
 export const useScreenVariants = createUseScreenVariants(true, {

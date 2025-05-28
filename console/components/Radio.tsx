@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicRadio,
-  DefaultRadioProps
+  DefaultRadioProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicRadio";
 
 // Your component props start with props for variants and slots you defined

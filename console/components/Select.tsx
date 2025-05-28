@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicSelect,
-  DefaultSelectProps
+  DefaultSelectProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicSelect";
 
 // Your component props start with props for variants and slots you defined

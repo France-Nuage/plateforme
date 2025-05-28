@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import Breadcrumbs from "../../Breadcrumbs"; // plasmic-import: PEgOxZRQTA56/component
@@ -80,7 +80,7 @@ export const PlasmicConsoleLayout__VariantProps = new Array<VariantPropType>();
 export type PlasmicConsoleLayout__ArgsType = { children?: React.ReactNode };
 type ArgPropType = keyof PlasmicConsoleLayout__ArgsType;
 export const PlasmicConsoleLayout__ArgProps = new Array<ArgPropType>(
-  "children"
+  "children",
 );
 
 export type PlasmicConsoleLayout__OverridesType = {
@@ -116,15 +116,15 @@ function PlasmicConsoleLayout__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -134,7 +134,7 @@ function PlasmicConsoleLayout__RenderFunc(props: {
   const $refs = refsRef.current;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -150,7 +150,7 @@ function PlasmicConsoleLayout__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.root
+        sty.root,
       )}
     >
       <Breadcrumbs
@@ -173,7 +173,7 @@ function PlasmicConsoleLayout__RenderFunc(props: {
         >
           {renderPlasmicSlot({
             defaultContents: null,
-            value: args.children
+            value: args.children,
           })}
         </Stack__>
       </div>
@@ -184,7 +184,7 @@ function PlasmicConsoleLayout__RenderFunc(props: {
 const PlasmicDescendants = {
   root: ["root", "breadcrumbs", "sideBar"],
   breadcrumbs: ["breadcrumbs"],
-  sideBar: ["sideBar"]
+  sideBar: ["sideBar"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -223,7 +223,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -231,15 +231,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicConsoleLayout__ArgProps,
-          internalVariantPropNames: PlasmicConsoleLayout__VariantProps
+          internalVariantPropNames: PlasmicConsoleLayout__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicConsoleLayout__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -260,8 +260,8 @@ export const PlasmicConsoleLayout = Object.assign(
 
     // Metadata about props expected for PlasmicConsoleLayout
     internalVariantProps: PlasmicConsoleLayout__VariantProps,
-    internalArgProps: PlasmicConsoleLayout__ArgProps
-  }
+    internalArgProps: PlasmicConsoleLayout__ArgProps,
+  },
 );
 
 export default PlasmicConsoleLayout;

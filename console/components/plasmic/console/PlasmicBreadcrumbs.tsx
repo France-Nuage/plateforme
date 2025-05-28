@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { AntdBreadcrumb } from "@plasmicpkgs/antd5/skinny/registerBreadcrumb";
@@ -116,15 +116,15 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -134,7 +134,7 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
   const $refs = refsRef.current;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -150,7 +150,7 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.root
+        sty.root,
       )}
     >
       <Stack__
@@ -174,7 +174,7 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
               src: "/plasmic/console/images/cloudModelSvg.svg",
               fullWidth: 28,
               fullHeight: 16,
-              aspectRatio: 1.75
+              aspectRatio: 1.75,
             }}
           />
         </div>
@@ -193,7 +193,7 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
               <AntdBreadcrumbItem
                 className={classNames(
                   "__wab_instance",
-                  sty.breadcrumbItem___40Wa
+                  sty.breadcrumbItem___40Wa,
                 )}
               >
                 <Stack__
@@ -210,7 +210,7 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
                     className={classNames(
                       projectcss.all,
                       projectcss.__wab_text,
-                      sty.text__iCly5
+                      sty.text__iCly5,
                     )}
                   >
                     {"Nom de l'organisation"}
@@ -220,7 +220,7 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
               <AntdBreadcrumbItem
                 className={classNames(
                   "__wab_instance",
-                  sty.breadcrumbItem__mxEBl
+                  sty.breadcrumbItem__mxEBl,
                 )}
               >
                 <Stack__
@@ -237,7 +237,7 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
                     className={classNames(
                       projectcss.all,
                       projectcss.__wab_text,
-                      sty.text___77Af
+                      sty.text___77Af,
                     )}
                   >
                     {"Nom de la filiale"}
@@ -247,14 +247,14 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
               <AntdBreadcrumbItem
                 className={classNames(
                   "__wab_instance",
-                  sty.breadcrumbItem__du1Un
+                  sty.breadcrumbItem__du1Un,
                 )}
               >
                 <div
                   className={classNames(
                     projectcss.all,
                     projectcss.__wab_text,
-                    sty.text__xDbC
+                    sty.text__xDbC,
                   )}
                 >
                   {"Nom du projet"}
@@ -267,7 +267,7 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
               className={classNames(
                 projectcss.all,
                 projectcss.__wab_text,
-                sty.text__loFWx
+                sty.text__loFWx,
               )}
             >
               {"/"}
@@ -283,7 +283,7 @@ const PlasmicDescendants = {
   root: ["root", "img", "section", "breadcrumb"],
   img: ["img"],
   section: ["section"],
-  breadcrumb: ["breadcrumb"]
+  breadcrumb: ["breadcrumb"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -323,7 +323,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -331,15 +331,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicBreadcrumbs__ArgProps,
-          internalVariantPropNames: PlasmicBreadcrumbs__VariantProps
+          internalVariantPropNames: PlasmicBreadcrumbs__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicBreadcrumbs__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -361,8 +361,8 @@ export const PlasmicBreadcrumbs = Object.assign(
 
     // Metadata about props expected for PlasmicBreadcrumbs
     internalVariantProps: PlasmicBreadcrumbs__VariantProps,
-    internalArgProps: PlasmicBreadcrumbs__ArgProps
-  }
+    internalArgProps: PlasmicBreadcrumbs__ArgProps,
+  },
 );
 
 export default PlasmicBreadcrumbs;

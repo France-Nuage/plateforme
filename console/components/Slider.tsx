@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicSlider,
-  DefaultSliderProps
+  DefaultSliderProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicSlider";
 
 // Your component props start with props for variants and slots you defined

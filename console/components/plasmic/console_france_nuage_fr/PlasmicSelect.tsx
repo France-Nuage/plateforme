@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { BaseSelect } from "@plasmicpkgs/react-aria/skinny/registerSelect";
@@ -116,7 +116,7 @@ export const PlasmicSelect__ArgProps = new Array<ArgPropType>(
   "ariaLabel",
   "label",
   "description",
-  "items"
+  "items",
 );
 
 export type PlasmicSelect__OverridesType = {
@@ -171,18 +171,18 @@ function PlasmicSelect__RenderFunc(props: {
         {
           placeholder: "Select an item",
           showLabel: true,
-          showDescription: false
+          showDescription: false,
         },
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -199,7 +199,7 @@ function PlasmicSelect__RenderFunc(props: {
         variableType: "boolean",
 
         valueProp: "isOpen",
-        onChangeProp: "onOpenChange"
+        onChangeProp: "onOpenChange",
       },
       {
         path: "ariaSelect.selectedValue",
@@ -207,26 +207,26 @@ function PlasmicSelect__RenderFunc(props: {
         variableType: "text",
 
         valueProp: "value",
-        onChangeProp: "onChange"
+        onChangeProp: "onChange",
       },
       {
         path: "type",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.type
-      }
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.type,
+      },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx, $refs],
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs
+    $refs,
   });
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
@@ -234,18 +234,18 @@ function PlasmicSelect__RenderFunc(props: {
   >({
     focused: false,
     focusVisible: false,
-    disabled: false
+    disabled: false,
   });
   const updateVariant = React.useCallback(
     (changes: Record<string, boolean>) => {
-      setDollarCcVariants(prev => {
-        if (!Object.keys(changes).some(k => prev[k] !== changes[k])) {
+      setDollarCcVariants((prev) => {
+        if (!Object.keys(changes).some((k) => prev[k] !== changes[k])) {
           return prev;
         }
         return { ...prev, ...changes };
       });
     },
-    []
+    [],
   );
 
   return (
@@ -263,26 +263,26 @@ function PlasmicSelect__RenderFunc(props: {
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
         sty.ariaSelect,
-        { [sty.ariaSelecttype_soft]: hasVariant($state, "type", "soft") }
+        { [sty.ariaSelecttype_soft]: hasVariant($state, "type", "soft") },
       )}
       isDisabled={args.disabled}
       isOpen={generateStateValueProp($state, ["ariaSelect", "isOpen"])}
       onOpenChange={async (...eventArgs: any) => {
         generateStateOnChangeProp($state, ["ariaSelect", "isOpen"]).apply(
           null,
-          eventArgs
+          eventArgs,
         );
       }}
       onSelectionChange={async (...eventArgs: any) => {
         generateStateOnChangeProp($state, [
           "ariaSelect",
-          "selectedValue"
+          "selectedValue",
         ]).apply(null, eventArgs);
       }}
       plasmicUpdateVariant={updateVariant}
       selectedKey={generateStateValueProp($state, [
         "ariaSelect",
-        "selectedValue"
+        "selectedValue",
       ])}
     >
       {$props.showLabel ? (
@@ -293,7 +293,7 @@ function PlasmicSelect__RenderFunc(props: {
         >
           {renderPlasmicSlot({
             defaultContents: "Label",
-            value: args.label
+            value: args.label,
           })}
         </Label>
       ) : null}
@@ -301,7 +301,7 @@ function PlasmicSelect__RenderFunc(props: {
         data-plasmic-name={"ariaButton"}
         data-plasmic-override={overrides.ariaButton}
         className={classNames("__wab_instance", sty.ariaButton, {
-          [sty.ariaButtontype_soft]: hasVariant($state, "type", "soft")
+          [sty.ariaButtontype_soft]: hasVariant($state, "type", "soft"),
         })}
       >
         <BaseSelectValue
@@ -316,7 +316,7 @@ function PlasmicSelect__RenderFunc(props: {
             className={classNames(
               projectcss.all,
               projectcss.__wab_text,
-              sty.text
+              sty.text,
             )}
           >
             <React.Fragment>
@@ -357,7 +357,7 @@ function PlasmicSelect__RenderFunc(props: {
         >
           {renderPlasmicSlot({
             defaultContents: "Description...",
-            value: args.description
+            value: args.description,
           })}
         </Description>
       ) : null}
@@ -381,7 +381,7 @@ function PlasmicSelect__RenderFunc(props: {
                     className={classNames(
                       projectcss.all,
                       projectcss.__wab_text,
-                      sty.text__uRiTp
+                      sty.text__uRiTp,
                     )}
                   >
                     {"Section"}
@@ -408,7 +408,7 @@ function PlasmicSelect__RenderFunc(props: {
               />
             </React.Fragment>
           ),
-          value: args.items
+          value: args.items,
         })}
         offset={2}
       />
@@ -426,7 +426,7 @@ const PlasmicDescendants = {
     "freeBox",
     "svg",
     "description",
-    "menuPopover"
+    "menuPopover",
   ],
   label: ["label"],
   ariaButton: ["ariaButton", "ariaSelectedValue", "text", "freeBox", "svg"],
@@ -435,7 +435,7 @@ const PlasmicDescendants = {
   freeBox: ["freeBox", "svg"],
   svg: ["svg"],
   description: ["description"],
-  menuPopover: ["menuPopover"]
+  menuPopover: ["menuPopover"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -480,7 +480,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -488,15 +488,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicSelect__ArgProps,
-          internalVariantPropNames: PlasmicSelect__VariantProps
+          internalVariantPropNames: PlasmicSelect__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicSelect__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "ariaSelect") {
@@ -523,8 +523,8 @@ export const PlasmicSelect = Object.assign(
 
     // Metadata about props expected for PlasmicSelect
     internalVariantProps: PlasmicSelect__VariantProps,
-    internalArgProps: PlasmicSelect__ArgProps
-  }
+    internalArgProps: PlasmicSelect__ArgProps,
+  },
 );
 
 export default PlasmicSelect;

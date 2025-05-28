@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from "../console_france_nuage_fr/PlasmicGlobalVariant__Screen"; // plasmic-import: eEvMBXdv1ZEe/globalVariant
@@ -107,15 +107,15 @@ function PlasmicContact__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -125,7 +125,7 @@ function PlasmicContact__RenderFunc(props: {
   const $refs = refsRef.current;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -151,7 +151,7 @@ function PlasmicContact__RenderFunc(props: {
             projectcss.plasmic_mixins,
             projectcss.plasmic_tokens,
             plasmic_antd_5_hostless_css.plasmic_tokens,
-            sty.root
+            sty.root,
           )}
         >
           <div
@@ -160,7 +160,7 @@ function PlasmicContact__RenderFunc(props: {
             className={classNames(
               projectcss.all,
               projectcss.__wab_text,
-              sty.text
+              sty.text,
             )}
           >
             {"Coucou"}
@@ -173,7 +173,7 @@ function PlasmicContact__RenderFunc(props: {
 
 const PlasmicDescendants = {
   root: ["root", "text"],
-  text: ["text"]
+  text: ["text"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -211,7 +211,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -219,15 +219,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicContact__ArgProps,
-          internalVariantPropNames: PlasmicContact__VariantProps
+          internalVariantPropNames: PlasmicContact__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicContact__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -254,9 +254,9 @@ export const PlasmicContact = Object.assign(
       title: "",
       description: "",
       ogImageSrc: "",
-      canonical: ""
-    }
-  }
+      canonical: "",
+    },
+  },
 );
 
 export default PlasmicContact;

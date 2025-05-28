@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { ConsoleProvider } from "../../../providers/ConsoleProvider"; // plasmic-import: vWN9dmdYefpY/codeComponent
@@ -125,15 +125,15 @@ function PlasmicInstances__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -148,7 +148,7 @@ function PlasmicInstances__RenderFunc(props: {
         path: "modal.isOpen",
         type: "private",
         variableType: "boolean",
-        initFunc: ({ $props, $state, $queries, $ctx }) => undefined
+        initFunc: ({ $props, $state, $queries, $ctx }) => undefined,
       },
       {
         path: "nom.value",
@@ -167,7 +167,7 @@ function PlasmicInstances__RenderFunc(props: {
               }
               throw e;
             }
-          })()
+          })(),
       },
       {
         path: "instanceDraft",
@@ -176,14 +176,14 @@ function PlasmicInstances__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $ctx }) => ({
           name: "",
           cpu: "",
-          memory: ""
-        })
+          memory: "",
+        }),
       },
       {
         path: "cpu.isOpen",
         type: "private",
         variableType: "boolean",
-        initFunc: ({ $props, $state, $queries, $ctx }) => false
+        initFunc: ({ $props, $state, $queries, $ctx }) => false,
       },
       {
         path: "cpu.value",
@@ -202,13 +202,13 @@ function PlasmicInstances__RenderFunc(props: {
               }
               throw e;
             }
-          })()
+          })(),
       },
       {
         path: "memoire.isOpen",
         type: "private",
         variableType: "boolean",
-        initFunc: ({ $props, $state, $queries, $ctx }) => false
+        initFunc: ({ $props, $state, $queries, $ctx }) => false,
       },
       {
         path: "memoire.value",
@@ -227,20 +227,20 @@ function PlasmicInstances__RenderFunc(props: {
               }
               throw e;
             }
-          })()
-      }
+          })(),
+      },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx, $refs],
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs
+    $refs,
   });
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -266,19 +266,19 @@ function PlasmicInstances__RenderFunc(props: {
             projectcss.plasmic_mixins,
             projectcss.plasmic_tokens,
             plasmic_antd_5_hostless_css.plasmic_tokens,
-            sty.root
+            sty.root,
           )}
         >
           <ConsoleProvider
             data-plasmic-name={"consoleProvider"}
             data-plasmic-override={overrides.consoleProvider}
             className={classNames("__wab_instance", sty.consoleProvider)}
-            ref={ref => {
+            ref={(ref) => {
               $refs["consoleProvider"] = ref;
             }}
           >
             <DataCtxReader__>
-              {$ctx => (
+              {($ctx) => (
                 <ConsoleLayout
                   data-plasmic-name={"consoleLayout"}
                   data-plasmic-override={overrides.consoleLayout}
@@ -296,7 +296,7 @@ function PlasmicInstances__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__jOUi
+                          sty.text__jOUi,
                         )}
                       >
                         {"Nom"}
@@ -305,7 +305,7 @@ function PlasmicInstances__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__fS6D
+                          sty.text__fS6D,
                         )}
                       >
                         {"Status"}
@@ -314,7 +314,7 @@ function PlasmicInstances__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__vcQG
+                          sty.text__vcQG,
                         )}
                       >
                         {"% CPU utilis\u00e9"}
@@ -323,13 +323,13 @@ function PlasmicInstances__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text___6K4Qr
+                          sty.text___6K4Qr,
                         )}
                       >
                         {"Max m\u00e9moire"}
                       </div>
                     </div>
-                    {(_par =>
+                    {((_par) =>
                       !_par ? [] : Array.isArray(_par) ? _par : [_par])(
                       (() => {
                         try {
@@ -343,7 +343,7 @@ function PlasmicInstances__RenderFunc(props: {
                           }
                           throw e;
                         }
-                      })()
+                      })(),
                     ).map((__plasmic_item_0, __plasmic_idx_0) => {
                       const currentItem = __plasmic_item_0;
                       const currentIndex = __plasmic_idx_0;
@@ -353,7 +353,7 @@ function PlasmicInstances__RenderFunc(props: {
                           hasGap={true}
                           className={classNames(
                             projectcss.all,
-                            sty.freeBox__hsVu2
+                            sty.freeBox__hsVu2,
                           )}
                           key={currentIndex}
                         >
@@ -361,7 +361,7 @@ function PlasmicInstances__RenderFunc(props: {
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.text__esS5T
+                              sty.text__esS5T,
                             )}
                           >
                             <React.Fragment>
@@ -385,7 +385,7 @@ function PlasmicInstances__RenderFunc(props: {
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.text__n94CP
+                              sty.text__n94CP,
                             )}
                           >
                             <React.Fragment>
@@ -409,7 +409,7 @@ function PlasmicInstances__RenderFunc(props: {
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.text__rhlXq
+                              sty.text__rhlXq,
                             )}
                           >
                             <React.Fragment>
@@ -433,7 +433,7 @@ function PlasmicInstances__RenderFunc(props: {
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.text__nZdJy
+                              sty.text__nZdJy,
                             )}
                           >
                             <React.Fragment>
@@ -467,7 +467,7 @@ function PlasmicInstances__RenderFunc(props: {
                           hasGap={true}
                           className={classNames(
                             projectcss.all,
-                            sty.freeBox__xF0OW
+                            sty.freeBox__xF0OW,
                           )}
                         >
                           <Stack__
@@ -475,7 +475,7 @@ function PlasmicInstances__RenderFunc(props: {
                             hasGap={true}
                             className={classNames(
                               projectcss.all,
-                              sty.freeBox__paX97
+                              sty.freeBox__paX97,
                             )}
                           >
                             <TextInput
@@ -487,7 +487,7 @@ function PlasmicInstances__RenderFunc(props: {
                               onChange={async (...eventArgs: any) => {
                                 generateStateOnChangeProp($state, [
                                   "nom",
-                                  "value"
+                                  "value",
                                 ]).apply(null, eventArgs);
 
                                 if (
@@ -498,7 +498,7 @@ function PlasmicInstances__RenderFunc(props: {
                                   return;
                                 }
 
-                                (async val => {
+                                (async (val) => {
                                   const $steps = {};
 
                                   $steps["updateInstanceDraft"] = true
@@ -506,16 +506,16 @@ function PlasmicInstances__RenderFunc(props: {
                                         const actionArgs = {
                                           variable: {
                                             objRoot: $state,
-                                            variablePath: ["instanceDraft"]
+                                            variablePath: ["instanceDraft"],
                                           },
                                           operation: 0,
-                                          value: $state.nom.value
+                                          value: $state.nom.value,
                                         };
                                         return (({
                                           variable,
                                           value,
                                           startIndex,
-                                          deleteCount
+                                          deleteCount,
                                         }) => {
                                           if (!variable) {
                                             return;
@@ -526,7 +526,7 @@ function PlasmicInstances__RenderFunc(props: {
                                           $stateSet(
                                             objRoot,
                                             variablePath,
-                                            value
+                                            value,
                                           );
                                           return value;
                                         })?.apply(null, [actionArgs]);
@@ -547,7 +547,7 @@ function PlasmicInstances__RenderFunc(props: {
                               placeholder={"Nom"}
                               value={generateStateValueProp($state, [
                                 "nom",
-                                "value"
+                                "value",
                               ])}
                             />
 
@@ -555,7 +555,7 @@ function PlasmicInstances__RenderFunc(props: {
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.text___0NfFd
+                                sty.text___0NfFd,
                               )}
                             >
                               <React.Fragment>
@@ -592,14 +592,14 @@ function PlasmicInstances__RenderFunc(props: {
                             })()}
                             isOpen={generateStateValueProp($state, [
                               "cpu",
-                              "isOpen"
+                              "isOpen",
                             ])}
                             items={
                               <React.Fragment>
                                 <MenuItem
                                   className={classNames(
                                     "__wab_instance",
-                                    sty.menuItem___4Zrrn
+                                    sty.menuItem___4Zrrn,
                                   )}
                                   label={"2"}
                                   value={"2"}
@@ -613,7 +613,7 @@ function PlasmicInstances__RenderFunc(props: {
                             onChange={async (...eventArgs: any) => {
                               generateStateOnChangeProp($state, [
                                 "cpu",
-                                "value"
+                                "value",
                               ]).apply(null, eventArgs);
 
                               if (
@@ -624,7 +624,7 @@ function PlasmicInstances__RenderFunc(props: {
                                 return;
                               }
 
-                              (async val => {
+                              (async (val) => {
                                 const $steps = {};
 
                                 $steps["updateInstanceDraft"] = true
@@ -632,16 +632,16 @@ function PlasmicInstances__RenderFunc(props: {
                                       const actionArgs = {
                                         variable: {
                                           objRoot: $state,
-                                          variablePath: ["instanceDraft"]
+                                          variablePath: ["instanceDraft"],
                                         },
                                         operation: 0,
-                                        value: $state.cpu.value
+                                        value: $state.cpu.value,
                                       };
                                       return (({
                                         variable,
                                         value,
                                         startIndex,
-                                        deleteCount
+                                        deleteCount,
                                       }) => {
                                         if (!variable) {
                                           return;
@@ -661,16 +661,15 @@ function PlasmicInstances__RenderFunc(props: {
                                   typeof $steps["updateInstanceDraft"].then ===
                                     "function"
                                 ) {
-                                  $steps["updateInstanceDraft"] = await $steps[
-                                    "updateInstanceDraft"
-                                  ];
+                                  $steps["updateInstanceDraft"] =
+                                    await $steps["updateInstanceDraft"];
                                 }
                               }).apply(null, eventArgs);
                             }}
                             onOpenChange={async (...eventArgs: any) => {
                               generateStateOnChangeProp($state, [
                                 "cpu",
-                                "isOpen"
+                                "isOpen",
                               ]).apply(null, eventArgs);
 
                               if (
@@ -686,7 +685,7 @@ function PlasmicInstances__RenderFunc(props: {
                             showLabel={false}
                             value={generateStateValueProp($state, [
                               "cpu",
-                              "value"
+                              "value",
                             ])}
                           />
 
@@ -695,7 +694,7 @@ function PlasmicInstances__RenderFunc(props: {
                             data-plasmic-override={overrides.memoire}
                             className={classNames(
                               "__wab_instance",
-                              sty.memoire
+                              sty.memoire,
                             )}
                             inputDisplayValue={(() => {
                               try {
@@ -712,14 +711,14 @@ function PlasmicInstances__RenderFunc(props: {
                             })()}
                             isOpen={generateStateValueProp($state, [
                               "memoire",
-                              "isOpen"
+                              "isOpen",
                             ])}
                             items={
                               <React.Fragment>
                                 <MenuItem
                                   className={classNames(
                                     "__wab_instance",
-                                    sty.menuItem__e8XK7
+                                    sty.menuItem__e8XK7,
                                   )}
                                   label={"4 Go"}
                                   value={"4"}
@@ -734,7 +733,7 @@ function PlasmicInstances__RenderFunc(props: {
                             onChange={async (...eventArgs: any) => {
                               generateStateOnChangeProp($state, [
                                 "memoire",
-                                "value"
+                                "value",
                               ]).apply(null, eventArgs);
 
                               if (
@@ -745,7 +744,7 @@ function PlasmicInstances__RenderFunc(props: {
                                 return;
                               }
 
-                              (async val => {
+                              (async (val) => {
                                 const $steps = {};
 
                                 $steps["updateInstanceDraft"] = true
@@ -753,16 +752,16 @@ function PlasmicInstances__RenderFunc(props: {
                                       const actionArgs = {
                                         variable: {
                                           objRoot: $state,
-                                          variablePath: ["instanceDraft"]
+                                          variablePath: ["instanceDraft"],
                                         },
                                         operation: 0,
-                                        value: $state.memoire.value
+                                        value: $state.memoire.value,
                                       };
                                       return (({
                                         variable,
                                         value,
                                         startIndex,
-                                        deleteCount
+                                        deleteCount,
                                       }) => {
                                         if (!variable) {
                                           return;
@@ -782,16 +781,15 @@ function PlasmicInstances__RenderFunc(props: {
                                   typeof $steps["updateInstanceDraft"].then ===
                                     "function"
                                 ) {
-                                  $steps["updateInstanceDraft"] = await $steps[
-                                    "updateInstanceDraft"
-                                  ];
+                                  $steps["updateInstanceDraft"] =
+                                    await $steps["updateInstanceDraft"];
                                 }
                               }).apply(null, eventArgs);
                             }}
                             onOpenChange={async (...eventArgs: any) => {
                               generateStateOnChangeProp($state, [
                                 "memoire",
-                                "isOpen"
+                                "isOpen",
                               ]).apply(null, eventArgs);
 
                               if (
@@ -806,7 +804,7 @@ function PlasmicInstances__RenderFunc(props: {
                             showLabel={false}
                             value={generateStateValueProp($state, [
                               "memoire",
-                              "value"
+                              "value",
                             ])}
                           />
                         </Stack__>
@@ -815,7 +813,7 @@ function PlasmicInstances__RenderFunc(props: {
                         <div
                           className={classNames(
                             projectcss.all,
-                            sty.freeBox__qsCuz
+                            sty.freeBox__qsCuz,
                           )}
                         >
                           <Button
@@ -824,13 +822,13 @@ function PlasmicInstances__RenderFunc(props: {
                                 className={classNames(
                                   projectcss.all,
                                   projectcss.__wab_text,
-                                  sty.text__zymnf
+                                  sty.text__zymnf,
                                 )}
                               >
                                 {"Go"}
                               </div>
                             }
-                            onClick={async event => {
+                            onClick={async (event) => {
                               const $steps = {};
 
                               $steps["runActionOnConsoleProvider"] = true
@@ -880,12 +878,12 @@ function PlasmicInstances__RenderFunc(props: {
                                             }
                                             throw e;
                                           }
-                                        })()
-                                      ]
+                                        })(),
+                                      ],
                                     };
                                     return (({ tplRef, action, args }) => {
                                       return $refs?.[tplRef]?.[action]?.(
-                                        ...(args ?? [])
+                                        ...(args ?? []),
                                       );
                                     })?.apply(null, [actionArgs]);
                                   })()
@@ -906,16 +904,16 @@ function PlasmicInstances__RenderFunc(props: {
                                     const actionArgs = {
                                       variable: {
                                         objRoot: $state,
-                                        variablePath: ["modal", "isOpen"]
+                                        variablePath: ["modal", "isOpen"],
                                       },
                                       operation: 0,
-                                      value: false
+                                      value: false,
                                     };
                                     return (({
                                       variable,
                                       value,
                                       startIndex,
-                                      deleteCount
+                                      deleteCount,
                                     }) => {
                                       if (!variable) {
                                         return;
@@ -935,9 +933,8 @@ function PlasmicInstances__RenderFunc(props: {
                                 typeof $steps["updateModalIsOpen"].then ===
                                   "function"
                               ) {
-                                $steps["updateModalIsOpen"] = await $steps[
-                                  "updateModalIsOpen"
-                                ];
+                                $steps["updateModalIsOpen"] =
+                                  await $steps["updateModalIsOpen"];
                               }
                             }}
                             type={"bordered"}
@@ -952,7 +949,7 @@ function PlasmicInstances__RenderFunc(props: {
                             projectcss.all,
                             projectcss.h3,
                             projectcss.__wab_text,
-                            sty.h3
+                            sty.h3,
                           )}
                         >
                           {"Configurer votre instance"}
@@ -961,12 +958,12 @@ function PlasmicInstances__RenderFunc(props: {
                       isKeyboardDismissDisabled={false}
                       isOpen={generateStateValueProp($state, [
                         "modal",
-                        "isOpen"
+                        "isOpen",
                       ])}
                       onOpenChange={async (...eventArgs: any) => {
                         generateStateOnChangeProp($state, [
                           "modal",
-                          "isOpen"
+                          "isOpen",
                         ]).apply(null, eventArgs);
 
                         if (
@@ -982,7 +979,7 @@ function PlasmicInstances__RenderFunc(props: {
                       trigger={
                         <Button
                           label={"Ajouter une instance"}
-                          onClick={async event => {
+                          onClick={async (event) => {
                             const $steps = {};
 
                             $steps["runActionOnConsoleProvider"] = true
@@ -1032,12 +1029,12 @@ function PlasmicInstances__RenderFunc(props: {
                                           }
                                           throw e;
                                         }
-                                      })()
-                                    ]
+                                      })(),
+                                    ],
                                   };
                                   return (({ tplRef, action, args }) => {
                                     return $refs?.[tplRef]?.[action]?.(
-                                      ...(args ?? [])
+                                      ...(args ?? []),
                                     );
                                   })?.apply(null, [actionArgs]);
                                 })()
@@ -1069,7 +1066,7 @@ function PlasmicInstances__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__zPbUy
+                          sty.text__zPbUy,
                         )}
                       >
                         {"Choisissez un service"}
@@ -1095,7 +1092,7 @@ const PlasmicDescendants = {
     "h3",
     "nom",
     "cpu",
-    "memoire"
+    "memoire",
   ],
   consoleProvider: [
     "consoleProvider",
@@ -1104,14 +1101,14 @@ const PlasmicDescendants = {
     "h3",
     "nom",
     "cpu",
-    "memoire"
+    "memoire",
   ],
   consoleLayout: ["consoleLayout", "modal", "h3", "nom", "cpu", "memoire"],
   modal: ["modal", "h3", "nom", "cpu", "memoire"],
   h3: ["h3"],
   nom: ["nom"],
   cpu: ["cpu"],
-  memoire: ["memoire"]
+  memoire: ["memoire"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -1155,7 +1152,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -1163,15 +1160,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicInstances__ArgProps,
-          internalVariantPropNames: PlasmicInstances__VariantProps
+          internalVariantPropNames: PlasmicInstances__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicInstances__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -1204,9 +1201,9 @@ export const PlasmicInstances = Object.assign(
       title: "",
       description: "",
       ogImageSrc: "",
-      canonical: ""
-    }
-  }
+      canonical: "",
+    },
+  },
 );
 
 export default PlasmicInstances;

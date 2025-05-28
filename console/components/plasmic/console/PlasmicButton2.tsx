@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { BaseButton } from "@plasmicpkgs/react-aria/skinny/registerButton";
@@ -115,7 +115,7 @@ export const PlasmicButton2__VariantProps = new Array<VariantPropType>(
   "iconStart",
   "iconEnd",
   "roundedFull",
-  "flatSide"
+  "flatSide",
 );
 
 export type PlasmicButton2__ArgsType = {
@@ -141,7 +141,7 @@ export const PlasmicButton2__ArgProps = new Array<ArgPropType>(
   "openLinkInNewTab",
   "start",
   "label",
-  "end"
+  "end",
 );
 
 export type PlasmicButton2__OverridesType = {
@@ -202,18 +202,18 @@ function PlasmicButton2__RenderFunc(props: {
       Object.assign(
         {
           linkTo: "",
-          openLinkInNewTab: false
+          openLinkInNewTab: false,
         },
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -228,56 +228,56 @@ function PlasmicButton2__RenderFunc(props: {
         path: "color",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.color
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.color,
       },
       {
         path: "size",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.size
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.size,
       },
       {
         path: "iconStart",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.iconStart
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.iconStart,
       },
       {
         path: "iconEnd",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.iconEnd
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.iconEnd,
       },
       {
         path: "roundedFull",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.roundedFull
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.roundedFull,
       },
       {
         path: "type",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.type
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.type,
       },
       {
         path: "flatSide",
         type: "private",
         variableType: "variant",
-        initFunc: ({ $props, $state, $queries, $ctx }) => $props.flatSide
-      }
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.flatSide,
+      },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx, $refs],
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs
+    $refs,
   });
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
@@ -287,18 +287,18 @@ function PlasmicButton2__RenderFunc(props: {
     pressed: false,
     focused: false,
     focusVisible: false,
-    disabled: false
+    disabled: false,
   });
   const updateVariant = React.useCallback(
     (changes: Record<string, boolean>) => {
-      setDollarCcVariants(prev => {
-        if (!Object.keys(changes).some(k => prev[k] !== changes[k])) {
+      setDollarCcVariants((prev) => {
+        if (!Object.keys(changes).some((k) => prev[k] !== changes[k])) {
           return prev;
         }
         return { ...prev, ...changes };
       });
     },
-    []
+    [],
   );
 
   return (
@@ -321,7 +321,7 @@ function PlasmicButton2__RenderFunc(props: {
           [sty.rootcolor_errorDestructive]: hasVariant(
             $state,
             "color",
-            "errorDestructive"
+            "errorDestructive",
           ),
           [sty.rootcolor_errorDestructive_type_bordered]:
             hasVariant($state, "color", "errorDestructive") &&
@@ -364,7 +364,7 @@ function PlasmicButton2__RenderFunc(props: {
           [sty.rootroundedFull]: hasVariant(
             $state,
             "roundedFull",
-            "roundedFull"
+            "roundedFull",
           ),
           [sty.rootsize_extraLarge]: hasVariant($state, "size", "extraLarge"),
           [sty.rootsize_extraSmall]: hasVariant($state, "size", "extraSmall"),
@@ -374,8 +374,8 @@ function PlasmicButton2__RenderFunc(props: {
           [sty.roottype_soft]: hasVariant($state, "type", "soft"),
           [sty.roottype_soft_color_muted]:
             hasVariant($state, "color", "muted") &&
-            hasVariant($state, "type", "soft")
-        }
+            hasVariant($state, "type", "soft"),
+        },
       )}
       href={args.linkTo}
       isDisabled={args.disabled}
@@ -401,10 +401,10 @@ function PlasmicButton2__RenderFunc(props: {
         hasVariant($state, "type", "bordered") && $ccVariants["pressed"]
           ? true
           : hasVariant($state, "type", "bordered") && $ccVariants["hovered"]
-          ? true
-          : hasVariant($state, "type", "soft")
-          ? true
-          : false
+            ? true
+            : hasVariant($state, "type", "soft")
+              ? true
+              : false
       ) ? (
         <div
           data-plasmic-name={"softBackground"}
@@ -413,40 +413,40 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.softBackgroundcolor_errorDestructive]: hasVariant(
               $state,
               "color",
-              "errorDestructive"
+              "errorDestructive",
             ),
             [sty.softBackgroundcolor_muted]: hasVariant(
               $state,
               "color",
-              "muted"
+              "muted",
             ),
             [sty.softBackgroundcolor_neutral]: hasVariant(
               $state,
               "color",
-              "neutral"
+              "neutral",
             ),
             [sty.softBackgroundcolor_success]: hasVariant(
               $state,
               "color",
-              "success"
+              "success",
             ),
             [sty.softBackgroundcolor_warning]: hasVariant(
               $state,
               "color",
-              "warning"
+              "warning",
             ),
             [sty.softBackgroundroundedFull]: hasVariant(
               $state,
               "roundedFull",
-              "roundedFull"
+              "roundedFull",
             ),
             [sty.softBackgroundsize_large]: hasVariant($state, "size", "large"),
             [sty.softBackgroundtype_bordered]: hasVariant(
               $state,
               "type",
-              "bordered"
+              "bordered",
             ),
-            [sty.softBackgroundtype_soft]: hasVariant($state, "type", "soft")
+            [sty.softBackgroundtype_soft]: hasVariant($state, "type", "soft"),
           })}
         />
       ) : null}
@@ -458,7 +458,7 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.bordercolor_errorDestructive]: hasVariant(
               $state,
               "color",
-              "errorDestructive"
+              "errorDestructive",
             ),
             [sty.bordercolor_muted]: hasVariant($state, "color", "muted"),
             [sty.bordercolor_muted_type_bordered]:
@@ -470,7 +470,7 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.borderflatSide_bottom]: hasVariant(
               $state,
               "flatSide",
-              "bottom"
+              "bottom",
             ),
             [sty.borderflatSide_left]: hasVariant($state, "flatSide", "left"),
             [sty.borderflatSide_right]: hasVariant($state, "flatSide", "right"),
@@ -478,11 +478,11 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.borderroundedFull]: hasVariant(
               $state,
               "roundedFull",
-              "roundedFull"
+              "roundedFull",
             ),
             [sty.bordersize_large]: hasVariant($state, "size", "large"),
             [sty.bordertype_bordered]: hasVariant($state, "type", "bordered"),
-            [sty.bordertype_soft]: hasVariant($state, "type", "soft")
+            [sty.bordertype_soft]: hasVariant($state, "type", "soft"),
           })}
         />
       ) : null}
@@ -493,22 +493,22 @@ function PlasmicButton2__RenderFunc(props: {
           [sty.interactionEffectcolor_errorDestructive]: hasVariant(
             $state,
             "color",
-            "errorDestructive"
+            "errorDestructive",
           ),
           [sty.interactionEffectcolor_muted]: hasVariant(
             $state,
             "color",
-            "muted"
+            "muted",
           ),
           [sty.interactionEffectcolor_neutral]: hasVariant(
             $state,
             "color",
-            "neutral"
+            "neutral",
           ),
           [sty.interactionEffectcolor_success]: hasVariant(
             $state,
             "color",
-            "success"
+            "success",
           ),
           [sty.interactionEffectcolor_success_type_bordered]:
             hasVariant($state, "color", "success") &&
@@ -516,29 +516,29 @@ function PlasmicButton2__RenderFunc(props: {
           [sty.interactionEffectcolor_warning]: hasVariant(
             $state,
             "color",
-            "warning"
+            "warning",
           ),
           [sty.interactionEffectroundedFull]: hasVariant(
             $state,
             "roundedFull",
-            "roundedFull"
+            "roundedFull",
           ),
           [sty.interactionEffectsize_large]: hasVariant(
             $state,
             "size",
-            "large"
+            "large",
           ),
           [sty.interactionEffectsize_small]: hasVariant(
             $state,
             "size",
-            "small"
+            "small",
           ),
           [sty.interactionEffecttype_bordered]: hasVariant(
             $state,
             "type",
-            "bordered"
+            "bordered",
           ),
-          [sty.interactionEffecttype_soft]: hasVariant($state, "type", "soft")
+          [sty.interactionEffecttype_soft]: hasVariant($state, "type", "soft"),
         })}
         style={
           hasVariant($state, "type", "bordered") && $ccVariants["pressed"]
@@ -554,7 +554,7 @@ function PlasmicButton2__RenderFunc(props: {
           [sty.freeBoxcolor_neutral___3Lcn3KmWn]: hasVariant(
             $state,
             "color",
-            "neutral"
+            "neutral",
           ),
           [sty.freeBoxcolor_success_type_bordered___3LcnT0DMdY4Elg]:
             hasVariant($state, "color", "success") &&
@@ -562,38 +562,38 @@ function PlasmicButton2__RenderFunc(props: {
           [sty.freeBoxcolor_white___3Lcn9BNtv]: hasVariant(
             $state,
             "color",
-            "white"
+            "white",
           ),
           [sty.freeBoxroundedFull___3LcnV7QAq]: hasVariant(
             $state,
             "roundedFull",
-            "roundedFull"
+            "roundedFull",
           ),
           [sty.freeBoxsize_extraLarge___3Lcnlq4LW]: hasVariant(
             $state,
             "size",
-            "extraLarge"
+            "extraLarge",
           ),
           [sty.freeBoxsize_extraSmall___3LcnR6Unu]: hasVariant(
             $state,
             "size",
-            "extraSmall"
+            "extraSmall",
           ),
           [sty.freeBoxsize_large___3LcnVAt1U]: hasVariant(
             $state,
             "size",
-            "large"
+            "large",
           ),
           [sty.freeBoxsize_small___3LcnSbvDg]: hasVariant(
             $state,
             "size",
-            "small"
+            "small",
           ),
           [sty.freeBoxtype_bordered___3Lcny4Elg]: hasVariant(
             $state,
             "type",
-            "bordered"
-          )
+            "bordered",
+          ),
         })}
       >
         <div
@@ -601,7 +601,7 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.freeBoxcolor_neutral__b2Osl3KmWn]: hasVariant(
               $state,
               "color",
-              "neutral"
+              "neutral",
             ),
             [sty.freeBoxcolor_neutral_type_soft__b2Osl3KmWnF1ANg]:
               hasVariant($state, "color", "neutral") &&
@@ -609,28 +609,28 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.freeBoxiconStart__b2OslHbvAq]: hasVariant(
               $state,
               "iconStart",
-              "iconStart"
+              "iconStart",
             ),
             [sty.freeBoxsize_extraLarge__b2Osllq4LW]: hasVariant(
               $state,
               "size",
-              "extraLarge"
+              "extraLarge",
             ),
             [sty.freeBoxsize_large__b2OslVAt1U]: hasVariant(
               $state,
               "size",
-              "large"
+              "large",
             ),
             [sty.freeBoxsize_small__b2OslSbvDg]: hasVariant(
               $state,
               "size",
-              "small"
+              "small",
             ),
             [sty.freeBoxtype_bordered__b2Osly4Elg]: hasVariant(
               $state,
               "type",
-              "bordered"
-            )
+              "bordered",
+            ),
           })}
         >
           {renderPlasmicSlot({
@@ -646,7 +646,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetStartcolor_errorDestructive]: hasVariant(
                 $state,
                 "color",
-                "errorDestructive"
+                "errorDestructive",
               ),
               [sty.slotTargetStartcolor_errorDestructive_type_bordered]:
                 hasVariant($state, "color", "errorDestructive") &&
@@ -657,7 +657,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetStartcolor_muted]: hasVariant(
                 $state,
                 "color",
-                "muted"
+                "muted",
               ),
               [sty.slotTargetStartcolor_muted_type_bordered]:
                 hasVariant($state, "color", "muted") &&
@@ -665,7 +665,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetStartcolor_neutral]: hasVariant(
                 $state,
                 "color",
-                "neutral"
+                "neutral",
               ),
               [sty.slotTargetStartcolor_neutral_type_bordered]:
                 hasVariant($state, "color", "neutral") &&
@@ -676,7 +676,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetStartcolor_success]: hasVariant(
                 $state,
                 "color",
-                "success"
+                "success",
               ),
               [sty.slotTargetStartcolor_success_type_bordered]:
                 hasVariant($state, "color", "success") &&
@@ -687,7 +687,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetStartcolor_warning]: hasVariant(
                 $state,
                 "color",
-                "warning"
+                "warning",
               ),
               [sty.slotTargetStartcolor_warning_type_bordered]:
                 hasVariant($state, "color", "warning") &&
@@ -698,42 +698,42 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetStarticonStart]: hasVariant(
                 $state,
                 "iconStart",
-                "iconStart"
+                "iconStart",
               ),
               [sty.slotTargetStartsize_extraLarge]: hasVariant(
                 $state,
                 "size",
-                "extraLarge"
+                "extraLarge",
               ),
               [sty.slotTargetStartsize_extraSmall]: hasVariant(
                 $state,
                 "size",
-                "extraSmall"
+                "extraSmall",
               ),
               [sty.slotTargetStartsize_large]: hasVariant(
                 $state,
                 "size",
-                "large"
+                "large",
               ),
               [sty.slotTargetStartsize_small]: hasVariant(
                 $state,
                 "size",
-                "small"
+                "small",
               ),
               [sty.slotTargetStarttype_bordered]: hasVariant(
                 $state,
                 "type",
-                "bordered"
+                "bordered",
               ),
               [sty.slotTargetStarttype_soft]: hasVariant(
                 $state,
                 "type",
-                "soft"
+                "soft",
               ),
               [sty.slotTargetStarttype_soft_color_muted]:
                 hasVariant($state, "color", "muted") &&
-                hasVariant($state, "type", "soft")
-            })
+                hasVariant($state, "type", "soft"),
+            }),
           })}
         </div>
         {renderPlasmicSlot({
@@ -742,7 +742,7 @@ function PlasmicButton2__RenderFunc(props: {
               className={classNames(
                 projectcss.all,
                 projectcss.__wab_text,
-                sty.text__mUdVh
+                sty.text__mUdVh,
               )}
             >
               {"Text"}
@@ -753,7 +753,7 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.slotTargetLabelcolor_errorDestructive]: hasVariant(
               $state,
               "color",
-              "errorDestructive"
+              "errorDestructive",
             ),
             [sty.slotTargetLabelcolor_errorDestructive_type_bordered]:
               hasVariant($state, "color", "errorDestructive") &&
@@ -764,7 +764,7 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.slotTargetLabelcolor_muted]: hasVariant(
               $state,
               "color",
-              "muted"
+              "muted",
             ),
             [sty.slotTargetLabelcolor_muted_type_bordered]:
               hasVariant($state, "color", "muted") &&
@@ -772,7 +772,7 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.slotTargetLabelcolor_neutral]: hasVariant(
               $state,
               "color",
-              "neutral"
+              "neutral",
             ),
             [sty.slotTargetLabelcolor_neutral_type_bordered]:
               hasVariant($state, "color", "neutral") &&
@@ -783,7 +783,7 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.slotTargetLabelcolor_success]: hasVariant(
               $state,
               "color",
-              "success"
+              "success",
             ),
             [sty.slotTargetLabelcolor_success_type_bordered]:
               hasVariant($state, "color", "success") &&
@@ -794,7 +794,7 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.slotTargetLabelcolor_warning]: hasVariant(
               $state,
               "color",
-              "warning"
+              "warning",
             ),
             [sty.slotTargetLabelcolor_warning_type_bordered]:
               hasVariant($state, "color", "warning") &&
@@ -805,71 +805,71 @@ function PlasmicButton2__RenderFunc(props: {
             [sty.slotTargetLabelcolor_white]: hasVariant(
               $state,
               "color",
-              "white"
+              "white",
             ),
             [sty.slotTargetLabeliconEnd]: hasVariant(
               $state,
               "iconEnd",
-              "iconEnd"
+              "iconEnd",
             ),
             [sty.slotTargetLabeliconStart]: hasVariant(
               $state,
               "iconStart",
-              "iconStart"
+              "iconStart",
             ),
             [sty.slotTargetLabelsize_extraLarge]: hasVariant(
               $state,
               "size",
-              "extraLarge"
+              "extraLarge",
             ),
             [sty.slotTargetLabelsize_extraSmall]: hasVariant(
               $state,
               "size",
-              "extraSmall"
+              "extraSmall",
             ),
             [sty.slotTargetLabelsize_large]: hasVariant(
               $state,
               "size",
-              "large"
+              "large",
             ),
             [sty.slotTargetLabelsize_small]: hasVariant(
               $state,
               "size",
-              "small"
+              "small",
             ),
             [sty.slotTargetLabeltype_bordered]: hasVariant(
               $state,
               "type",
-              "bordered"
+              "bordered",
             ),
             [sty.slotTargetLabeltype_soft]: hasVariant($state, "type", "soft"),
             [sty.slotTargetLabeltype_soft_color_muted]:
               hasVariant($state, "color", "muted") &&
-              hasVariant($state, "type", "soft")
-          })
+              hasVariant($state, "type", "soft"),
+          }),
         })}
         <div
           className={classNames(projectcss.all, sty.freeBox__bjkAz, {
             [sty.freeBoxiconEnd__bjkAzRgUz2]: hasVariant(
               $state,
               "iconEnd",
-              "iconEnd"
+              "iconEnd",
             ),
             [sty.freeBoxsize_extraLarge__bjkAzlq4LW]: hasVariant(
               $state,
               "size",
-              "extraLarge"
+              "extraLarge",
             ),
             [sty.freeBoxsize_large__bjkAzVAt1U]: hasVariant(
               $state,
               "size",
-              "large"
+              "large",
             ),
             [sty.freeBoxsize_small__bjkAzSbvDg]: hasVariant(
               $state,
               "size",
-              "small"
-            )
+              "small",
+            ),
           })}
         >
           {renderPlasmicSlot({
@@ -885,7 +885,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetEndcolor_errorDestructive]: hasVariant(
                 $state,
                 "color",
-                "errorDestructive"
+                "errorDestructive",
               ),
               [sty.slotTargetEndcolor_errorDestructive_type_bordered]:
                 hasVariant($state, "color", "errorDestructive") &&
@@ -896,7 +896,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetEndcolor_muted]: hasVariant(
                 $state,
                 "color",
-                "muted"
+                "muted",
               ),
               [sty.slotTargetEndcolor_muted_type_bordered]:
                 hasVariant($state, "color", "muted") &&
@@ -904,7 +904,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetEndcolor_neutral]: hasVariant(
                 $state,
                 "color",
-                "neutral"
+                "neutral",
               ),
               [sty.slotTargetEndcolor_neutral_type_bordered]:
                 hasVariant($state, "color", "neutral") &&
@@ -915,7 +915,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetEndcolor_success]: hasVariant(
                 $state,
                 "color",
-                "success"
+                "success",
               ),
               [sty.slotTargetEndcolor_success_type_bordered]:
                 hasVariant($state, "color", "success") &&
@@ -926,7 +926,7 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetEndcolor_warning]: hasVariant(
                 $state,
                 "color",
-                "warning"
+                "warning",
               ),
               [sty.slotTargetEndcolor_warning_type_bordered]:
                 hasVariant($state, "color", "warning") &&
@@ -937,43 +937,43 @@ function PlasmicButton2__RenderFunc(props: {
               [sty.slotTargetEndiconEnd]: hasVariant(
                 $state,
                 "iconEnd",
-                "iconEnd"
+                "iconEnd",
               ),
               [sty.slotTargetEndiconStart]: hasVariant(
                 $state,
                 "iconStart",
-                "iconStart"
+                "iconStart",
               ),
               [sty.slotTargetEndsize_extraLarge]: hasVariant(
                 $state,
                 "size",
-                "extraLarge"
+                "extraLarge",
               ),
               [sty.slotTargetEndsize_extraSmall]: hasVariant(
                 $state,
                 "size",
-                "extraSmall"
+                "extraSmall",
               ),
               [sty.slotTargetEndsize_large]: hasVariant(
                 $state,
                 "size",
-                "large"
+                "large",
               ),
               [sty.slotTargetEndsize_small]: hasVariant(
                 $state,
                 "size",
-                "small"
+                "small",
               ),
               [sty.slotTargetEndtype_bordered]: hasVariant(
                 $state,
                 "type",
-                "bordered"
+                "bordered",
               ),
               [sty.slotTargetEndtype_soft]: hasVariant($state, "type", "soft"),
               [sty.slotTargetEndtype_soft_color_muted]:
                 hasVariant($state, "color", "muted") &&
-                hasVariant($state, "type", "soft")
-            })
+                hasVariant($state, "type", "soft"),
+            }),
           })}
         </div>
       </Stack__>
@@ -985,7 +985,7 @@ const PlasmicDescendants = {
   root: ["root", "softBackground", "border", "interactionEffect"],
   softBackground: ["softBackground"],
   border: ["border"],
-  interactionEffect: ["interactionEffect"]
+  interactionEffect: ["interactionEffect"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -1025,7 +1025,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -1033,15 +1033,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicButton2__ArgProps,
-          internalVariantPropNames: PlasmicButton2__VariantProps
+          internalVariantPropNames: PlasmicButton2__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicButton2__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -1063,8 +1063,8 @@ export const PlasmicButton2 = Object.assign(
 
     // Metadata about props expected for PlasmicButton2
     internalVariantProps: PlasmicButton2__VariantProps,
-    internalArgProps: PlasmicButton2__ArgProps
-  }
+    internalArgProps: PlasmicButton2__ArgProps,
+  },
 );
 
 export default PlasmicButton2;

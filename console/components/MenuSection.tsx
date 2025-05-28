@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicMenuSection,
-  DefaultMenuSectionProps
+  DefaultMenuSectionProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicMenuSection";
 
 // Your component props start with props for variants and slots you defined

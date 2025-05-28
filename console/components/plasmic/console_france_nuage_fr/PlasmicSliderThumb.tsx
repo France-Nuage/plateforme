@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { BaseSliderThumb } from "@plasmicpkgs/react-aria/skinny/registerSliderThumb";
@@ -83,7 +83,7 @@ export type PlasmicSliderThumb__ArgsType = {
 type ArgPropType = keyof PlasmicSliderThumb__ArgsType;
 export const PlasmicSliderThumb__ArgProps = new Array<ArgPropType>(
   "disabled",
-  "autoFocus"
+  "autoFocus",
 );
 
 export type PlasmicSliderThumb__OverridesType = {
@@ -118,15 +118,15 @@ function PlasmicSliderThumb__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -136,7 +136,7 @@ function PlasmicSliderThumb__RenderFunc(props: {
   const $refs = refsRef.current;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
@@ -146,18 +146,18 @@ function PlasmicSliderThumb__RenderFunc(props: {
     hovered: false,
     focused: false,
     focusVisible: false,
-    disabled: false
+    disabled: false,
   });
   const updateVariant = React.useCallback(
     (changes: Record<string, boolean>) => {
-      setDollarCcVariants(prev => {
-        if (!Object.keys(changes).some(k => prev[k] !== changes[k])) {
+      setDollarCcVariants((prev) => {
+        if (!Object.keys(changes).some((k) => prev[k] !== changes[k])) {
           return prev;
         }
         return { ...prev, ...changes };
       });
     },
-    []
+    [],
   );
 
   return (
@@ -176,7 +176,7 @@ function PlasmicSliderThumb__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.root
+        sty.root,
       )}
       isDisabled={args.disabled}
       plasmicUpdateVariant={updateVariant}
@@ -185,7 +185,7 @@ function PlasmicSliderThumb__RenderFunc(props: {
 }
 
 const PlasmicDescendants = {
-  root: ["root"]
+  root: ["root"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -222,7 +222,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -230,15 +230,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicSliderThumb__ArgProps,
-          internalVariantPropNames: PlasmicSliderThumb__VariantProps
+          internalVariantPropNames: PlasmicSliderThumb__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicSliderThumb__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -257,8 +257,8 @@ export const PlasmicSliderThumb = Object.assign(
 
     // Metadata about props expected for PlasmicSliderThumb
     internalVariantProps: PlasmicSliderThumb__VariantProps,
-    internalArgProps: PlasmicSliderThumb__ArgProps
-  }
+    internalArgProps: PlasmicSliderThumb__ArgProps,
+  },
 );
 
 export default PlasmicSliderThumb;

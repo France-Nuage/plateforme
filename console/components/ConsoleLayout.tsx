@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   PlasmicConsoleLayout,
-  DefaultConsoleLayoutProps
+  DefaultConsoleLayoutProps,
 } from "./plasmic/console_france_nuage_fr/PlasmicConsoleLayout";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 
@@ -24,7 +24,7 @@ export interface ConsoleLayoutProps extends DefaultConsoleLayoutProps {}
 
 function ConsoleLayout_(
   props: ConsoleLayoutProps,
-  ref: HTMLElementRefOf<"div">
+  ref: HTMLElementRefOf<"div">,
 ) {
   // Use PlasmicConsoleLayout to render this component as it was
   // designed in Plasmic, by activating the appropriate variants,

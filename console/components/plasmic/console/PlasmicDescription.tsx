@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { BaseText } from "@plasmicpkgs/react-aria/skinny/registerText";
@@ -112,15 +112,15 @@ function PlasmicDescription__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -130,7 +130,7 @@ function PlasmicDescription__RenderFunc(props: {
   const $refs = refsRef.current;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -146,7 +146,7 @@ function PlasmicDescription__RenderFunc(props: {
         projectcss.plasmic_mixins,
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
-        sty.root
+        sty.root,
       )}
       slot={"description"}
     >
@@ -157,7 +157,7 @@ function PlasmicDescription__RenderFunc(props: {
       >
         {renderPlasmicSlot({
           defaultContents: "Description\u2026",
-          value: args.children
+          value: args.children,
         })}
       </div>
     </BaseText>
@@ -166,7 +166,7 @@ function PlasmicDescription__RenderFunc(props: {
 
 const PlasmicDescendants = {
   root: ["root", "freeBox"],
-  freeBox: ["freeBox"]
+  freeBox: ["freeBox"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -204,7 +204,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -212,15 +212,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicDescription__ArgProps,
-          internalVariantPropNames: PlasmicDescription__VariantProps
+          internalVariantPropNames: PlasmicDescription__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicDescription__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -240,8 +240,8 @@ export const PlasmicDescription = Object.assign(
 
     // Metadata about props expected for PlasmicDescription
     internalVariantProps: PlasmicDescription__VariantProps,
-    internalArgProps: PlasmicDescription__ArgProps
-  }
+    internalArgProps: PlasmicDescription__ArgProps,
+  },
 );
 
 export default PlasmicDescription;
