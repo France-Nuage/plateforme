@@ -469,6 +469,9 @@ export const PlasmicAccueil = Object.assign(
     internalVariantProps: PlasmicAccueil__VariantProps,
     internalArgProps: PlasmicAccueil__ArgProps,
 
+    // Key-value metadata
+    metadata: { role: "user" },
+
     // Page metadata
     pageMetadata: {
       title: "",

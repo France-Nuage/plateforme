@@ -45,3 +45,26 @@ const AuthRedirect: FunctionComponent = () => {
 };
 
 export default AuthRedirect;
+
+// Pre-generate the two routes you need
+export async function getStaticPaths() {
+  return {
+    paths: [
+      { params: { provider: "mock" } },
+      { params: { provider: "gitlab" } },
+    ],
+    fallback: false, // Important: must be false for static export
+  };
+}
+
+export async function getStaticProps({
+  params,
+}: {
+  params: { provider: string };
+}) {
+  return {
+    props: {
+      provider: params.provider,
+    },
+  };
+}

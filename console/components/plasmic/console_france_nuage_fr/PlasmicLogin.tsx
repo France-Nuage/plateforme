@@ -723,6 +723,32 @@ function PlasmicLogin__RenderFunc(props: {
                               </div>
                             }
                             linkTo={`/`}
+                            onClick={async (event) => {
+                              const $steps = {};
+
+                              $steps["runActionOnConsoleProvider"] = true
+                                ? (() => {
+                                    const actionArgs = {
+                                      tplRef: "consoleProvider",
+                                    };
+                                    return (({ tplRef, action, args }) => {
+                                      return $refs?.[tplRef]?.[action]?.(
+                                        ...(args ?? []),
+                                      );
+                                    })?.apply(null, [actionArgs]);
+                                  })()
+                                : undefined;
+                              if (
+                                $steps["runActionOnConsoleProvider"] != null &&
+                                typeof $steps["runActionOnConsoleProvider"] ===
+                                  "object" &&
+                                typeof $steps["runActionOnConsoleProvider"]
+                                  .then === "function"
+                              ) {
+                                $steps["runActionOnConsoleProvider"] =
+                                  await $steps["runActionOnConsoleProvider"];
+                              }
+                            }}
                           />
 
                           <Stack__
@@ -888,6 +914,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 ? (() => {
                                     const actionArgs = {
                                       tplRef: "consoleProvider",
+                                      action: "signin",
                                     };
                                     return (({ tplRef, action, args }) => {
                                       return $refs?.[tplRef]?.[action]?.(

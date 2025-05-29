@@ -97,9 +97,6 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
         data={{ application, hypervisors, instances, user }}
       >
         {children}
-        <button onClick={() => userManager.signinRedirect()}>
-          login with gitlab
-        </button>
       </DataProvider>
     );
   },

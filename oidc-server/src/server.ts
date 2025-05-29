@@ -1,13 +1,17 @@
 import express from 'express';
-import https from 'https';
 import { Provider } from 'oidc-provider';
-import selfsigned from 'selfsigned';
 
 import config from './config';
 import { createUser } from './storage';
 
 const app = express();
 app.use(express.json());
+
+// Middleware to force HTTPS headers
+app.use((req, res, next) => {
+  (req.socket as any).encrypted = true;
+  next();
+});
 
 const oidc = new Provider(config.issuer, {
   clientBasedCORS: () => true,
@@ -22,11 +26,18 @@ const oidc = new Provider(config.issuer, {
   features: {
     devInteractions: { enabled: true } // Built-in login UI
   },
+  // Override interaction URL generation
+  interactions: {
+    url(ctx, interaction) {
+      console.log('in interactions', ctx, interaction);
+      return `https://oidc/interaction/${interaction.uid}`;
+    }
+  },
   scopes: ['openid', 'profile', 'email', 'offline_access'],
 });
 
 app.get('/health', async (req, res) => {
-  res.status(200).send();
+  res.sendStatus(200);
 });
 
 app.post('/api/users', async (req, res) => {
@@ -84,17 +95,7 @@ app.post('/api/users', async (req, res) => {
 
 app.use('/', oidc.callback());
 
-// Generate proper self-signed certificate
-const pems = selfsigned.generate([
-  { name: 'commonName', value: 'localhost' },
-  { name: 'commonName', value: 'oidc' },
-  { name: 'commonName', value: 'console' }
-], { days: 365 });
-
-const httpsOptions = {
-  key: pems.private,
-  cert: pems.cert
-};
-
-https.createServer(httpsOptions, app).listen(config.port);
+app.listen(config.port, () => {
+  console.log(`OIDC server running on port ${config.port}`);
+});
 

@@ -106,7 +106,8 @@ build:
   stage: system-tests
   variables:
     TARGET: release
-    CONSOLE_URL: http://console
+  after_script:
+    - docker compose logs > docker-compose-logs.txt
   script:
     - docker compose run --remove-orphans system-tests npm run test:ci
   artifacts:
