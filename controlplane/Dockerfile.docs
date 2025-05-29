@@ -1,13 +1,13 @@
 # Dockerfile for documentation generation
-FROM golang:1.19-alpine
+FROM golang:1.24-alpine
 
 # Install dependencies
 RUN apk add --no-cache \
-    grpc-plugins \
-    protobuf-dev \
-    bash \
-    nodejs \
-    npm
+  grpc-plugins \
+  protobuf-dev \
+  bash \
+  nodejs \
+  npm
 
 # Install protoc-gen-doc
 RUN go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
@@ -26,10 +26,10 @@ RUN chmod +x /go/bin/protoc-gen-doc
 
 # Generate documentation
 RUN mkdir -p ./docs && \
-    protoc -I ./instances/ -I ./hypervisors/ \
-    --doc_out=./docs \
-    --doc_opt=html,index.html \
-    ./instances/*.proto ./hypervisors/*.proto
+  protoc -I ./instances/ -I ./hypervisors/ \
+  --doc_out=./docs \
+  --doc_opt=html,index.html \
+  ./instances/*.proto ./hypervisors/*.proto
 
 # Set working directory to docs for deployment
 WORKDIR /app/docs
