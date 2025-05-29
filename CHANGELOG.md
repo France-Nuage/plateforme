@@ -1,3 +1,18 @@
+# [1.6.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.5.0...v1.6.0) (2025-05-29)
+
+
+### Bug Fixes
+
+* nginx config no longer shadows pages ([f443cd7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f443cd75087feba238028e3efaea31c4643fa1dd))
+
+
+### Features
+
+* add an authentication middleware ([95fc957](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/95fc957ece6c22a1c7d882017731e95f0316eda1))
+* add oidc server ([375e87c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/375e87ce1c88783880d538a777f328e6c37b1cc1))
+* add plasmic signin link ([46d1680](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/46d168019fb496f1dfade6ebc58009a9fe039598))
+* setup devserver with https ([e39b7eb](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/e39b7eb9101288767db43ee3113198b419a30693))
+
 # [1.5.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.4.0...v1.5.0) (2025-05-28)
 
 
