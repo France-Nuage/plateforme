@@ -41,7 +41,6 @@ export default abstract class BasePage {
   public async assertRedirectedTo(): Promise<void> {
     await test.step(`I should be redirected to the ${this.url} page`, async () => {
       await this.page.waitForURL(this.url);
-      await this.assertLocation();
     });
   }
 

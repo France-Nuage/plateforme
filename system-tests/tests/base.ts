@@ -5,7 +5,7 @@ import { InstancesClient } from "../protocol/instances.client";
 import { Hypervisor } from "../protocol/hypervisors";
 import { Instance } from "../protocol/instances";
 import { minBy } from "lodash";
-import { ComputePage, HomePage, LoginPage } from "./pages";
+import { ComputePage, HomePage, LoginPage, OidcPage } from "./pages";
 import { createUser } from "../oidc";
 
 const requiredEnvVars = [
@@ -32,6 +32,7 @@ for (const variable of requiredEnvVars) {
 type TestFixtures = {
   pages: {
     compute: ComputePage;
+    oidc: OidcPage;
     home: HomePage;
     login: LoginPage;
   };
@@ -68,7 +69,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   /**
    * @inheritdoc
    */
-  actingAs: async ({ page, pages }, use) => {
+  actingAs: async ({ page }, use) => {
     await use(async (user) => {
       // compute key/value pair for session storage representation of the user
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
@@ -85,6 +86,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    */
   pages: async ({ page }, use) => use({
     compute: new ComputePage(page),
+    oidc: new OidcPage(page),
     home: new HomePage(page),
     login: new LoginPage(page),
   }),

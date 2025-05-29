@@ -10,5 +10,17 @@ test.describe('Security', () => {
     await actingAs('Wile E. Coyote');
     await pages.login.goto();
     await pages.home.assertRedirectedTo();
+  });
+
+  test('I can authenticate with a valid user', async ({ page, pages }) => {
+    await pages.login.goto();
+    await pages.login.locators.loginButton.click();
+    await pages.oidc.assertRedirectedTo();
+    await pages.oidc.locators.emailInput.fill('wcoyote@acme.org');
+    await pages.oidc.locators.passwordInput.fill('killbipbip');
+    await pages.oidc.locators.loginButton.click();
+    await pages.oidc.locators.continueButton.waitFor();
+    await pages.oidc.locators.continueButton.click();
+    await pages.home.assertRedirectedTo();
   })
 });
