@@ -50,14 +50,18 @@ export default AuthRedirect;
 export async function getStaticPaths() {
   return {
     paths: [
-      { params: { provider: 'mock' } },
-      { params: { provider: 'gitlab' } },
+      { params: { provider: "mock" } },
+      { params: { provider: "gitlab" } },
     ],
     fallback: false, // Important: must be false for static export
   };
 }
 
-export async function getStaticProps({ params }: { params: { provider: string } }) {
+export async function getStaticProps({
+  params,
+}: {
+  params: { provider: string };
+}) {
   return {
     props: {
       provider: params.provider,

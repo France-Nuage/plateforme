@@ -51,12 +51,12 @@ import {
   useDollarState,
   usePlasmicTranslator,
   useTrigger,
-  wrapWithClassName
+  wrapWithClassName,
 } from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
-  useGlobalActions
+  useGlobalActions,
 } from "@plasmicapp/react-web/lib/host";
 
 import { ConsoleProvider } from "../../../providers/ConsoleProvider"; // plasmic-import: vWN9dmdYefpY/codeComponent
@@ -163,15 +163,15 @@ function PlasmicLogin__RenderFunc(props: {
       Object.assign(
         {},
         Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
+          Object.entries(props.args).filter(([_, v]) => v !== undefined),
+        ),
       ),
-    [props.args]
+    [props.args],
   );
 
   const $props = {
     ...args,
-    ...variants
+    ...variants,
   };
 
   const __nextRouter = useNextRouter();
@@ -186,26 +186,26 @@ function PlasmicLogin__RenderFunc(props: {
         path: "textInput2.value",
         type: "private",
         variableType: "text",
-        initFunc: ({ $props, $state, $queries, $ctx }) => undefined
+        initFunc: ({ $props, $state, $queries, $ctx }) => undefined,
       },
       {
         path: "textInput3.value",
         type: "private",
         variableType: "text",
-        initFunc: ({ $props, $state, $queries, $ctx }) => undefined
-      }
+        initFunc: ({ $props, $state, $queries, $ctx }) => undefined,
+      },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx, $refs],
   );
   const $state = useDollarState(stateSpecs, {
     $props,
     $ctx,
     $queries: {},
-    $refs
+    $refs,
   });
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe()
+    screen: useScreenVariantseEvMbXdv1ZEe(),
   });
 
   return (
@@ -231,25 +231,25 @@ function PlasmicLogin__RenderFunc(props: {
             projectcss.plasmic_mixins,
             projectcss.plasmic_tokens,
             plasmic_antd_5_hostless_css.plasmic_tokens,
-            sty.root
+            sty.root,
           )}
         >
           <ConsoleProvider
             data-plasmic-name={"consoleProvider"}
             data-plasmic-override={overrides.consoleProvider}
             className={classNames("__wab_instance", sty.consoleProvider)}
-            ref={ref => {
+            ref={(ref) => {
               $refs["consoleProvider"] = ref;
             }}
           >
             <DataCtxReader__>
-              {$ctx => (
+              {($ctx) => (
                 <div
                   data-plasmic-name={"frNLoginDesktopNunitoSans"}
                   data-plasmic-override={overrides.frNLoginDesktopNunitoSans}
                   className={classNames(
                     projectcss.all,
-                    sty.frNLoginDesktopNunitoSans
+                    sty.frNLoginDesktopNunitoSans,
                   )}
                 >
                   <Stack__
@@ -280,7 +280,7 @@ function PlasmicLogin__RenderFunc(props: {
                           src: "/plasmic/console_france_nuage_fr/images/cloudLogo.svg",
                           fullWidth: 54.26356506347656,
                           fullHeight: 28,
-                          aspectRatio: undefined
+                          aspectRatio: undefined,
                         }}
                       />
 
@@ -288,7 +288,7 @@ function PlasmicLogin__RenderFunc(props: {
                         className={classNames(
                           projectcss.all,
                           projectcss.__wab_text,
-                          sty.text__wrLGa
+                          sty.text__wrLGa,
                         )}
                       >
                         {"France nuage"}
@@ -322,7 +322,7 @@ function PlasmicLogin__RenderFunc(props: {
                               projectcss.all,
                               projectcss.h1,
                               projectcss.__wab_text,
-                              sty.copy
+                              sty.copy,
                             )}
                           >
                             {"Se connecter"}
@@ -341,7 +341,7 @@ function PlasmicLogin__RenderFunc(props: {
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.copy2
+                              sty.copy2,
                             )}
                           >
                             {"Acc\u00e9der \u00e0 votre espace France nuage"}
@@ -355,7 +355,7 @@ function PlasmicLogin__RenderFunc(props: {
                         hasGap={true}
                         className={classNames(
                           projectcss.all,
-                          sty.formAndButton
+                          sty.formAndButton,
                         )}
                       >
                         <Stack__
@@ -370,7 +370,7 @@ function PlasmicLogin__RenderFunc(props: {
                             hasGap={true}
                             className={classNames(
                               projectcss.all,
-                              sty.freeBox__vgz9W
+                              sty.freeBox__vgz9W,
                             )}
                           >
                             <Stack__
@@ -382,7 +382,7 @@ function PlasmicLogin__RenderFunc(props: {
                               hasGap={true}
                               className={classNames(
                                 projectcss.all,
-                                sty.textInputDefaultTrue
+                                sty.textInputDefaultTrue,
                               )}
                             >
                               <div
@@ -390,7 +390,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 data-plasmic-override={overrides.text4}
                                 className={classNames(
                                   projectcss.all,
-                                  sty.text4
+                                  sty.text4,
                                 )}
                               >
                                 <Stack__
@@ -400,7 +400,7 @@ function PlasmicLogin__RenderFunc(props: {
                                   hasGap={true}
                                   className={classNames(
                                     projectcss.all,
-                                    sty.label
+                                    sty.label,
                                   )}
                                 >
                                   <dd
@@ -409,7 +409,7 @@ function PlasmicLogin__RenderFunc(props: {
                                     className={classNames(
                                       projectcss.all,
                                       projectcss.__wab_text,
-                                      sty.label2
+                                      sty.label2,
                                     )}
                                   >
                                     {"Email"}
@@ -419,7 +419,7 @@ function PlasmicLogin__RenderFunc(props: {
                                       className={classNames(
                                         projectcss.all,
                                         projectcss.__wab_text,
-                                        sty.text__jwxyc
+                                        sty.text__jwxyc,
                                       )}
                                     >
                                       {"*"}
@@ -430,7 +430,7 @@ function PlasmicLogin__RenderFunc(props: {
                                       className={classNames(
                                         projectcss.all,
                                         projectcss.__wab_text,
-                                        sty.text__lbxA2
+                                        sty.text__lbxA2,
                                       )}
                                     >
                                       {"(optional)"}
@@ -444,7 +444,7 @@ function PlasmicLogin__RenderFunc(props: {
                                     className={classNames(
                                       projectcss.all,
                                       projectcss.__wab_text,
-                                      sty.hint
+                                      sty.hint,
                                     )}
                                   >
                                     {"Hint text"}
@@ -457,14 +457,14 @@ function PlasmicLogin__RenderFunc(props: {
                                 autoComplete={["email"]}
                                 className={classNames(
                                   "__wab_instance",
-                                  sty.textInput2
+                                  sty.textInput2,
                                 )}
                                 inputMode={"email"}
                                 inputType={"email"}
                                 onChange={async (...eventArgs: any) => {
                                   generateStateOnChangeProp($state, [
                                     "textInput2",
-                                    "value"
+                                    "value",
                                   ]).apply(null, eventArgs);
 
                                   if (
@@ -478,7 +478,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 placeholder={``}
                                 value={generateStateValueProp($state, [
                                   "textInput2",
-                                  "value"
+                                  "value",
                                 ])}
                               />
                             </Stack__>
@@ -489,7 +489,7 @@ function PlasmicLogin__RenderFunc(props: {
                               hasGap={true}
                               className={classNames(
                                 projectcss.all,
-                                sty.password
+                                sty.password,
                               )}
                             >
                               <Stack__
@@ -499,7 +499,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 hasGap={true}
                                 className={classNames(
                                   projectcss.all,
-                                  sty.textInput
+                                  sty.textInput,
                                 )}
                               >
                                 <div
@@ -507,7 +507,7 @@ function PlasmicLogin__RenderFunc(props: {
                                   data-plasmic-override={overrides.text5}
                                   className={classNames(
                                     projectcss.all,
-                                    sty.text5
+                                    sty.text5,
                                   )}
                                 >
                                   <Stack__
@@ -517,7 +517,7 @@ function PlasmicLogin__RenderFunc(props: {
                                     hasGap={true}
                                     className={classNames(
                                       projectcss.all,
-                                      sty.label3
+                                      sty.label3,
                                     )}
                                   >
                                     <dd
@@ -526,7 +526,7 @@ function PlasmicLogin__RenderFunc(props: {
                                       className={classNames(
                                         projectcss.all,
                                         projectcss.__wab_text,
-                                        sty.label4
+                                        sty.label4,
                                       )}
                                     >
                                       {"Mot de passe"}
@@ -536,7 +536,7 @@ function PlasmicLogin__RenderFunc(props: {
                                         className={classNames(
                                           projectcss.all,
                                           projectcss.__wab_text,
-                                          sty.text__pGaiO
+                                          sty.text__pGaiO,
                                         )}
                                       >
                                         {"*"}
@@ -547,7 +547,7 @@ function PlasmicLogin__RenderFunc(props: {
                                         className={classNames(
                                           projectcss.all,
                                           projectcss.__wab_text,
-                                          sty.text__iqlkL
+                                          sty.text__iqlkL,
                                         )}
                                       >
                                         {"(optional)"}
@@ -561,7 +561,7 @@ function PlasmicLogin__RenderFunc(props: {
                                       className={classNames(
                                         projectcss.all,
                                         projectcss.__wab_text,
-                                        sty.hint2
+                                        sty.hint2,
                                       )}
                                     >
                                       {"Hint text"}
@@ -575,14 +575,14 @@ function PlasmicLogin__RenderFunc(props: {
                                 autoComplete={["new-password"]}
                                 className={classNames(
                                   "__wab_instance",
-                                  sty.textInput3
+                                  sty.textInput3,
                                 )}
                                 inputMode={"none"}
                                 inputType={"password"}
                                 onChange={async (...eventArgs: any) => {
                                   generateStateOnChangeProp($state, [
                                     "textInput3",
-                                    "value"
+                                    "value",
                                   ]).apply(null, eventArgs);
 
                                   if (
@@ -596,7 +596,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 placeholder={``}
                                 value={generateStateValueProp($state, [
                                   "textInput3",
-                                  "value"
+                                  "value",
                                 ])}
                               />
 
@@ -607,7 +607,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 hasGap={true}
                                 className={classNames(
                                   projectcss.all,
-                                  sty.textLink
+                                  sty.textLink,
                                 )}
                               >
                                 {false ? (
@@ -625,7 +625,7 @@ function PlasmicLogin__RenderFunc(props: {
                                       src: "/plasmic/console_france_nuage_fr/images/iconLeft2.svg",
                                       fullWidth: 20,
                                       fullHeight: 20,
-                                      aspectRatio: undefined
+                                      aspectRatio: undefined,
                                     }}
                                   />
                                 ) : null}
@@ -635,7 +635,7 @@ function PlasmicLogin__RenderFunc(props: {
                                   className={classNames(
                                     projectcss.all,
                                     projectcss.__wab_text,
-                                    sty.label5
+                                    sty.label5,
                                   )}
                                 >
                                   {"Mot de passe oubli\u00e9 ?"}
@@ -655,7 +655,7 @@ function PlasmicLogin__RenderFunc(props: {
                                       src: "/plasmic/console_france_nuage_fr/images/iconLeft2.svg",
                                       fullWidth: 20,
                                       fullHeight: 20,
-                                      aspectRatio: undefined
+                                      aspectRatio: undefined,
                                     }}
                                   />
                                 ) : null}
@@ -674,14 +674,14 @@ function PlasmicLogin__RenderFunc(props: {
                               data-plasmic-override={overrides.radio}
                               className={classNames(
                                 "__wab_instance",
-                                sty.radio
+                                sty.radio,
                               )}
                               label={
                                 <div
                                   className={classNames(
                                     projectcss.all,
                                     projectcss.__wab_text,
-                                    sty.text__svrR
+                                    sty.text__svrR,
                                   )}
                                 >
                                   <React.Fragment>
@@ -694,7 +694,7 @@ function PlasmicLogin__RenderFunc(props: {
                                       }
                                       style={{
                                         textDecorationLine: "underline",
-                                        color: "var(--token-PKw3mKbzBr62)"
+                                        color: "var(--token-PKw3mKbzBr62)",
                                       }}
                                     >
                                       {"conditions d'utilisation"}
@@ -709,31 +709,31 @@ function PlasmicLogin__RenderFunc(props: {
                             data-plasmic-override={overrides.button2}
                             className={classNames(
                               "__wab_instance",
-                              sty.button2
+                              sty.button2,
                             )}
                             label={
                               <div
                                 className={classNames(
                                   projectcss.all,
                                   projectcss.__wab_text,
-                                  sty.text___365QZ
+                                  sty.text___365QZ,
                                 )}
                               >
                                 {"Se connecter"}
                               </div>
                             }
                             linkTo={`/`}
-                            onClick={async event => {
+                            onClick={async (event) => {
                               const $steps = {};
 
                               $steps["runActionOnConsoleProvider"] = true
                                 ? (() => {
                                     const actionArgs = {
-                                      tplRef: "consoleProvider"
+                                      tplRef: "consoleProvider",
                                     };
                                     return (({ tplRef, action, args }) => {
                                       return $refs?.[tplRef]?.[action]?.(
-                                        ...(args ?? [])
+                                        ...(args ?? []),
                                       );
                                     })?.apply(null, [actionArgs]);
                                   })()
@@ -771,7 +771,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 className={classNames(
                                   projectcss.all,
                                   projectcss.__wab_text,
-                                  sty.copy4
+                                  sty.copy4,
                                 )}
                               >
                                 {"Vous n\u2019avez pas encore de compte ?"}
@@ -784,7 +784,7 @@ function PlasmicLogin__RenderFunc(props: {
                               hasGap={true}
                               className={classNames(
                                 projectcss.all,
-                                sty.textLink2
+                                sty.textLink2,
                               )}
                             >
                               {false ? (
@@ -802,7 +802,7 @@ function PlasmicLogin__RenderFunc(props: {
                                     src: "/plasmic/console_france_nuage_fr/images/iconLeft2.svg",
                                     fullWidth: 20,
                                     fullHeight: 20,
-                                    aspectRatio: undefined
+                                    aspectRatio: undefined,
                                   }}
                                 />
                               ) : null}
@@ -812,7 +812,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 className={classNames(
                                   projectcss.all,
                                   projectcss.__wab_text,
-                                  sty.label6
+                                  sty.label6,
                                 )}
                               >
                                 {"S\u2019inscrire"}
@@ -832,7 +832,7 @@ function PlasmicLogin__RenderFunc(props: {
                                     src: "/plasmic/console_france_nuage_fr/images/iconLeft2.svg",
                                     fullWidth: 20,
                                     fullHeight: 20,
-                                    aspectRatio: undefined
+                                    aspectRatio: undefined,
                                   }}
                                 />
                               ) : null}
@@ -846,7 +846,7 @@ function PlasmicLogin__RenderFunc(props: {
                           hasGap={true}
                           className={classNames(
                             projectcss.all,
-                            sty.dividerWithText
+                            sty.dividerWithText,
                           )}
                         >
                           <Stack__
@@ -875,7 +875,7 @@ function PlasmicLogin__RenderFunc(props: {
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.copy3
+                                sty.copy3,
                               )}
                             >
                               {"OU"}
@@ -887,7 +887,7 @@ function PlasmicLogin__RenderFunc(props: {
                           hasGap={true}
                           className={classNames(
                             projectcss.all,
-                            sty.freeBox__ajbps
+                            sty.freeBox__ajbps,
                           )}
                         >
                           <Button
@@ -901,24 +901,24 @@ function PlasmicLogin__RenderFunc(props: {
                                 className={classNames(
                                   projectcss.all,
                                   projectcss.__wab_text,
-                                  sty.text__x4Hy1
+                                  sty.text__x4Hy1,
                                 )}
                               >
                                 {"Se connecter avec Gitlab"}
                               </div>
                             }
-                            onClick={async event => {
+                            onClick={async (event) => {
                               const $steps = {};
 
                               $steps["runActionOnConsoleProvider"] = true
                                 ? (() => {
                                     const actionArgs = {
                                       tplRef: "consoleProvider",
-                                      action: "signin"
+                                      action: "signin",
                                     };
                                     return (({ tplRef, action, args }) => {
                                       return $refs?.[tplRef]?.[action]?.(
-                                        ...(args ?? [])
+                                        ...(args ?? []),
                                       );
                                     })?.apply(null, [actionArgs]);
                                   })()
@@ -956,7 +956,7 @@ function PlasmicLogin__RenderFunc(props: {
                                 className={classNames(
                                   projectcss.all,
                                   projectcss.__wab_text,
-                                  sty.text__vTgBd
+                                  sty.text__vTgBd,
                                 )}
                               >
                                 {"Se connecter avec Google"}
@@ -978,7 +978,7 @@ function PlasmicLogin__RenderFunc(props: {
                                   src: "/plasmic/console_france_nuage_fr/images/image2.png",
                                   fullWidth: 1280,
                                   fullHeight: 1280,
-                                  aspectRatio: undefined
+                                  aspectRatio: undefined,
                                 }}
                               />
                             }
@@ -1010,7 +1010,7 @@ function PlasmicLogin__RenderFunc(props: {
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.copy5
+                                sty.copy5,
                               )}
                             >
                               {"Vous n\u2019avez pas encore de compte ?"}
@@ -1023,7 +1023,7 @@ function PlasmicLogin__RenderFunc(props: {
                             hasGap={true}
                             className={classNames(
                               projectcss.all,
-                              sty.textLink3
+                              sty.textLink3,
                             )}
                           >
                             {false ? (
@@ -1041,7 +1041,7 @@ function PlasmicLogin__RenderFunc(props: {
                                   src: "/plasmic/console_france_nuage_fr/images/iconLeft2.svg",
                                   fullWidth: 20,
                                   fullHeight: 20,
-                                  aspectRatio: undefined
+                                  aspectRatio: undefined,
                                 }}
                               />
                             ) : null}
@@ -1051,7 +1051,7 @@ function PlasmicLogin__RenderFunc(props: {
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.label7
+                                sty.label7,
                               )}
                             >
                               {"S\u2019inscrire"}
@@ -1071,7 +1071,7 @@ function PlasmicLogin__RenderFunc(props: {
                                   src: "/plasmic/console_france_nuage_fr/images/iconLeft2.svg",
                                   fullWidth: 20,
                                   fullHeight: 20,
-                                  aspectRatio: undefined
+                                  aspectRatio: undefined,
                                 }}
                               />
                             ) : null}
@@ -1140,7 +1140,7 @@ const PlasmicDescendants = {
     "text7",
     "copy5",
     "textLink3",
-    "label7"
+    "label7",
   ],
   consoleProvider: [
     "consoleProvider",
@@ -1190,7 +1190,7 @@ const PlasmicDescendants = {
     "text7",
     "copy5",
     "textLink3",
-    "label7"
+    "label7",
   ],
   frNLoginDesktopNunitoSans: [
     "frNLoginDesktopNunitoSans",
@@ -1239,7 +1239,7 @@ const PlasmicDescendants = {
     "text7",
     "copy5",
     "textLink3",
-    "label7"
+    "label7",
   ],
   left: [
     "left",
@@ -1287,7 +1287,7 @@ const PlasmicDescendants = {
     "text7",
     "copy5",
     "textLink3",
-    "label7"
+    "label7",
   ],
   logoName: ["logoName"],
   form: [
@@ -1334,7 +1334,7 @@ const PlasmicDescendants = {
     "text7",
     "copy5",
     "textLink3",
-    "label7"
+    "label7",
   ],
   heading: ["heading", "text", "copy", "text2", "copy2"],
   text: ["text", "copy"],
@@ -1374,7 +1374,7 @@ const PlasmicDescendants = {
     "copy3",
     "gitlab",
     "svg",
-    "google"
+    "google",
   ],
   form2: [
     "form2",
@@ -1400,7 +1400,7 @@ const PlasmicDescendants = {
     "text6",
     "copy4",
     "textLink2",
-    "label6"
+    "label6",
   ],
   textInputDefaultTrue: [
     "textInputDefaultTrue",
@@ -1408,7 +1408,7 @@ const PlasmicDescendants = {
     "label",
     "label2",
     "hint",
-    "textInput2"
+    "textInput2",
   ],
   text4: ["text4", "label", "label2", "hint"],
   label: ["label", "label2"],
@@ -1424,7 +1424,7 @@ const PlasmicDescendants = {
     "hint2",
     "textInput3",
     "textLink",
-    "label5"
+    "label5",
   ],
   textInput: ["textInput", "text5", "label3", "label4", "hint2"],
   text5: ["text5", "label3", "label4", "hint2"],
@@ -1454,7 +1454,7 @@ const PlasmicDescendants = {
   text7: ["text7", "copy5"],
   copy5: ["copy5"],
   textLink3: ["textLink3", "label7"],
-  label7: ["label7"]
+  label7: ["label7"],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -1539,7 +1539,7 @@ type NodeComponentProps<T extends NodeNameType> =
 function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
   type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
   const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
+    props: T & StrictProps<T, PropsType>,
   ) {
     const { variants, args, overrides } = React.useMemo(
       () =>
@@ -1547,15 +1547,15 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicLogin__ArgProps,
-          internalVariantPropNames: PlasmicLogin__VariantProps
+          internalVariantPropNames: PlasmicLogin__VariantProps,
         }),
-      [props, nodeName]
+      [props, nodeName],
     );
     return PlasmicLogin__RenderFunc({
       variants,
       args,
       overrides,
-      forNode: nodeName
+      forNode: nodeName,
     });
   };
   if (nodeName === "root") {
@@ -1629,9 +1629,9 @@ export const PlasmicLogin = Object.assign(
       title: "",
       description: "",
       ogImageSrc: "",
-      canonical: ""
-    }
-  }
+      canonical: "",
+    },
+  },
 );
 
 export default PlasmicLogin;
