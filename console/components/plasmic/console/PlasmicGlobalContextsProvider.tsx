@@ -15,19 +15,20 @@ export interface GlobalContextsProviderProps {
   antdConfigProviderProps?: Partial<
     Omit<React.ComponentProps<typeof AntdConfigProvider>, "children">
   >;
+
   cmsCredentialsProviderProps?: Partial<
     Omit<React.ComponentProps<typeof CmsCredentialsProvider>, "children">
   >;
 }
 
 export default function GlobalContextsProvider(
-  props: GlobalContextsProviderProps,
+  props: GlobalContextsProviderProps
 ) {
   const { children, antdConfigProviderProps, cmsCredentialsProviderProps } =
     props;
 
   const globalVariants = ensureGlobalVariants({
-    screen: useScreenVariantseEvMbXdv1ZEe(),
+    screen: useScreenVariantseEvMbXdv1ZEe()
   });
 
   return (
@@ -107,24 +108,24 @@ export default function GlobalContextsProvider(
         antdConfigProviderProps && "themeStyles" in antdConfigProviderProps
           ? antdConfigProviderProps.themeStyles!
           : hasVariant(globalVariants, "screen", "mobile")
-            ? {
-                fontFamily: "Lato",
-                fontSize: "16px",
-                fontWeight: "400",
-                lineHeight: "1.5",
-                color: "#1C274D",
-                letterSpacing: "normal",
-              }
-            : true
-              ? {
-                  fontFamily: "Lato",
-                  fontSize: "16px",
-                  fontWeight: "400",
-                  lineHeight: "1.5",
-                  color: "#030712",
-                  letterSpacing: "normal",
-                }
-              : undefined
+          ? {
+              fontFamily: "Lato",
+              fontSize: "16px",
+              fontWeight: "400",
+              lineHeight: "1.5",
+              color: "#1C274D",
+              letterSpacing: "normal"
+            }
+          : true
+          ? {
+              fontFamily: "Lato",
+              fontSize: "16px",
+              fontWeight: "400",
+              lineHeight: "1.5",
+              color: "#030712",
+              letterSpacing: "normal"
+            }
+          : undefined
       }
       wireframe={
         antdConfigProviderProps && "wireframe" in antdConfigProviderProps

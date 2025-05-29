@@ -16,7 +16,7 @@ export interface GlobalContextsProviderProps {
 }
 
 export default function GlobalContextsProvider(
-  props: GlobalContextsProviderProps,
+  props: GlobalContextsProviderProps
 ) {
   const { children, cmsCredentialsProviderProps } = props;
 
