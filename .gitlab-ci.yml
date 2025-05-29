@@ -171,8 +171,6 @@ build:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
-    - if: '$CI_COMMIT_BRANCH == "upgrade-docs-builder-image"'
-      when: on_success
     - when: never
 
 "release":
