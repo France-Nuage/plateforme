@@ -149,6 +149,8 @@ services:
         condition: service_healthy
       playwright:
         condition: service_started
+      traefik:
+        condition: service_started
     environment:
       CONSOLE_URL: ${CONSOLE_URL:-https://console}
       CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
