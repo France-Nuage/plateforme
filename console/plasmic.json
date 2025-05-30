@@ -6,19 +6,19 @@
     "reactRuntime": "classic"
   },
   "style": {
-    "scheme": "css",
+    "scheme": "css-modules",
     "defaultStyleCssFilePath": "plasmic/plasmic__default_style.css"
   },
   "images": {
     "scheme": "public-files",
-    "publicDir": "../../public",
+    "publicDir": "../../../public",
     "publicUrlPrefix": "/static/"
   },
   "tokens": {
     "scheme": "theo",
     "tokensFilePath": "plasmic-tokens.theo.json"
   },
-  "srcDir": "src/generated",
+  "srcDir": "src/generated/plasmic",
   "defaultPlasmicDir": "./plasmic",
   "projects": [
     {
@@ -26,7 +26,7 @@
       "projectApiToken": "ByNEUEKB7Hd9g2PkeOVot8RZTanYGn3rlmcjYTbULlTb9TEjfypxJ4uDH0HeEMQazKWvfHB4CFNXVgy8YmEyA",
       "projectName": "react-chartjs-2",
       "version": ">0.0.0",
-      "cssFilePath": "plasmic/react_chartjs_2/plasmic.css",
+      "cssFilePath": "plasmic/react_chartjs_2/plasmic.module.css",
       "components": [],
       "icons": [],
       "images": [],
@@ -48,7 +48,7 @@
       "projectApiToken": "L5kqyh9xqKCqpdc8gqCglVcLZTxdkkP1Dt9pLUlWpyKVItIbbXr5272ePgMpZZiezhSe0AIOuQB353jQnw",
       "projectName": "plasmic-cms",
       "version": ">0.0.0",
-      "cssFilePath": "plasmic/plasmic_cms/plasmic.css",
+      "cssFilePath": "plasmic/plasmic_cms/plasmic.module.css",
       "components": [],
       "icons": [],
       "images": [],
@@ -106,7 +106,7 @@
       "projectApiToken": "YE6pw0s6HZvyAZENjWdhh22CZUvZbVXVeOr7IxU58m9rwk2ITG1RfJGcJjzF2uEC7DCqa4PDzPP1UXxfKuuQ",
       "projectName": "antd5 hostless",
       "version": ">0.0.0",
-      "cssFilePath": "plasmic/antd_5_hostless/plasmic.css",
+      "cssFilePath": "plasmic/antd_5_hostless/plasmic.module.css",
       "components": [],
       "icons": [],
       "images": [],
@@ -506,7 +506,7 @@
       "projectApiToken": "uZp069FLSLNVA2dpWnqC3BUaj3flvtNBNXt6e1b67rm4Uh6lGHgYJ65FCBXlOFTB5KDW7RmmOxIAzgHYCg",
       "projectName": "plasmic-nav",
       "version": ">0.0.0",
-      "cssFilePath": "plasmic/plasmic_nav/plasmic.css",
+      "cssFilePath": "plasmic/plasmic_nav/plasmic.module.css",
       "components": [],
       "icons": [],
       "images": [],
@@ -528,7 +528,7 @@
       "projectApiToken": "vXGGQpdi9fhcncabBdg8DcMRUbkz0iRW6HS1jzQufQR6QH0MasPwr9SX7ap4SsK3xXwwXmzZtglWGe0Rm2nw",
       "projectName": "plasmic-basic-components",
       "version": ">0.0.0",
-      "cssFilePath": "plasmic/plasmic_basic_components/plasmic.css",
+      "cssFilePath": "plasmic/plasmic_basic_components/plasmic.module.css",
       "components": [],
       "icons": [],
       "images": [],
@@ -586,7 +586,7 @@
       "projectApiToken": "LBbn8U2dmbpX9oeuRsYNyEKki39EXydGQgs9vBvR5sLHfGEZsK4owvOj7Q7SnflW4ASIEdLFAeeoxGxXZ8dJtA",
       "projectName": "react-aria",
       "version": ">0.0.0",
-      "cssFilePath": "plasmic/react_aria/plasmic.css",
+      "cssFilePath": "plasmic/react_aria/plasmic.module.css",
       "components": [],
       "icons": [],
       "images": [],
@@ -794,7 +794,7 @@
       "projectApiToken": "oggrsyL9bKt9fkVg2U0qIfGIUIkGgdeJ9FQSldQGMB7cKioSbXZeLm2f2gAxqQfE1NidaptbjnjhFuenDDZkQ",
       "projectName": "console.france-nuage.fr",
       "version": "latest",
-      "cssFilePath": "plasmic/console_france_nuage_fr/plasmic.css",
+      "cssFilePath": "plasmic/console_france_nuage_fr/plasmic.module.css",
       "components": [
         {
           "id": "d1MlGr7C5K9L",
@@ -805,7 +805,7 @@
           "importSpec": {
             "modulePath": "Accueil.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicAccueil.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicAccueil.module.css",
           "scheme": "blackbox",
           "componentType": "page",
           "path": "/"
@@ -819,7 +819,7 @@
           "importSpec": {
             "modulePath": "Contact.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicContact.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicContact.module.css",
           "scheme": "blackbox",
           "componentType": "page",
           "path": "/contact"
@@ -833,7 +833,7 @@
           "importSpec": {
             "modulePath": "Button.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicButton.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicButton.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -846,7 +846,7 @@
           "importSpec": {
             "modulePath": "SideBar.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSideBar.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSideBar.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -859,7 +859,7 @@
           "importSpec": {
             "modulePath": "Button2.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicButton2.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicButton2.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -872,7 +872,7 @@
           "importSpec": {
             "modulePath": "Label.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicLabel.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicLabel.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -885,7 +885,7 @@
           "importSpec": {
             "modulePath": "TextInput.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicTextInput.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicTextInput.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -898,7 +898,7 @@
           "importSpec": {
             "modulePath": "TextAreaInput.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicTextAreaInput.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicTextAreaInput.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -911,7 +911,7 @@
           "importSpec": {
             "modulePath": "Description.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicDescription.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicDescription.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -924,7 +924,7 @@
           "importSpec": {
             "modulePath": "TextField.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicTextField.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicTextField.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -937,7 +937,7 @@
           "importSpec": {
             "modulePath": "Breadcrumbs.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicBreadcrumbs.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicBreadcrumbs.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -950,7 +950,7 @@
           "importSpec": {
             "modulePath": "BtnSideBar.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicBtnSideBar.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicBtnSideBar.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -963,7 +963,7 @@
           "importSpec": {
             "modulePath": "Instances.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicInstances.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicInstances.module.css",
           "scheme": "blackbox",
           "componentType": "page",
           "path": "/instance"
@@ -977,7 +977,7 @@
           "importSpec": {
             "modulePath": "ConsoleLayout.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicConsoleLayout.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicConsoleLayout.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -990,7 +990,7 @@
           "importSpec": {
             "modulePath": "Modal.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicModal.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicModal.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1003,7 +1003,7 @@
           "importSpec": {
             "modulePath": "MenuItem.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuItem.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuItem.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1016,7 +1016,7 @@
           "importSpec": {
             "modulePath": "MenuSection.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuSection.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuSection.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1029,7 +1029,7 @@
           "importSpec": {
             "modulePath": "MenuPopover.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuPopover.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicMenuPopover.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1042,7 +1042,7 @@
           "importSpec": {
             "modulePath": "Select.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSelect.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSelect.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1055,7 +1055,7 @@
           "importSpec": {
             "modulePath": "SliderThumb.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSliderThumb.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSliderThumb.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1068,7 +1068,7 @@
           "importSpec": {
             "modulePath": "Slider.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSlider.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicSlider.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1081,7 +1081,7 @@
           "importSpec": {
             "modulePath": "Combobox.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicCombobox.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicCombobox.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1094,7 +1094,7 @@
           "importSpec": {
             "modulePath": "Loader.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicLoader.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicLoader.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1107,7 +1107,7 @@
           "importSpec": {
             "modulePath": "Cards.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicCards.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicCards.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         },
@@ -1120,7 +1120,7 @@
           "importSpec": {
             "modulePath": "Login.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicLogin.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicLogin.module.css",
           "scheme": "blackbox",
           "componentType": "page",
           "path": "/login"
@@ -1134,7 +1134,7 @@
           "importSpec": {
             "modulePath": "Radio.tsx"
           },
-          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicRadio.css",
+          "cssFilePath": "plasmic/console_france_nuage_fr/PlasmicRadio.module.css",
           "scheme": "blackbox",
           "componentType": "component"
         }
@@ -1305,432 +1305,432 @@
         {
           "id": "KjS_Y4VmoeAP",
           "name": "hero-image.svg 2",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/heroImageSvg2.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/heroImageSvg2.svg"
         },
         {
           "id": "v4egf6ONvqia",
           "name": "Logo.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/logoSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/logoSvg.svg"
         },
         {
           "id": "zxsBeYoUOKR2",
           "name": "hero-img.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/heroImgPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/heroImgPng.png"
         },
         {
           "id": "eutLp9BYKAOF",
           "name": "companies1.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/companies1Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/companies1Png.png"
         },
         {
           "id": "8h6WAtl1av8t",
           "name": "companies2.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/companies2Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/companies2Png.png"
         },
         {
           "id": "4uB8gWRWilK8",
           "name": "companies3.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/companies3Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/companies3Png.png"
         },
         {
           "id": "2LsfzeptmDZn",
           "name": "companies4.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/companies4Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/companies4Png.png"
         },
         {
           "id": "KuEExFN8mGEH",
           "name": "newsletters.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/newslettersSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/newslettersSvg.svg"
         },
         {
           "id": "2u6bHJALhODf",
           "name": "messaging.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/messagingSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/messagingSvg.svg"
         },
         {
           "id": "3gGRaIv_zpBU",
           "name": "dashboard.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/dashboardSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/dashboardSvg.svg"
         },
         {
           "id": "T9BpJpkTsp8z",
           "name": "automations.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/automationsSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/automationsSvg.svg"
         },
         {
           "id": "Mt5fZcFa5w5B",
           "name": "modals.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/modalsSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/modalsSvg.svg"
         },
         {
           "id": "ra6tZ07jKPCK",
           "name": "userflow.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/userflowSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/userflowSvg.svg"
         },
         {
           "id": "HtjKRw9tw1Q0",
           "name": "security.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/securitySvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/securitySvg.svg"
         },
         {
           "id": "BhUARev2qOsc",
           "name": "archive.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/archiveSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/archiveSvg.svg"
         },
         {
           "id": "TvjJTiWiGHQL",
           "name": "analytics.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/analyticsSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/analyticsSvg.svg"
         },
         {
           "id": "4CvH9KM2pFMA",
           "name": "search.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/searchSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/searchSvg.svg"
         },
         {
           "id": "CUqa-NkmN66b",
           "name": "protection.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/protectionSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/protectionSvg.svg"
         },
         {
           "id": "FECH66sT7sA2",
           "name": "image2.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/image2Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/image2Png.png"
         },
         {
           "id": "OYN6YbFGW0Qt",
           "name": "bank.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/bankSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/bankSvg.svg"
         },
         {
           "id": "javsvk499PYo",
           "name": "line-blue.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/lineBlueSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/lineBlueSvg.svg"
         },
         {
           "id": "irIJv6f3ENE0",
           "name": "image3.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/image3Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/image3Png.png"
         },
         {
           "id": "7mu01CgCs1yI",
           "name": "image4.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/image4Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/image4Png.png"
         },
         {
           "id": "rvNAG7aaWkxc",
           "name": "Mask group.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/maskGroupSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/maskGroupSvg.svg"
         },
         {
           "id": "-qXb0CxRBOBO",
           "name": "tick-circle.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/tickCircleSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/tickCircleSvg.svg"
         },
         {
           "id": "6s0RbGgLf469",
           "name": "Frame 10.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/frame10Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/frame10Png.png"
         },
         {
           "id": "qlHlcV8_vet9",
           "name": "team.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/teamPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/teamPng.png"
         },
         {
           "id": "K_2anbokpPd5",
           "name": "price-background.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/priceBackgroundSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/priceBackgroundSvg.svg"
         },
         {
           "id": "d6f_wva9V7jx",
           "name": "free-forever.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/freeForeverSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/freeForeverSvg.svg"
         },
         {
           "id": "2FFUlzA6aToy",
           "name": "line.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/lineSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/lineSvg.svg"
         },
         {
           "id": "jgceX25rc9nd",
           "name": "tick-circle-blue.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/tickCircleBlueSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/tickCircleBlueSvg.svg"
         },
         {
           "id": "M289mfKqpUWQ",
           "name": "best-seller.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/bestSellerSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/bestSellerSvg.svg"
         },
         {
           "id": "jtnZMyu1Ze1l",
           "name": "minus-cirlce.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/minusCirlceSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/minusCirlceSvg.svg"
         },
         {
           "id": "RwqsiSm9MG-A",
           "name": "add-circle.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/addCircleSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/addCircleSvg.svg"
         },
         {
           "id": "b70X-42DDB-k",
           "name": "image6.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/image6Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/image6Png.png"
         },
         {
           "id": "U-QQlw8TQYGV",
           "name": "logo-footer.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/logoFooterPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/logoFooterPng.png"
         },
         {
           "id": "GRg3bbY4oO1N",
           "name": "logo.svg 2",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/logoSvg2.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/logoSvg2.svg"
         },
         {
           "id": "hQkseZhgRkUv",
           "name": "pexels-andrea-piacquadio-789822.jpg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/pexelsAndreaPiacquadio789822Jpg.jpg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/pexelsAndreaPiacquadio789822Jpg.jpg"
         },
         {
           "id": "4w4k868CslNI",
           "name": "bg-hero.jpg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/bgHeroJpg.jpg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/bgHeroJpg.jpg"
         },
         {
           "id": "W0DyQjFhe7Cj",
           "name": "writing-pad-3202747_1920.jpg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/writingPad32027471920Jpg.jpg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/writingPad32027471920Jpg.jpg"
         },
         {
           "id": "N0PAJyl_HrBx",
           "name": "logo.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/logoPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/logoPng.png"
         },
         {
           "id": "qVQ7JZfXLFOn",
           "name": "diagram.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/diagramSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/diagramSvg.svg"
         },
         {
           "id": "N6M6aR9JHSRl",
           "name": "logo-hero1.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/logoHero1Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/logoHero1Png.png"
         },
         {
           "id": "VOZXzqIfdbiB",
           "name": "logo-hero2.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/logoHero2Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/logoHero2Png.png"
         },
         {
           "id": "9cOWQDfxUfcW",
           "name": "logo-hero3.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/logoHero3Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/logoHero3Png.png"
         },
         {
           "id": "LBYYHEQrTxaD",
           "name": "logo-hero4.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/logoHero4Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/logoHero4Png.png"
         },
         {
           "id": "hH2vtLSGpTif",
           "name": "diagram-img.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/diagramImgSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/diagramImgSvg.svg"
         },
         {
           "id": "um7tV0uRTNpm",
           "name": "ellipse-left.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/ellipseLeftPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/ellipseLeftPng.png"
         },
         {
           "id": "ApPvbeDTH0o9",
           "name": "ellipse-right.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/ellipseRightPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/ellipseRightPng.png"
         },
         {
           "id": "KebzgBpL14xw",
           "name": "terminal.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/terminalPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/terminalPng.png"
         },
         {
           "id": "7KNiGFiy-on_",
           "name": "line1.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/line1Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/line1Png.png"
         },
         {
           "id": "qBH25avsu7Z4",
           "name": "line-branch.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/lineBranchPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/lineBranchPng.png"
         },
         {
           "id": "RfQwG4X3XBS3",
           "name": "line2.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/line2Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/line2Png.png"
         },
         {
           "id": "Zh_1mS4sITLi",
           "name": "dollar.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/dollarPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/dollarPng.png"
         },
         {
           "id": "zyM5LyR--HTD",
           "name": "message.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/messagePng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/messagePng.png"
         },
         {
           "id": "LOKWpCnHt_mG",
           "name": "import.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/importPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/importPng.png"
         },
         {
           "id": "c0ldjqbZPWDZ",
           "name": "export.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/exportPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/exportPng.png"
         },
         {
           "id": "RNOWhJEU72JP",
           "name": "message2.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/message2Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/message2Png.png"
         },
         {
           "id": "q6ZGcoch_BqI",
           "name": "message3.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/message3Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/message3Png.png"
         },
         {
           "id": "rhPHD8LqxW_7",
           "name": "macbook.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/macbookPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/macbookPng.png"
         },
         {
           "id": "dF3AmJnFHK6V",
           "name": "galleri1-1.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/galleri11Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/galleri11Png.png"
         },
         {
           "id": "w_AmSqH7dHJH",
           "name": "galleri1-2.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/galleri12Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/galleri12Png.png"
         },
         {
           "id": "Nsk_g92Cbjqk",
           "name": "galleri1-3.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/galleri13Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/galleri13Png.png"
         },
         {
           "id": "YA1Zx5gEacYd",
           "name": "galleri2-1.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/galleri21Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/galleri21Png.png"
         },
         {
           "id": "XAqeuU-gVUHR",
           "name": "galleri2-2.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/galleri22Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/galleri22Png.png"
         },
         {
           "id": "5IQyewAaPwdK",
           "name": "galleri2-3.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/galleri23Png.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/galleri23Png.png"
         },
         {
           "id": "4JZohmY3sYJ6",
           "name": "product-img.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/productImgPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/productImgPng.png"
         },
         {
           "id": "nCqMykU9Hdvr",
           "name": "about-img.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/aboutImgPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/aboutImgPng.png"
         },
         {
           "id": "avrq7ercQbeM",
           "name": "about-ipsum.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/aboutIpsumPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/aboutIpsumPng.png"
         },
         {
           "id": "B7E7FDdtCU2F",
           "name": "backtip.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/backtipPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/backtipPng.png"
         },
         {
           "id": "bQuSRN9_7vRD",
           "name": "checklist.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/checklistPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/checklistPng.png"
         },
         {
           "id": "6_ATXma-m2MC",
           "name": "arrow-left.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/arrowLeftPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/arrowLeftPng.png"
         },
         {
           "id": "cOxnaESov3LX",
           "name": "arrow-right.png 2",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/arrowRightPng2.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/arrowRightPng2.png"
         },
         {
           "id": "3HzqoqH9l_kV",
           "name": "line-pricing.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/linePricingPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/linePricingPng.png"
         },
         {
           "id": "6BjxZdCiVFRF",
           "name": "checklist-pricing-white.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/checklistPricingWhitePng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/checklistPricingWhitePng.png"
         },
         {
           "id": "h88XKCWCvvxX",
           "name": "pricing-img.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/pricingImgSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/pricingImgSvg.svg"
         },
         {
           "id": "E7l_ezxKowtN",
           "name": "image 13",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/image13.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/image13.svg"
         },
         {
           "id": "nnehrTuaEex3",
           "name": "cloud model.png",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/cloudModelPng.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/cloudModelPng.png"
         },
         {
           "id": "Rpalmysqfum_",
           "name": "cloud model.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/cloudModelSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/cloudModelSvg.svg"
         },
         {
           "id": "Xt_lbIHexoh2",
           "name": "image",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/image.gif"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/image.gif"
         },
         {
           "id": "aT43vmjze81f",
           "name": "Icon left",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/iconLeft.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/iconLeft.svg"
         },
         {
           "id": "87vgCSOmPWrH",
           "name": "Icon right",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/iconRight.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/iconRight.svg"
         },
         {
           "id": "8lPSHpE1AZ09",
           "name": "Icon left 2",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/iconLeft2.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/iconLeft2.svg"
         },
         {
           "id": "OzfmJA601qJZ",
           "name": "Enter-Password-6--Streamline-Brooklyn.svg",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/enterPassword6StreamlineBrooklynSvg.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/enterPassword6StreamlineBrooklynSvg.svg"
         },
         {
           "id": "hGcMuOqI1rcV",
           "name": "cloud logo",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/cloudLogo.svg"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/cloudLogo.svg"
         },
         {
           "id": "0Uia7jn1g0Af",
           "name": "image 2",
-          "filePath": "../../public/plasmic/console_france_nuage_fr/images/image2.png"
+          "filePath": "../../../public/plasmic/console_france_nuage_fr/images/image2.png"
         }
       ],
       "indirect": false,
@@ -1753,7 +1753,7 @@
           "id": "vWN9dmdYefpY",
           "name": "ConsoleProvider",
           "displayName": "ConsoleProvider",
-          "componentImportPath": "./providers/ConsoleProvider"
+          "componentImportPath": "./src/providers/ConsoleProvider"
         }
       ],
       "customFunctions": []

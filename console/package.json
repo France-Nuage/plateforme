@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ --ts_out src/generated/rpc --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.7.0",
     "@plasmicapp/loader-react": "^1.0.387",
     "@plasmicapp/react-web": "^0.2.388",
     "@plasmicpkgs/antd5": "^0.0.289",
@@ -18,14 +20,23 @@
     "@plasmicpkgs/plasmic-nav": "^0.0.188",
     "@plasmicpkgs/react-aria": "^0.0.137",
     "@plasmicpkgs/react-chartjs-2": "^1.0.128",
+    "@protobuf-ts/grpcweb-transport": "^2.9.6",
+    "@protobuf-ts/runtime": "^2.9.6",
+    "@protobuf-ts/runtime-rpc": "^2.9.6",
+    "@reduxjs/toolkit": "^2.8.2",
     "chart.js": "^4.4.9",
+    "oidc-client-ts": "^3.2.1",
     "react": "^19.1.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.1.0",
-    "react-router": "^7.6.1"
+    "react-redux": "^9.2.0",
+    "react-router": "^7.6.1",
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@protobuf-ts/plugin": "^2.9.6",
+    "@protobuf-ts/protoc": "^2.9.6",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react-swc": "^3.9.0",

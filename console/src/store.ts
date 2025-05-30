@@ -1,0 +1,20 @@
+import { configureStore } from "@reduxjs/toolkit";
+import {
+  applicationSlice,
+  authenticationSlice,
+  hypervisorsSlice,
+  instancesSlice,
+} from "@/features";
+
+export const store = configureStore({
+  reducer: {
+    [applicationSlice.name]: applicationSlice.reducer,
+    [authenticationSlice.name]: authenticationSlice.reducer,
+    [hypervisorsSlice.name]: hypervisorsSlice.reducer,
+    [instancesSlice.name]: instancesSlice.reducer,
+  },
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+
