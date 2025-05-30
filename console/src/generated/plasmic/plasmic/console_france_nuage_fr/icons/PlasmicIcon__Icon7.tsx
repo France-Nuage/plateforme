@@ -2,10 +2,10 @@
 /* tslint:disable */
 // @ts-nocheck
 /* prettier-ignore-start */
-import React from "react";
-import { classNames } from "@plasmicapp/react-web";
+import { classNames } from '@plasmicapp/react-web';
+import React from 'react';
 
-export type Icon7IconProps = React.ComponentProps<"svg"> & {
+export type Icon7IconProps = React.ComponentProps<'svg'> & {
   title?: string;
 };
 
@@ -13,18 +13,18 @@ export function Icon7Icon(props: Icon7IconProps) {
   const { className, style, title, ...restProps } = props;
   return (
     <svg
-      xmlns={"http://www.w3.org/2000/svg"}
-      fill={"none"}
-      stroke={"#6B7280"}
-      strokeWidth={"2"}
-      strokeLinecap={"round"}
-      strokeLinejoin={"round"}
+      xmlns={'http://www.w3.org/2000/svg'}
+      fill={'none'}
+      stroke={'#6B7280'}
+      strokeWidth={'2'}
+      strokeLinecap={'round'}
+      strokeLinejoin={'round'}
       className={classNames(
-        "plasmic-default__svg",
+        'plasmic-default__svg',
         className,
-        "lucide lucide-receipt-text-icon lucide-receipt-text"
+        'lucide lucide-receipt-text-icon lucide-receipt-text',
       )}
-      viewBox={"0 0 24 24"}
+      viewBox={'0 0 24 24'}
       style={style}
       {...restProps}
     >
@@ -32,7 +32,7 @@ export function Icon7Icon(props: Icon7IconProps) {
 
       <path
         d={
-          "M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zm10 6H8m8 4H8m5 4H8"
+          'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zm10 6H8m8 4H8m5 4H8'
         }
       ></path>
     </svg>

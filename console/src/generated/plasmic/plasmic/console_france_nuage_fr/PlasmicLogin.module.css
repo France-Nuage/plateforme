@@ -33,12 +33,9 @@
   flex-direction: column;
   flex-shrink: 0;
   width: 100%;
-  background: radial-gradient(
-        ellipse 40% 60% at 20% 20%,
-        #1a4ce530 0%,
-        #f9faff00 100%
-      )
-      0% 0% / 100% 100% repeat,
+  background:
+    radial-gradient(ellipse 40% 60% at 20% 20%, #1a4ce530 0%, #f9faff00 100%) 0%
+      0% / 100% 100% repeat,
     radial-gradient(
         ellipse 31% 48% at 83% 82%,
         #1a4ce54a 0%,
@@ -134,7 +131,7 @@
   display: block;
   font-size: 20px;
   text-align: center;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 100%;
@@ -262,7 +259,7 @@
 .copy {
   display: block;
   font-size: 40px;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-weight: 700;
   letter-spacing: -0.5px;
   line-height: 48px;
@@ -299,7 +296,7 @@
 .copy2 {
   display: block;
   font-size: 16px;
-  font-family: "Nunito Sans", sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 24px;
@@ -462,7 +459,7 @@
 .text__jwxyc {
   display: block;
   font-size: 16px;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 24px;
@@ -472,7 +469,7 @@
 .text__lbxA2 {
   display: block;
   font-size: 14px;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 20px;
@@ -482,7 +479,7 @@
 .hint {
   display: block;
   font-size: 14px;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 20px;
@@ -595,7 +592,7 @@
 .text__pGaiO {
   display: block;
   font-size: 16px;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 24px;
@@ -605,7 +602,7 @@
 .text__iqlkL {
   display: block;
   font-size: 14px;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 20px;
@@ -615,7 +612,7 @@
 .hint2 {
   display: block;
   font-size: 14px;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 20px;
@@ -837,7 +834,7 @@
 .copy4 {
   display: block;
   font-size: 16px;
-  font-family: "Nunito Sans", sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 20px;
@@ -892,7 +889,7 @@
   font-size: 16px;
   text-align: center;
   text-decoration-line: underline;
-  font-family: "Nunito Sans", sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 20px;
@@ -1039,7 +1036,7 @@
 .copy3 {
   display: block;
   font-size: 16px;
-  font-family: "Nunito Sans", sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 24px;
@@ -1225,7 +1222,7 @@
 .copy5 {
   display: block;
   font-size: 16px;
-  font-family: "Nunito Sans", sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 20px;
@@ -1280,7 +1277,7 @@
   font-size: 16px;
   text-align: center;
   text-decoration-line: underline;
-  font-family: "Nunito Sans", sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   font-weight: 400;
   letter-spacing: 0px;
   line-height: 20px;

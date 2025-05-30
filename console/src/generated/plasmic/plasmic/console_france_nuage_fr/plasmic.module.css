@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Lato%3Aital%2Cwght%400%2C400%3B0%2C700&family=Inconsolata%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Inter%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Outfit%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Nunito+Sans%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Lato%3Aital%2Cwght%400%2C400%3B0%2C700&family=Inconsolata%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Inter%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Outfit%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Nunito+Sans%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&display=swap');
 
 .plasmic_tokens {
   --token-PKw3mKbzBr62: #1a4ce5;
@@ -210,7 +210,7 @@
   --mixin-wIacG3sb4kmI_border-bottom-right-radius: 3px;
   --mixin-wIacG3sb4kmI_border-top-left-radius: 3px;
   --mixin-wIacG3sb4kmI_border-top-right-radius: 3px;
-  --mixin-wIacG3sb4kmI_font-family: "Inconsolata";
+  --mixin-wIacG3sb4kmI_font-family: 'Inconsolata';
   --mixin-wIacG3sb4kmI_padding-bottom: 1px;
   --mixin-wIacG3sb4kmI_padding-left: 4px;
   --mixin-wIacG3sb4kmI_padding-right: 4px;
@@ -239,7 +239,7 @@
   --mixin-EwP2P_4Ys_qi_border-bottom-right-radius: 3px;
   --mixin-EwP2P_4Ys_qi_border-top-left-radius: 3px;
   --mixin-EwP2P_4Ys_qi_border-top-right-radius: 3px;
-  --mixin-EwP2P_4Ys_qi_font-family: "Inconsolata";
+  --mixin-EwP2P_4Ys_qi_font-family: 'Inconsolata';
   --mixin-EwP2P_4Ys_qi_padding-bottom: 3px;
   --mixin-EwP2P_4Ys_qi_padding-left: 6px;
   --mixin-EwP2P_4Ys_qi_padding-right: 6px;

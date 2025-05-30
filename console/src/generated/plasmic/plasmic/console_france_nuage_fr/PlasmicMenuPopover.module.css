@@ -5,7 +5,8 @@
   background: var(--token-AVjrb1VpMneH);
   position: relative;
   overflow: auto;
-  box-shadow: 0px 0px 12px 0px #00000040,
+  box-shadow:
+    0px 0px 12px 0px #00000040,
     0px 0px 0px 0.5px var(--token-N3krgHLSPc8P);
   border-radius: var(--token-GWDIjBMG5yGU);
   padding: var(--token-yByw3KgAJ_yl);

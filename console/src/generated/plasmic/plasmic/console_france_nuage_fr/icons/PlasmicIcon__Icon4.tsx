@@ -2,10 +2,10 @@
 /* tslint:disable */
 // @ts-nocheck
 /* prettier-ignore-start */
-import React from "react";
-import { classNames } from "@plasmicapp/react-web";
+import { classNames } from '@plasmicapp/react-web';
+import React from 'react';
 
-export type Icon4IconProps = React.ComponentProps<"svg"> & {
+export type Icon4IconProps = React.ComponentProps<'svg'> & {
   title?: string;
 };
 
@@ -13,18 +13,18 @@ export function Icon4Icon(props: Icon4IconProps) {
   const { className, style, title, ...restProps } = props;
   return (
     <svg
-      xmlns={"http://www.w3.org/2000/svg"}
-      fill={"none"}
-      stroke={"#6B7280"}
-      strokeWidth={"2"}
-      strokeLinecap={"round"}
-      strokeLinejoin={"round"}
+      xmlns={'http://www.w3.org/2000/svg'}
+      fill={'none'}
+      stroke={'#6B7280'}
+      strokeWidth={'2'}
+      strokeLinecap={'round'}
+      strokeLinejoin={'round'}
       className={classNames(
-        "plasmic-default__svg",
+        'plasmic-default__svg',
         className,
-        "lucide lucide-bell-icon lucide-bell"
+        'lucide lucide-bell-icon lucide-bell',
       )}
-      viewBox={"0 0 24 24"}
+      viewBox={'0 0 24 24'}
       style={style}
       {...restProps}
     >
@@ -32,7 +32,7 @@ export function Icon4Icon(props: Icon4IconProps) {
 
       <path
         d={
-          "M10.268 21a2 2 0 003.464 0m-10.47-5.674A1 1 0 004 17h16a1 1 0 00.74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 006 8c0 4.499-1.411 5.956-2.738 7.326"
+          'M10.268 21a2 2 0 003.464 0m-10.47-5.674A1 1 0 004 17h16a1 1 0 00.74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 006 8c0 4.499-1.411 5.956-2.738 7.326'
         }
       ></path>
     </svg>

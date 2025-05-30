@@ -2,17 +2,16 @@
 /* tslint:disable */
 // @ts-nocheck
 /* prettier-ignore-start */
+import { createUseScreenVariants } from '@plasmicapp/react-web';
+import * as React from 'react';
 
-import * as React from "react";
-import { createUseScreenVariants } from "@plasmicapp/react-web";
-
-export type ScreenValue = "mobile";
+export type ScreenValue = 'mobile';
 export const ScreenContext = React.createContext<ScreenValue[] | undefined>(
-  "PLEASE_RENDER_INSIDE_PROVIDER" as any
+  'PLEASE_RENDER_INSIDE_PROVIDER' as any,
 );
 
 export const useScreenVariants = createUseScreenVariants(true, {
-  mobile: "(max-width:414px)",
+  mobile: '(max-width:414px)',
 });
 
 export default ScreenContext;
