@@ -1,6 +1,7 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { User as OIDCUser } from "oidc-client-ts";
-import { User } from "@/types";
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { User as OIDCUser } from 'oidc-client-ts';
+
+import { User } from '@/types';
 
 /**
  * Represents the authentication state.
@@ -19,7 +20,7 @@ const initialState: AuthenticationState = {};
  * The authentication slice.
  */
 export const authenticationSlice = createSlice({
-  name: "authentication",
+  name: 'authentication',
   initialState,
   reducers: {
     /**
@@ -34,7 +35,7 @@ export const authenticationSlice = createSlice({
      */
     setOIDCUser: (
       state,
-      action: PayloadAction<Pick<OIDCUser, "id_token" | "profile">>,
+      action: PayloadAction<Pick<OIDCUser, 'id_token' | 'profile'>>,
     ) => {
       state.token = action.payload.id_token;
       state.user = {

@@ -1,5 +1,6 @@
-import { hypervisor, hypervisors } from "@/fixtures";
-import { HypervisorService } from "./hypervisor.interface";
+import { hypervisor, hypervisors } from '@/fixtures';
+
+import { HypervisorService } from './hypervisor.interface';
 
 export class HypervisorMockService implements HypervisorService {
   /** @inheritdoc */

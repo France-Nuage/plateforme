@@ -29,37 +29,37 @@ export type Instance = {
  */
 export type InstanceFormValue = Pick<
   Instance,
-  "maxCpuCores" | "maxMemoryBytes" | "name"
+  'maxCpuCores' | 'maxMemoryBytes' | 'name'
 >;
 
 /**
  * Convenience enum for mapping usual amounts of GB to theyr  byte value.
  */
 export enum MemoryBytes {
-  "1G" = 1 * 2 ** 30,
-  "4G" = 4 * 2 ** 30,
-  "8G" = 8 * 2 ** 30,
-  "12G" = 12 * 2 ** 30,
-  "16G" = 16 * 2 ** 30,
-  "20G" = 20 * 2 ** 30,
-  "24G" = 24 * 2 ** 30,
-  "28G" = 28 * 2 ** 30,
-  "32G" = 32 * 2 ** 30,
+  '1G' = 1 * 2 ** 30,
+  '4G' = 4 * 2 ** 30,
+  '8G' = 8 * 2 ** 30,
+  '12G' = 12 * 2 ** 30,
+  '16G' = 16 * 2 ** 30,
+  '20G' = 20 * 2 ** 30,
+  '24G' = 24 * 2 ** 30,
+  '28G' = 28 * 2 ** 30,
+  '32G' = 32 * 2 ** 30,
 }
 
 /**
  * The instance status variants.
  */
 export enum InstanceStatus {
-  UndefinedInstanceStatus = "undefined instance status",
-  Running = "running",
-  Stopped = "stopped",
-  Stopping = "stopping",
-  Provisioning = "provisioning",
-  Staging = "staging",
-  Suspended = "suspended",
-  Suspending = "suspending",
-  Terminated = "terminated",
-  Deprovisionning = "deprovisionning",
-  Repairing = "repairing",
+  UndefinedInstanceStatus = 'undefined instance status',
+  Running = 'running',
+  Stopped = 'stopped',
+  Stopping = 'stopping',
+  Provisioning = 'provisioning',
+  Staging = 'staging',
+  Suspended = 'suspended',
+  Suspending = 'suspending',
+  Terminated = 'terminated',
+  Deprovisionning = 'deprovisionning',
+  Repairing = 'repairing',
 }

@@ -1,9 +1,10 @@
-import { FunctionComponent, useEffect } from "react";
-import { toast } from "react-toastify";
-import { setOIDCUser } from "@/features";
-import { useAppDispatch } from "@/hooks";
-import { userManager } from "@/services";
-import { useNavigate } from "react-router";
+import { FunctionComponent, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
+
+import { setOIDCUser } from '@/features';
+import { useAppDispatch } from '@/hooks';
+import { userManager } from '@/services';
 
 /**
  * The OidcRedirect page component.
@@ -29,7 +30,7 @@ export const OidcRedirectPage: FunctionComponent = () => {
       .signinCallback()
       .then((user) => {
         if (!user) {
-          throw new Error("Error: user could not be retrieved.");
+          throw new Error('Error: user could not be retrieved.');
         }
         dispatch(setOIDCUser(user));
         navigate('/', { replace: true });
@@ -37,8 +38,7 @@ export const OidcRedirectPage: FunctionComponent = () => {
       .catch((error: Error) => {
         toast.error(error.toString());
       });
-  }, [dispatch, userManager]);
+  }, [dispatch, navigate]);
 
   return <div>loading</div>;
 };
-

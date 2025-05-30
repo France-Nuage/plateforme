@@ -7,10 +7,10 @@ export enum ServiceMode {
   /* Targets the gRPC services.
    *
    * Used in production for actual data, in system-tests for testing
-   * interactions with the gRPC layer and in various environment to emulate 
+   * interactions with the gRPC layer and in various environment to emulate
    * production behavior.
    */
-  Rpc = "rpc",
+  Rpc = 'rpc',
 
   /**
    * Targets the mock services.
@@ -19,5 +19,5 @@ export enum ServiceMode {
    * depending on external services, as well as tests that don't require
    * cross-service interactions.
    */
-  Mock = "mock",
+  Mock = 'mock',
 }

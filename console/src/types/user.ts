@@ -1,11 +1,11 @@
 /**
  * Represents a user.
  *
- * The User object is returned from the OIDC provider, matching 
+ * The User object is returned from the OIDC provider, matching
  */
 export type User = {
   /**
-   * The user email. 
+   * The user email.
    *
    * Requires the "email" scope.
    */

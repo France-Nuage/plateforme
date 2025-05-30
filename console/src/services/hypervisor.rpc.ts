@@ -1,9 +1,11 @@
-import { HypervisorsClient } from "@/generated/rpc/hypervisors.client";
-import { Hypervisor as RpcHypervisor } from "@/generated/rpc/hypervisors";
-import { Hypervisor, HypervisorFormValue } from "@/types";
-import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
-import { HypervisorService } from "./hypervisor.interface";
-import { transport } from "./transport.rpc";
+import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
+
+import { Hypervisor as RpcHypervisor } from '@/generated/rpc/hypervisors';
+import { HypervisorsClient } from '@/generated/rpc/hypervisors.client';
+import { Hypervisor, HypervisorFormValue } from '@/types';
+
+import { HypervisorService } from './hypervisor.interface';
+import { transport } from './transport.rpc';
 
 export class HypervisorRpcService implements HypervisorService {
   /**
@@ -31,7 +33,7 @@ export class HypervisorRpcService implements HypervisorService {
    * @inheritdoc
    */
   public register({
-    authorizationToken = "",
+    authorizationToken = '',
     storageName,
     url,
   }: HypervisorFormValue): Promise<Hypervisor> {

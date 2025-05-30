@@ -1,5 +1,6 @@
-import { Hypervisor } from "@/types";
-import { faker } from "@faker-js/faker";
+import { faker } from '@faker-js/faker';
+
+import { Hypervisor } from '@/types';
 
 export const hypervisor = (): Hypervisor => ({
   id: faker.string.uuid(),

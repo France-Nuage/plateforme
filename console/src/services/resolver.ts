@@ -1,10 +1,11 @@
-import { ServiceMode } from "@/types";
-import { HypervisorService } from "./hypervisor.interface";
-import { InstanceService } from "./instance.interface";
-import { instanceMockService } from "./instance.mock";
-import { hypervisorMockService } from "./hypervisor.mock";
-import { hypervisorsRpcService } from "./hypervisor.rpc";
-import { instanceRpcService } from "./instance.rpc";
+import { ServiceMode } from '@/types';
+
+import { HypervisorService } from './hypervisor.interface';
+import { hypervisorMockService } from './hypervisor.mock';
+import { hypervisorsRpcService } from './hypervisor.rpc';
+import { InstanceService } from './instance.interface';
+import { instanceMockService } from './instance.mock';
+import { instanceRpcService } from './instance.rpc';
 
 type Services = {
   hypervisor: HypervisorService;

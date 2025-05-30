@@ -1,8 +1,9 @@
-import { clearAuthenticationState, setOIDCUser } from "@/features";
-import { useAppDispatch } from "@/hooks";
-import { userManager } from "@/services";
-import { FunctionComponent, ReactNode, useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { FunctionComponent, ReactNode, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+
+import { clearAuthenticationState, setOIDCUser } from '@/features';
+import { useAppDispatch } from '@/hooks';
+import { userManager } from '@/services';
 
 export type ApplicationLoaderProps = {
   children: ReactNode;
@@ -39,7 +40,7 @@ export const ApplicationLoader: FunctionComponent<ApplicationLoaderProps> = ({
         setLoading(false);
       })
       .catch(toast.error);
-  }, []);
+  }, [dispatch]);
 
-  return loading ? "loading" : children;
+  return loading ? 'loading' : children;
 };

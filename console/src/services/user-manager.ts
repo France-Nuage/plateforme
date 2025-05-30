@@ -1,4 +1,5 @@
-import { UserManager } from "oidc-client-ts";
+import { UserManager } from 'oidc-client-ts';
+
 import config from '@/config';
 
 export const userManager = new UserManager({
@@ -8,6 +9,6 @@ export const userManager = new UserManager({
   client_id: config.oidc.clientId,
   redirect_uri: `${window.location.origin}/auth/redirect/${config.oidc.name}`,
   silent_redirect_uri: `${window.location.origin}/auth/silent-redirect/${config.oidc.name}`,
-  response_type: "code",
-  scope: "openid profile email",
+  response_type: 'code',
+  scope: 'openid profile email',
 });

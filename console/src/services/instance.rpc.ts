@@ -1,14 +1,16 @@
-import { InstancesClient } from "@/generated/rpc/instances.client";
+import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
+import { RpcError } from '@protobuf-ts/runtime-rpc';
+import { toast } from 'react-toastify';
+
 import {
   Instance as RpcInstance,
   InstanceStatus as RpcInstanceStatus,
-} from "@/generated/rpc/instances";
-import { Instance, InstanceFormValue, InstanceStatus } from "@/types";
-import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
-import { InstanceService } from "./instance.interface";
-import { transport } from "./transport.rpc";
-import { toast } from "react-toastify";
-import { RpcError } from "@protobuf-ts/runtime-rpc";
+} from '@/generated/rpc/instances';
+import { InstancesClient } from '@/generated/rpc/instances.client';
+import { Instance, InstanceFormValue, InstanceStatus } from '@/types';
+
+import { InstanceService } from './instance.interface';
+import { transport } from './transport.rpc';
 
 export class InstanceRpcService implements InstanceService {
   /**
@@ -39,10 +41,10 @@ export class InstanceRpcService implements InstanceService {
     return this.client
       .createInstance({
         cpuCores: data.maxCpuCores,
-        image: "",
+        image: '',
         memoryBytes: BigInt(data.maxMemoryBytes),
         name: data.name,
-        snippet: "",
+        snippet: '',
       })
       .response.then(({ instance }) => fromRpcInstance(instance!));
   }

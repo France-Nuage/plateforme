@@ -1,5 +1,6 @@
-import { ServiceMode } from "@/types";
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
+
+import { ServiceMode } from '@/types';
 
 export type ApplicationState = {
   mode: ServiceMode;
@@ -10,7 +11,7 @@ const initialState = {
 };
 
 export const applicationSlice = createSlice({
-  name: "application",
+  name: 'application',
   initialState,
   reducers: {
     setMode: (state) => {

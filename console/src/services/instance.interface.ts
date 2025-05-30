@@ -1,4 +1,4 @@
-import { Instance, InstanceFormValue } from "@/types";
+import { Instance, InstanceFormValue } from '@/types';
 
 export interface InstanceService {
   /** Lists the available instances. */

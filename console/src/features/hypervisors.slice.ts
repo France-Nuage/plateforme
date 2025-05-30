@@ -1,13 +1,14 @@
-import { services } from "@/services";
-import { RootState } from "@/store";
-import { Hypervisor, HypervisorFormValue } from "@/types";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+
+import { services } from '@/services';
+import { RootState } from '@/store';
+import { Hypervisor, HypervisorFormValue } from '@/types';
 
 export const fetchAllHypervisors = createAsyncThunk<
   Hypervisor[],
   void,
   { state: RootState }
->("hypervisors/fetchAll", async (_, { getState }) =>
+>('hypervisors/fetchAll', async (_, { getState }) =>
   services[getState().application.mode].hypervisor.list(),
 );
 
@@ -15,7 +16,7 @@ export const registerHypervisor = createAsyncThunk<
   Hypervisor,
   HypervisorFormValue,
   { state: RootState }
->("hypervisors/register", (data, { getState }) =>
+>('hypervisors/register', (data, { getState }) =>
   services[getState().application.mode].hypervisor.register(data),
 );
 
@@ -28,7 +29,7 @@ const initialState: HypervisorsState = {
 };
 
 export const hypervisorsSlice = createSlice({
-  name: "hypervisors",
+  name: 'hypervisors',
   initialState,
   reducers: {},
   extraReducers: (builder) => {

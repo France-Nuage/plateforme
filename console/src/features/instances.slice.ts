@@ -1,13 +1,14 @@
-import { services } from "@/services";
-import { RootState } from "@/store";
-import { Instance, InstanceFormValue } from "@/types";
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+
+import { services } from '@/services';
+import { RootState } from '@/store';
+import { Instance, InstanceFormValue } from '@/types';
 
 export const fetchAllInstances = createAsyncThunk<
   Instance[],
   void,
   { state: RootState }
->("instances/fetchAll", async (_, { getState }) => {
+>('instances/fetchAll', async (_, { getState }) => {
   const mode = getState().application.mode;
   return await services[mode].instance.list();
 });
@@ -16,7 +17,7 @@ export const createInstance = createAsyncThunk<
   Instance,
   InstanceFormValue,
   { state: RootState }
->("instances/create", (data, { getState }) =>
+>('instances/create', (data, { getState }) =>
   services[getState().application.mode].instance.create(data),
 );
 
@@ -29,7 +30,7 @@ const initialState: InstancesState = {
 };
 
 export const instancesSlice = createSlice({
-  name: "instances",
+  name: 'instances',
   initialState,
   reducers: {
     addInstance: (state, action: PayloadAction<Instance>) => {

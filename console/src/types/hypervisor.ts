@@ -15,6 +15,6 @@ export type Hypervisor = {
 /**
  * The hypervisor form creation/update value.
  */
-export type HypervisorFormValue = Pick<Hypervisor, "storageName" | "url"> & {
+export type HypervisorFormValue = Pick<Hypervisor, 'storageName' | 'url'> & {
   authorizationToken: string;
 };

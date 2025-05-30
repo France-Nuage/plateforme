@@ -1,6 +1,7 @@
-import { Instance } from "@/types";
-import { InstanceStatus } from "@/types";
-import { faker } from "@faker-js/faker";
+import { faker } from '@faker-js/faker';
+
+import { Instance } from '@/types';
+import { InstanceStatus } from '@/types';
 
 export const instance = (): Instance => ({
   id: faker.string.uuid(),

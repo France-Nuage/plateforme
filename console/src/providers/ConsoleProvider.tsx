@@ -1,3 +1,6 @@
+import { DataProvider } from '@plasmicapp/react-web/lib/host';
+import { ReactNode, forwardRef, useEffect, useImperativeHandle } from 'react';
+
 import {
   clearAuthenticationState,
   createInstance,
@@ -5,11 +8,9 @@ import {
   fetchAllInstances,
   registerHypervisor,
   setMode,
-} from "@/features";
-import { useAppDispatch, useAppSelector } from "@/hooks";
-import { userManager } from "@/services";
-import { DataProvider } from "@plasmicapp/react-web/lib/host";
-import { forwardRef, ReactNode, useEffect, useImperativeHandle } from "react";
+} from '@/features';
+import { useAppDispatch, useAppSelector } from '@/hooks';
+import { userManager } from '@/services';
 
 export type Props = {
   children: ReactNode;
@@ -102,4 +103,4 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
   },
 );
 
-ConsoleProvider.displayName = "France Nuage Console Provider";
+ConsoleProvider.displayName = 'France Nuage Console Provider';
