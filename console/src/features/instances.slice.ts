@@ -30,13 +30,6 @@ const initialState: InstancesState = {
 };
 
 export const instancesSlice = createSlice({
-  name: 'instances',
-  initialState,
-  reducers: {
-    addInstance: (state, action: PayloadAction<Instance>) => {
-      state.instances.push(action.payload);
-    },
-  },
   extraReducers: (builder) => {
     builder.addCase(fetchAllInstances.fulfilled, (state, action) => {
       state.instances = action.payload;
@@ -44,6 +37,13 @@ export const instancesSlice = createSlice({
     builder.addCase(createInstance.fulfilled, (state, action) => {
       state.instances.push(action.payload);
     });
+  },
+  initialState,
+  name: 'instances',
+  reducers: {
+    addInstance: (state, action: PayloadAction<Instance>) => {
+      state.instances.push(action.payload);
+    },
   },
 });
 

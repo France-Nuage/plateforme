@@ -11,8 +11,8 @@ const initialState = {
 };
 
 export const applicationSlice = createSlice({
-  name: 'application',
   initialState,
+  name: 'application',
   reducers: {
     setMode: (state) => {
       state.mode =

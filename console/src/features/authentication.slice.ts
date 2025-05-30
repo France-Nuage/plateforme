@@ -20,8 +20,8 @@ const initialState: AuthenticationState = {};
  * The authentication slice.
  */
 export const authenticationSlice = createSlice({
-  name: 'authentication',
   initialState,
+  name: 'authentication',
   reducers: {
     /**
      * Clears the authentication state, reverting back to an unauthenticated state.

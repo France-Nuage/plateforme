@@ -2,11 +2,11 @@
  * Represents an instance.
  */
 export type Instance = {
-  // The instance id.
-  id: string;
-
   // Current CPU utilization as a percentage (0.0-100.0)
   cpuUsagePercent: number;
+
+  // The instance id.
+  id: string;
 
   // Maximum CPU cores available to the instance (max 99).
   maxCpuCores: number;

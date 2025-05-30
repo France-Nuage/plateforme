@@ -29,9 +29,6 @@ const initialState: HypervisorsState = {
 };
 
 export const hypervisorsSlice = createSlice({
-  name: 'hypervisors',
-  initialState,
-  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchAllHypervisors.fulfilled, (state, action) => {
@@ -41,6 +38,9 @@ export const hypervisorsSlice = createSlice({
         state.hypervisors.push(action.payload);
       });
   },
+  initialState,
+  name: 'hypervisors',
+  reducers: {},
 });
 
 export default hypervisorsSlice;

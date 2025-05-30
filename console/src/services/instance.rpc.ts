@@ -26,17 +26,6 @@ export class InstanceRpcService implements InstanceService {
   }
 
   /** @inheritdoc */
-  public list(): Promise<Instance[]> {
-    return this.client
-      .listInstances({})
-      .response.then(({ instances }) => instances.map(fromRpcInstance))
-      .catch((error: RpcError) => {
-        toast.error(error.toString());
-        return [];
-      });
-  }
-
-  /** @inheritdoc */
   public create(data: InstanceFormValue): Promise<Instance> {
     return this.client
       .createInstance({
@@ -48,6 +37,17 @@ export class InstanceRpcService implements InstanceService {
       })
       .response.then(({ instance }) => fromRpcInstance(instance!));
   }
+
+  /** @inheritdoc */
+  public list(): Promise<Instance[]> {
+    return this.client
+      .listInstances({})
+      .response.then(({ instances }) => instances.map(fromRpcInstance))
+      .catch((error: RpcError) => {
+        toast.error(error.toString());
+        return [];
+      });
+  }
 }
 
 export const instanceRpcService = new InstanceRpcService(transport);
@@ -55,8 +55,8 @@ export const instanceRpcService = new InstanceRpcService(transport);
 // Converts a protocol Instance into a concrete Instance.
 function fromRpcInstance(instance: RpcInstance): Instance {
   return {
-    id: instance.id,
     cpuUsagePercent: instance.cpuUsagePercent,
+    id: instance.id,
     maxCpuCores: instance.maxCpuCores,
     maxMemoryBytes: Number(instance.maxMemoryBytes),
     memoryUsageBytes: Number(instance.memoryUsageBytes),

@@ -23,6 +23,39 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+
+      // Alphabetical sorting rules
+      'sort-keys': ['error', 'asc', {
+        caseSensitive: false,
+        natural: true,
+        minKeys: 2
+      }],
+      'sort-vars': ['error', {
+        ignoreCase: true
+      }],
+      '@typescript-eslint/member-ordering': [
+        'error',
+        {
+          default: {
+            memberTypes: [
+              'public-static-field',
+              'protected-static-field',
+              'private-static-field',
+              'public-instance-field',
+              'protected-instance-field',
+              'private-instance-field',
+              'constructor',
+              'public-static-method',
+              'protected-static-method',
+              'private-static-method',
+              'public-instance-method',
+              'protected-instance-method',
+              'private-instance-method'
+            ],
+            order: 'alphabetically'
+          }
+        }
+      ],
     },
   },
 );

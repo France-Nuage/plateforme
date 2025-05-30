@@ -5,13 +5,13 @@ import { InstanceService } from './instance.interface';
 
 export class InstanceMockService implements InstanceService {
   /** @inheritdoc */
-  list() {
-    return Promise.resolve(instances(5));
+  create(data: InstanceFormValue) {
+    return Promise.resolve({ ...instance(), ...data });
   }
 
   /** @inheritdoc */
-  create(data: InstanceFormValue) {
-    return Promise.resolve({ ...instance(), ...data });
+  list() {
+    return Promise.resolve(instances(5));
   }
 }
 

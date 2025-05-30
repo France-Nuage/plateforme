@@ -7,40 +7,40 @@ import { ConsoleProvider } from '@/providers/ConsoleProvider';
 export const PlasmicHost: FunctionComponent = () => <PlasmicCanvasHost />;
 
 registerComponent(ConsoleProvider, {
+  importPath: './src/providers/ConsoleProvider',
   name: 'ConsoleProvider',
   props: {
     children: 'slot',
   },
   providesData: true,
   refActions: {
+    changeMode: {
+      argTypes: [],
+      description: 'Change the application mode',
+    },
     createInstance: {
-      description: 'Create a new instance',
       argTypes: [
         { name: 'maxCpuCores', type: 'number' },
         { name: 'maxMemory', type: 'number' },
         { name: 'name', type: 'string' },
       ],
-    },
-    changeMode: {
-      description: 'Change the application mode',
-      argTypes: [],
+      description: 'Create a new instance',
     },
     registerHypervisor: {
-      description: 'Register a new hypervisor',
       argTypes: [
         { name: 'authorizationToken', type: 'string' },
         { name: 'storageName', type: 'string' },
         { name: 'url', type: 'string' },
       ],
+      description: 'Register a new hypervisor',
     },
     signin: {
-      description: 'Redirects the user to the authentication server.',
       argTypes: [],
+      description: 'Redirects the user to the authentication server.',
     },
     signout: {
-      description: 'Signs the user out.',
       argTypes: [],
+      description: 'Signs the user out.',
     },
   },
-  importPath: './src/providers/ConsoleProvider',
 });
