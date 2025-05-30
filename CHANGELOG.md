@@ -1,3 +1,12 @@
+# [1.7.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.6.0...v1.7.0) (2025-05-30)
+
+
+### Features
+
+* add plasmic codegen ([9b4118f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9b4118f14bf30d7a8fcfcbd0ff7203130fe8681c))
+* add previous console features ([98abdb5](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/98abdb5c8db88947dede42815446c5b554565ae8))
+* setup routing ([61ed954](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/61ed9545318b7c25b1665e92cf2515c12f927f8a))
+
 # [1.6.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.5.0...v1.6.0) (2025-05-29)
 
 
