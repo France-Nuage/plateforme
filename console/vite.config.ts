@@ -23,5 +23,10 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
+  },
+  server: {
+    allowedHosts: ['console'],
+    host: '0.0.0.0',
+    port: process.env.PORT ? Number(process.env.PORT) : 5173
   }
 });
