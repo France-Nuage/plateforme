@@ -3,7 +3,3 @@ dist/
 
 # Dependencies
 node_modules
-
-# Plasmic generated code
-public/plasmic
-src/generated
