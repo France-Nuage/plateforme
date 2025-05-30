@@ -11,7 +11,7 @@ services:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master
-      context: console
+      context: next-console
       target: ${TARGET:-development}
     depends_on:
       controlplane:
