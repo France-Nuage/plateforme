@@ -3,11 +3,10 @@ services:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       args:
-        NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-        NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
-        NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
-        NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console}
-        NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
+        VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+        VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
+        VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
+        VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master
@@ -19,11 +18,10 @@ services:
       oidc:
         condition: service_healthy
     environment:
-      NEXT_PUBLIC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-      NEXT_PUBLIC_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
-      NEXT_PUBLIC_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
-      NEXT_PUBLIC_CONSOLE_URL: ${CONSOLE_URL:-https://console}
-      NEXT_PUBLIC_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
+      VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
+      VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
+      VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
+      VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
       PORT: 80
     expose:
       - "80"
