@@ -25,14 +25,21 @@ export default tseslint.config(
       ],
 
       // Alphabetical sorting rules
-      'sort-keys': ['error', 'asc', {
-        caseSensitive: false,
-        natural: true,
-        minKeys: 2
-      }],
-      'sort-vars': ['error', {
-        ignoreCase: true
-      }],
+      'sort-keys': [
+        'error',
+        'asc',
+        {
+          caseSensitive: false,
+          natural: true,
+          minKeys: 2,
+        },
+      ],
+      'sort-vars': [
+        'error',
+        {
+          ignoreCase: true,
+        },
+      ],
       '@typescript-eslint/member-ordering': [
         'error',
         {
@@ -50,11 +57,11 @@ export default tseslint.config(
               'private-static-method',
               'public-instance-method',
               'protected-instance-method',
-              'private-instance-method'
+              'private-instance-method',
             ],
-            order: 'alphabetically'
-          }
-        }
+            order: 'alphabetically',
+          },
+        },
       ],
     },
   },
