@@ -2,6 +2,7 @@ use hyper::http;
 use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
 use instances::InstancesRpcService;
 use instances::v1::instances_server::InstancesServer;
+use resources::{rpc::ResourcesRpcService, v1::resources_server::ResourcesServer};
 use sqlx::PgPool;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
@@ -60,6 +61,7 @@ impl Server {
         let hypervisors_service =
             HypervisorsServer::new(HypervisorsRpcService::new(config.pool.clone()));
         let instances_service = InstancesServer::new(InstancesRpcService::new(config.pool.clone()));
+        let resources_service = ResourcesServer::new(ResourcesRpcService::new(config.pool.clone()));
 
         let cors = CorsLayer::new()
             .allow_origin(
@@ -82,7 +84,8 @@ impl Server {
             .layer(cors)
             .add_service(health_service)
             .add_service(tonic_web::enable(hypervisors_service))
-            .add_service(tonic_web::enable(instances_service));
+            .add_service(tonic_web::enable(instances_service))
+            .add_service(tonic_web::enable(resources_service));
 
         // Return a Server instance
         Ok(Server { addr, router })
