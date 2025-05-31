@@ -89,12 +89,10 @@ impl Resources for ResourcesRpcService {
     /// Lists all projects, optionally filtered by organization.
     ///
     /// This method retrieves project records from the database
-    /// and returns them as a collection. If an organization ID is provided,
-    /// only projects belonging to that organization are returned.
-    ///
+    /// and returns them as a collection.
     /// # Arguments
     ///
-    /// * `request` - Contains optional organization ID filter
+    /// * `_` - Empty request
     ///
     /// # Returns
     ///
