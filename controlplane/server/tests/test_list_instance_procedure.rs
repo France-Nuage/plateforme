@@ -1,6 +1,7 @@
 use hypervisor_connector_proxmox::mock::{MockServer, WithClusterResourceList};
 use hypervisors::Hypervisor;
 use instances::v1::{ListInstancesRequest, instances_client::InstancesClient};
+use resources::{organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -16,7 +17,20 @@ async fn test_the_list_instances_procedure_works(
     hypervisors::repository::create(&pool, &hypervisor)
         .await
         .unwrap();
-
+    let organization =
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+    resources::projects::repository::create(
+        &pool,
+        &Project {
+            organization_id: organization.id,
+            name: String::from("unattributed"),
+            ..Default::default()
+        },
+    )
+    .await
+    .expect("could not create project");
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;
     let addr = server.addr;

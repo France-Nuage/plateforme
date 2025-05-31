@@ -2,7 +2,6 @@
 
 use std::fmt::Display;
 
-use hypervisor_connector::InstanceInfo;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono;
 use uuid::Uuid;
@@ -11,8 +10,10 @@ use uuid::Uuid;
 pub struct Instance {
     /// Unique identifier for the instance
     pub id: Uuid,
-    /// Reference to the hypervisor hosting this instance
+    /// The hypervisor this instance is attached to
     pub hypervisor_id: Uuid,
+    /// The project this instance belongs to
+    pub project_id: Uuid,
     /// ID used by the hypervisor to identify this instance remotely
     pub distant_id: String,
     /// Current CPU utilization as a percentage (0.0-100.0)
@@ -76,20 +77,20 @@ impl Display for InstanceStatus {
     }
 }
 
-impl From<InstanceInfo> for Instance {
-    fn from(value: InstanceInfo) -> Self {
-        Instance {
-            id: Uuid::new_v4(),
-            hypervisor_id: Uuid::default(),
-            distant_id: value.id,
-            cpu_usage_percent: value.cpu_usage_percent as f64,
-            max_cpu_cores: value.max_cpu_cores as i32,
-            max_memory_bytes: value.max_memory_bytes as i64,
-            memory_usage_bytes: value.memory_usage_bytes as i64,
-            name: value.name,
-            status: value.status.into(),
-            created_at: chrono::Utc::now(),
-            updated_at: chrono::Utc::now(),
-        }
-    }
-}
+// impl From<InstanceInfo> for Instance {
+//     fn from(value: InstanceInfo) -> Self {
+//         Instance {
+//             id: Uuid::new_v4(),
+//             hypervisor_id: Uuid::default(),
+//             distant_id: value.id,
+//             cpu_usage_percent: value.cpu_usage_percent as f64,
+//             max_cpu_cores: value.max_cpu_cores as i32,
+//             max_memory_bytes: value.max_memory_bytes as i64,
+//             memory_usage_bytes: value.memory_usage_bytes as i64,
+//             name: value.name,
+//             status: value.status.into(),
+//             created_at: chrono::Utc::now(),
+//             updated_at: chrono::Utc::now(),
+//         }
+//     }
+// }

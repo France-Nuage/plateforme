@@ -19,6 +19,14 @@ pub enum Problem {
     Other(Box<dyn std::error::Error + Send + Sync>),
 }
 
+/// Converts a `sqlx::Error` into a `resources::projects::Problem`.
+impl From<sqlx::Error> for Problem {
+    fn from(error: sqlx::Error) -> Self {
+        Problem::Other(Box::new(error))
+    }
+}
+
+/// Converts a `resources::projects::Problem` into a `tonic::Status`.
 impl From<Problem> for Status {
     fn from(problem: Problem) -> Self {
         match problem {

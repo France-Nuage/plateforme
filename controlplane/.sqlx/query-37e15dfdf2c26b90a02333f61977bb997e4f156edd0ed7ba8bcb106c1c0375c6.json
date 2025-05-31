@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, hypervisor_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes , memory_usage_bytes, name, status, created_at, updated_at FROM instances",
+  "query": "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -15,54 +15,62 @@
       },
       {
         "ordinal": 2,
+        "name": "project_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
         "name": "distant_id",
         "type_info": "Text"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "cpu_usage_percent",
         "type_info": "Float8"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "max_cpu_cores",
         "type_info": "Int4"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "max_memory_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "memory_usage_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "name",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "status",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid"
+      ]
     },
     "nullable": [
+      false,
       false,
       false,
       false,
@@ -76,5 +84,5 @@
       false
     ]
   },
-  "hash": "cba52c3806c5e51f3f7a949e19f47d94846e8831b2e1b62c28e0f8dbabc10947"
+  "hash": "37e15dfdf2c26b90a02333f61977bb997e4f156edd0ed7ba8bcb106c1c0375c6"
 }

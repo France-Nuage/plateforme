@@ -12,3 +12,7 @@ CREATE TABLE projects (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE instances
+ADD COLUMN project_id UUID NOT NULL REFERENCES projects (id) ON DELETE CASCADE;
+

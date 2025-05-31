@@ -12,6 +12,7 @@ hypervisor_connector_resolver = { path = "../hypervisor_connector_resolver" }
 prost = "0.13"
 prost-types = "0.13"
 reqwest = { version = "0.12", features = ["json"] }
+resources = { path = "../resources" }
 serde = { version = "1.0", features = ["derive"] }
 serde_plain = "1.0"
 sqlx = { version = "0.8", features = [

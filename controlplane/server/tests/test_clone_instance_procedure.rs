@@ -6,6 +6,10 @@ use instances::{
     Instance,
     v1::{CloneInstanceRequest, instances_client::InstancesClient},
 };
+use resources::{
+    organizations::Organization,
+    projects::Project,
+};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -24,11 +28,25 @@ async fn test_the_clone_instance_procedure_works(
         url: mock.url(),
         ..Default::default()
     };
+    let organization =
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+    let project = resources::projects::repository::create(
+        &pool,
+        &Project {
+            organization_id: organization.id,
+            ..Default::default()
+        },
+    )
+    .await
+    .expect("could not create project");
     hypervisors::repository::create(&pool, &hypervisor)
         .await
         .unwrap();
     let instance = Instance {
         hypervisor_id: hypervisor.id,
+        project_id: project.id,
         distant_id: String::from("100"),
         ..Default::default()
     };

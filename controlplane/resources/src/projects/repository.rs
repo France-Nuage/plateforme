@@ -25,35 +25,6 @@ pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Project>, Problem> {
     .map_err(|err| Problem::DatabaseError(err.to_string()))
 }
 
-/// Lists projects filtered by organization ID.
-///
-/// # Arguments
-///
-/// * `pool` - PostgreSQL connection pool
-/// * `organization_id` - UUID of the organization to filter by
-///
-/// # Returns
-///
-/// A vector of filtered project records or a problem if the operation fails
-pub async fn list_by_organization(
-    pool: &sqlx::PgPool,
-    organization_id: Uuid,
-) -> Result<Vec<Project>, Problem> {
-    sqlx::query_as!(
-        Project,
-        r#"
-        SELECT id, name, organization_id, created_at, updated_at
-        FROM projects
-        WHERE organization_id = $1
-        ORDER BY created_at DESC
-        "#,
-        organization_id
-    )
-    .fetch_all(pool)
-    .await
-    .map_err(|err| Problem::DatabaseError(err.to_string()))
-}
-
 /// Creates a new project record in the database.
 ///
 /// # Arguments
@@ -110,4 +81,34 @@ pub async fn get(pool: &PgPool, id: Uuid) -> Result<Project, Problem> {
         sqlx::Error::RowNotFound => Problem::ProjectNotFound(id.to_string()),
         _ => Problem::DatabaseError(err.to_string()),
     })
+}
+
+/// Retrieves a single project.
+///
+/// # Arguments
+///
+/// * `name` - The project name
+///
+/// # Returns
+///
+/// * `Ok(Project)` - The requested project
+/// * `Err(Problem)` - If the retrieval fails`
+pub async fn find_one_by<'a>(pool: &PgPool, query: Query<'a>) -> Result<Project, Problem> {
+    sqlx::query_as!(
+        Project,
+        r#"
+        SELECT id, name, organization_id, created_at, updated_at 
+        FROM projects 
+        WHERE $1::text IS NULL OR name = $1
+        "#,
+        query.name
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(Into::into)
+}
+
+#[derive(Debug, Default)]
+pub struct Query<'a> {
+    pub name: Option<&'a str>,
 }

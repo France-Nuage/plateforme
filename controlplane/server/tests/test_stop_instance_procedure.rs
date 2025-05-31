@@ -6,6 +6,7 @@ use instances::{
     Instance,
     v1::{StopInstanceRequest, instances_client::InstancesClient},
 };
+use resources::{organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -25,9 +26,24 @@ async fn test_the_stop_instance_procedure_works(
     hypervisors::repository::create(&pool, &hypervisor)
         .await
         .unwrap();
+    let organization =
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+    let project = resources::projects::repository::create(
+        &pool,
+        &Project {
+            organization_id: organization.id,
+            name: String::from("unattributed"),
+            ..Default::default()
+        },
+    )
+    .await
+    .expect("could not create project");
     let instance = Instance {
         hypervisor_id: hypervisor.id,
         distant_id: String::from("100"),
+        project_id: project.id,
         ..Default::default()
     };
     instances::repository::create(&pool, &instance)

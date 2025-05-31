@@ -1147,6 +1147,7 @@ dependencies = [
  "prost",
  "prost-types",
  "reqwest",
+ "resources",
  "serde",
  "serde_plain",
  "sqlx",

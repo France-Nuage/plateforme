@@ -117,6 +117,7 @@ mod tests {
         WithVMCloneMock, WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
     };
     use hypervisors::Hypervisor;
+    use resources::{organizations::Organization, projects::Project};
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_instances_works(pool: sqlx::PgPool) {
@@ -126,6 +127,18 @@ mod tests {
             url: server.url(),
             ..Default::default()
         };
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+        resources::projects::repository::create(
+            &pool,
+            &Project {
+                name: String::from("unattributed"),
+                ..Default::default()
+            },
+        )
+        .await
+        .expect("could not create project");
         hypervisors::repository::create(&pool, &hypervisor)
             .await
             .expect("could not create hypervisor");
@@ -152,6 +165,12 @@ mod tests {
             .with_cluster_resource_list()
             .with_vm_clone()
             .with_task_status_read();
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+        resources::projects::repository::create(&pool, &Project::default())
+            .await
+            .expect("could not create project");
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
@@ -188,6 +207,12 @@ mod tests {
             .with_cluster_resource_list()
             .with_vm_delete()
             .with_task_status_read();
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+        resources::projects::repository::create(&pool, &Project::default())
+            .await
+            .expect("could not create project");
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
@@ -224,6 +249,12 @@ mod tests {
             .with_cluster_resource_list()
             .with_task_status_read()
             .with_vm_status_start();
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+        resources::projects::repository::create(&pool, &Project::default())
+            .await
+            .expect("could not create project");
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
@@ -260,6 +291,12 @@ mod tests {
             .with_cluster_resource_list()
             .with_task_status_read()
             .with_vm_status_stop();
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+        resources::projects::repository::create(&pool, &Project::default())
+            .await
+            .expect("could not create project");
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
