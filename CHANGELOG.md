@@ -1,3 +1,17 @@
+# [1.8.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.7.0...v1.8.0) (2025-06-01)
+
+
+### Bug Fixes
+
+* remove unexisting property on instance ([2040d6b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2040d6bb8723bae08da3d8ac855dad45f0e4f7cd))
+
+
+### Features
+
+* add 0n relation to project for instances ([41f3362](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/41f3362787af825ccaf7538bfbdcbe9485d771e0))
+* add organizations and projects resources ([cc3aebf](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/cc3aebfa3b462a3847581ed0ea5e907cdeb274a9))
+* expose resources to the console state ([0a7a762](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/0a7a762235b58b629a5f5f399d93638fef3bf824))
+
 # [1.7.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.6.0...v1.7.0) (2025-05-30)
 
 
