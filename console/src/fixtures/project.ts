@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
-import { Project } from "@/types";
+
+import { Project } from '@/types';
 
 export const project = (): Project => ({
   id: faker.string.uuid(),
@@ -7,4 +8,5 @@ export const project = (): Project => ({
   organizationId: faker.string.uuid(),
 });
 
-export const projects = (count: number): Project[] => [...Array(count)].map(project);
+export const projects = (count: number): Project[] =>
+  [...Array(count)].map(project);

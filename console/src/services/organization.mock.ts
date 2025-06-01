@@ -1,6 +1,7 @@
-import { organization, organizations } from "@/fixtures/organization";
-import { OrganizationService } from "./organization.interface";
-import { OrganizationFormValue, Organization } from "@/types";
+import { organization, organizations } from '@/fixtures/organization';
+import { OrganizationFormValue } from '@/types';
+
+import { OrganizationService } from './organization.interface';
 
 /**
  * The mock implementation of the organization service.

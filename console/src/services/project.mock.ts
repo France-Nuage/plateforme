@@ -1,6 +1,7 @@
-import { ProjectFormValue } from "@/types";
-import { ProjectService } from "./project.interface";
-import { project, projects } from "@/fixtures/project";
+import { project, projects } from '@/fixtures/project';
+import { ProjectFormValue } from '@/types';
+
+import { ProjectService } from './project.interface';
 
 /**
  * The mock implementation of the project service.
@@ -21,4 +22,3 @@ export class ProjectMockService implements ProjectService {
  * The instance of the project mock service.
  */
 export const projectMockService = new ProjectMockService();
-

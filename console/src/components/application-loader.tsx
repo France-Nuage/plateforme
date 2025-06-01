@@ -1,7 +1,14 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { clearAuthenticationState, fetchAllHypervisors, fetchAllInstances, fetchAllOrganizations, fetchAllProjects, setOIDCUser } from '@/features';
+import {
+  clearAuthenticationState,
+  fetchAllHypervisors,
+  fetchAllInstances,
+  fetchAllOrganizations,
+  fetchAllProjects,
+  setOIDCUser,
+} from '@/features';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { userManager } from '@/services';
 

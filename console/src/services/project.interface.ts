@@ -1,4 +1,4 @@
-import { Project, ProjectFormValue } from "@/types";
+import { Project, ProjectFormValue } from '@/types';
 
 /**
  * Define project actions.

@@ -1,4 +1,4 @@
-import { Organization, OrganizationFormValue } from "@/types";
+import { Organization, OrganizationFormValue } from '@/types';
 
 /**
  * Define organization actions.

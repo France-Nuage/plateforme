@@ -1,9 +1,11 @@
-import { ResourcesClient } from "@/generated/rpc/resources.client";
-import { OrganizationService } from "./organization.interface";
-import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
-import { Organization, OrganizationFormValue } from "@/types";
-import { Organization as RpcOrganization } from "@/generated/rpc/resources";
-import { transport } from "./transport.rpc";
+import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
+
+import { Organization as RpcOrganization } from '@/generated/rpc/resources';
+import { ResourcesClient } from '@/generated/rpc/resources.client';
+import { Organization, OrganizationFormValue } from '@/types';
+
+import { OrganizationService } from './organization.interface';
+import { transport } from './transport.rpc';
 
 export class OrganizationRpcService implements OrganizationService {
   /**
@@ -20,14 +22,19 @@ export class OrganizationRpcService implements OrganizationService {
 
   /** @inheritdoc */
   public create(data: OrganizationFormValue): Promise<Organization> {
-    return this.client.createOrganization({
-      name: data.name,
-    }).response.then(({ organization }) => fromRpcOrganization(organization!))
-
+    return this.client
+      .createOrganization({
+        name: data.name,
+      })
+      .response.then(({ organization }) => fromRpcOrganization(organization!));
   }
   /** @inheritdoc */
   public list(): Promise<Organization[]> {
-    return this.client.listOrganizations({}).response.then(({ organizations }) => organizations.map(fromRpcOrganization))
+    return this.client
+      .listOrganizations({})
+      .response.then(({ organizations }) =>
+        organizations.map(fromRpcOrganization),
+      );
   }
 }
 
@@ -40,5 +47,5 @@ function fromRpcOrganization(organization: RpcOrganization): Organization {
   return {
     id: organization.id,
     name: organization.name,
-  }
+  };
 }

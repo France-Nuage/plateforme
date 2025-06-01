@@ -1,9 +1,11 @@
-import { Project, ProjectFormValue } from "@/types";
-import { ProjectService } from "./project.interface";
-import { ResourcesClient } from "@/generated/rpc/resources.client";
-import { Project as RpcProject } from "@/generated/rpc/resources";
-import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
-import { transport } from "./transport.rpc";
+import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
+
+import { Project as RpcProject } from '@/generated/rpc/resources';
+import { ResourcesClient } from '@/generated/rpc/resources.client';
+import { Project, ProjectFormValue } from '@/types';
+
+import { ProjectService } from './project.interface';
+import { transport } from './transport.rpc';
 
 export class ProjectRpcService implements ProjectService {
   /**
@@ -20,15 +22,19 @@ export class ProjectRpcService implements ProjectService {
 
   /** @inheritdoc */
   public create(data: ProjectFormValue): Promise<Project> {
-    return this.client.createProject({
-      name: data.name,
-      organizationId: data.organizationId,
-    }).response.then(({ project }) => fromRpcProject(project!));
+    return this.client
+      .createProject({
+        name: data.name,
+        organizationId: data.organizationId,
+      })
+      .response.then(({ project }) => fromRpcProject(project!));
   }
 
   /** @inheritdoc */
   public list(): Promise<Project[]> {
-    return this.client.listProjects({}).response.then(({ projects }) => projects.map(fromRpcProject));
+    return this.client
+      .listProjects({})
+      .response.then(({ projects }) => projects.map(fromRpcProject));
   }
 }
 

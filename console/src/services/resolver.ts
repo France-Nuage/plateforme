@@ -7,8 +7,8 @@ import { InstanceService } from './instance.interface';
 import { instanceMockService } from './instance.mock';
 import { instanceRpcService } from './instance.rpc';
 import { OrganizationService } from './organization.interface';
-import { ProjectService } from './project.interface';
 import { organizationMockService } from './organization.mock';
+import { ProjectService } from './project.interface';
 import { projectMockService } from './project.mock';
 
 type Services = {

@@ -1,7 +1,8 @@
-import { services } from "@/services";
-import { RootState } from "@/store";
-import { Organization, Project } from "@/types";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+
+import { services } from '@/services';
+import { RootState } from '@/store';
+import { Organization, Project } from '@/types';
 
 /**
  * Fetch all organizations
@@ -31,7 +32,7 @@ export const fetchAllProjects = createAsyncThunk<
 export type ResourcesState = {
   organizations: Organization[];
   projects: Project[];
-}
+};
 
 /**
  * The resources slice initial state.
@@ -49,14 +50,14 @@ export const resourcesSlice = createSlice({
     builder
       .addCase(fetchAllOrganizations.fulfilled, (state, action) => {
         state.organizations = action.payload;
-      }).addCase(fetchAllProjects.fulfilled, (state, action) => {
+      })
+      .addCase(fetchAllProjects.fulfilled, (state, action) => {
         state.projects = action.payload;
       });
   },
   initialState,
   name: 'resources',
   reducers: {},
-})
+});
 
 export default resourcesSlice;
-

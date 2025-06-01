@@ -13,12 +13,9 @@ export type Project = {
    * The project organization id.
    */
   organizationId: string;
-}
+};
 
 /**
  * The project form creation/update value.
  */
-export type ProjectFormValue = Pick<
-  Project,
-  'name' | 'organizationId'
->;
+export type ProjectFormValue = Pick<Project, 'name' | 'organizationId'>;
