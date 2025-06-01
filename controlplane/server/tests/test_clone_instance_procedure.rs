@@ -6,10 +6,7 @@ use instances::{
     Instance,
     v1::{CloneInstanceRequest, instances_client::InstancesClient},
 };
-use resources::{
-    organizations::Organization,
-    projects::Project,
-};
+use resources::{organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
