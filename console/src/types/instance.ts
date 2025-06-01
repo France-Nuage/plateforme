@@ -20,6 +20,9 @@ export type Instance = {
   // The instance name.
   name: string;
 
+  // The instance project id.
+  projectId: string;
+
   // Current operational status of the instance
   status: InstanceStatus;
 };

@@ -4,7 +4,7 @@
   "description": "System tests using Playwright for the console application",
   "main": "index.js",
   "scripts": {
-    "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ --ts_out protocol --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto",
+    "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ -I ../controlplane/resources/ --ts_out protocol --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto ../controlplane/resources/resources.proto",
     "test": "playwright test",
     "test:ci": "playwright test --reporter=dot,html",
     "test:ui": "playwright test --ui-host=0.0.0.0 --ui-port=9000"
