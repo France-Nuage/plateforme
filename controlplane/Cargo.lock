@@ -1147,6 +1147,7 @@ dependencies = [
  "prost",
  "prost-types",
  "reqwest",
+ "resources",
  "serde",
  "serde_plain",
  "sqlx",
@@ -1845,6 +1846,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "resources"
+version = "0.1.0"
+dependencies = [
+ "prost",
+ "prost-types",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "uuid",
+]
+
+[[package]]
 name = "ring"
 version = "0.17.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2081,6 +2096,7 @@ dependencies = [
  "prost",
  "prost-types",
  "reqwest",
+ "resources",
  "sqlx",
  "tokio",
  "tokio-stream",

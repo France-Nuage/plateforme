@@ -7,6 +7,6 @@ members = [
   "hypervisor_connector_resolver",
   "instances",
   "server"
-]
+, "resources"]
 
 resolver = "3"

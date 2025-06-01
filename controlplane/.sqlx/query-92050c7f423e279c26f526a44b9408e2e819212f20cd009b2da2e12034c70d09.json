@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, hypervisor_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE distant_id = $1",
+  "query": "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes , memory_usage_bytes, name, status, created_at, updated_at FROM instances",
   "describe": {
     "columns": [
       {
@@ -15,56 +15,60 @@
       },
       {
         "ordinal": 2,
+        "name": "project_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
         "name": "distant_id",
         "type_info": "Text"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "cpu_usage_percent",
         "type_info": "Float8"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "max_cpu_cores",
         "type_info": "Int4"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "max_memory_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "memory_usage_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "name",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "status",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
-      "Left": [
-        "Text"
-      ]
+      "Left": []
     },
     "nullable": [
+      false,
       false,
       false,
       false,
@@ -78,5 +82,5 @@
       false
     ]
   },
-  "hash": "9965ee6ebd843bf6d078dc4dc5ccd7589c12ca82c1965e24d24dc4d27ebc09cc"
+  "hash": "92050c7f423e279c26f526a44b9408e2e819212f20cd009b2da2e12034c70d09"
 }

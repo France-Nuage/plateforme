@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status)\n        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status\n        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status)\n        ON CONFLICT (id) DO UPDATE\n        SET\n            hypervisor_id = EXCLUDED.hypervisor_id,\n            project_id = EXCLUDED.project_id,\n            distant_id = EXCLUDED.distant_id,\n            cpu_usage_percent = EXCLUDED.cpu_usage_percent,\n            max_cpu_cores = EXCLUDED.max_cpu_cores,\n            max_memory_bytes = EXCLUDED.max_memory_bytes,\n            memory_usage_bytes = EXCLUDED.memory_usage_bytes,\n            name = EXCLUDED.name,\n            status = EXCLUDED.status,\n            updated_at = NOW()\n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "UuidArray",
+        "UuidArray",
+        "UuidArray",
+        "TextArray",
+        "Float8Array",
+        "Int4Array",
+        "Int8Array",
+        "Int8Array",
+        "TextArray",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a2d42da50c15d1fc84f7d49e83f9d432a967ea65efdd2eba33b1c5d11d9c73be"
+}

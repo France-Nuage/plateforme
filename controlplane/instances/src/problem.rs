@@ -38,6 +38,13 @@ impl From<hypervisor_connector::Problem> for Problem {
     }
 }
 
+/// Conerts a `resources::Problem` into a `instance::Problem`.
+impl From<resources::Problem> for Problem {
+    fn from(problem: resources::Problem) -> Self {
+        Problem::Other(Box::new(problem))
+    }
+}
+
 /// Converts a `sqlx::Error` into a `instance::Problem`.
 impl From<sqlx::Error> for Problem {
     fn from(error: sqlx::Error) -> Self {

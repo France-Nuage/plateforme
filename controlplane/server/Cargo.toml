@@ -9,6 +9,7 @@ hypervisors = { path = "../hypervisors" }
 instances = { path = "../instances" }
 prost = "0.13"
 prost-types = "0.13"
+resources = { path = "../resources" }
 reqwest = { version = "0.12", features = ["json"] }
 sqlx = { version = "0.8", features = [
   "migrate",

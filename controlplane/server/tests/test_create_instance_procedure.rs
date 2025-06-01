@@ -6,6 +6,7 @@ use hypervisors::Hypervisor;
 use instances::v1::{
     CreateInstanceRequest, CreateInstanceResponse, instances_client::InstancesClient,
 };
+use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -26,7 +27,20 @@ async fn test_the_create_instance_procedure_works(
     hypervisors::repository::create(&pool, &hypervisor)
         .await
         .unwrap();
-
+    let organization =
+        resources::organizations::repository::create(&pool, &Organization::default())
+            .await
+            .expect("could not create organization");
+    resources::projects::repository::create(
+        &pool,
+        &Project {
+            organization_id: organization.id,
+            name: String::from(DEFAULT_PROJECT_NAME),
+            ..Default::default()
+        },
+    )
+    .await
+    .expect("could not create project");
     let config = ServerConfig::new(pool.clone());
     let server = Server::new(config).await?;
     let addr = server.addr;
@@ -44,11 +58,9 @@ async fn test_the_create_instance_procedure_works(
         })
         .await;
 
-    // Get the instance generated in the database
-    let instance = &instances::repository::list(&pool).await.unwrap()[0];
-
     // Assert the result
     assert!(response.is_ok());
+    let instance = &instances::repository::list(&pool).await.unwrap()[0];
     assert_eq!(
         response.unwrap().into_inner(),
         CreateInstanceResponse {

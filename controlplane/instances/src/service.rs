@@ -1,13 +1,15 @@
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor_connector::{InstanceConfig, InstanceService};
 use hypervisors::{Hypervisor, HypervisorsService};
-use sqlx::PgPool;
+use resources::service::ResourcesService;
+use sqlx::{PgPool, types::chrono};
 use uuid::Uuid;
 
 use crate::{model::Instance, problem::Problem, repository};
 
 pub struct InstancesService {
     hypervisors_service: HypervisorsService,
+    resources_service: ResourcesService,
     pool: PgPool,
 }
 
@@ -17,9 +19,13 @@ impl InstancesService {
     }
 
     pub async fn sync(&self) -> Result<Vec<Instance>, Problem> {
+        let default_project = self.resources_service.get_default_project().await?;
         let hypervisors = self.hypervisors_service.list().await?;
         let instances = stream::iter(hypervisors)
-            .map(|hypervisor| async move { self.sync_hypervisor_instances(&hypervisor).await })
+            .map(|hypervisor| async move {
+                self.sync_hypervisor_instances(&hypervisor, default_project.id)
+                    .await
+            })
             .buffer_unordered(4)
             .try_collect::<Vec<Vec<Instance>>>()
             .await?
@@ -33,6 +39,7 @@ impl InstancesService {
     pub async fn sync_hypervisor_instances(
         &self,
         hypervisor: &Hypervisor,
+        default_project_id: Uuid,
     ) -> Result<Vec<Instance>, Problem> {
         let distant_instances = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
             .list()
@@ -45,13 +52,23 @@ impl InstancesService {
                     .map(|result| {
                         let existing = result.unwrap_or(Instance {
                             id: Uuid::new_v4(),
+                            project_id: default_project_id,
                             ..Default::default()
                         });
 
                         Instance {
                             id: existing.id,
                             hypervisor_id: hypervisor.id,
-                            ..distant_instance.into()
+                            project_id: existing.project_id,
+                            distant_id: distant_instance.id,
+                            cpu_usage_percent: distant_instance.cpu_usage_percent as f64,
+                            max_cpu_cores: distant_instance.max_cpu_cores as i32,
+                            max_memory_bytes: distant_instance.max_memory_bytes as i64,
+                            memory_usage_bytes: distant_instance.memory_usage_bytes as i64,
+                            name: distant_instance.name,
+                            status: distant_instance.status.into(),
+                            created_at: chrono::Utc::now(),
+                            updated_at: chrono::Utc::now(),
                         }
                     })
             })
@@ -89,6 +106,8 @@ impl InstancesService {
             .first()
             .ok_or_else(|| Problem::NoHypervisorsAvaible)?;
 
+        let project = self.resources_service.get_default_project().await?;
+
         let result = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
             .create(options)
             .await?;
@@ -96,6 +115,7 @@ impl InstancesService {
         let instance = Instance {
             id: Uuid::new_v4(),
             hypervisor_id: hypervisor.id,
+            project_id: project.id,
             distant_id: result,
             ..Default::default()
         };
@@ -146,6 +166,7 @@ impl InstancesService {
     pub fn new(pool: PgPool) -> Self {
         Self {
             hypervisors_service: HypervisorsService::new(pool.clone()),
+            resources_service: ResourcesService::new(pool.clone()),
             pool,
         }
     }
