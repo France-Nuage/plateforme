@@ -149,7 +149,7 @@ class Duration$Type extends MessageType<Duration> {
    * Encode `Duration` to JSON string like "3.000001s".
    */
   internalJsonWrite(message: Duration, options: JsonWriteOptions): JsonValue {
-    const s = PbLong.from(message.seconds).toNumber();
+    let s = PbLong.from(message.seconds).toNumber();
     if (s > 315576000000 || s < -315576000000)
       throw new Error('Duration value out of range.');
     let text = message.seconds.toString();
@@ -179,14 +179,14 @@ class Duration$Type extends MessageType<Duration> {
           typeofJsonValue(json) +
           '. Expected string.',
       );
-    const match = json.match(/^(-?)([0-9]+)(?:\.([0-9]+))?s/);
+    let match = json.match(/^(-?)([0-9]+)(?:\.([0-9]+))?s/);
     if (match === null)
       throw new Error(
         'Unable to parse Duration from JSON string. Invalid format.',
       );
     if (!target) target = this.create();
-    const [, sign, secs, nanos] = match;
-    const longSeconds = PbLong.from(sign + secs);
+    let [, sign, secs, nanos] = match;
+    let longSeconds = PbLong.from(sign + secs);
     if (
       longSeconds.toNumber() > 315576000000 ||
       longSeconds.toNumber() < -315576000000
@@ -196,7 +196,7 @@ class Duration$Type extends MessageType<Duration> {
       );
     target.seconds = longSeconds.toBigInt();
     if (typeof nanos == 'string') {
-      const nanosStr = sign + nanos + '0'.repeat(9 - nanos.length);
+      let nanosStr = sign + nanos + '0'.repeat(9 - nanos.length);
       target.nanos = parseInt(nanosStr);
     }
     return target;
@@ -215,10 +215,10 @@ class Duration$Type extends MessageType<Duration> {
     options: BinaryReadOptions,
     target?: Duration,
   ): Duration {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* int64 seconds */ 1:
           message.seconds = reader.int64().toBigInt();
@@ -227,12 +227,12 @@ class Duration$Type extends MessageType<Duration> {
           message.nanos = reader.int32();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -256,7 +256,7 @@ class Duration$Type extends MessageType<Duration> {
     /* int32 nanos = 2; */
     if (message.nanos !== 0)
       writer.tag(2, WireType.Varint).int32(message.nanos);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,

@@ -61,6 +61,7 @@ function fromRpcInstance(instance: RpcInstance): Instance {
     maxMemoryBytes: Number(instance.maxMemoryBytes),
     memoryUsageBytes: Number(instance.memoryUsageBytes),
     name: instance.name,
+    projectId: '',
     status: fromRpcInstanceStatus(instance.status),
   };
 }

@@ -10,6 +10,7 @@ export const instance = (): Instance => ({
   maxMemoryBytes: faker.number.int({ max: 68719476736, min: 1073741824 }),
   memoryUsageBytes: faker.number.int({ max: 68719476736, min: 1073741824 }),
   name: faker.commerce.productName(),
+  projectId: faker.string.uuid(),
   status: faker.helpers.arrayElement(Object.values(InstanceStatus)),
 });
 

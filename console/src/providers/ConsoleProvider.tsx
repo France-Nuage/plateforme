@@ -1,11 +1,9 @@
 import { DataProvider } from '@plasmicapp/react-web/lib/host';
-import { ReactNode, forwardRef, useEffect, useImperativeHandle } from 'react';
+import { ReactNode, forwardRef, useImperativeHandle } from 'react';
 
 import {
   clearAuthenticationState,
   createInstance,
-  fetchAllHypervisors,
-  fetchAllInstances,
   registerHypervisor,
   setMode,
 } from '@/features';
@@ -83,13 +81,6 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
         dispatch(clearAuthenticationState());
       },
     }));
-
-    // Load data on provider instantiation. This should be moved to the
-    // ApplicationLoader component.
-    useEffect(() => {
-      dispatch(fetchAllHypervisors());
-      dispatch(fetchAllInstances());
-    }, [application.mode, dispatch]);
 
     // Wrap the children in the plasmic DataProvider.
     return (

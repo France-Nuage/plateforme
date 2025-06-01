@@ -1,8 +1,15 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-import { clearAuthenticationState, setOIDCUser } from '@/features';
-import { useAppDispatch } from '@/hooks';
+import {
+  clearAuthenticationState,
+  fetchAllHypervisors,
+  fetchAllInstances,
+  fetchAllOrganizations,
+  fetchAllProjects,
+  setOIDCUser,
+} from '@/features';
+import { useAppDispatch, useAppSelector } from '@/hooks';
 import { userManager } from '@/services';
 
 export type ApplicationLoaderProps = {
@@ -25,6 +32,7 @@ export const ApplicationLoader: FunctionComponent<ApplicationLoaderProps> = ({
   children,
 }) => {
   const dispatch = useAppDispatch();
+  const application = useAppSelector((state) => state.application);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Attempt to retrieve the persisted user, then mark the app as loaded
@@ -41,6 +49,15 @@ export const ApplicationLoader: FunctionComponent<ApplicationLoaderProps> = ({
       })
       .catch(toast.error);
   }, [dispatch]);
+
+  // Load data on provider instantiation. This should be moved to the
+  // ApplicationLoader component.
+  useEffect(() => {
+    dispatch(fetchAllHypervisors());
+    dispatch(fetchAllInstances());
+    dispatch(fetchAllOrganizations());
+    dispatch(fetchAllProjects());
+  }, [application.mode, dispatch]);
 
   return loading ? 'loading' : children;
 };

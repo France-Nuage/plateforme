@@ -1822,10 +1822,10 @@ class FieldRules$Type extends MessageType<FieldRules> {
     options: BinaryReadOptions,
     target?: FieldRules,
   ): FieldRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional validate.MessageRules message */ 17:
           message.message = MessageRules.internalBinaryRead(
@@ -2067,12 +2067,12 @@ class FieldRules$Type extends MessageType<FieldRules> {
           };
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -2244,7 +2244,7 @@ class FieldRules$Type extends MessageType<FieldRules> {
         writer.tag(22, WireType.LengthDelimited).fork(),
         options,
       ).join();
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -2334,10 +2334,10 @@ class FloatRules$Type extends MessageType<FloatRules> {
     options: BinaryReadOptions,
     target?: FloatRules,
   ): FloatRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional float const */ 1:
           message.const = reader.float();
@@ -2370,12 +2370,12 @@ class FloatRules$Type extends MessageType<FloatRules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -2417,7 +2417,7 @@ class FloatRules$Type extends MessageType<FloatRules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -2507,10 +2507,10 @@ class DoubleRules$Type extends MessageType<DoubleRules> {
     options: BinaryReadOptions,
     target?: DoubleRules,
   ): DoubleRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional double const */ 1:
           message.const = reader.double();
@@ -2543,12 +2543,12 @@ class DoubleRules$Type extends MessageType<DoubleRules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -2590,7 +2590,7 @@ class DoubleRules$Type extends MessageType<DoubleRules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -2680,10 +2680,10 @@ class Int32Rules$Type extends MessageType<Int32Rules> {
     options: BinaryReadOptions,
     target?: Int32Rules,
   ): Int32Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional int32 const */ 1:
           message.const = reader.int32();
@@ -2716,12 +2716,12 @@ class Int32Rules$Type extends MessageType<Int32Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -2763,7 +2763,7 @@ class Int32Rules$Type extends MessageType<Int32Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -2860,10 +2860,10 @@ class Int64Rules$Type extends MessageType<Int64Rules> {
     options: BinaryReadOptions,
     target?: Int64Rules,
   ): Int64Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional int64 const */ 1:
           message.const = reader.int64().toBigInt();
@@ -2896,12 +2896,12 @@ class Int64Rules$Type extends MessageType<Int64Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -2943,7 +2943,7 @@ class Int64Rules$Type extends MessageType<Int64Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -3033,10 +3033,10 @@ class UInt32Rules$Type extends MessageType<UInt32Rules> {
     options: BinaryReadOptions,
     target?: UInt32Rules,
   ): UInt32Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional uint32 const */ 1:
           message.const = reader.uint32();
@@ -3069,12 +3069,12 @@ class UInt32Rules$Type extends MessageType<UInt32Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -3116,7 +3116,7 @@ class UInt32Rules$Type extends MessageType<UInt32Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -3213,10 +3213,10 @@ class UInt64Rules$Type extends MessageType<UInt64Rules> {
     options: BinaryReadOptions,
     target?: UInt64Rules,
   ): UInt64Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional uint64 const */ 1:
           message.const = reader.uint64().toBigInt();
@@ -3249,12 +3249,12 @@ class UInt64Rules$Type extends MessageType<UInt64Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -3296,7 +3296,7 @@ class UInt64Rules$Type extends MessageType<UInt64Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -3386,10 +3386,10 @@ class SInt32Rules$Type extends MessageType<SInt32Rules> {
     options: BinaryReadOptions,
     target?: SInt32Rules,
   ): SInt32Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional sint32 const */ 1:
           message.const = reader.sint32();
@@ -3422,12 +3422,12 @@ class SInt32Rules$Type extends MessageType<SInt32Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -3469,7 +3469,7 @@ class SInt32Rules$Type extends MessageType<SInt32Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -3566,10 +3566,10 @@ class SInt64Rules$Type extends MessageType<SInt64Rules> {
     options: BinaryReadOptions,
     target?: SInt64Rules,
   ): SInt64Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional sint64 const */ 1:
           message.const = reader.sint64().toBigInt();
@@ -3602,12 +3602,12 @@ class SInt64Rules$Type extends MessageType<SInt64Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -3649,7 +3649,7 @@ class SInt64Rules$Type extends MessageType<SInt64Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -3739,10 +3739,10 @@ class Fixed32Rules$Type extends MessageType<Fixed32Rules> {
     options: BinaryReadOptions,
     target?: Fixed32Rules,
   ): Fixed32Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional fixed32 const */ 1:
           message.const = reader.fixed32();
@@ -3775,12 +3775,12 @@ class Fixed32Rules$Type extends MessageType<Fixed32Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -3822,7 +3822,7 @@ class Fixed32Rules$Type extends MessageType<Fixed32Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -3919,10 +3919,10 @@ class Fixed64Rules$Type extends MessageType<Fixed64Rules> {
     options: BinaryReadOptions,
     target?: Fixed64Rules,
   ): Fixed64Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional fixed64 const */ 1:
           message.const = reader.fixed64().toBigInt();
@@ -3955,12 +3955,12 @@ class Fixed64Rules$Type extends MessageType<Fixed64Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -4002,7 +4002,7 @@ class Fixed64Rules$Type extends MessageType<Fixed64Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -4092,10 +4092,10 @@ class SFixed32Rules$Type extends MessageType<SFixed32Rules> {
     options: BinaryReadOptions,
     target?: SFixed32Rules,
   ): SFixed32Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional sfixed32 const */ 1:
           message.const = reader.sfixed32();
@@ -4128,12 +4128,12 @@ class SFixed32Rules$Type extends MessageType<SFixed32Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -4175,7 +4175,7 @@ class SFixed32Rules$Type extends MessageType<SFixed32Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -4272,10 +4272,10 @@ class SFixed64Rules$Type extends MessageType<SFixed64Rules> {
     options: BinaryReadOptions,
     target?: SFixed64Rules,
   ): SFixed64Rules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional sfixed64 const */ 1:
           message.const = reader.sfixed64().toBigInt();
@@ -4308,12 +4308,12 @@ class SFixed64Rules$Type extends MessageType<SFixed64Rules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -4355,7 +4355,7 @@ class SFixed64Rules$Type extends MessageType<SFixed64Rules> {
     /* optional bool ignore_empty = 8; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(8, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -4394,21 +4394,21 @@ class BoolRules$Type extends MessageType<BoolRules> {
     options: BinaryReadOptions,
     target?: BoolRules,
   ): BoolRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional bool const */ 1:
           message.const = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -4429,7 +4429,7 @@ class BoolRules$Type extends MessageType<BoolRules> {
     /* optional bool const = 1; */
     if (message.const !== undefined)
       writer.tag(1, WireType.Varint).bool(message.const);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -4652,10 +4652,10 @@ class StringRules$Type extends MessageType<StringRules> {
     options: BinaryReadOptions,
     target?: StringRules,
   ): StringRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional string const */ 1:
           message.const = reader.string();
@@ -4766,12 +4766,12 @@ class StringRules$Type extends MessageType<StringRules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -4867,7 +4867,7 @@ class StringRules$Type extends MessageType<StringRules> {
     /* optional bool ignore_empty = 26; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(26, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -5003,10 +5003,10 @@ class BytesRules$Type extends MessageType<BytesRules> {
     options: BinaryReadOptions,
     target?: BytesRules,
   ): BytesRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional bytes const */ 1:
           message.const = reader.bytes();
@@ -5060,12 +5060,12 @@ class BytesRules$Type extends MessageType<BytesRules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -5125,7 +5125,7 @@ class BytesRules$Type extends MessageType<BytesRules> {
     /* optional bool ignore_empty = 14; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(14, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -5187,10 +5187,10 @@ class EnumRules$Type extends MessageType<EnumRules> {
     options: BinaryReadOptions,
     target?: EnumRules,
   ): EnumRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional int32 const */ 1:
           message.const = reader.int32();
@@ -5211,12 +5211,12 @@ class EnumRules$Type extends MessageType<EnumRules> {
           else message.notIn.push(reader.int32());
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -5246,7 +5246,7 @@ class EnumRules$Type extends MessageType<EnumRules> {
     /* repeated int32 not_in = 4; */
     for (let i = 0; i < message.notIn.length; i++)
       writer.tag(4, WireType.Varint).int32(message.notIn[i]);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -5292,10 +5292,10 @@ class MessageRules$Type extends MessageType<MessageRules> {
     options: BinaryReadOptions,
     target?: MessageRules,
   ): MessageRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional bool skip */ 1:
           message.skip = reader.bool();
@@ -5304,12 +5304,12 @@ class MessageRules$Type extends MessageType<MessageRules> {
           message.required = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -5333,7 +5333,7 @@ class MessageRules$Type extends MessageType<MessageRules> {
     /* optional bool required = 2; */
     if (message.required !== undefined)
       writer.tag(2, WireType.Varint).bool(message.required);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -5396,10 +5396,10 @@ class RepeatedRules$Type extends MessageType<RepeatedRules> {
     options: BinaryReadOptions,
     target?: RepeatedRules,
   ): RepeatedRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional uint64 min_items */ 1:
           message.minItems = reader.uint64().toBigInt();
@@ -5422,12 +5422,12 @@ class RepeatedRules$Type extends MessageType<RepeatedRules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -5464,7 +5464,7 @@ class RepeatedRules$Type extends MessageType<RepeatedRules> {
     /* optional bool ignore_empty = 5; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(5, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -5528,10 +5528,10 @@ class MapRules$Type extends MessageType<MapRules> {
     options: BinaryReadOptions,
     target?: MapRules,
   ): MapRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional uint64 min_pairs */ 1:
           message.minPairs = reader.uint64().toBigInt();
@@ -5562,12 +5562,12 @@ class MapRules$Type extends MessageType<MapRules> {
           message.ignoreEmpty = reader.bool();
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -5611,7 +5611,7 @@ class MapRules$Type extends MessageType<MapRules> {
     /* optional bool ignore_empty = 6; */
     if (message.ignoreEmpty !== undefined)
       writer.tag(6, WireType.Varint).bool(message.ignoreEmpty);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -5666,10 +5666,10 @@ class AnyRules$Type extends MessageType<AnyRules> {
     options: BinaryReadOptions,
     target?: AnyRules,
   ): AnyRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional bool required */ 1:
           message.required = reader.bool();
@@ -5681,12 +5681,12 @@ class AnyRules$Type extends MessageType<AnyRules> {
           message.notIn.push(reader.string());
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -5713,7 +5713,7 @@ class AnyRules$Type extends MessageType<AnyRules> {
     /* repeated string not_in = 3; */
     for (let i = 0; i < message.notIn.length; i++)
       writer.tag(3, WireType.LengthDelimited).string(message.notIn[i]);
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -5773,10 +5773,10 @@ class DurationRules$Type extends MessageType<DurationRules> {
     options: BinaryReadOptions,
     target?: DurationRules,
   ): DurationRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional bool required */ 1:
           message.required = reader.bool();
@@ -5832,12 +5832,12 @@ class DurationRules$Type extends MessageType<DurationRules> {
           );
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -5907,7 +5907,7 @@ class DurationRules$Type extends MessageType<DurationRules> {
         writer.tag(8, WireType.LengthDelimited).fork(),
         options,
       ).join();
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,
@@ -5966,10 +5966,10 @@ class TimestampRules$Type extends MessageType<TimestampRules> {
     options: BinaryReadOptions,
     target?: TimestampRules,
   ): TimestampRules {
-    const message = target ?? this.create(),
+    let message = target ?? this.create(),
       end = reader.pos + length;
     while (reader.pos < end) {
-      const [fieldNo, wireType] = reader.tag();
+      let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* optional bool required */ 1:
           message.required = reader.bool();
@@ -6029,12 +6029,12 @@ class TimestampRules$Type extends MessageType<TimestampRules> {
           );
           break;
         default:
-          const u = options.readUnknownField;
+          let u = options.readUnknownField;
           if (u === 'throw')
             throw new globalThis.Error(
               `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
             );
-          const d = reader.skip(wireType);
+          let d = reader.skip(wireType);
           if (u !== false)
             (u === true ? UnknownFieldHandler.onRead : u)(
               this.typeName,
@@ -6103,7 +6103,7 @@ class TimestampRules$Type extends MessageType<TimestampRules> {
         writer.tag(9, WireType.LengthDelimited).fork(),
         options,
       ).join();
-    const u = options.writeUnknownFields;
+    let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
         this.typeName,

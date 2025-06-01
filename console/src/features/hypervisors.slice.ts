@@ -4,6 +4,9 @@ import { services } from '@/services';
 import { RootState } from '@/store';
 import { Hypervisor, HypervisorFormValue } from '@/types';
 
+/**
+ * Fetch all hypervisors.
+ */
 export const fetchAllHypervisors = createAsyncThunk<
   Hypervisor[],
   void,
@@ -12,6 +15,9 @@ export const fetchAllHypervisors = createAsyncThunk<
   services[getState().application.mode].hypervisor.list(),
 );
 
+/**
+ * Register a new hypervisor.
+ */
 export const registerHypervisor = createAsyncThunk<
   Hypervisor,
   HypervisorFormValue,
@@ -20,14 +26,23 @@ export const registerHypervisor = createAsyncThunk<
   services[getState().application.mode].hypervisor.register(data),
 );
 
+/**
+ * The hypervisors slice state shape.
+ */
 export type HypervisorsState = {
   hypervisors: Hypervisor[];
 };
 
+/**
+ * The hypervisors slice initial state.
+ */
 const initialState: HypervisorsState = {
   hypervisors: [],
 };
 
+/**
+ * The hypervisors slice.
+ */
 export const hypervisorsSlice = createSlice({
   extraReducers: (builder) => {
     builder

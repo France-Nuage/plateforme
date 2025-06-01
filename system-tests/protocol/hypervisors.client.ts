@@ -34,6 +34,9 @@ export interface IHypervisorsClient {
      */
     registerHypervisor(input: RegisterHypervisorRequest, options?: RpcOptions): UnaryCall<RegisterHypervisorRequest, RegisterHypervisorResponse>;
     /**
+     * DetachHypervisor removes a hypervisor from the system.
+     * Returns an empty response on success or a ProblemDetails on failure.
+     *
      * @generated from protobuf rpc: DetachHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorResponse);
      */
     detachHypervisor(input: DetachHypervisorRequest, options?: RpcOptions): UnaryCall<DetachHypervisorRequest, DetachHypervisorResponse>;
@@ -70,6 +73,9 @@ export class HypervisorsClient implements IHypervisorsClient, ServiceInfo {
         return stackIntercept<RegisterHypervisorRequest, RegisterHypervisorResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * DetachHypervisor removes a hypervisor from the system.
+     * Returns an empty response on success or a ProblemDetails on failure.
+     *
      * @generated from protobuf rpc: DetachHypervisor(francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorRequest) returns (francenuage.fr.api.controlplane.v1.hypervisors.DetachHypervisorResponse);
      */
     detachHypervisor(input: DetachHypervisorRequest, options?: RpcOptions): UnaryCall<DetachHypervisorRequest, DetachHypervisorResponse> {
