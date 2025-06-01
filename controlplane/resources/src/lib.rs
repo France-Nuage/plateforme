@@ -6,3 +6,5 @@ pub mod service;
 pub mod v1;
 
 pub use problem::Problem;
+
+pub const DEFAULT_PROJECT_NAME: &str = "unattributed";

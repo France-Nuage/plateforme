@@ -1,7 +1,7 @@
 use hypervisor_connector_proxmox::mock::{MockServer, WithClusterResourceList};
 use hypervisors::Hypervisor;
 use instances::v1::{ListInstancesRequest, instances_client::InstancesClient};
-use resources::{organizations::Organization, projects::Project};
+use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -25,7 +25,7 @@ async fn test_the_list_instances_procedure_works(
         &pool,
         &Project {
             organization_id: organization.id,
-            name: String::from("unattributed"),
+            name: String::from(DEFAULT_PROJECT_NAME),
             ..Default::default()
         },
     )

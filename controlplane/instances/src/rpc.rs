@@ -117,7 +117,7 @@ mod tests {
         WithVMCloneMock, WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
     };
     use hypervisors::Hypervisor;
-    use resources::{organizations::Organization, projects::Project};
+    use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_instances_works(pool: sqlx::PgPool) {
@@ -133,7 +133,7 @@ mod tests {
         resources::projects::repository::create(
             &pool,
             &Project {
-                name: String::from("unattributed"),
+                name: String::from(DEFAULT_PROJECT_NAME),
                 ..Default::default()
             },
         )

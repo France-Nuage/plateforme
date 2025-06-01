@@ -76,21 +76,3 @@ impl Display for InstanceStatus {
         )
     }
 }
-
-// impl From<InstanceInfo> for Instance {
-//     fn from(value: InstanceInfo) -> Self {
-//         Instance {
-//             id: Uuid::new_v4(),
-//             hypervisor_id: Uuid::default(),
-//             distant_id: value.id,
-//             cpu_usage_percent: value.cpu_usage_percent as f64,
-//             max_cpu_cores: value.max_cpu_cores as i32,
-//             max_memory_bytes: value.max_memory_bytes as i64,
-//             memory_usage_bytes: value.memory_usage_bytes as i64,
-//             name: value.name,
-//             status: value.status.into(),
-//             created_at: chrono::Utc::now(),
-//             updated_at: chrono::Utc::now(),
-//         }
-//     }
-// }

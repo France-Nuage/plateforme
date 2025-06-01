@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use crate::{
-    Problem,
+    DEFAULT_PROJECT_NAME, Problem,
     projects::{Project, repository::Query},
 };
 
@@ -14,7 +14,7 @@ impl ResourcesService {
         crate::projects::repository::find_one_by(
             &self.pool,
             Query {
-                name: Some("unattributed"),
+                name: Some(DEFAULT_PROJECT_NAME),
             },
         )
         .await
