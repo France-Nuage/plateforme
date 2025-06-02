@@ -2,14 +2,26 @@ syntax = "proto3";
 
 package francenuage.fr.api.controlplane.v1.instances;
 
-import "validate.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "validate.proto";
+import "annotations.proto";
+import "client.proto";
+import "extended_operations.proto";
+import "field_behavior.proto";
+import "resource.proto";
 
 // Instances service provides operations to manage instances.
 service Instances {
     // ListInstances retrieves information about all available instances.
     // Returns a collection of instance details including their current status and resource usage.
-    rpc ListInstances (ListInstancesRequest) returns (ListInstancesResponse);
+    rpc ListInstances (ListInstancesRequest) returns (ListInstancesResponse) {
+        option (google.api.http) = {
+            get: "/compute/v1/projects/{project}/zones/{zone}/instances"
+        };
+        option (google.api.method_signature) = "project,zone,instance";
+        option (google.cloud.operation_service) = "ZoneOperations";
+    };
 
     // CloneInstance provisions a new instance based on a given existing instance.
     // Returns the cloned instance.
@@ -17,7 +29,14 @@ service Instances {
   
     // CreateInstance provisions a new instance based on the specified configuration.
     // Returns details of the newly created instance or a ProblemDetails on failure.
-    rpc CreateInstance (CreateInstanceRequest) returns (CreateInstanceResponse);
+    rpc CreateInstance (CreateInstanceRequest) returns (CreateInstanceResponse) {
+        option (google.api.http) = {
+            post: "/compute/v1/projects/{project}/zones/{zone}/instances"
+            body: "*"
+        };
+        option (google.api.method_signature) = "project,zone,instance";
+//        option (google.cloud.operation_service) = "ZoneOperations";
+    };
 
     // DeleteInstance deletes a given instance.
     // Returns an empty message or a ProblemDetails on failure.

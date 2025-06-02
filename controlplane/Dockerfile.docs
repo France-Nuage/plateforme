@@ -20,6 +20,7 @@ WORKDIR /app
 # Copy only proto files needed for documentation
 COPY ./instances/ ./instances/
 COPY ./hypervisors/ ./hypervisors/
+COPY ./resources/ ./resources/
 
 # Set executable permissions
 RUN chmod +x /go/bin/protoc-gen-doc
@@ -29,7 +30,7 @@ RUN mkdir -p ./docs && \
   protoc -I ./instances/ -I ./hypervisors/ \
   --doc_out=./docs \
   --doc_opt=html,index.html \
-  ./instances/*.proto ./hypervisors/*.proto
+  ./instances/*.proto ./hypervisors/*.proto ./resources/*.proto
 
 # Set working directory to docs for deployment
 WORKDIR /app/docs
