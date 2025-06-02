@@ -137,8 +137,6 @@ build:
 
 "deploy / controlplane":
   stage: deploy
-  variables:
-    TARGET: release
   dependencies:
     - build
   script:
@@ -152,14 +150,12 @@ build:
 
 "deploy / console":
   stage: deploy
-  variables:
-    TARGET: release
   dependencies:
     - build
     - "sync console with plasmic"
   script:
-    - docker pull ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET}
-    - docker tag ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET} ${CI_REGISTRY_IMAGE}/console:release
+    - docker pull ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
+    - docker tag ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest} ${CI_REGISTRY_IMAGE}/console:release
     - docker push ${CI_REGISTRY_IMAGE}/console:release
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
