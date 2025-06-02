@@ -127,8 +127,7 @@ build:
     - git remote set-url origin "https://oauth2:${GITLAB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
     - git add *
     - >
-      git commit -m "feat: add plasmic changes [ci skip]" || echo "No changes to commit"
-    - git push origin HEAD:master
+      (git commit -m "feat: add plasmic changes [ci skip]" && git push origin HEAD:master) || echo "No changes to commit"
   dependencies:
     - "sync console with plasmic"
   rules:
