@@ -25,20 +25,19 @@ async fn test_the_clone_instance_procedure_works(
         url: mock.url(),
         ..Default::default()
     };
-    let organization =
-        resources::organizations::repository::create(&pool, &Organization::default())
-            .await
-            .expect("could not create organization");
+    let organization = resources::organizations::repository::create(&pool, Organization::default())
+        .await
+        .expect("could not create organization");
     let project = resources::projects::repository::create(
         &pool,
-        &Project {
+        Project {
             organization_id: organization.id,
             ..Default::default()
         },
     )
     .await
     .expect("could not create project");
-    hypervisors::repository::create(&pool, &hypervisor)
+    let hypervisor = hypervisors::repository::create(&pool, hypervisor)
         .await
         .unwrap();
     let instance = Instance {
@@ -47,7 +46,7 @@ async fn test_the_clone_instance_procedure_works(
         distant_id: String::from("100"),
         ..Default::default()
     };
-    instances::repository::create(&pool, &instance)
+    let instance = instances::repository::create(&pool, instance)
         .await
         .unwrap();
 

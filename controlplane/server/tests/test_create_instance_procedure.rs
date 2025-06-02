@@ -24,16 +24,15 @@ async fn test_the_create_instance_procedure_works(
         url: mock.url(),
         ..Default::default()
     };
-    hypervisors::repository::create(&pool, &hypervisor)
+    hypervisors::repository::create(&pool, hypervisor)
         .await
         .unwrap();
-    let organization =
-        resources::organizations::repository::create(&pool, &Organization::default())
-            .await
-            .expect("could not create organization");
+    let organization = resources::organizations::repository::create(&pool, Organization::default())
+        .await
+        .expect("could not create organization");
     resources::projects::repository::create(
         &pool,
-        &Project {
+        Project {
             organization_id: organization.id,
             name: String::from(DEFAULT_PROJECT_NAME),
             ..Default::default()
@@ -66,8 +65,12 @@ async fn test_the_create_instance_procedure_works(
         CreateInstanceResponse {
             instance: Some(instances::v1::Instance {
                 id: instance.id.to_string(),
-                created_at: Some(prost_types::Timestamp::default()),
-                updated_at: Some(prost_types::Timestamp::default()),
+                created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
+                    instance.created_at
+                ))),
+                updated_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
+                    instance.updated_at
+                ))),
                 ..Default::default()
             })
         }

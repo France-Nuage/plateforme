@@ -15,7 +15,7 @@ async fn test_the_create_project_procedure_works(
     let mut client = ResourcesClient::connect(format!("http://{}", addr)).await?;
     let organization = resources::organizations::repository::create(
         &pool,
-        &resources::organizations::Organization::default(),
+        resources::organizations::Organization::default(),
     )
     .await?;
 

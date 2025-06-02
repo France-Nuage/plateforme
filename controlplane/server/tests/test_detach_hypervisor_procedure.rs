@@ -15,10 +15,9 @@ async fn test_the_detach_hypervisor_procedure_works(
         url: mock.url(),
         ..Default::default()
     };
-    hypervisors::repository::create(&pool, &hypervisor)
+    let hypervisor = hypervisors::repository::create(&pool, hypervisor)
         .await
         .unwrap();
-    println!("persisted hypervisor {:?}", &hypervisor);
 
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;

@@ -5,7 +5,7 @@
 
 use uuid::Uuid;
 
-use crate::{model::Instance, problem::Problem};
+use crate::model::Instance;
 
 /// Retrieves all instances from the database.
 ///
@@ -16,20 +16,19 @@ use crate::{model::Instance, problem::Problem};
 /// # Returns
 ///
 /// A vector of all Instance records or a Problem if the operation fails
-pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Instance>, Problem> {
+pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Instance>, sqlx::Error> {
     sqlx::query_as!(
         Instance,
         "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes , memory_usage_bytes, name, status, created_at, updated_at FROM instances"
     )
     .fetch_all(pool)
     .await
-    .map_err(Into::into)
 }
 
 pub async fn find_one_by_distant_id(
     pool: &sqlx::PgPool,
     distant_id: &str,
-) -> Result<Option<Instance>, Problem> {
+) -> Result<Option<Instance>, sqlx::Error> {
     sqlx::query_as!(
         Instance,
         "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE distant_id = $1",
@@ -37,7 +36,6 @@ pub async fn find_one_by_distant_id(
     )
     .fetch_optional(pool)
     .await
-    .map_err(Into::into)
 }
 
 /// Creates a new instance record in the database.
@@ -50,9 +48,14 @@ pub async fn find_one_by_distant_id(
 /// # Returns
 ///
 /// Ok(()) on success or a Problem if the operation fails
-pub async fn create(pool: &sqlx::PgPool, instance: &Instance) -> Result<(), Problem> {
-    sqlx::query!(
-        "INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+pub async fn create(pool: &sqlx::PgPool, instance: Instance) -> Result<Instance, sqlx::Error> {
+    sqlx::query_as!(
+        Instance,
+        r#"
+        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at
+        "#,
         &instance.id,
         &instance.hypervisor_id,
         &instance.project_id,
@@ -64,10 +67,8 @@ pub async fn create(pool: &sqlx::PgPool, instance: &Instance) -> Result<(), Prob
         &instance.name,
         instance.status.to_string()
     )
-    .execute(pool)
-    .await?;
-
-    Ok(())
+    .fetch_one(pool)
+    .await
 }
 
 /// Retrieves a single instance by its ID.
@@ -80,7 +81,7 @@ pub async fn create(pool: &sqlx::PgPool, instance: &Instance) -> Result<(), Prob
 /// # Returns
 ///
 /// The requested Instance or InstanceNotFound Problem if not present
-pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Instance, Problem> {
+pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Instance, sqlx::Error> {
     sqlx::query_as!(
         Instance,
         "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE id = $1",
@@ -88,10 +89,6 @@ pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Instance, Problem> {
     )
     .fetch_one(pool)
     .await
-    .map_err(|err| match err {
-        sqlx::Error::RowNotFound => Problem::InstanceNotFound(id),
-        err => Problem::Other(Box::new(err)),
-    })
 }
 
 /// Upserts multiple instances in the database.
@@ -104,7 +101,7 @@ pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Instance, Problem> {
 /// # Returns
 ///
 /// Ok(()) on success or a Problem if the operation fails
-pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), Problem> {
+pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), sqlx::Error> {
     // Extract the data into separate vectors
     let ids: Vec<Uuid> = instances.iter().map(|i| i.id).collect();
     let hypervisor_ids: Vec<Uuid> = instances.iter().map(|i| i.hypervisor_id).collect();

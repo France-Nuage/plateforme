@@ -380,6 +380,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "database"
+version = "0.1.0"
+dependencies = [
+ "sqlx",
+]
+
+[[package]]
 name = "der"
 version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -936,6 +943,7 @@ dependencies = [
 name = "hypervisors"
 version = "0.1.0"
 dependencies = [
+ "database",
  "prost",
  "sqlx",
  "thiserror",
@@ -1139,6 +1147,7 @@ dependencies = [
 name = "instances"
 version = "0.1.0"
 dependencies = [
+ "database",
  "futures",
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
@@ -1849,6 +1858,7 @@ dependencies = [
 name = "resources"
 version = "0.1.0"
 dependencies = [
+ "database",
  "prost",
  "prost-types",
  "sqlx",
@@ -2089,6 +2099,7 @@ dependencies = [
 name = "server"
 version = "0.1.0"
 dependencies = [
+ "database",
  "hyper",
  "hypervisor_connector_proxmox",
  "hypervisors",

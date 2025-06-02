@@ -8,11 +8,10 @@ async fn test_the_list_projects_procedure_works(
     // Arrange the test
     resources::organizations::repository::create(
         &pool,
-        &resources::organizations::Organization::default(),
+        resources::organizations::Organization::default(),
     )
     .await?;
-    resources::projects::repository::create(&pool, &resources::projects::Project::default())
-        .await?;
+    resources::projects::repository::create(&pool, resources::projects::Project::default()).await?;
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;
     let addr = server.addr;

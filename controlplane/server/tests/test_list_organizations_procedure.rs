@@ -8,7 +8,7 @@ async fn test_the_list_organizations_procedure_works(
     // Arrange the grpc server and a client
     resources::organizations::repository::create(
         &pool,
-        &resources::organizations::Organization::default(),
+        resources::organizations::Organization::default(),
     )
     .await?;
     let config = ServerConfig::new(pool);

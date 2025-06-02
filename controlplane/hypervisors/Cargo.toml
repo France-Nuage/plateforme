@@ -4,8 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+database = { path = "../database" }
 prost = "0.13"
-sqlx = { version = "0.8", features = ["chrono", "migrate", "postgres", "runtime-tokio-rustls", "uuid" ]}
+sqlx = { version = "0.8", features = [
+  "chrono",
+  "migrate",
+  "postgres",
+  "runtime-tokio-rustls",
+  "uuid",
+] }
 thiserror = "2.0"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 tonic = "0.12"

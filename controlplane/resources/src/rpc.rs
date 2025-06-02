@@ -4,10 +4,8 @@
 //! handling requests to manage organizations and projects.
 
 use crate::{
-    organizations::Organization,
-    organizations::repository as organizations_repository,
-    projects::Project,
-    projects::repository as projects_repository,
+    organizations::{Organization, OrganizationService},
+    projects::{Project, ProjectService},
     v1::{
         CreateOrganizationRequest, CreateOrganizationResponse, CreateProjectRequest,
         CreateProjectResponse, ListOrganizationsRequest, ListOrganizationsResponse,
@@ -24,8 +22,11 @@ use uuid::Uuid;
 /// including listing and creating organizations and projects. It uses a database
 /// connection to persist and retrieve resource information.
 pub struct ResourcesRpcService {
-    /// Database connection used for resource data persistence.
-    pool: sqlx::PgPool,
+    /// The project service.
+    project_service: ProjectService,
+
+    /// The oranization service.
+    organization_service: OrganizationService,
 }
 
 #[tonic::async_trait]
@@ -47,7 +48,7 @@ impl Resources for ResourcesRpcService {
         &self,
         _: Request<ListOrganizationsRequest>,
     ) -> Result<Response<ListOrganizationsResponse>, Status> {
-        let organizations = organizations_repository::list(&self.pool).await?;
+        let organizations = self.organization_service.list().await?;
 
         Ok(Response::new(ListOrganizationsResponse {
             organizations: organizations.into_iter().map(Into::into).collect(),
@@ -79,7 +80,7 @@ impl Resources for ResourcesRpcService {
             ..Default::default()
         };
 
-        let organization = organizations_repository::create(&self.pool, &organization).await?;
+        let organization = self.organization_service.create(organization).await?;
 
         Ok(Response::new(CreateOrganizationResponse {
             organization: Some(organization.into()),
@@ -102,7 +103,7 @@ impl Resources for ResourcesRpcService {
         &self,
         _: Request<ListProjectsRequest>,
     ) -> Result<Response<ListProjectsResponse>, Status> {
-        let projects = projects_repository::list(&self.pool).await?;
+        let projects = self.project_service.list().await?;
 
         Ok(Response::new(ListProjectsResponse {
             projects: projects.into_iter().map(Into::into).collect(),
@@ -131,9 +132,6 @@ impl Resources for ResourcesRpcService {
         let organization_id = Uuid::parse_str(&project_request.organization_id)
             .map_err(|_| Status::invalid_argument("Invalid organization_id format"))?;
 
-        // Verify the organization exists
-        organizations_repository::get(&self.pool, organization_id).await?;
-
         let project = Project {
             id: Uuid::new_v4(),
             name: project_request.name,
@@ -141,7 +139,7 @@ impl Resources for ResourcesRpcService {
             ..Default::default()
         };
 
-        let project = projects_repository::create(&self.pool, &project).await?;
+        let project = self.project_service.create(project).await?;
 
         Ok(Response::new(CreateProjectResponse {
             project: Some(project.into()),
@@ -160,7 +158,10 @@ impl ResourcesRpcService {
     ///
     /// A new `ResourcesRpcService` instance
     pub fn new(pool: PgPool) -> Self {
-        Self { pool }
+        Self {
+            organization_service: OrganizationService::new(pool.clone()),
+            project_service: ProjectService::new(pool.clone()),
+        }
     }
 }
 
@@ -229,10 +230,9 @@ mod tests {
         // Arrange a service and an organization
         let service = ResourcesRpcService::new(pool.clone());
 
-        let organization =
-            crate::organizations::repository::create(&pool, &Organization::default())
-                .await
-                .expect("could not create organization");
+        let organization = crate::organizations::repository::create(&pool, Organization::default())
+            .await
+            .expect("could not create organization");
 
         // Act the call to the create_project procedure
         let request = Request::new(CreateProjectRequest {

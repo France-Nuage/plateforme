@@ -15,7 +15,7 @@ async fn test_the_register_hypervisor_procedure_works(
         url: mock.url(),
         ..Default::default()
     };
-    hypervisors::repository::create(&pool, &hypervisor)
+    hypervisors::repository::create(&pool, hypervisor)
         .await
         .unwrap();
 

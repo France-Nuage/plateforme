@@ -11,6 +11,12 @@ impl HypervisorsService {
         repository::list(&self.pool).await
     }
 
+    pub async fn create(&self, hypervisor: Hypervisor) -> Result<Hypervisor, Problem> {
+        repository::create(&self.pool, hypervisor)
+            .await
+            .map_err(Into::into)
+    }
+
     pub async fn read(&self, id: Uuid) -> Result<Hypervisor, Problem> {
         repository::read(&self.pool, id).await
     }

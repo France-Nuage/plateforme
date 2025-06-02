@@ -23,16 +23,15 @@ async fn test_the_stop_instance_procedure_works(
         url: mock.url(),
         ..Default::default()
     };
-    hypervisors::repository::create(&pool, &hypervisor)
+    let hypervisor = hypervisors::repository::create(&pool, hypervisor)
         .await
         .unwrap();
-    let organization =
-        resources::organizations::repository::create(&pool, &Organization::default())
-            .await
-            .expect("could not create organization");
+    let organization = resources::organizations::repository::create(&pool, Organization::default())
+        .await
+        .expect("could not create organization");
     let project = resources::projects::repository::create(
         &pool,
-        &Project {
+        Project {
             organization_id: organization.id,
             name: String::from(DEFAULT_PROJECT_NAME),
             ..Default::default()
@@ -46,7 +45,7 @@ async fn test_the_stop_instance_procedure_works(
         project_id: project.id,
         ..Default::default()
     };
-    instances::repository::create(&pool, &instance)
+    let instance = instances::repository::create(&pool, instance)
         .await
         .unwrap();
 

@@ -16,6 +16,6 @@ pub mod rpc;
 mod service;
 pub mod v1;
 
-pub use model::Hypervisor;
+pub use model::{Hypervisor, HypervisorFactory};
 pub use problem::Problem;
 pub use service::HypervisorsService;
