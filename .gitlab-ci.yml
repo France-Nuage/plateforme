@@ -156,6 +156,7 @@ build:
     TARGET: release
   dependencies:
     - build
+    - "sync console with plasmic"
   script:
     - docker pull ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET}
     - docker tag ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET} ${CI_REGISTRY_IMAGE}/console:release
