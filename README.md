@@ -135,4 +135,4 @@ limitations:
 - You may not provide the products to others as a managed service
 - You may not circumvent the license key functionality or remove/obscure features protect
 
-© France nuage
+© France nuage 2025
