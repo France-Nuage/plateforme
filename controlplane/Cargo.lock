@@ -411,8 +411,10 @@ dependencies = [
 name = "derive_factory"
 version = "0.0.0"
 dependencies = [
+ "database",
  "proc-macro2",
  "quote",
+ "sqlx",
  "syn",
  "tokio",
  "tokio-test",

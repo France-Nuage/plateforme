@@ -3,30 +3,14 @@
 //! This module handles relation field processing for the Factory derive macro.
 //! Relations allow factory fields to reference other factory types, enabling
 //! complex object composition patterns.
-//!
-//! ## Example
-//!
-//! ```
-//! use derive_factory::Factory;
-//!
-//! #[derive(Default, Factory)]
-//! struct Category {
-//!     id: String,
-//!     name: String,
-//! }
-//!
-//! #[derive(Default, Factory)]
-//! struct Missile {
-//!     #[factory(relation = "CategoryFactory")]
-//!     category_id: String,  // → generates `category_factory` field
-//! }
-//! ```
 
 use syn::Field;
 
 /// Information about a relation field and its generated factory field.
 #[derive(Debug, Clone)]
 pub struct Relation {
+    /// The original relation field ident.
+    pub field: Field,
     /// The generated factory field identifier (e.g., "category_factory")
     pub factory_field_ident: syn::Ident,
     /// The factory type specified in the attribute (e.g., "CategoryFactory")
@@ -50,6 +34,7 @@ impl Relation {
         );
 
         Self {
+            field: field.clone(),
             relation_name,
             factory_field_ident,
             factory_type,

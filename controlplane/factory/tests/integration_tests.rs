@@ -4,8 +4,9 @@
 //! and serves as documentation examples.
 
 use derive_factory::Factory;
+use sqlx::PgPool;
 
-#[derive(Factory, Debug, PartialEq)]
+#[derive(Debug, Default, Factory, PartialEq)]
 struct Missile {
     #[factory(relation = "CategoryFactory")]
     category_id: String,
@@ -14,10 +15,31 @@ struct Missile {
     target: String,
 }
 
-#[derive(Factory)]
+impl database::Persistable for Missile {
+    async fn create(self, _pool: PgPool) -> Result<Self, sqlx::Error> {
+        Ok(self)
+    }
+
+    async fn update(self, _pool: PgPool) -> Result<Self, sqlx::Error> {
+        Ok(self)
+    }
+}
+
+#[derive(Debug, Default, Factory)]
 struct Category {
+    id: String,
     #[allow(dead_code)]
     name: String,
+}
+
+impl database::Persistable for Category {
+    async fn create(self, _pool: PgPool) -> Result<Self, sqlx::Error> {
+        Ok(self)
+    }
+
+    async fn update(self, _pool: PgPool) -> Result<Self, sqlx::Error> {
+        Ok(self)
+    }
 }
 
 #[tokio::test]

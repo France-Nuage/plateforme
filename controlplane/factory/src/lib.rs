@@ -8,12 +8,21 @@
 //! ```
 //! use derive_factory::Factory;
 //!
-//! #[derive(Default)]
-//! #[derive(Factory)]
+//! #[derive(Default, Factory)]
 //! struct Missile {
 //!     max_range: u32,
 //!     owner: String,
 //!     target: String,
+//! }
+//!
+//! impl database::Persistable for Missile {
+//!    async fn create(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
+//!        Ok(self)
+//!    }
+//!
+//!    async fn update(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
+//!        Ok(self)
+//!    }
 //! }
 //!
 //! # tokio_test::block_on( async {
@@ -40,11 +49,31 @@
 //!     name: String,
 //! }
 //!
+//! impl database::Persistable for Category {
+//!    async fn create(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
+//!        Ok(self)
+//!    }
+//!
+//!    async fn update(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
+//!        Ok(self)
+//!    }
+//! }
+//!
 //! #[derive(Default, Factory)]
 //! struct Missile {
 //!     name: String,
 //!     #[factory(relation = "CategoryFactory")]
 //!     category_id: String,
+//! }
+//!
+//! impl database::Persistable for Missile {
+//!    async fn create(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
+//!        Ok(self)
+//!    }
+//!
+//!    async fn update(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
+//!        Ok(self)
+//!    }
 //! }
 //!
 //! # tokio_test::block_on( async {
@@ -61,6 +90,7 @@
 //! # })
 //! ```
 
+extern crate database;
 extern crate proc_macro;
 
 mod relation;
@@ -133,7 +163,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl #factory_ident {
+        impl #factory_ident where #name: Default + database::Persistable {
             pub fn new() -> Self {
                 Self {
                     #(#factory_empty,)*
@@ -304,14 +334,15 @@ fn generate_relation_creation<'a>(
 ) -> impl Iterator<Item = proc_macro2::TokenStream> + 'a {
     relations.map(|relation| {
         let factory_field_name = &relation.factory_field_ident;
-        let factory_type_ident = relation.factory_type_ident();
+        let factory_type_ident = &relation.factory_type_ident();
+        let original_field_name = &relation.field.ident;
 
         quote! {
             if let Some(factory_fn) = self.#factory_field_name {
                 let factory = #factory_type_ident::new();
                 let factory = factory_fn(factory);
-                let _model = factory.create().await?;
-                // TODO: This needs to assign model.id or appropriate field
+                let model = factory.create().await?;
+                self.#original_field_name = Some(model.id);
             }
         }
     })

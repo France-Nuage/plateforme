@@ -1,5 +1,11 @@
 use sqlx::PgPool;
 
+pub trait Persistable: Sized {
+    fn create(self, pool: PgPool) -> impl Future<Output = Result<Self, sqlx::Error>>;
+    fn update(self, pool: PgPool) -> impl Future<Output = Result<Self, sqlx::Error>>;
+}
+
+/// deprecated
 pub trait HasFactory {
     type Factory;
 
@@ -7,6 +13,7 @@ pub trait HasFactory {
     fn factory(pool: PgPool) -> Self::Factory;
 }
 
+/// deprecated
 pub trait Factory {
     type Model;
 
