@@ -15,7 +15,7 @@ image: docker:cli
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  - docker compose down --volumes
+  - docker compose down --volumes --remove-orphans
 
 after_script:
   - docker compose down --volumes
