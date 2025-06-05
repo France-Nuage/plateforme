@@ -6,6 +6,7 @@
 //! ## Basic Usage
 //!
 //! ```
+//! use database::Persistable;
 //! use derive_factory::Factory;
 //!
 //! #[derive(Default, Factory)]
@@ -16,21 +17,25 @@
 //! }
 //!
 //! impl database::Persistable for Missile {
-//!    async fn create(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
-//!        Ok(self)
-//!    }
+//!     type Connection = ();
+//!     type Error = ();
+//!     
+//!     async fn create(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!         Ok(self)
+//!     }
 //!
-//!    async fn update(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
-//!        Ok(self)
-//!    }
+//!     async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!         Ok(self)
+//!     }
 //! }
+//!
 //!
 //! # tokio_test::block_on( async {
 //! let missile = Missile::factory()
 //!     .owner("Wile E. Coyote".to_owned())
 //!     .target("Road Runner".to_owned())
 //!     .max_range(1000)
-//!     .create()
+//!     .create(())
 //!     .await
 //!     .unwrap();
 //! # })
@@ -41,6 +46,7 @@
 //! Use `#[factory(relation = "FactoryType")]` to create dependent objects:
 //!
 //! ```
+//! use database::Persistable;
 //! use derive_factory::Factory;
 //!
 //! #[derive(Default, Factory)]
@@ -50,13 +56,16 @@
 //! }
 //!
 //! impl database::Persistable for Category {
-//!    async fn create(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
-//!        Ok(self)
-//!    }
+//!     type Connection = ();
+//!     type Error = ();
+//!     
+//!     async fn create(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!         Ok(self)
+//!     }
 //!
-//!    async fn update(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
-//!        Ok(self)
-//!    }
+//!     async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!         Ok(self)
+//!     }
 //! }
 //!
 //! #[derive(Default, Factory)]
@@ -67,13 +76,16 @@
 //! }
 //!
 //! impl database::Persistable for Missile {
-//!    async fn create(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
-//!        Ok(self)
-//!    }
+//!     type Connection = ();
+//!     type Error = ();
+//!     
+//!     async fn create(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!         Ok(self)
+//!     }
 //!
-//!    async fn update(self, _pool: sqlx::PgPool) -> Result<Self, sqlx::Error> {
-//!        Ok(self)
-//!    }
+//!     async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!         Ok(self)
+//!     }
 //! }
 //!
 //! # tokio_test::block_on( async {
@@ -84,17 +96,14 @@
 //!             .name("Explosive".to_string())
 //!             .id("cat-001".to_string())
 //!     })
-//!     .create()
+//!     .create(())
 //!     .await
 //!     .unwrap();
 //! # })
 //! ```
-
 extern crate database;
 extern crate proc_macro;
-
 mod relation;
-
 use proc_macro::TokenStream;
 use quote::quote;
 use relation::Relation;
@@ -131,7 +140,6 @@ use syn::{DeriveInput, Field, Token, parse_macro_input, punctuated::Punctuated};
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     let name = &ast.ident;
-
     let factory_name = format!("{}Factory", name);
     let factory_ident = syn::Ident::new(&factory_name, name.span());
 
@@ -153,7 +161,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let relation_creation = generate_relation_creation(relation_fields.iter());
 
     let expanded = quote! {
-        pub struct #factory_ident {
+        pub struct #factory_ident
+        {
             #(#factory_fields,)*
         }
 
@@ -163,7 +172,10 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl #factory_ident where #name: Default + database::Persistable {
+        impl #factory_ident
+        where
+            #name: Default + database::Persistable,
+        {
             pub fn new() -> Self {
                 Self {
                     #(#factory_empty,)*
@@ -173,13 +185,15 @@ pub fn derive(input: TokenStream) -> TokenStream {
             #(#factory_methods)*
             #(#relation_factory_methods)*
 
-            pub async fn create(mut self) -> Result<#name, Box<dyn std::error::Error>> {
+            pub async fn create(mut self, connection: <#name as database::Persistable>::Connection) -> Result<#name, <#name as database::Persistable>::Error>
+            {
                 #(#relation_creation)*
 
                 let model = #name {
                     #(#create_fields,)*
                 };
-                Ok(model)
+
+                model.create(connection).await
             }
         }
     };
@@ -212,16 +226,15 @@ fn extract_relation_fields(fields: &Punctuated<Field, Token![,]>) -> Vec<Relatio
         .filter_map(|field| {
             for attr in &field.attrs {
                 if attr.path().is_ident("factory") {
-                    if let Ok(meta) = attr.parse_args::<syn::Meta>() {
-                        if let syn::Meta::NameValue(nv) = meta {
-                            if nv.path.is_ident("relation") {
-                                if let syn::Expr::Lit(syn::ExprLit {
-                                    lit: syn::Lit::Str(lit_str),
-                                    ..
-                                }) = nv.value
-                                {
-                                    return Some(Relation::new(field, lit_str.value()));
-                                }
+                    // Combine the nested if let statements
+                    if let Ok(syn::Meta::NameValue(nv)) = attr.parse_args::<syn::Meta>() {
+                        if nv.path.is_ident("relation") {
+                            if let syn::Expr::Lit(syn::ExprLit {
+                                lit: syn::Lit::Str(lit_str),
+                                ..
+                            }) = nv.value
+                            {
+                                return Some(Relation::new(field, lit_str.value()));
                             }
                         }
                     }
@@ -246,7 +259,6 @@ fn generate_factory_fields<'a>(
     let relation_factory_fields = relation_fields.map(|relation| {
         let factory_field_name = &relation.factory_field_ident;
         let factory_type_ident = relation.factory_type_ident();
-
         quote! {
             #factory_field_name: std::option::Option<Box<dyn FnOnce(#factory_type_ident) -> #factory_type_ident + Send>>
         }
@@ -299,7 +311,7 @@ fn generate_create_fields(
         let name = &f.ident;
         let ty = &f.ty;
         quote! {
-            #name: self.#name.unwrap_or(#ty::default())
+            #name: self.#name.unwrap_or_else(|| <#ty as Default>::default())
         }
     })
 }
@@ -341,7 +353,7 @@ fn generate_relation_creation<'a>(
             if let Some(factory_fn) = self.#factory_field_name {
                 let factory = #factory_type_ident::new();
                 let factory = factory_fn(factory);
-                let model = factory.create().await?;
+                let model = factory.create(connection.clone()).await?;
                 self.#original_field_name = Some(model.id);
             }
         }

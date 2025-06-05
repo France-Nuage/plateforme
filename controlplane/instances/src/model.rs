@@ -2,20 +2,23 @@
 
 use std::fmt::Display;
 
-use database::{Factory, HasFactory};
-use hypervisors::{Hypervisor, HypervisorFactory};
-use resources::projects::{Project, ProjectFactory};
+use database::Persistable;
+use derive_factory::Factory;
+use hypervisors::HypervisorFactory;
+use resources::projects::ProjectFactory;
 use serde::{Deserialize, Serialize};
-use sqlx::{PgPool, types::chrono};
+use sqlx::types::chrono;
 use uuid::Uuid;
 
-#[derive(Debug, Default, sqlx::FromRow)]
+#[derive(Debug, Default, Factory, sqlx::FromRow)]
 pub struct Instance {
     /// Unique identifier for the instance
     pub id: Uuid,
     /// The hypervisor this instance is attached to
+    #[factory(relation = "HypervisorFactory")]
     pub hypervisor_id: Uuid,
     /// The project this instance belongs to
+    #[factory(relation = "ProjectFactory")]
     pub project_id: Uuid,
     /// ID used by the hypervisor to identify this instance remotely
     pub distant_id: String,
@@ -80,95 +83,17 @@ impl Display for InstanceStatus {
     }
 }
 
-/// The HasFactory trait implementation for the instance model.
-impl HasFactory for Instance {
-    type Factory = InstanceFactory;
+impl Persistable for Instance {
+    type Connection = sqlx::PgPool;
+    type Error = sqlx::Error;
 
-    /// Get a new factory instance for the model.
-    fn factory(pool: PgPool) -> Self::Factory {
-        InstanceFactory {
-            pool,
-            instance: Instance::default(),
-            hypervisor_factory: None,
-            project_factory: None,
-        }
-    }
-}
-
-/// The factory companion for the instance model.
-pub struct InstanceFactory {
-    /// The database connection pool.
-    pool: PgPool,
-
-    /// The model to factorize.
-    instance: Instance,
-
-    /// The hypervisor relation factory.
-    hypervisor_factory: Option<Box<dyn FnOnce(HypervisorFactory) -> HypervisorFactory + Send>>,
-
-    /// The project relation factory.
-    project_factory: Option<Box<dyn FnOnce(ProjectFactory) -> ProjectFactory + Send>>,
-}
-
-/// The Factory trait implementation for the instance factory.
-impl Factory for InstanceFactory {
-    type Model = Instance;
-
-    /// Create a single instance and persist it into the database.
-    async fn create(mut self) -> Result<Self::Model, sqlx::Error> {
-        // build the hypervisor relation if requested
-        if let Some(factorize) = self.hypervisor_factory {
-            let factory = Hypervisor::factory(self.pool.clone());
-            let factory = factorize(factory);
-            let model = factory.create().await?;
-            self.instance.hypervisor_id = model.id;
-        }
-
-        // build the project relation if requested
-        if let Some(factorize) = self.project_factory {
-            let factory = Project::factory(self.pool.clone());
-            let factory = factorize(factory);
-            let model = factory.create().await?;
-            self.instance.project_id = model.id;
-        }
-
-        crate::repository::create(&self.pool, self.instance).await
+    /// Create a new instance record in the database.
+    async fn create(self, pool: Self::Connection) -> Result<Self, Self::Error> {
+        crate::repository::create(&pool, self).await
     }
 
-    /// Add a new state transformation to the instance definition.
-    fn state(mut self, instance: Instance) -> Self {
-        self.instance = instance;
-        self
-    }
-}
-
-/// Custom methods for the instance factory companion.
-impl InstanceFactory {
-    // Define a parent hypervisor relationship for the model.
-    pub fn for_hypervisor(self) -> Self {
-        self.for_hypervisor_with(|factory| factory)
-    }
-
-    /// Define a parent hypervisor relationship for the model with a customized factory.
-    pub fn for_hypervisor_with<F>(mut self, configure: F) -> Self
-    where
-        F: FnOnce(HypervisorFactory) -> HypervisorFactory + Send + 'static,
-    {
-        self.hypervisor_factory = Some(Box::new(configure));
-        self
-    }
-
-    // Define a parent project relationship for the model.
-    pub fn for_project(self) -> Self {
-        self.for_project_with(|factory| factory)
-    }
-
-    /// Define a parent project relationship for the model with a customized factory.
-    pub fn for_project_with<F>(mut self, configure: F) -> Self
-    where
-        F: FnOnce(ProjectFactory) -> ProjectFactory + Send + 'static,
-    {
-        self.project_factory = Some(Box::new(configure));
-        self
+    /// Update an existing instance record in the database.
+    async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+        unimplemented!()
     }
 }

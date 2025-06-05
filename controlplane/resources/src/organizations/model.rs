@@ -1,10 +1,11 @@
-use database::{Factory, HasFactory};
+use database::Persistable;
+use derive_factory::Factory;
 use sqlx::PgPool;
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
 use uuid::Uuid;
 
-#[derive(Debug, Default, FromRow)]
+#[derive(Debug, Default, Factory, FromRow)]
 pub struct Organization {
     /// The organization id
     pub id: Uuid,
@@ -16,40 +17,17 @@ pub struct Organization {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-/// The HasFactory trait implementation for the organization model.
-impl HasFactory for Organization {
-    type Factory = OrganizationFactory;
+impl Persistable for Organization {
+    type Connection = sqlx::PgPool;
+    type Error = sqlx::Error;
 
-    /// Get a new factory instance for the model.
-    fn factory(pool: sqlx::PgPool) -> Self::Factory {
-        OrganizationFactory {
-            pool,
-            organization: Organization::default(),
-        }
-    }
-}
-
-/// The factory companion for the organization model.
-pub struct OrganizationFactory {
-    /// The database connection pool.
-    pool: PgPool,
-
-    /// The model to factorize.
-    organization: Organization,
-}
-
-/// The Factory trait implementation for the organization factory.
-impl Factory for OrganizationFactory {
-    type Model = Organization;
-
-    /// Create a single project and persist it into the database.
-    async fn create(self) -> Result<Self::Model, sqlx::Error> {
-        crate::organizations::repository::create(&self.pool, self.organization).await
+    /// Create a new organization record in the database.
+    async fn create(self, pool: PgPool) -> Result<Self, Self::Error> {
+        crate::organizations::repository::create(&pool, self).await
     }
 
-    /// Add a new state transformation to the project definition.
-    fn state(mut self, organization: Organization) -> Self {
-        self.organization = organization;
-        self
+    /// Update an existing organization record in the database.
+    async fn update(self, _pool: PgPool) -> Result<Self, Self::Error> {
+        unimplemented!()
     }
 }

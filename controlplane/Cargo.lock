@@ -250,8 +250,10 @@ checksum = "1a7964611d71df112cb1730f2ee67324fcf4d0fc6606acbbe9bfe06df124637c"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-link",
 ]
 
@@ -411,6 +413,8 @@ dependencies = [
 name = "derive_factory"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
+ "chrono",
  "database",
  "proc-macro2",
  "quote",
@@ -970,6 +974,7 @@ name = "hypervisors"
 version = "0.1.0"
 dependencies = [
  "database",
+ "derive_factory",
  "prost",
  "sqlx",
  "thiserror",
@@ -1174,6 +1179,7 @@ name = "instances"
 version = "0.1.0"
 dependencies = [
  "database",
+ "derive_factory",
  "futures",
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
@@ -1885,6 +1891,7 @@ name = "resources"
 version = "0.1.0"
 dependencies = [
  "database",
+ "derive_factory",
  "prost",
  "prost-types",
  "sqlx",

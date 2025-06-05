@@ -48,14 +48,12 @@
 //     Ok(())
 // }
 
-use database::{Factory, HasFactory};
 use hypervisor_connector_proxmox::mock::{MockServer, WithClusterResourceList};
-use hypervisors::Hypervisor;
 use instances::{
     Instance,
     v1::{ListInstancesRequest, instances_client::InstancesClient},
 };
-use resources::{DEFAULT_PROJECT_NAME, projects::Project};
+use resources::DEFAULT_PROJECT_NAME;
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -66,23 +64,18 @@ async fn test_the_list_instances_procedure_works(
     let mock = MockServer::new().await.with_cluster_resource_list();
     let mock_url = mock.url();
 
-    Instance::factory(pool.clone())
-        .for_hypervisor_with(|factory| {
-            factory.state(Hypervisor {
-                url: mock_url,
-                ..Default::default()
-            })
+    let _instance = Instance::factory()
+        .for_hypervisor_with(|hypervisor| hypervisor.url(mock_url))
+        .for_project_with(|project| {
+            project
+                .name(DEFAULT_PROJECT_NAME.into())
+                .for_organization_with(|organization| organization)
         })
-        .for_project_with(|factory| {
-            factory
-                .state(Project {
-                    name: String::from(DEFAULT_PROJECT_NAME),
-                    ..Default::default()
-                })
-                .for_organization()
-        })
-        .create()
+        .create(pool.clone())
         .await?;
+
+    let instances = instances::repository::list(&pool).await;
+    println!("should have been created? {:#?}", &instances);
 
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;

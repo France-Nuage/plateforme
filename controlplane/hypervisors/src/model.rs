@@ -1,8 +1,9 @@
-use database::{Factory, HasFactory};
+use database::Persistable;
+use derive_factory::Factory;
 use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
-#[derive(Debug, Default, FromRow)]
+#[derive(Debug, Default, Factory, FromRow)]
 pub struct Hypervisor {
     pub id: Uuid,
     pub url: String,
@@ -10,40 +11,17 @@ pub struct Hypervisor {
     pub storage_name: String,
 }
 
-/// The HasFactory trait implementation for the instance model.
-impl HasFactory for Hypervisor {
-    type Factory = HypervisorFactory;
+impl Persistable for Hypervisor {
+    type Connection = sqlx::PgPool;
+    type Error = sqlx::Error;
 
-    /// Get a new factory instance for the model.
-    fn factory(pool: PgPool) -> Self::Factory {
-        HypervisorFactory {
-            pool,
-            hypervisor: Hypervisor::default(),
-        }
-    }
-}
-
-/// The factory companion for the instance model.
-pub struct HypervisorFactory {
-    /// The database connection pool.
-    pool: PgPool,
-
-    /// The model to factorize.
-    hypervisor: Hypervisor,
-}
-
-/// The Factory trait implementation for the instance factory.
-impl Factory for HypervisorFactory {
-    type Model = Hypervisor;
-
-    /// Create a single instance and persist it into the database.
-    async fn create(self) -> Result<Self::Model, sqlx::Error> {
-        crate::repository::create(&self.pool, self.hypervisor).await
+    /// Create a new hypervisor record in the database.
+    async fn create(self, pool: PgPool) -> Result<Self, Self::Error> {
+        crate::repository::create(&pool, self).await
     }
 
-    /// Add a new state transformation to the instance definition.
-    fn state(mut self, hypervisor: Hypervisor) -> Self {
-        self.hypervisor = hypervisor;
-        self
+    /// Update an existing hypervisor record in the database.
+    async fn update(self, _pool: PgPool) -> Result<Self, Self::Error> {
+        unimplemented!()
     }
 }

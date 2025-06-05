@@ -9,7 +9,7 @@ members = [
   "server",
   "resources",
   "database",
-  "factory",
+  "derive_factory",
 ]
 
 resolver = "3"
