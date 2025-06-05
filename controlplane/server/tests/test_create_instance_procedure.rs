@@ -6,7 +6,7 @@ use hypervisors::Hypervisor;
 use instances::v1::{
     CreateInstanceRequest, CreateInstanceResponse, instances_client::InstancesClient,
 };
-use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
+use resources::{DEFAULT_PROJECT_NAME, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -20,27 +20,19 @@ async fn test_the_create_instance_procedure_works(
         .with_cluster_resource_list()
         .with_task_status_read()
         .with_vm_create();
-    let hypervisor = Hypervisor {
-        url: mock.url(),
-        ..Default::default()
-    };
-    hypervisors::repository::create(&pool, &hypervisor)
-        .await
-        .unwrap();
-    let organization =
-        resources::organizations::repository::create(&pool, &Organization::default())
-            .await
-            .expect("could not create organization");
-    resources::projects::repository::create(
-        &pool,
-        &Project {
-            organization_id: organization.id,
-            name: String::from(DEFAULT_PROJECT_NAME),
-            ..Default::default()
-        },
-    )
-    .await
-    .expect("could not create project");
+    let mock_url = mock.url();
+
+    Hypervisor::factory()
+        .url(mock_url)
+        .create(pool.clone())
+        .await?;
+
+    Project::factory()
+        .name(DEFAULT_PROJECT_NAME.into())
+        .for_organization_with(|organization| organization)
+        .create(pool.clone())
+        .await?;
+
     let config = ServerConfig::new(pool.clone());
     let server = Server::new(config).await?;
     let addr = server.addr;
@@ -66,8 +58,12 @@ async fn test_the_create_instance_procedure_works(
         CreateInstanceResponse {
             instance: Some(instances::v1::Instance {
                 id: instance.id.to_string(),
-                created_at: Some(prost_types::Timestamp::default()),
-                updated_at: Some(prost_types::Timestamp::default()),
+                created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
+                    instance.created_at
+                ))),
+                updated_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
+                    instance.updated_at
+                ))),
                 ..Default::default()
             })
         }

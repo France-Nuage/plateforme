@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+database = { path = "../database" }
+derive_factory = { path = "../derive_factory" }
 futures = "0.3"
 hypervisors = { path = "../hypervisors" }
 hypervisor_connector = { path = "../hypervisor_connector" }

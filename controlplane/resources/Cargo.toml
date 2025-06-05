@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+database = { path = "../database" }
+derive_factory = { path = "../derive_factory" }
 prost = "0.13"
 prost-types = "0.13"
 sqlx = { version = "0.8", features = [

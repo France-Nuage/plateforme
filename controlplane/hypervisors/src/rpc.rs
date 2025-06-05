@@ -4,9 +4,7 @@
 //! handling requests to list and register hypervisors.
 
 use crate::{
-    Problem,
-    model::Hypervisor,
-    repository,
+    HypervisorsService, Problem, repository,
     v1::{
         DetachHypervisorRequest, DetachHypervisorResponse, ListHypervisorsRequest,
         ListHypervisorsResponse, RegisterHypervisorRequest, RegisterHypervisorResponse,
@@ -25,6 +23,9 @@ use uuid::Uuid;
 pub struct HypervisorsRpcService {
     /// Database connection used for hypervisor data persistence.
     pool: sqlx::PgPool,
+
+    /// The hypervisors service.
+    service: HypervisorsService,
 }
 
 #[tonic::async_trait]
@@ -46,9 +47,7 @@ impl Hypervisors for HypervisorsRpcService {
         &self,
         request: Request<RegisterHypervisorRequest>,
     ) -> Result<Response<RegisterHypervisorResponse>, Status> {
-        let hypervisor: Hypervisor = request.into_inner().into();
-
-        repository::create(&self.pool, &hypervisor).await?;
+        let hypervisor = self.service.create(request.into_inner().into()).await?;
 
         Ok(Response::new(RegisterHypervisorResponse {
             hypervisor: Some(hypervisor.into()),
@@ -118,7 +117,10 @@ impl HypervisorsRpcService {
     ///
     /// A new `HypervisorsRpcService` instance
     pub fn new(pool: PgPool) -> Self {
-        Self { pool }
+        Self {
+            service: HypervisorsService::new(pool.clone()),
+            pool,
+        }
     }
 }
 
@@ -169,7 +171,7 @@ mod tests {
     async fn test_detach_hypervisor_works(pool: sqlx::PgPool) {
         // Arrange a service
         let hypervisor = Hypervisor::default();
-        repository::create(&pool, &hypervisor).await.unwrap();
+        let hypervisor = repository::create(&pool, hypervisor).await.unwrap();
         let service = HypervisorsRpcService::new(pool);
 
         // Act the call to the detach_hypervisor procedure

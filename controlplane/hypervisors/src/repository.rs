@@ -12,18 +12,24 @@ pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Hypervisor>, Problem> {
     .map_err(Into::into)
 }
 
-pub async fn create(pool: &sqlx::PgPool, hypervisor: &Hypervisor) -> Result<(), Problem> {
-    sqlx::query!(
-        "INSERT INTO hypervisors (id, url, authorization_token, storage_name) VALUES ($1, $2, $3, $4)",
+pub async fn create(
+    pool: &sqlx::PgPool,
+    hypervisor: Hypervisor,
+) -> Result<Hypervisor, sqlx::Error> {
+    sqlx::query_as!(
+        Hypervisor,
+        r#"
+        INSERT INTO hypervisors (id, url, authorization_token, storage_name)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, url, authorization_token, storage_name
+        "#,
         &hypervisor.id,
         &hypervisor.url,
         &hypervisor.authorization_token,
         &hypervisor.storage_name
     )
-    .execute(pool)
-    .await?;
-
-    Ok(())
+    .fetch_one(pool)
+    .await
 }
 
 pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Hypervisor, Problem> {

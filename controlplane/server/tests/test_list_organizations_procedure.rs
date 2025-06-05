@@ -1,4 +1,7 @@
-use resources::v1::{ListOrganizationsRequest, resources_client::ResourcesClient};
+use resources::{
+    organizations::Organization,
+    v1::{ListOrganizationsRequest, resources_client::ResourcesClient},
+};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -6,11 +9,7 @@ async fn test_the_list_organizations_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
-    resources::organizations::repository::create(
-        &pool,
-        &resources::organizations::Organization::default(),
-    )
-    .await?;
+    Organization::factory().create(pool.clone()).await?;
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;
     let addr = server.addr;

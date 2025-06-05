@@ -1,24 +1,10 @@
-use hypervisor_connector_proxmox::mock::MockServer;
-use hypervisors::{
-    Hypervisor,
-    v1::{RegisterHypervisorRequest, hypervisors_client::HypervisorsClient},
-};
+use hypervisors::v1::{RegisterHypervisorRequest, hypervisors_client::HypervisorsClient};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_register_hypervisor_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // Arrange the grpc server and a client
-    let mock = MockServer::new().await;
-    let hypervisor = Hypervisor {
-        url: mock.url(),
-        ..Default::default()
-    };
-    hypervisors::repository::create(&pool, &hypervisor)
-        .await
-        .unwrap();
-
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;
     let addr = server.addr;

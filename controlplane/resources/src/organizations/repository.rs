@@ -1,4 +1,4 @@
-use crate::organizations::{model::Organization, problem::Problem};
+use crate::organizations::model::Organization;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -11,7 +11,7 @@ use uuid::Uuid;
 /// # Returns
 ///
 /// A vector of all organization records or a Problem if the operation fails
-pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Organization>, Problem> {
+pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Organization>, sqlx::Error> {
     sqlx::query_as!(
         Organization,
         r#"
@@ -22,7 +22,6 @@ pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Organization>, Problem> {
     )
     .fetch_all(pool)
     .await
-    .map_err(|err| Problem::DatabaseError(err.to_string()))
 }
 
 /// Creates a new organization record in the database.
@@ -37,8 +36,8 @@ pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Organization>, Problem> {
 /// The created organization on success or a Problem if the operation fails
 pub async fn create(
     pool: &sqlx::PgPool,
-    organization: &Organization,
-) -> Result<Organization, Problem> {
+    organization: Organization,
+) -> Result<Organization, sqlx::Error> {
     sqlx::query_as!(
         Organization,
         r#"
@@ -53,7 +52,6 @@ pub async fn create(
     )
     .fetch_one(pool)
     .await
-    .map_err(|err| Problem::DatabaseError(err.to_string()))
 }
 
 /// Retrieves a single organization by ID.
@@ -67,7 +65,7 @@ pub async fn create(
 ///
 /// * `Ok(Organization)` - The requested organization
 /// * `Err(Problem)` - If retrieval fails or organization doesn't exist
-pub async fn get(pool: &PgPool, id: Uuid) -> Result<Organization, Problem> {
+pub async fn get(pool: &PgPool, id: Uuid) -> Result<Organization, sqlx::Error> {
     sqlx::query_as!(
         Organization,
         r#"
@@ -79,8 +77,4 @@ pub async fn get(pool: &PgPool, id: Uuid) -> Result<Organization, Problem> {
     )
     .fetch_one(pool)
     .await
-    .map_err(|err| match err {
-        sqlx::Error::RowNotFound => Problem::OrganizationNotFound(id.to_string()),
-        _ => Problem::DatabaseError(err.to_string()),
-    })
 }

@@ -2,17 +2,23 @@
 
 use std::fmt::Display;
 
+use database::Persistable;
+use derive_factory::Factory;
+use hypervisors::HypervisorFactory;
+use resources::projects::ProjectFactory;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono;
 use uuid::Uuid;
 
-#[derive(Debug, Default, sqlx::FromRow)]
+#[derive(Debug, Default, Factory, sqlx::FromRow)]
 pub struct Instance {
     /// Unique identifier for the instance
     pub id: Uuid,
     /// The hypervisor this instance is attached to
+    #[factory(relation = "HypervisorFactory")]
     pub hypervisor_id: Uuid,
     /// The project this instance belongs to
+    #[factory(relation = "ProjectFactory")]
     pub project_id: Uuid,
     /// ID used by the hypervisor to identify this instance remotely
     pub distant_id: String,
@@ -74,5 +80,20 @@ impl Display for InstanceStatus {
                 .expect("could not serialize an InstanceStatus into a string")
                 .as_ref(),
         )
+    }
+}
+
+impl Persistable for Instance {
+    type Connection = sqlx::PgPool;
+    type Error = sqlx::Error;
+
+    /// Create a new instance record in the database.
+    async fn create(self, pool: Self::Connection) -> Result<Self, Self::Error> {
+        crate::repository::create(&pool, self).await
+    }
+
+    /// Update an existing instance record in the database.
+    async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+        unimplemented!()
     }
 }

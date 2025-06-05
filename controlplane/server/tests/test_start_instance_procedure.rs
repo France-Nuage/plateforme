@@ -1,12 +1,10 @@
 use hypervisor_connector_proxmox::mock::{
     MockServer, WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStartMock,
 };
-use hypervisors::Hypervisor;
 use instances::{
     Instance,
     v1::{StartInstanceRequest, instances_client::InstancesClient},
 };
-use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -19,36 +17,14 @@ async fn test_the_start_instance_procedure_works(
         .with_cluster_resource_list()
         .with_task_status_read()
         .with_vm_status_start();
-    let hypervisor = Hypervisor {
-        url: mock.url(),
-        ..Default::default()
-    };
-    hypervisors::repository::create(&pool, &hypervisor)
-        .await
-        .unwrap();
-    let organization =
-        resources::organizations::repository::create(&pool, &Organization::default())
-            .await
-            .expect("could not create organization");
-    let project = resources::projects::repository::create(
-        &pool,
-        &Project {
-            organization_id: organization.id,
-            name: String::from(DEFAULT_PROJECT_NAME),
-            ..Default::default()
-        },
-    )
-    .await
-    .expect("could not create project");
-    let instance = Instance {
-        hypervisor_id: hypervisor.id,
-        project_id: project.id,
-        distant_id: String::from("100"),
-        ..Default::default()
-    };
-    instances::repository::create(&pool, &instance)
-        .await
-        .unwrap();
+    let mock_url = mock.url();
+
+    let instance = Instance::factory()
+        .for_hypervisor_with(|hypervisor| hypervisor.url(mock_url))
+        .for_project_with(|project| project.for_organization_with(|organization| organization))
+        .distant_id("100".into())
+        .create(pool.clone())
+        .await?;
 
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;

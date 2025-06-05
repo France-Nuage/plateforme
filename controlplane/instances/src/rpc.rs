@@ -127,19 +127,19 @@ mod tests {
             url: server.url(),
             ..Default::default()
         };
-        resources::organizations::repository::create(&pool, &Organization::default())
+        resources::organizations::repository::create(&pool, Organization::default())
             .await
             .expect("could not create organization");
         resources::projects::repository::create(
             &pool,
-            &Project {
+            Project {
                 name: String::from(DEFAULT_PROJECT_NAME),
                 ..Default::default()
             },
         )
         .await
         .expect("could not create project");
-        hypervisors::repository::create(&pool, &hypervisor)
+        hypervisors::repository::create(&pool, hypervisor)
             .await
             .expect("could not create hypervisor");
         let service = InstancesRpcService::new(pool);
@@ -165,17 +165,17 @@ mod tests {
             .with_cluster_resource_list()
             .with_vm_clone()
             .with_task_status_read();
-        resources::organizations::repository::create(&pool, &Organization::default())
+        resources::organizations::repository::create(&pool, Organization::default())
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(&pool, &Project::default())
+        resources::projects::repository::create(&pool, Project::default())
             .await
             .expect("could not create project");
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
         };
-        hypervisors::repository::create(&pool, &hypervisor)
+        let hypervisor = hypervisors::repository::create(&pool, hypervisor)
             .await
             .expect("could not create hypervisor");
 
@@ -184,7 +184,7 @@ mod tests {
             distant_id: String::from("100"),
             ..Default::default()
         };
-        crate::repository::create(&pool, &instance)
+        let instance = crate::repository::create(&pool, instance)
             .await
             .expect("could not create instance");
         let service = InstancesRpcService::new(pool);
@@ -207,17 +207,17 @@ mod tests {
             .with_cluster_resource_list()
             .with_vm_delete()
             .with_task_status_read();
-        resources::organizations::repository::create(&pool, &Organization::default())
+        resources::organizations::repository::create(&pool, Organization::default())
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(&pool, &Project::default())
+        resources::projects::repository::create(&pool, Project::default())
             .await
             .expect("could not create project");
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
         };
-        hypervisors::repository::create(&pool, &hypervisor)
+        let hypervisor = hypervisors::repository::create(&pool, hypervisor)
             .await
             .expect("could not create hypervisor");
 
@@ -226,7 +226,7 @@ mod tests {
             distant_id: String::from("100"),
             ..Default::default()
         };
-        crate::repository::create(&pool, &instance)
+        let instance = crate::repository::create(&pool, instance)
             .await
             .expect("could not create instance");
         let service = InstancesRpcService::new(pool);
@@ -249,17 +249,17 @@ mod tests {
             .with_cluster_resource_list()
             .with_task_status_read()
             .with_vm_status_start();
-        resources::organizations::repository::create(&pool, &Organization::default())
+        resources::organizations::repository::create(&pool, Organization::default())
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(&pool, &Project::default())
+        resources::projects::repository::create(&pool, Project::default())
             .await
             .expect("could not create project");
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
         };
-        hypervisors::repository::create(&pool, &hypervisor)
+        let hypervisor = hypervisors::repository::create(&pool, hypervisor)
             .await
             .expect("could not create hypervisor");
 
@@ -268,7 +268,7 @@ mod tests {
             distant_id: String::from("100"),
             ..Default::default()
         };
-        crate::repository::create(&pool, &instance)
+        let instance = crate::repository::create(&pool, instance)
             .await
             .expect("could not create instance");
         let service = InstancesRpcService::new(pool);
@@ -291,17 +291,17 @@ mod tests {
             .with_cluster_resource_list()
             .with_task_status_read()
             .with_vm_status_stop();
-        resources::organizations::repository::create(&pool, &Organization::default())
+        resources::organizations::repository::create(&pool, Organization::default())
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(&pool, &Project::default())
+        resources::projects::repository::create(&pool, Project::default())
             .await
             .expect("could not create project");
         let hypervisor = Hypervisor {
             url: server.url(),
             ..Default::default()
         };
-        hypervisors::repository::create(&pool, &hypervisor)
+        let hypervisor = hypervisors::repository::create(&pool, hypervisor)
             .await
             .expect("could not create hypervisor");
 
@@ -310,7 +310,7 @@ mod tests {
             distant_id: String::from("100"),
             ..Default::default()
         };
-        crate::repository::create(&pool, &instance)
+        let instance = crate::repository::create(&pool, instance)
             .await
             .expect("could not create instance");
         let service = InstancesRpcService::new(pool);

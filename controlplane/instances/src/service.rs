@@ -95,9 +95,10 @@ impl InstancesService {
             distant_id: new_id,
             ..existing
         };
-        repository::create(&self.pool, &instance).await?;
 
-        Ok(instance)
+        repository::create(&self.pool, instance)
+            .await
+            .map_err(Into::into)
     }
 
     pub async fn create(&self, options: InstanceConfig) -> Result<Instance, Problem> {
@@ -119,9 +120,10 @@ impl InstancesService {
             distant_id: result,
             ..Default::default()
         };
-        repository::create(&self.pool, &instance).await?;
 
-        Ok(instance)
+        repository::create(&self.pool, instance)
+            .await
+            .map_err(Into::into)
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<(), Problem> {

@@ -1,6 +1,6 @@
 mod model;
-mod problem;
 pub mod repository;
+mod service;
 
-pub use model::Organization;
-pub use problem::Problem;
+pub use model::{Organization, OrganizationFactory};
+pub use service::OrganizationService;

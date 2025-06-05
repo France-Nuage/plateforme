@@ -6,7 +6,10 @@ members = [
   "hypervisor_connector_proxmox",
   "hypervisor_connector_resolver",
   "instances",
-  "server"
-, "resources"]
+  "server",
+  "resources",
+  "database",
+  "derive_factory",
+]
 
 resolver = "3"
