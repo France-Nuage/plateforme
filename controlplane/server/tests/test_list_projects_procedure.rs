@@ -1,4 +1,7 @@
-use resources::v1::{ListProjectsRequest, resources_client::ResourcesClient};
+use resources::{
+    projects::Project,
+    v1::{ListProjectsRequest, resources_client::ResourcesClient},
+};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -6,12 +9,11 @@ async fn test_the_list_projects_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the test
-    resources::organizations::repository::create(
-        &pool,
-        resources::organizations::Organization::default(),
-    )
-    .await?;
-    resources::projects::repository::create(&pool, resources::projects::Project::default()).await?;
+    Project::factory()
+        .for_organization_with(|organization| organization)
+        .create(pool.clone())
+        .await?;
+
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;
     let addr = server.addr;

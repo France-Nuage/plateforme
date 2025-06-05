@@ -64,7 +64,7 @@ async fn test_the_list_instances_procedure_works(
     let mock = MockServer::new().await.with_cluster_resource_list();
     let mock_url = mock.url();
 
-    let _instance = Instance::factory()
+    Instance::factory()
         .for_hypervisor_with(|hypervisor| hypervisor.url(mock_url))
         .for_project_with(|project| {
             project
@@ -73,9 +73,6 @@ async fn test_the_list_instances_procedure_works(
         })
         .create(pool.clone())
         .await?;
-
-    let instances = instances::repository::list(&pool).await;
-    println!("should have been created? {:#?}", &instances);
 
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;

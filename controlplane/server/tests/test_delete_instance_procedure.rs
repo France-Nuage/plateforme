@@ -1,16 +1,14 @@
 use hypervisor_connector_proxmox::mock::{
     MockServer, WithClusterResourceList, WithTaskStatusReadMock, WithVMDeleteMock,
 };
-use hypervisors::Hypervisor;
 use instances::{
     Instance,
     v1::{DeleteInstanceRequest, instances_client::InstancesClient},
 };
-use resources::{organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_the_clone_instance_procedure_works(
+async fn test_the_delete_instance_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
@@ -19,37 +17,16 @@ async fn test_the_clone_instance_procedure_works(
         .with_cluster_resource_list()
         .with_task_status_read()
         .with_vm_delete();
+    let mock_url = mock.url();
 
-    let hypervisor = Hypervisor {
-        url: mock.url(),
-        ..Default::default()
-    };
-    let hypervisor = hypervisors::repository::create(&pool, hypervisor)
-        .await
-        .unwrap();
-    let organization = resources::organizations::repository::create(&pool, Organization::default())
-        .await
-        .expect("could not create organization");
-    let project = resources::projects::repository::create(
-        &pool,
-        Project {
-            organization_id: organization.id,
-            ..Default::default()
-        },
-    )
-    .await
-    .expect("could not create project");
-    let instance = Instance {
-        hypervisor_id: hypervisor.id,
-        project_id: project.id,
-        distant_id: String::from("100"),
-        ..Default::default()
-    };
-    let instance = instances::repository::create(&pool, instance)
-        .await
-        .unwrap();
+    let instance = Instance::factory()
+        .distant_id("100".into())
+        .for_hypervisor_with(|hypervisor| hypervisor.url(mock_url))
+        .for_project_with(|project| project.for_organization_with(|organization| organization))
+        .create(pool.clone())
+        .await?;
 
-    let config = ServerConfig::new(pool);
+    let config = ServerConfig::new(pool.clone());
     let server = Server::new(config).await?;
     let addr = server.addr;
     let shutdown_tx = server.serve_with_shutdown().await?;
@@ -61,6 +38,8 @@ async fn test_the_clone_instance_procedure_works(
             id: instance.id.to_string(),
         })
         .await;
+
+    println!("instance: {:#?}", &instance);
 
     // Assert the result
     assert!(response.is_ok());
