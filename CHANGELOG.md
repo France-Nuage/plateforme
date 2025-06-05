@@ -1,3 +1,12 @@
+# [1.9.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.8.0...v1.9.0) (2025-06-05)
+
+
+### Features
+
+* add a factory macro crate ([a183ea1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a183ea115fee7416a60a8554b7b058c6ffdc7a20))
+* add support for persistance with sqlx in factories ([c9ba137](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/c9ba137e90a75a539543bb9bd6e9a54da0a5de8c))
+* make factories agnostic of the persistence executor ([3301003](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3301003eed44116c77b7b91307e8b203fc5d7882))
+
 # [1.8.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.7.0...v1.8.0) (2025-06-01)
 
 
