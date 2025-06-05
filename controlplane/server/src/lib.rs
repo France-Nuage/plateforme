@@ -7,14 +7,29 @@ use sqlx::PgPool;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
 use tokio_stream::wrappers::TcpListenerStream;
-use tonic::transport::Server as TonicServer;
+use tonic::transport::{Server as TonicServer, server::Router};
 use tower_http::{
-    classify::{GrpcErrorsAsFailures, SharedClassifier},
     cors::{Any, CorsLayer},
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tower_layer::{Identity, Stack};
 use tracing::Level;
+
+// Type alias for the complex router type
+type ServerRouter = Router<
+    Stack<
+        CorsLayer,
+        Stack<
+            TraceLayer<
+                tower_http::classify::SharedClassifier<tower_http::classify::GrpcErrorsAsFailures>,
+                DefaultMakeSpan,
+                DefaultOnRequest,
+                DefaultOnResponse,
+            >,
+            Identity,
+        >,
+    >,
+>;
 
 /// Provide a gRPC tonic server.
 ///
@@ -23,20 +38,7 @@ use tracing::Level;
 /// crate.
 pub struct Server {
     pub addr: SocketAddr,
-    pub router: tonic::transport::server::Router<
-        Stack<
-            tower_http::cors::CorsLayer,
-            Stack<
-                TraceLayer<
-                    SharedClassifier<GrpcErrorsAsFailures>,
-                    DefaultMakeSpan,
-                    DefaultOnRequest,
-                    DefaultOnResponse,
-                >,
-                Identity,
-            >,
-        >,
-    >,
+    pub router: ServerRouter,
 }
 
 impl Server {
