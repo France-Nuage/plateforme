@@ -42,9 +42,12 @@ impl Relation {
     }
 
     /// Get the factory type as a syn::Ident.
-    pub fn factory_type_ident(&self) -> syn::Ident {
-        syn::parse_str(&self.factory_type).unwrap_or_else(|_| {
-            syn::Ident::new("InvalidFactoryType", proc_macro2::Span::call_site())
+    pub fn factory_type_ident(&self) -> syn::Result<syn::Ident> {
+        syn::parse_str(&self.factory_type).map_err(|e| {
+            syn::Error::new(
+                proc_macro2::Span::call_site(),
+                format!("Invalid factory type '{}': {}", self.factory_type, e),
+            )
         })
     }
 }

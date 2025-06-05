@@ -258,9 +258,11 @@ fn generate_factory_fields<'a>(
 
     let relation_factory_fields = relation_fields.map(|relation| {
         let factory_field_name = &relation.factory_field_ident;
-        let factory_type_ident = relation.factory_type_ident();
-        quote! {
-            #factory_field_name: std::option::Option<Box<dyn FnOnce(#factory_type_ident) -> #factory_type_ident + Send>>
+        match relation.factory_type_ident() {
+            Ok(factory_type_ident) => quote! {
+                #factory_field_name: std::option::Option<Box<dyn FnOnce(#factory_type_ident) -> #factory_type_ident + Send>>
+            },
+            Err(error) => error.to_compile_error(),
         }
     });
 
@@ -322,20 +324,23 @@ fn generate_relation_factory_methods<'a>(
 ) -> impl Iterator<Item = proc_macro2::TokenStream> + 'a {
     relations.map(|relation| {
         let factory_field_name = &relation.factory_field_ident;
-        let factory_type_ident = relation.factory_type_ident();
-        let method_name = syn::Ident::new(
-            &format!("for_{}_with", relation.relation_name),
-            proc_macro2::Span::call_site(),
-        );
-
-        quote! {
-            pub fn #method_name<F>(mut self, configure: F) -> Self
-            where
-                F: FnOnce(#factory_type_ident) -> #factory_type_ident + Send + 'static,
-            {
-                self.#factory_field_name = Some(Box::new(configure));
-                self
+        match relation.factory_type_ident() {
+            Ok(factory_type_ident) => {
+                let method_name = syn::Ident::new(
+                    &format!("for_{}_with", relation.relation_name),
+                    proc_macro2::Span::call_site(),
+                );
+                quote! {
+                    pub fn #method_name<F>(mut self, configure: F) -> Self
+                    where
+                        F: FnOnce(#factory_type_ident) -> #factory_type_ident + Send + 'static,
+                    {
+                        self.#factory_field_name = Some(Box::new(configure));
+                        self
+                    }
+                }
             }
+            Err(error) => error.to_compile_error(),
         }
     })
 }
@@ -346,16 +351,19 @@ fn generate_relation_creation<'a>(
 ) -> impl Iterator<Item = proc_macro2::TokenStream> + 'a {
     relations.map(|relation| {
         let factory_field_name = &relation.factory_field_ident;
-        let factory_type_ident = &relation.factory_type_ident();
-        let original_field_name = &relation.field.ident;
-
-        quote! {
-            if let Some(factory_fn) = self.#factory_field_name {
-                let factory = #factory_type_ident::new();
-                let factory = factory_fn(factory);
-                let model = factory.create(connection.clone()).await?;
-                self.#original_field_name = Some(model.id);
+        match relation.factory_type_ident() {
+            Ok(factory_type_ident) => {
+                let original_field_name = &relation.field.ident;
+                quote! {
+                    if let Some(factory_fn) = self.#factory_field_name {
+                        let factory = #factory_type_ident::new();
+                        let factory = factory_fn(factory);
+                        let model = factory.create(connection.clone()).await?;
+                        self.#original_field_name = Some(model.id);
+                    }
+                }
             }
+            Err(error) => error.to_compile_error(),
         }
     })
 }

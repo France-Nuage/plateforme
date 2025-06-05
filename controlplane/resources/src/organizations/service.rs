@@ -7,14 +7,14 @@ pub struct OrganizationService {
 }
 
 impl OrganizationService {
-    /// List all projects.
+    /// List all organizations.
     pub async fn list(&self) -> Result<Vec<Organization>, Problem> {
         crate::organizations::repository::list(&self.pool)
             .await
             .map_err(Into::into)
     }
 
-    /// Create a new project.
+    /// Create a new organization.
     pub async fn create(&self, organization: Organization) -> Result<Organization, Problem> {
         crate::organizations::repository::create(&self.pool, organization)
             .await

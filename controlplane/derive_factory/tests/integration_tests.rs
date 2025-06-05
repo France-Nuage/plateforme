@@ -70,24 +70,24 @@ async fn test_a_struct_can_be_factorized() {
     );
 }
 
-// #[tokio::test]
-// async fn test_a_struct_can_be_factorized_with_a_relation() {
-//     let missile = Missile::factory::<()>()
-//         .for_category_with(|category| category.name("Weaponry".into()))
-//         .owner("Wile E. Coyote".to_string())
-//         .target("Road Runner".to_owned())
-//         .create(())
-//         .await
-//         .expect("Should create successfully");
-//
-//     assert_eq!(
-//         missile,
-//         Missile {
-//             category_id: String::default(),
-//             max_range: u32::default(),
-//             owner: "Wile E. Coyote".to_owned(),
-//             target: "Road Runner".to_owned(),
-//             created_at: chrono::DateTime::default()
-//         }
-//     );
-// }
+#[tokio::test]
+async fn test_a_struct_can_be_factorized_with_a_relation() {
+    let missile = Missile::factory()
+        .for_category_with(|category| category.name("Weaponry".into()))
+        .owner("Wile E. Coyote".to_string())
+        .target("Road Runner".to_owned())
+        .create(())
+        .await
+        .expect("Should create successfully");
+
+    assert_eq!(
+        missile,
+        Missile {
+            category_id: String::default(),
+            max_range: u32::default(),
+            owner: "Wile E. Coyote".to_owned(),
+            target: "Road Runner".to_owned(),
+            created_at: chrono::DateTime::default()
+        }
+    );
+}
