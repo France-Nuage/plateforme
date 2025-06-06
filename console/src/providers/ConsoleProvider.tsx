@@ -66,6 +66,10 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
       (state) => state.hypervisors.hypervisors,
     );
     const instances = useAppSelector((state) => state.instances.instances);
+    const organizations = useAppSelector(
+      (state) => state.resources.organizations,
+    );
+    const projects = useAppSelector((state) => state.resources.projects);
     const user = useAppSelector((state) => state.authentication.user);
 
     // Expose actions to the plasmic app
@@ -86,7 +90,14 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
     return (
       <DataProvider
         name="France Nuage"
-        data={{ application, hypervisors, instances, user }}
+        data={{
+          application,
+          hypervisors,
+          instances,
+          organizations,
+          projects,
+          user,
+        }}
       >
         {children}
       </DataProvider>
