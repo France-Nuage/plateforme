@@ -1,3 +1,10 @@
+# [1.10.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.9.0...v1.10.0) (2025-06-06)
+
+
+### Features
+
+* expose resources to plasmic ([25661d0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/25661d034dc38082abb6785d1320f91951a7cea7))
+
 # [1.9.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.8.0...v1.9.0) (2025-06-05)
 
 
