@@ -195,8 +195,8 @@ services:
     ports:
       - ${DIRECTUS_PORT}:8055
     volumes:
-      - ./uploads:/cms/directus/uploads
-      - ./extensions:/cms/directus/extensions
+      - ./cms/directus/uploads:/uploads
+      - .cms/directus/extensions:/extensions
     depends_on:
       database-cms-directus:
         condition: service_healthy
@@ -263,7 +263,7 @@ services:
     image: postgis/postgis:16-master
     platform: linux/amd64
     volumes:
-      - ./data/database:/var/lib/postgresql/data
+      - ./cms/directus/data/database:/var/lib/postgresql/data
     env_file: "/cms/directus/.env"
     environment:
       POSTGRES_USER: ${DB_USER}
