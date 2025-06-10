@@ -4,7 +4,7 @@ module.exports = {
     () => "cargo clippy --fix --allow-dirty --manifest-path=controlplane/Cargo.toml"
   ],
   "console/**/*": [
-    "cd console && npx prettier --write",
-    "cd console && npm run lint",
+    () => 'docker compose run --no-deps -T console npx prettier --write .',
+    () => "docker compose run --no-deps -T console npm run lint -- --fix"
   ]
 };
