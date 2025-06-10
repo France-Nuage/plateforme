@@ -1,3 +1,10 @@
+## [1.10.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.10.0...v1.10.1) (2025-06-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @plasmicpkgs/plasmic-basic-components to ^0.0.246 ([d5047b8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d5047b8b8001609d0b80b2abe393acda96057b17))
+
 # [1.10.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.9.0...v1.10.0) (2025-06-06)
 
 
