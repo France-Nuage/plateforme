@@ -53,7 +53,7 @@ use instances::{
     Instance,
     v1::{ListInstancesRequest, instances_client::InstancesClient},
 };
-use resources::DEFAULT_PROJECT_NAME;
+use resources::{DEFAULT_PROJECT_NAME, organizations::Organization};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -64,12 +64,15 @@ async fn test_the_list_instances_procedure_works(
     let mock = MockServer::new().await.with_cluster_resource_list();
     let mock_url = mock.url();
 
+    let organization = Organization::factory().create(pool.clone()).await?;
     Instance::factory()
-        .for_hypervisor_with(|hypervisor| hypervisor.url(mock_url))
-        .for_project_with(|project| {
+        .for_hypervisor_with(move |hypervisor| {
+            hypervisor.organization_id(organization.id).url(mock_url)
+        })
+        .for_project_with(move |project| {
             project
                 .name(DEFAULT_PROJECT_NAME.into())
-                .for_organization_with(|organization| organization)
+                .organization_id(organization.id)
         })
         .create(pool.clone())
         .await?;

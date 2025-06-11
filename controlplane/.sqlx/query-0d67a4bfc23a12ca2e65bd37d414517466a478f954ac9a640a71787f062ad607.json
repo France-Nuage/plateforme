@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, url, authorization_token, storage_name FROM hypervisors",
+  "query": "SELECT id, organization_id, url, authorization_token, storage_name FROM hypervisors WHERE hypervisors.id = $1",
   "describe": {
     "columns": [
       {
@@ -10,29 +10,37 @@
       },
       {
         "ordinal": 1,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
         "name": "url",
         "type_info": "Text"
       },
       {
-        "ordinal": 2,
+        "ordinal": 3,
         "name": "authorization_token",
         "type_info": "Text"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "storage_name",
         "type_info": "Text"
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid"
+      ]
     },
     "nullable": [
+      false,
       false,
       false,
       false,
       false
     ]
   },
-  "hash": "833539f6834734254d6a198d099fb9e067e6d22a9a776d55fd504302854cdb08"
+  "hash": "0d67a4bfc23a12ca2e65bd37d414517466a478f954ac9a640a71787f062ad607"
 }

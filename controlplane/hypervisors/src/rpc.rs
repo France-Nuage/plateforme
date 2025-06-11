@@ -47,7 +47,10 @@ impl Hypervisors for HypervisorsRpcService {
         &self,
         request: Request<RegisterHypervisorRequest>,
     ) -> Result<Response<RegisterHypervisorResponse>, Status> {
-        let hypervisor = self.service.create(request.into_inner().into()).await?;
+        let hypervisor = self
+            .service
+            .create(request.into_inner().try_into()?)
+            .await?;
 
         Ok(Response::new(RegisterHypervisorResponse {
             hypervisor: Some(hypervisor.into()),
@@ -127,12 +130,13 @@ impl HypervisorsRpcService {
 #[cfg(test)]
 mod tests {
     use crate::{
-        Hypervisor, repository,
+        Hypervisor,
         v1::{
             DetachHypervisorRequest, ListHypervisorsRequest, RegisterHypervisorRequest,
             hypervisors_server::Hypervisors,
         },
     };
+    use resources::organizations::Organization;
     use tonic::Request;
 
     use super::HypervisorsRpcService;
@@ -140,11 +144,15 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_register_hypervisor_works(pool: sqlx::PgPool) {
         // Arrange a service
+        let organization = Organization::factory().create(pool.clone()).await.unwrap();
         let service = HypervisorsRpcService::new(pool);
 
         // Act the call to the register_hypervisor procedure
         let result = service
-            .register_hypervisor(Request::new(RegisterHypervisorRequest::default()))
+            .register_hypervisor(Request::new(RegisterHypervisorRequest {
+                organization_id: organization.id.to_string(),
+                ..Default::default()
+            }))
             .await;
 
         // Assert the procedure result
@@ -170,8 +178,11 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_detach_hypervisor_works(pool: sqlx::PgPool) {
         // Arrange a service
-        let hypervisor = Hypervisor::default();
-        let hypervisor = repository::create(&pool, hypervisor).await.unwrap();
+        let hypervisor = Hypervisor::factory()
+            .for_organization_with(|organization| organization)
+            .create(pool.clone())
+            .await
+            .unwrap();
         let service = HypervisorsRpcService::new(pool);
 
         // Act the call to the detach_hypervisor procedure

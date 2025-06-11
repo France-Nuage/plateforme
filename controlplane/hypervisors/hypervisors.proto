@@ -36,6 +36,9 @@ message RegisterHypervisorRequest {
 
     // URL endpoint of the hypervisor API
     string url = 3;
+
+    // Id of the organization this hypervisor belongs to
+    string organization_id = 4;
 }
 
 // RegisterHypervisorResponse contains the result of a register hypervisor operation.
@@ -63,4 +66,7 @@ message Hypervisor {
 
     // URL endpoint of the hypervisor API
     string url = 3;
+
+    // Id of the organization the hypervisor belongs to
+    string organization_id = 4;
 }
