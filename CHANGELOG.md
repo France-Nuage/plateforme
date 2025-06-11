@@ -1,3 +1,10 @@
+# [1.11.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.10.1...v1.11.0) (2025-06-11)
+
+
+### Features
+
+* add organization relation to hypervisor model ([00d95b7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/00d95b7c8ef7a33a37088d5c6dc26901c4e716b6))
+
 ## [1.10.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.10.0...v1.10.1) (2025-06-10)
 
 
