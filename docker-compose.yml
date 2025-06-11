@@ -193,7 +193,7 @@ services:
   cms-directus:
     image: directus/directus:11.7.2
     ports:
-      - ${DIRECTUS_PORT}:8055
+      - ${DIRECTUS_PORT:-8055}:8055
     volumes:
       - ./cms/directus/uploads:/uploads
       - .cms/directus/extensions:/extensions
