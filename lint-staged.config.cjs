@@ -4,8 +4,8 @@ module.exports = {
     () => "cargo clippy --fix --allow-dirty --manifest-path=controlplane/Cargo.toml"
   ],
   "controlplane/migrations/*.sql": [
-    () => "docker compose run controlplane sqlx migrate run",
-    () => "docker compose run controlplane cargo sqlx prepare --workspace"
+    () => "docker compose run -T controlplane sqlx migrate run",
+    () => "docker compose run -T controlplane cargo sqlx prepare --workspace"
   ],
   "console/**/*": [
     () => 'docker compose run --no-deps -T console npx prettier --write .',
