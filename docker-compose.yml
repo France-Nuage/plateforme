@@ -204,49 +204,49 @@ services:
         condition: service_healthy
     env_file: "/cms/directus/.env"
     environment:
-      SECRET: ${DIRECTUS_SECRET}
+      SECRET: ${DIRECTUS_SECRET:-6116487b-cda1-52c2-b5b5-c8022c45e263}
 
       DB_CLIENT: "pg"
       DB_HOST: "database"
-      DB_PORT: "5432"
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: "5433"
+      DB_DATABASE: postgres
+      DB_USER: postgres
+      DB_PASSWORD: postgres
 
-      CACHE_ENABLED: ${CACHE_ENABLED}
-      CACHE_AUTO_PURGE: ${CACHE_AUTO_PURGE}
+      CACHE_ENABLED: ${CACHE_ENABLED:-true}
+      CACHE_AUTO_PURGE: ${CACHE_AUTO_PURGE:-true}
       CACHE_STORE: "redis"
       REDIS: "redis://cache:6379"
 
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-d1r3ctu5}
 
-      WEBSOCKETS_ENABLED: ${WEBSOCKETS_ENABLED}
+      WEBSOCKETS_ENABLED: ${WEBSOCKETS_ENABLED:-true}
 
-      PUBLIC_URL: ${PUBLIC_URL}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8055}
 
-      CORS_ENABLED: ${CORS_ENABLED}
-      CORS_ORIGIN: ${CORS_ORIGIN}
+      CORS_ENABLED: ${CORS_ENABLED:-true}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
 
-      REFRESH_TOKEN_COOKIE_SECURE: ${REFRESH_TOKEN_COOKIE_SECURE}
-      REFRESH_TOKEN_COOKIE_SAME_SITE: ${REFRESH_TOKEN_COOKIE_SAME_SITE}
-      REFRESH_TOKEN_DOMAIN: ${REFRESH_TOKEN_COOKIE_DOMAIN}
+      REFRESH_TOKEN_COOKIE_SECURE: ${REFRESH_TOKEN_COOKIE_SECURE:-false}
+      REFRESH_TOKEN_COOKIE_SAME_SITE: ${REFRESH_TOKEN_COOKIE_SAME_SITE:-lax}
+      REFRESH_TOKEN_DOMAIN: ${REFRESH_TOKEN_COOKIE_DOMAIN:-localhost}
 
-      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE}
-      SESSION_COOKIE_SAME_SITE: ${SESSION_COOKIE_SAME_SITE}
-      SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      SESSION_COOKIE_SAME_SITE: ${SESSION_COOKIE_SAME_SITE:-lax}
+      SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN:-localhost}
 
-      EXTENSIONS_PATH: ${EXTENSIONS_PATH}
-      EXTENSIONS_AUTO_RELOAD: ${EXTENSIONS_AUTO_RELOAD}
+      EXTENSIONS_PATH: ${EXTENSIONS_PATH:-/extensions}
+      EXTENSIONS_AUTO_RELOAD: ${EXTENSIONS_AUTO_RELOAD:-true}
 
-      CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC: ${CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC}
+      CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC: ${CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC:-http://localhost:3000,http://localhost:4321,http://localhost:5173,https://*.youtube.com,https://*.vimeo.com,https://*.wistia.net,https://*.loom.com}
 
-      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT}
-      EMAIL_FROM: ${EMAIL_FROM}
-      EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST}
-      EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT}
-      EMAIL_SMTP_USER: ${EMAIL_SMTP_USER}
-      EMAIL_SMTP_PASSWORD: ${EMAIL_SMTP_PASSWORD}
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT:-smtp}
+      EMAIL_FROM: ${EMAIL_FROM:-"Directus <no-reply@localhost>"}
+      EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST:-smtp.example.com}
+      EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT:-587}
+      EMAIL_SMTP_USER: ${EMAIL_SMTP_USER:-no-reply@localhost}
+      EMAIL_SMTP_PASSWORD: ${EMAIL_SMTP_PASSWORD:-password}
 
 
   cache-cms-directus:
@@ -266,11 +266,13 @@ services:
       - ./cms/directus/data/database:/var/lib/postgresql/data
     env_file: "/cms/directus/.env"
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_DATABASE}", "-h", "localhost" ]
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-d", "postgres", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
