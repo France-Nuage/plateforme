@@ -5,6 +5,7 @@ use instances::{
     Instance,
     v1::{CloneInstanceRequest, instances_client::InstancesClient},
 };
+use resources::organizations::Organization;
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -20,10 +21,14 @@ async fn test_the_clone_instance_procedure_works(
         .with_task_status_read();
     let mock_url = mock.url();
 
+    let organization = Organization::factory().create(pool.clone()).await?;
+
     let instance = Instance::factory()
         .distant_id("100".into())
-        .for_hypervisor_with(|hypervisor| hypervisor.url(mock_url))
-        .for_project_with(|project| project.for_organization_with(|organization| organization))
+        .for_hypervisor_with(move |hypervisor| {
+            hypervisor.url(mock_url).organization_id(organization.id)
+        })
+        .for_project_with(move |project| project.organization_id(organization.id))
         .create(pool.clone())
         .await?;
 

@@ -6,7 +6,7 @@ use hypervisors::Hypervisor;
 use instances::v1::{
     CreateInstanceRequest, CreateInstanceResponse, instances_client::InstancesClient,
 };
-use resources::{DEFAULT_PROJECT_NAME, projects::Project};
+use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -22,14 +22,17 @@ async fn test_the_create_instance_procedure_works(
         .with_vm_create();
     let mock_url = mock.url();
 
+    let organization = Organization::factory().create(pool.clone()).await?;
+
     Hypervisor::factory()
         .url(mock_url)
+        .organization_id(organization.id)
         .create(pool.clone())
         .await?;
 
     Project::factory()
         .name(DEFAULT_PROJECT_NAME.into())
-        .for_organization_with(|organization| organization)
+        .organization_id(organization.id)
         .create(pool.clone())
         .await?;
 

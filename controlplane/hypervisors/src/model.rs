@@ -1,11 +1,14 @@
 use database::Persistable;
 use derive_factory::Factory;
+use resources::organizations::OrganizationFactory;
 use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
 #[derive(Debug, Default, Factory, FromRow)]
 pub struct Hypervisor {
     pub id: Uuid,
+    #[factory(relation = "OrganizationFactory")]
+    pub organization_id: Uuid,
     pub url: String,
     pub authorization_token: String,
     pub storage_name: String,

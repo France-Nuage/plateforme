@@ -5,6 +5,7 @@ use instances::{
     Instance,
     v1::{StartInstanceRequest, instances_client::InstancesClient},
 };
+use resources::organizations::Organization;
 use server::{Server, ServerConfig};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -19,9 +20,12 @@ async fn test_the_start_instance_procedure_works(
         .with_vm_status_start();
     let mock_url = mock.url();
 
+    let organization = Organization::factory().create(pool.clone()).await?;
     let instance = Instance::factory()
-        .for_hypervisor_with(|hypervisor| hypervisor.url(mock_url))
-        .for_project_with(|project| project.for_organization_with(|organization| organization))
+        .for_hypervisor_with(move |hypervisor| {
+            hypervisor.organization_id(organization.id).url(mock_url)
+        })
+        .for_project_with(move |project| project.organization_id(organization.id))
         .distant_id("100".into())
         .create(pool.clone())
         .await?;
