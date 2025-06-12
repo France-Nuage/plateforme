@@ -140,6 +140,7 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:${CI_COMMIT_REF_SLUG:-latest}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:master
       context: controlplane
+      dockerfile: Dockerfile.synchronizer
       target: ${TARGET:-development}
     depends_on:
       postgres:

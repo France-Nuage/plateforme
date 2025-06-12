@@ -15,7 +15,7 @@ pub struct InstancesService {
 
 impl InstancesService {
     pub async fn list(&self) -> Result<Vec<Instance>, Problem> {
-        self.sync().await
+        repository::list(&self.pool).await.map_err(Into::into)
     }
 
     pub async fn sync(&self) -> Result<Vec<Instance>, Problem> {

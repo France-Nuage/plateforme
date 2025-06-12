@@ -2,21 +2,38 @@
 FROM rust:1.86-alpine AS base
 RUN apk add --no-cache musl-dev openssl-dev openssl-libs-static protobuf-dev protoc zlib-dev zlib-static libxml2-utils
 RUN cargo install sqlx-cli
+RUN cargo install grcov --version 0.8.20
+RUN rustup default nightly
+RUN rustup component add clippy
+RUN rustup component add rustfmt
+RUN rustup component add llvm-tools-preview
+
+RUN apk add --no-cache wget && \
+  GRPC_HEALTH_PROBE_VERSION=v0.4.19 && \
+  wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+  chmod +x /bin/grpc_health_probe
+
 WORKDIR /app
 COPY . .
-RUN SQLX_OFFLINE=true cargo build --package=synchronizer
+RUN SQLX_OFFLINE=true cargo build
 
 # Development Stage
 FROM base AS development
-CMD ["target/debug/synchronizer"]
+CMD ["target/debug/server"]
 
 # Build Stage
 FROM base AS builder
-RUN SQLX_OFFLINE=true cargo build --package=synchronizer --release
+RUN SQLX_OFFLINE=true cargo build --release
 
 # Production Stage
 FROM alpine:3.21 AS release
+RUN apk add --no-cache ca-certificates openssl
 
-COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer
-RUN chmod +x /usr/bin/synchronizer
-CMD ["/usr/bin/synchronizer"]
+RUN apk add --no-cache wget && \
+  GRPC_HEALTH_PROBE_VERSION=v0.4.19 && \
+  wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+  chmod +x /bin/grpc_health_probe
+
+COPY --from=builder /app/target/release/server /usr/bin/server
+RUN chmod +x /usr/bin/server
+CMD ["/usr/bin/server"]
