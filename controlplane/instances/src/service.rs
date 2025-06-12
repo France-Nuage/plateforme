@@ -19,13 +19,9 @@ impl InstancesService {
     }
 
     pub async fn sync(&self) -> Result<Vec<Instance>, Problem> {
-        let default_project = self.resources_service.get_default_project().await?;
         let hypervisors = self.hypervisors_service.list().await?;
         let instances = stream::iter(hypervisors)
-            .map(|hypervisor| async move {
-                self.sync_hypervisor_instances(&hypervisor, default_project.id)
-                    .await
-            })
+            .map(|hypervisor| async move { self.sync_hypervisor_instances(&hypervisor).await })
             .buffer_unordered(4)
             .try_collect::<Vec<Vec<Instance>>>()
             .await?
@@ -39,8 +35,11 @@ impl InstancesService {
     pub async fn sync_hypervisor_instances(
         &self,
         hypervisor: &Hypervisor,
-        default_project_id: Uuid,
     ) -> Result<Vec<Instance>, Problem> {
+        let default_project = self
+            .resources_service
+            .get_default_project(&hypervisor.organization_id)
+            .await?;
         let distant_instances = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
             .list()
             .await?;
@@ -52,7 +51,7 @@ impl InstancesService {
                     .map(|result| {
                         let existing = result.unwrap_or(Instance {
                             id: Uuid::new_v4(),
-                            project_id: default_project_id,
+                            project_id: default_project.id,
                             ..Default::default()
                         });
 
@@ -107,7 +106,10 @@ impl InstancesService {
             .first()
             .ok_or_else(|| Problem::NoHypervisorsAvaible)?;
 
-        let project = self.resources_service.get_default_project().await?;
+        let project = self
+            .resources_service
+            .get_default_project(&hypervisor.organization_id)
+            .await?;
 
         let result = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
             .create(options)

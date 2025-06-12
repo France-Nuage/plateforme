@@ -1,5 +1,6 @@
 use crate::projects::model::Project;
 use sqlx::PgPool;
+use uuid::Uuid;
 
 /// Retrieves all projects from the database.
 ///
@@ -78,4 +79,5 @@ pub async fn find_one_by<'a>(pool: &PgPool, query: Query<'a>) -> Result<Project,
 #[derive(Debug, Default)]
 pub struct Query<'a> {
     pub name: Option<&'a str>,
+    pub organization_id: Option<&'a Uuid>,
 }

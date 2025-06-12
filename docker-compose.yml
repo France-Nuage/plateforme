@@ -133,6 +133,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  synchronizer:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:master
+      context: controlplane
+      target: ${TARGET:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+    volumes:
+      - ./controlplane:/app
+      - /app/target
+
   system-tests:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
