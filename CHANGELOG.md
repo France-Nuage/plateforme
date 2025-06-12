@@ -1,3 +1,10 @@
+# [1.12.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.11.0...v1.12.0) (2025-06-12)
+
+
+### Features
+
+* add synchronizer ([8102435](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/810243573d1b6c3fb7d86d9d5bb02f3486a729fa))
+
 # [1.11.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.10.1...v1.11.0) (2025-06-11)
 
 
