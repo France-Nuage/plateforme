@@ -1,0 +1,21 @@
+# Base Stage
+FROM rust:1.86-alpine AS base
+RUN apk add musl-dev openssl-dev openssl-libs-static protobuf-dev protoc
+WORKDIR /app
+COPY . .
+RUN SQLX_OFFLINE=true cargo build --package=synchronizer
+
+# Development Stage
+FROM base AS development
+CMD ["target/debug/synchronizer"]
+
+# Build Stage
+FROM base AS builder
+RUN SQLX_OFFLINE=true cargo build --package=synchronizer --release
+
+# Production Stage
+FROM alpine:3.21 AS release
+
+COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer
+RUN chmod +x /usr/bin/synchronizer
+CMD ["/usr/bin/synchronizer"]

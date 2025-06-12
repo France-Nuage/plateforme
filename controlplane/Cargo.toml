@@ -1,15 +1,16 @@
 [workspace]
 
 members = [
+  "database",
+  "derive_factory",
   "hypervisors",
   "hypervisor_connector",
   "hypervisor_connector_proxmox",
   "hypervisor_connector_resolver",
   "instances",
-  "server",
   "resources",
-  "database",
-  "derive_factory",
+  "server",
+  "synchronizer",
 ]
 
 resolver = "3"

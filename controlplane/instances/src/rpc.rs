@@ -117,31 +117,25 @@ mod tests {
         WithVMCloneMock, WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
     };
     use hypervisors::Hypervisor;
-    use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
+    use resources::{organizations::Organization, projects::Project};
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_instances_works(pool: sqlx::PgPool) {
         // Arrange a service and a request for the list_instances procedure
         let server = MockServer::new().await.with_cluster_resource_list();
-        let hypervisor = Hypervisor {
-            url: server.url(),
-            ..Default::default()
-        };
-        resources::organizations::repository::create(&pool, Organization::default())
+        let url = server.url();
+        let organization = Organization::factory()
+            .create(pool.clone())
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(
-            &pool,
-            Project {
-                name: String::from(DEFAULT_PROJECT_NAME),
-                ..Default::default()
-            },
-        )
-        .await
-        .expect("could not create project");
-        hypervisors::repository::create(&pool, hypervisor)
+        Instance::factory()
+            .for_hypervisor_with(move |hypervisor| {
+                hypervisor.organization_id(organization.id).url(url)
+            })
+            .for_project_with(move |project| project.organization_id(organization.id))
+            .create(pool.clone())
             .await
-            .expect("could not create hypervisor");
+            .expect("could not create instance");
         let service = InstancesRpcService::new(pool);
 
         // Act the call to the list_instances procedure
