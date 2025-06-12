@@ -20,8 +20,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let instances_service = InstancesService::new(pool);
 
     // Setup ticker
+    let tick = std::env::var("INTERVAL")
+        .unwrap_or_else(|_| String::from("5"))
+        .parse::<u64>()
+        .unwrap_or(5);
     let sync_in_progress = Arc::new(Mutex::new(false));
-    let mut interval = time::interval(Duration::from_secs(1));
+    let mut interval = time::interval(Duration::from_secs(tick));
 
     // Setup heartbeat
     let client = reqwest::Client::new();
