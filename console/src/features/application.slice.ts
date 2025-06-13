@@ -7,7 +7,9 @@ export type ApplicationState = {
 };
 
 const initialState = {
-  mode: ServiceMode.Mock,
+  mode: window.location.pathname.startsWith('/plasmic-host')
+    ? ServiceMode.Mock
+    : ServiceMode.Rpc,
 };
 
 export const applicationSlice = createSlice({
