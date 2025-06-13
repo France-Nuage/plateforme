@@ -1,3 +1,16 @@
+# [1.13.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.12.0...v1.13.0) (2025-06-13)
+
+
+### Bug Fixes
+
+* link hypervisor with organization on the console app ([fafdbf9](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/fafdbf9ea5821f5a07f779d4f8f240effc451408))
+
+
+### Features
+
+* add project_id to CreateInstance procedure ([91542bc](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/91542bc13b4ad754424a8b25df9398d066a8699e))
+* expose the projectId to the UI layer ([e39da82](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/e39da8266adf7df1e52ffc30985e83fbf17ee3c2))
+
 # [1.12.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.11.0...v1.12.0) (2025-06-12)
 
 
