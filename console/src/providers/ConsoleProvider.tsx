@@ -42,6 +42,7 @@ export type Actions = {
   ) => void;
   registerHypervisor: (
     authorizationToken: string,
+    organizationId: string,
     storageName: string,
     url: string,
   ) => void;
@@ -80,8 +81,20 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
         dispatch(
           createInstance({ maxCpuCores, maxMemoryBytes, name, projectId }),
         ),
-      registerHypervisor: (authorizationToken, storageName, url) =>
-        dispatch(registerHypervisor({ authorizationToken, storageName, url })),
+      registerHypervisor: (
+        authorizationToken,
+        organizationId,
+        storageName,
+        url,
+      ) =>
+        dispatch(
+          registerHypervisor({
+            authorizationToken,
+            organizationId,
+            storageName,
+            url,
+          }),
+        ),
       signin: () => userManager.signinRedirect(),
       signout: async () => {
         await userManager.removeUser();
