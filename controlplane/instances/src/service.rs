@@ -100,16 +100,15 @@ impl InstancesService {
             .map_err(Into::into)
     }
 
-    pub async fn create(&self, options: InstanceConfig) -> Result<Instance, Problem> {
+    pub async fn create(
+        &self,
+        options: InstanceConfig,
+        project_id: Uuid,
+    ) -> Result<Instance, Problem> {
         let hypervisors = self.hypervisors_service.list().await?;
         let hypervisor = &hypervisors
             .first()
             .ok_or_else(|| Problem::NoHypervisorsAvaible)?;
-
-        let project = self
-            .resources_service
-            .get_default_project(&hypervisor.organization_id)
-            .await?;
 
         let result = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
             .create(options)
@@ -118,7 +117,7 @@ impl InstancesService {
         let instance = Instance {
             id: Uuid::new_v4(),
             hypervisor_id: hypervisor.id,
-            project_id: project.id,
+            project_id,
             distant_id: result,
             ..Default::default()
         };

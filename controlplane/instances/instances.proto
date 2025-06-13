@@ -190,8 +190,11 @@ message CreateInstanceRequest {
         pattern: "^[a-zA-Z0-9_-]+$"
     }];
 
-    // The snippet to use to bootstrap the instance.
+    // The snippet to use to bootstrap the instance
     string snippet = 5;
+
+    // The id of the project the instance belongs to
+    string project_id = 7;
 }
 
 // CreateInstanceResponse contains the result of a create instance operation.
