@@ -35,10 +35,16 @@ export class HypervisorRpcService implements HypervisorService {
   public register({
     authorizationToken = '',
     storageName,
+    organizationId,
     url,
   }: HypervisorFormValue): Promise<Hypervisor> {
     return this.client
-      .registerHypervisor({ authorizationToken, storageName, url })
+      .registerHypervisor({
+        authorizationToken,
+        organizationId,
+        storageName,
+        url,
+      })
       .response.then(({ hypervisor }) => fromRpcHypervisor(hypervisor!));
   }
 }
@@ -50,6 +56,7 @@ export const hypervisorsRpcService = new HypervisorRpcService(transport);
 function fromRpcHypervisor(hypervisor: RpcHypervisor): Hypervisor {
   return {
     id: hypervisor.id,
+    organizationId: hypervisor.organizationId,
     storageName: hypervisor.storageName,
     url: hypervisor.url,
   };

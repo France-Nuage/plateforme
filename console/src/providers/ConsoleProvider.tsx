@@ -38,9 +38,11 @@ export type Actions = {
     maxCpuCores: number,
     maxMemoryBytes: number,
     name: string,
+    projectId: string,
   ) => void;
   registerHypervisor: (
     authorizationToken: string,
+    organizationId: string,
     storageName: string,
     url: string,
   ) => void;
@@ -75,10 +77,24 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
     // Expose actions to the plasmic app
     useImperativeHandle(ref, () => ({
       changeMode: () => dispatch(setMode()),
-      createInstance: (maxCpuCores, maxMemoryBytes, name) =>
-        dispatch(createInstance({ maxCpuCores, maxMemoryBytes, name })),
-      registerHypervisor: (authorizationToken, storageName, url) =>
-        dispatch(registerHypervisor({ authorizationToken, storageName, url })),
+      createInstance: (maxCpuCores, maxMemoryBytes, name, projectId) =>
+        dispatch(
+          createInstance({ maxCpuCores, maxMemoryBytes, name, projectId }),
+        ),
+      registerHypervisor: (
+        authorizationToken,
+        organizationId,
+        storageName,
+        url,
+      ) =>
+        dispatch(
+          registerHypervisor({
+            authorizationToken,
+            organizationId,
+            storageName,
+            url,
+          }),
+        ),
       signin: () => userManager.signinRedirect(),
       signout: async () => {
         await userManager.removeUser();

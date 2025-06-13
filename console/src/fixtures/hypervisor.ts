@@ -4,6 +4,7 @@ import { Hypervisor } from '@/types';
 
 export const hypervisor = (): Hypervisor => ({
   id: faker.string.uuid(),
+  organizationId: faker.string.uuid(),
   storageName: faker.commerce.productName(),
   url: faker.internet.url(),
 });

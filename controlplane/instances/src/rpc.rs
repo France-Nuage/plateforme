@@ -24,7 +24,11 @@ impl Instances for InstancesRpcService {
         &self,
         request: tonic::Request<CreateInstanceRequest>,
     ) -> Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
-        let instance = self.service.create(request.into_inner().into()).await?;
+        let request = request.into_inner();
+        let project_id = Uuid::parse_str(&request.project_id)
+            .map_err(|_| Problem::MalformedInstanceId(request.project_id.clone()))?;
+
+        let instance = self.service.create(request.into(), project_id).await?;
 
         Ok(Response::new(CreateInstanceResponse {
             instance: Some(instance.into()),

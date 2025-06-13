@@ -47,6 +47,12 @@ export interface RegisterHypervisorRequest {
    * @generated from protobuf field: string url = 3
    */
   url: string;
+  /**
+   * Id of the organization this hypervisor belongs to
+   *
+   * @generated from protobuf field: string organization_id = 4
+   */
+  organizationId: string;
 }
 /**
  * RegisterHypervisorResponse contains the result of a register hypervisor operation.
@@ -104,6 +110,12 @@ export interface Hypervisor {
    * @generated from protobuf field: string url = 3
    */
   url: string;
+  /**
+   * Id of the organization the hypervisor belongs to
+   *
+   * @generated from protobuf field: string organization_id = 4
+   */
+  organizationId: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class ListHypervisorsRequest$Type extends MessageType<ListHypervisorsRequest> {
@@ -158,6 +170,12 @@ class RegisterHypervisorRequest$Type extends MessageType<RegisterHypervisorReque
           T: 9 /*ScalarType.STRING*/,
         },
         { no: 3, name: 'url', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+        {
+          no: 4,
+          name: 'organization_id',
+          kind: 'scalar',
+          T: 9 /*ScalarType.STRING*/,
+        },
       ],
     );
   }
@@ -217,6 +235,12 @@ class Hypervisor$Type extends MessageType<Hypervisor> {
         T: 9 /*ScalarType.STRING*/,
       },
       { no: 3, name: 'url', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 4,
+        name: 'organization_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
     ]);
   }
 }

@@ -30,7 +30,7 @@ async fn test_the_create_instance_procedure_works(
         .create(pool.clone())
         .await?;
 
-    Project::factory()
+    let project = Project::factory()
         .name(DEFAULT_PROJECT_NAME.into())
         .organization_id(organization.id)
         .create(pool.clone())
@@ -49,6 +49,7 @@ async fn test_the_create_instance_procedure_works(
             cpu_cores: 1,
             memory_bytes: 536870912,
             name: String::from("acme-mgs"),
+            project_id: project.id.to_string(),
             snippet: String::from("acme-snippet.yaml"),
         })
         .await;

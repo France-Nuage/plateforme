@@ -168,11 +168,17 @@ export interface CreateInstanceRequest {
    */
   name: string;
   /**
-   * The snippet to use to bootstrap the instance.
+   * The snippet to use to bootstrap the instance
    *
    * @generated from protobuf field: string snippet = 5
    */
   snippet: string;
+  /**
+   * The id of the project the instance belongs to
+   *
+   * @generated from protobuf field: string project_id = 7
+   */
+  projectId: string;
 }
 /**
  * CreateInstanceResponse contains the result of a create instance operation.
@@ -544,6 +550,12 @@ class CreateInstanceRequest$Type extends MessageType<CreateInstanceRequest> {
           },
         },
         { no: 5, name: 'snippet', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+        {
+          no: 7,
+          name: 'project_id',
+          kind: 'scalar',
+          T: 9 /*ScalarType.STRING*/,
+        },
       ],
     );
   }

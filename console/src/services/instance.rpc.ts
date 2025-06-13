@@ -33,6 +33,7 @@ export class InstanceRpcService implements InstanceService {
         image: '',
         memoryBytes: BigInt(data.maxMemoryBytes),
         name: data.name,
+        projectId: data.projectId,
         snippet: '',
       })
       .response.then(({ instance }) => fromRpcInstance(instance!));

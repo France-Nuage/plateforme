@@ -32,7 +32,7 @@ export type Instance = {
  */
 export type InstanceFormValue = Pick<
   Instance,
-  'maxCpuCores' | 'maxMemoryBytes' | 'name'
+  'maxCpuCores' | 'maxMemoryBytes' | 'name' | 'projectId'
 >;
 
 /**
