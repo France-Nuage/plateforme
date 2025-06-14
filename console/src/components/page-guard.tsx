@@ -1,6 +1,6 @@
 import { FunctionComponent, ReactNode } from 'react';
 
-import { useActiveParamsReconciliation, useAuthenticationGuard } from '@/hooks';
+import { useAuthenticationGuard } from '@/hooks';
 
 export type PageGuardProps = {
   children: ReactNode;
@@ -16,7 +16,6 @@ export type PageGuardProps = {
  */
 export const PageGuard: FunctionComponent<PageGuardProps> = ({ children }) => {
   // Call general application hooks
-  useActiveParamsReconciliation();
   useAuthenticationGuard();
 
   return children;
