@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
-import { AuthenticationGuard } from '@/components';
+import { PageGuard } from '@/components';
 import { OidcRedirectPage, PlasmicHost } from '@/pages';
 
 import plasmic from '../plasmic.json';
@@ -42,11 +42,11 @@ const Router = () => (
         {pages.map(({ Component, id, path }) => (
           <Route
             key={id}
-            path={path}
+            path={path!.replace(/\[([^\]]+)\]/g, ':$1')}
             element={
-              <AuthenticationGuard>
+              <PageGuard>
                 <Component />
-              </AuthenticationGuard>
+              </PageGuard>
             }
           />
         ))}
