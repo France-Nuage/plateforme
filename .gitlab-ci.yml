@@ -47,6 +47,9 @@ gitleaks:
 
 "sync console with plasmic":
   stage: sync
+  needs:
+    - job: "sync console with plasmic"
+      artifacts: true
   image: node:22-alpine
   before_script:
     - cd console
@@ -57,13 +60,12 @@ gitleaks:
     - npx prettier --write .
   artifacts:
     paths:
-      - ./console/components/
-      - ./console/pages/
-      - ./console/styles/
-      - ./console/public/
+      - ./console/src/generated/plasmic/
     expire_in: 1 hour
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "fix-plasmic-publish"'
       when: on_success
     - when: never
 
@@ -136,6 +138,8 @@ build:
     - "sync console with plasmic"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "fix-plasmic-publish"'
       when: on_success
     - when: never
 
