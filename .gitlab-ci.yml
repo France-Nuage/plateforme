@@ -122,9 +122,6 @@ build:
 
 "commit new plasmic code":
   stage: commit
-  needs:
-    - job: "sync console with plasmic"
-      artifacts: true
   before_script:
     - apk add --no-cache git
     - git config --global user.email "gitlab@france-nuage.fr"
@@ -134,6 +131,8 @@ build:
     - git add *
     - >
       (git commit -m "feat: add plasmic changes [ci skip]" && git push origin HEAD:master) || echo "No changes to commit"
+  dependencies:
+    - "sync console with plasmic"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "master"'
       when: on_success
