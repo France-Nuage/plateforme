@@ -1,3 +1,15 @@
+# [1.14.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.13.0...v1.14.0) (2025-06-14)
+
+
+### Bug Fixes
+
+* compare organization ids ([ff50325](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ff5032536cea0bc79df6dbd7c14ae95a416a7568))
+
+
+### Features
+
+* add active organization and active project ([826d112](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/826d1126744392387be2baee3265451d562f29ff))
+
 # [1.13.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.12.0...v1.13.0) (2025-06-13)
 
 
