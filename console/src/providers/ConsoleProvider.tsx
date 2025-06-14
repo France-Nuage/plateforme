@@ -7,7 +7,11 @@ import {
   registerHypervisor,
   setMode,
 } from '@/features';
-import { useAppDispatch, useAppSelector } from '@/hooks';
+import {
+  useActiveParamsReconciliation,
+  useAppDispatch,
+  useAppSelector,
+} from '@/hooks';
 import { userManager } from '@/services';
 
 export type Props = {
@@ -101,6 +105,8 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
         dispatch(clearAuthenticationState());
       },
     }));
+
+    useActiveParamsReconciliation();
 
     // Wrap the children in the plasmic DataProvider.
     return (
