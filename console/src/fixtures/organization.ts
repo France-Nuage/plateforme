@@ -2,6 +2,11 @@ import { faker } from '@faker-js/faker';
 
 import { Organization } from '@/types';
 
+export const acme: Organization = {
+  id: '00000000-0000-0000-0000-000000000000',
+  name: 'ACME',
+};
+
 export const organization = (): Organization => ({
   id: faker.string.uuid(),
   name: faker.commerce.productName(),

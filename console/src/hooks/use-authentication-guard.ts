@@ -1,24 +1,20 @@
-import { FunctionComponent, ReactNode, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
 import config from '@/config';
 import { useAppSelector } from '@/hooks';
 
-export type AuthenticationGuardProps = {
-  children: ReactNode;
-};
-
 const authenticatedRoutes = ['/', '/instance'];
 const guestRoutes = ['/login', `/auth/redirect/${config.oidc.name}`];
 
-export const AuthenticationGuard: FunctionComponent<
-  AuthenticationGuardProps
-> = ({ children }) => {
+export const useAuthenticationGuard = () => {
+  // Select state portions
   const authenticated = useAppSelector((state) => !!state.authentication.user);
+  // Instantiate hooks
   const location = useLocation();
   const navigate = useNavigate();
-  console.log('in auth guard', location.pathname);
 
+  // Define an authentication guard effect
   useEffect(() => {
     if (authenticated && guestRoutes.includes(location.pathname)) {
       navigate('/', { replace: true });
@@ -29,6 +25,4 @@ export const AuthenticationGuard: FunctionComponent<
       navigate('/login', { replace: true });
     }
   }, [authenticated, location.pathname, navigate]);
-
-  return children;
 };

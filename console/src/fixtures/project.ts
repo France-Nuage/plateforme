@@ -2,6 +2,12 @@ import { faker } from '@faker-js/faker';
 
 import { Project } from '@/types';
 
+export const acme: Project = {
+  id: '00000000-0000-0000-0000-000000000000',
+  name: 'Missile Guiding System',
+  organizationId: '00000000-0000-0000-0000-000000000000',
+};
+
 export const project = (): Project => ({
   id: faker.string.uuid(),
   name: faker.commerce.productName(),

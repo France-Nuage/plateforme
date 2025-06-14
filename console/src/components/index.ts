@@ -1,2 +1,2 @@
 export * from './application-loader';
-export * from './authentication-guard';
+export * from './page-guard';
