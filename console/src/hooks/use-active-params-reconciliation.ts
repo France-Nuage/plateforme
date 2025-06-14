@@ -161,7 +161,7 @@ function reconciliateActiveOrganization(
   }
 
   // If the organization does not match the active project, reconciliate
-  if (!!activeProject && activeProject.id !== organization.id) {
+  if (!!activeProject && activeProject.organizationId !== organization.id) {
     const organization = organizations.find(
       (organization) => organization.id === activeProject.organizationId,
     )!;
