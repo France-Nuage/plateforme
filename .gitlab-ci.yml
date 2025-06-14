@@ -62,8 +62,6 @@ gitleaks:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "master"'
       when: on_success
-    - if: '$CI_COMMIT_BRANCH == "fix-plasmic-publish"'
-      when: on_success
     - when: never
 
 build:
@@ -135,8 +133,6 @@ build:
     - "sync console with plasmic"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "master"'
-      when: on_success
-    - if: '$CI_COMMIT_BRANCH == "fix-plasmic-publish"'
       when: on_success
     - when: never
 
