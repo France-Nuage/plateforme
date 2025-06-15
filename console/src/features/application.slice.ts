@@ -30,12 +30,14 @@ export const applicationSlice = createSlice({
       state,
       action: PayloadAction<Organization | undefined>,
     ) => {
+      console.log('setActive0rganization', action.payload);
       state.activeOrganization = action.payload;
     },
     /**
      * Set the active project.
      */
     setActiveProject: (state, action: PayloadAction<Project | undefined>) => {
+      console.log('setActiveProject', action.payload);
       state.activeProject = action.payload;
     },
     /**
