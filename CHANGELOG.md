@@ -1,3 +1,10 @@
+# [1.16.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.15.0...v1.16.0) (2025-06-15)
+
+
+### Features
+
+* add for_default_[relation] to derive_factory ([8ec37d4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/8ec37d4c498203399a3c26d66f357671bd0836c2))
+
 # [1.15.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.14.1...v1.15.0) (2025-06-15)
 
 
