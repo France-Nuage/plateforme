@@ -1,3 +1,10 @@
+# [1.15.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.14.1...v1.15.0) (2025-06-15)
+
+
+### Features
+
+* expose setActiveOrganization and setActiveProject as actions ([8eeb81b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/8eeb81b2dccb1272ad85fd36b0c5a760fc1251ac))
+
 ## [1.14.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.14.0...v1.14.1) (2025-06-14)
 
 
