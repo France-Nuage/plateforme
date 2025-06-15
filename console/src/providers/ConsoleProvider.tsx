@@ -1,5 +1,6 @@
 import { DataProvider } from '@plasmicapp/react-web/lib/host';
 import { ReactNode, forwardRef, useImperativeHandle } from 'react';
+import { useSearchParams } from 'react-router';
 
 import {
   clearAuthenticationState,
@@ -7,6 +8,7 @@ import {
   registerHypervisor,
   setMode,
 } from '@/features';
+import { Organization, Project } from '@/generated/rpc/resources';
 import {
   useActiveParamsReconciliation,
   useAppDispatch,
@@ -44,13 +46,35 @@ export type Actions = {
     name: string,
     projectId: string,
   ) => void;
+
+  /**
+   * Register a new hypervisor on the controlplane.
+   */
   registerHypervisor: (
     authorizationToken: string,
     organizationId: string,
     storageName: string,
     url: string,
   ) => void;
+
+  /**
+   * Set the active organization.
+   */
+  setActiveOrganization: (organization: Organization) => void;
+
+  /**
+   * Set the active project.
+   */
+  setActiveProject: (project: Project) => void;
+
+  /**
+   * Redirect the user to the external login page.
+   */
   signin: () => void;
+
+  /**
+   * Sign the user out.
+   */
   signout: () => void;
 };
 
@@ -65,6 +89,7 @@ export type Actions = {
 export const ConsoleProvider = forwardRef<Actions, Props>(
   ({ children }, ref) => {
     const dispatch = useAppDispatch();
+    const [, setSearchParams] = useSearchParams();
 
     // Extract state subsets to expose to the plasmic app
     const application = useAppSelector((state) => state.application);
@@ -99,6 +124,22 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
             url,
           }),
         ),
+      setActiveOrganization: (organization: Organization) => {
+        setSearchParams((previous) => ({
+          ...Object.fromEntries(previous),
+          organization: organization.id,
+          project: projects.find(
+            (project) => project.organizationId === organization.id,
+          )!.id,
+        }));
+      },
+      setActiveProject: (project: Project) => {
+        setSearchParams((previous) => ({
+          ...Object.fromEntries(previous),
+          organization: project.organizationId,
+          project: project.id,
+        }));
+      },
       signin: () => userManager.signinRedirect(),
       signout: async () => {
         await userManager.removeUser();
