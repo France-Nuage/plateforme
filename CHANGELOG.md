@@ -1,3 +1,10 @@
+# [1.17.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.16.0...v1.17.0) (2025-06-17)
+
+
+### Features
+
+* add plasmic changes [ci skip] ([3b9158c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3b9158cc579c010516d8294d0b8a530d28d1dcd5))
+
 # [1.16.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.15.0...v1.16.0) (2025-06-15)
 
 
