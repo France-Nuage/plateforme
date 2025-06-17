@@ -62,11 +62,11 @@ import sty from './PlasmicBreadcrumbs.module.css';
 import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from './PlasmicGlobalVariant__Screen';
 // plasmic-import: PEgOxZRQTA56/css
 
-import Icon12Icon from './icons/PlasmicIcon__Icon12';
+import ChevronDownIcon from './icons/PlasmicIcon__ChevronDown';
 // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
 import projectcss from './plasmic.module.css';
 
-// plasmic-import: Wuq7R1xx4mKS/icon
+// plasmic-import: BMAZvJUkowiF/icon
 
 createPlasmicElementProxy;
 
@@ -84,6 +84,7 @@ export type PlasmicBreadcrumbs__OverridesType = {
   img?: Flex__<typeof PlasmicImg__>;
   section?: Flex__<'section'>;
   breadcrumb?: Flex__<typeof AntdBreadcrumb>;
+  svg?: Flex__<'svg'>;
 };
 
 export interface DefaultBreadcrumbsProps {
@@ -188,11 +189,6 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
                   hasGap={true}
                   className={classNames(projectcss.all, sty.freeBox__hbMzg)}
                 >
-                  <Icon12Icon
-                    className={classNames(projectcss.all, sty.svg___1Tihh)}
-                    role={'img'}
-                  />
-
                   <div
                     className={classNames(
                       projectcss.all,
@@ -200,34 +196,32 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
                       sty.text__iCly5,
                     )}
                   >
-                    {"Nom de l'organisation"}
+                    <React.Fragment>
+                      {(() => {
+                        try {
+                          return $ctx['France Nuage'].application
+                            .activeOrganization.name;
+                        } catch (e) {
+                          if (
+                            e instanceof TypeError ||
+                            e?.plasmicType === 'PlasmicUndefinedDataError'
+                          ) {
+                            return "Nom de l'organisation";
+                          }
+                          throw e;
+                        }
+                      })()}
+                    </React.Fragment>
                   </div>
-                </Stack__>
-              </AntdBreadcrumbItem>
-              <AntdBreadcrumbItem
-                className={classNames(
-                  '__wab_instance',
-                  sty.breadcrumbItem__mxEBl,
-                )}
-              >
-                <Stack__
-                  as={'div'}
-                  hasGap={true}
-                  className={classNames(projectcss.all, sty.freeBox__atuiJ)}
-                >
-                  <Icon12Icon
-                    className={classNames(projectcss.all, sty.svg__qgkOx)}
-                    role={'img'}
-                  />
-
                   <div
-                    className={classNames(
-                      projectcss.all,
-                      projectcss.__wab_text,
-                      sty.text___77Af,
-                    )}
+                    className={classNames(projectcss.all, sty.freeBox___02Kpy)}
                   >
-                    {'Nom de la filiale'}
+                    <ChevronDownIcon
+                      data-plasmic-name={'svg'}
+                      data-plasmic-override={overrides.svg}
+                      className={classNames(projectcss.all, sty.svg)}
+                      role={'img'}
+                    />
                   </div>
                 </Stack__>
               </AntdBreadcrumbItem>
@@ -244,7 +238,22 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
                     sty.text__xDbC,
                   )}
                 >
-                  {'Nom du projet'}
+                  <React.Fragment>
+                    {(() => {
+                      try {
+                        return $ctx['France Nuage'].application.activeProject
+                          .name;
+                      } catch (e) {
+                        if (
+                          e instanceof TypeError ||
+                          e?.plasmicType === 'PlasmicUndefinedDataError'
+                        ) {
+                          return 'Nom du projet';
+                        }
+                        throw e;
+                      }
+                    })()}
+                  </React.Fragment>
                 </div>
               </AntdBreadcrumbItem>
             </React.Fragment>
@@ -267,10 +276,11 @@ function PlasmicBreadcrumbs__RenderFunc(props: {
 }
 
 const PlasmicDescendants = {
-  root: ['root', 'img', 'section', 'breadcrumb'],
+  root: ['root', 'img', 'section', 'breadcrumb', 'svg'],
   img: ['img'],
   section: ['section'],
-  breadcrumb: ['breadcrumb'],
+  breadcrumb: ['breadcrumb', 'svg'],
+  svg: ['svg'],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -280,6 +290,7 @@ type NodeDefaultElementType = {
   img: typeof PlasmicImg__;
   section: 'section';
   breadcrumb: typeof AntdBreadcrumb;
+  svg: 'svg';
 };
 
 type ReservedPropsType = 'variants' | 'args' | 'overrides';
@@ -345,6 +356,7 @@ export const PlasmicBreadcrumbs = Object.assign(
     img: makeNodeComponent('img'),
     section: makeNodeComponent('section'),
     breadcrumb: makeNodeComponent('breadcrumb'),
+    svg: makeNodeComponent('svg'),
 
     // Metadata about props expected for PlasmicBreadcrumbs
     internalVariantProps: PlasmicBreadcrumbs__VariantProps,

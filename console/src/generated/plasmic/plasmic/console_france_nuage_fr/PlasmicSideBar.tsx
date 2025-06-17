@@ -63,21 +63,21 @@ import plasmic_antd_5_hostless_css from '../antd_5_hostless/plasmic.module.css';
 import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from './PlasmicGlobalVariant__Screen';
 // plasmic-import: aqt4bw2qhfo7d76ADZhQFo/projectcss
 import sty from './PlasmicSideBar.module.css';
-// plasmic-import: INMXktOfIWiD/icon
+// plasmic-import: CnqcBI0upv9T/icon
 import BellIcon from './icons/PlasmicIcon__Bell';
+// plasmic-import: tmJQKBQDJEoe/icon
+import ChevronRightIcon from './icons/PlasmicIcon__ChevronRight';
 // plasmic-import: TueurUSDtevy/icon
 import CircleIcon from './icons/PlasmicIcon__Circle';
 // plasmic-import: 0zFkNWu9LQOC/icon
 import DevSquareIcon from './icons/PlasmicIcon__DevSquare';
 // plasmic-import: HOWLf5KCV6xi/icon
 import FactureIcon from './icons/PlasmicIcon__Facture';
-// plasmic-import: MqRFF7vxUCiv/icon
+// plasmic-import: INMXktOfIWiD/icon
 import HomeIcon from './icons/PlasmicIcon__Home';
-// plasmic-import: CnqcBI0upv9T/icon
-import Icon4Icon from './icons/PlasmicIcon__Icon4';
 // plasmic-import: M5Yt0pb7IRm_/icon
 import Icon10Icon from './icons/PlasmicIcon__Icon10';
-// plasmic-import: wy92u1XfZPXm/icon
+// plasmic-import: MqRFF7vxUCiv/icon
 import Icon11Icon from './icons/PlasmicIcon__Icon11';
 // plasmic-import: WgBKdGHdVFBy/css
 
@@ -89,14 +89,44 @@ import UserIcon from './icons/PlasmicIcon__User';
 // plasmic-import: ohDidvG9XsCeFumugENU3J/projectcss
 import projectcss from './plasmic.module.css';
 
-// plasmic-import: tmJQKBQDJEoe/icon
+// plasmic-import: s_RpDhzeQJX7/icon
 
 createPlasmicElementProxy;
 
-export type PlasmicSideBar__VariantMembers = {};
-export type PlasmicSideBar__VariantsArgs = {};
+export type PlasmicSideBar__VariantMembers = {
+  isOpen: 'isOpen';
+  tableauDeBord2: 'tableauDeBord2';
+  equipes: 'equipes';
+  plan2: 'plan2';
+  parametresGeneraux: 'parametresGeneraux';
+  instances: 'instances';
+  services: 'services';
+  membres: 'membres';
+  parametreDuProjet: 'parametreDuProjet';
+};
+export type PlasmicSideBar__VariantsArgs = {
+  isOpen?: SingleBooleanChoiceArg<'isOpen'>;
+  tableauDeBord2?: SingleBooleanChoiceArg<'tableauDeBord2'>;
+  equipes?: SingleBooleanChoiceArg<'equipes'>;
+  plan2?: SingleBooleanChoiceArg<'plan2'>;
+  parametresGeneraux?: SingleBooleanChoiceArg<'parametresGeneraux'>;
+  instances?: SingleBooleanChoiceArg<'instances'>;
+  services?: SingleBooleanChoiceArg<'services'>;
+  membres?: SingleBooleanChoiceArg<'membres'>;
+  parametreDuProjet?: SingleBooleanChoiceArg<'parametreDuProjet'>;
+};
 type VariantPropType = keyof PlasmicSideBar__VariantsArgs;
-export const PlasmicSideBar__VariantProps = new Array<VariantPropType>();
+export const PlasmicSideBar__VariantProps = new Array<VariantPropType>(
+  'isOpen',
+  'tableauDeBord2',
+  'equipes',
+  'plan2',
+  'parametresGeneraux',
+  'instances',
+  'services',
+  'membres',
+  'parametreDuProjet',
+);
 
 export type PlasmicSideBar__ArgsType = {};
 type ArgPropType = keyof PlasmicSideBar__ArgsType;
@@ -114,11 +144,26 @@ export type PlasmicSideBar__OverridesType = {
   parametre?: Flex__<typeof BtnSideBar>;
   divider2?: Flex__<'div'>;
   projet?: Flex__<'div'>;
+  parametre3?: Flex__<typeof BtnSideBar>;
+  parametre6?: Flex__<typeof BtnSideBar>;
+  parametre4?: Flex__<typeof BtnSideBar>;
+  parametre5?: Flex__<typeof BtnSideBar>;
   divider3?: Flex__<'div'>;
   profil?: Flex__<'div'>;
+  parametre7?: Flex__<typeof BtnSideBar>;
+  parametre9?: Flex__<typeof BtnSideBar>;
 };
 
 export interface DefaultSideBarProps {
+  isOpen?: SingleBooleanChoiceArg<'isOpen'>;
+  tableauDeBord2?: SingleBooleanChoiceArg<'tableauDeBord2'>;
+  equipes?: SingleBooleanChoiceArg<'equipes'>;
+  plan2?: SingleBooleanChoiceArg<'plan2'>;
+  parametresGeneraux?: SingleBooleanChoiceArg<'parametresGeneraux'>;
+  instances?: SingleBooleanChoiceArg<'instances'>;
+  services?: SingleBooleanChoiceArg<'services'>;
+  membres?: SingleBooleanChoiceArg<'membres'>;
+  parametreDuProjet?: SingleBooleanChoiceArg<'parametreDuProjet'>;
   className?: string;
 }
 
@@ -166,6 +211,68 @@ function PlasmicSideBar__RenderFunc(props: {
         variableType: 'text',
         initFunc: ({ $props, $state, $queries, $ctx }) => 'Tableau de bord',
       },
+      {
+        path: 'isVisible',
+        type: 'private',
+        variableType: 'boolean',
+        initFunc: ({ $props, $state, $queries, $ctx }) => false,
+      },
+      {
+        path: 'isOpen',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.isOpen,
+      },
+      {
+        path: 'tableauDeBord2',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.tableauDeBord2,
+      },
+      {
+        path: 'equipes',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.equipes,
+      },
+      {
+        path: 'plan2',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.plan2,
+      },
+      {
+        path: 'parametresGeneraux',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) =>
+          $props.parametresGeneraux,
+      },
+      {
+        path: 'instances',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.instances,
+      },
+      {
+        path: 'services',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.services,
+      },
+      {
+        path: 'membres',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) => $props.membres,
+      },
+      {
+        path: 'parametreDuProjet',
+        type: 'private',
+        variableType: 'variant',
+        initFunc: ({ $props, $state, $queries, $ctx }) =>
+          $props.parametreDuProjet,
+      },
     ],
     [$props, $ctx, $refs],
   );
@@ -194,338 +301,519 @@ function PlasmicSideBar__RenderFunc(props: {
         projectcss.plasmic_tokens,
         plasmic_antd_5_hostless_css.plasmic_tokens,
         sty.root,
+        {
+          [sty.rootequipes]: hasVariant($state, 'equipes', 'equipes'),
+          [sty.rootisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+          [sty.roottableauDeBord2]: hasVariant(
+            $state,
+            'tableauDeBord2',
+            'tableauDeBord2',
+          ),
+        },
       )}
     >
-      <Stack__
-        as={'div'}
-        hasGap={true}
-        className={classNames(projectcss.all, sty.freeBox__idNp)}
+      <div
+        className={classNames(projectcss.all, sty.freeBox___4XPnC, {
+          [sty.freeBoxequipes___4XPnChZrY4]: hasVariant(
+            $state,
+            'equipes',
+            'equipes',
+          ),
+          [sty.freeBoxinstances___4XPnC7Riwu]: hasVariant(
+            $state,
+            'instances',
+            'instances',
+          ),
+          [sty.freeBoxisOpen___4XPnCvo8B3]: hasVariant(
+            $state,
+            'isOpen',
+            'isOpen',
+          ),
+          [sty.freeBoxservices___4XPnCbgQlv]: hasVariant(
+            $state,
+            'services',
+            'services',
+          ),
+          [sty.freeBoxtableauDeBord2___4XPnCBlPhl]: hasVariant(
+            $state,
+            'tableauDeBord2',
+            'tableauDeBord2',
+          ),
+        })}
       >
         <Stack__
           as={'div'}
           hasGap={true}
-          className={classNames(projectcss.all, sty.freeBox__eryGf)}
+          className={classNames(projectcss.all, sty.freeBox__idNp, {
+            [sty.freeBoxequipes__idNpHZrY4]: hasVariant(
+              $state,
+              'equipes',
+              'equipes',
+            ),
+            [sty.freeBoxisOpen__idNpVo8B3]: hasVariant(
+              $state,
+              'isOpen',
+              'isOpen',
+            ),
+          })}
         >
           <Stack__
             as={'div'}
-            data-plasmic-name={'recherche'}
-            data-plasmic-override={overrides.recherche}
             hasGap={true}
-            className={classNames(projectcss.all, sty.recherche)}
+            className={classNames(projectcss.all, sty.freeBox__eryGf)}
           >
-            <TextField
-              data-plasmic-name={'textField'}
-              data-plasmic-override={overrides.textField}
-              className={classNames('__wab_instance', sty.textField)}
-              end={
-                <CircleIcon
-                  className={classNames(projectcss.all, sty.svg__fd1Xj)}
-                  role={'img'}
-                />
-              }
-              iconStart={true}
-              inputMode={'text'}
-              label={
-                <div
-                  className={classNames(
-                    projectcss.all,
-                    projectcss.__wab_text,
-                    sty.text___7W2Hx,
-                  )}
-                >
-                  {'Label'}
-                </div>
-              }
-              onChange={async (...eventArgs: any) => {
-                generateStateOnChangeProp($state, ['textField', 'value']).apply(
-                  null,
-                  eventArgs,
-                );
-
-                if (
-                  eventArgs.length > 1 &&
-                  eventArgs[1] &&
-                  eventArgs[1]._plasmic_state_init_
-                ) {
-                  return;
+            <Stack__
+              as={'div'}
+              data-plasmic-name={'recherche'}
+              data-plasmic-override={overrides.recherche}
+              hasGap={true}
+              className={classNames(projectcss.all, sty.recherche)}
+            >
+              <TextField
+                data-plasmic-name={'textField'}
+                data-plasmic-override={overrides.textField}
+                className={classNames('__wab_instance', sty.textField)}
+                end={
+                  <CircleIcon
+                    className={classNames(projectcss.all, sty.svg__fd1Xj)}
+                    role={'img'}
+                  />
                 }
-              }}
-              placeholder={'Rechercher...'}
-              showLabel={false}
-              start={
-                <SearchIcon
-                  className={classNames(projectcss.all, sty.svg__zpqF9)}
-                  role={'img'}
-                />
-              }
-              type={'text'}
-              value={generateStateValueProp($state, ['textField', 'value'])}
+                iconStart={true}
+                inputMode={'text'}
+                label={
+                  <div
+                    className={classNames(
+                      projectcss.all,
+                      projectcss.__wab_text,
+                      sty.text___7W2Hx,
+                    )}
+                  >
+                    {'Label'}
+                  </div>
+                }
+                onChange={async (...eventArgs: any) => {
+                  generateStateOnChangeProp($state, [
+                    'textField',
+                    'value',
+                  ]).apply(null, eventArgs);
+
+                  if (
+                    eventArgs.length > 1 &&
+                    eventArgs[1] &&
+                    eventArgs[1]._plasmic_state_init_
+                  ) {
+                    return;
+                  }
+                }}
+                placeholder={'Rechercher...'}
+                showLabel={false}
+                start={
+                  <SearchIcon
+                    className={classNames(projectcss.all, sty.svg__zpqF9)}
+                    role={'img'}
+                  />
+                }
+                type={'text'}
+                value={generateStateValueProp($state, ['textField', 'value'])}
+              />
+            </Stack__>
+            <div
+              data-plasmic-name={'divider'}
+              data-plasmic-override={overrides.divider}
+              className={classNames(projectcss.all, sty.divider)}
             />
 
             <Stack__
               as={'div'}
+              data-plasmic-name={'general'}
+              data-plasmic-override={overrides.general}
               hasGap={true}
-              className={classNames(projectcss.all, sty.freeBox__fk1Vd)}
+              className={classNames(projectcss.all, sty.general)}
             >
-              <BellIcon
-                className={classNames(projectcss.all, sty.svg___0ECqB)}
-                role={'img'}
-              />
-
-              <PlasmicLink__
-                className={classNames(
-                  projectcss.all,
-                  projectcss.a,
-                  projectcss.__wab_text,
-                  sty.link__z95Q7,
-                )}
-                href={'#'}
-                platform={'react'}
+              <div className={classNames(projectcss.all, sty.freeBox__z3XLo)}>
+                <BtnSideBar
+                  data-plasmic-name={'tableauDeBord'}
+                  data-plasmic-override={overrides.tableauDeBord}
+                  className={classNames('__wab_instance', sty.tableauDeBord, {
+                    [sty.tableauDeBordisOpen]: hasVariant(
+                      $state,
+                      'isOpen',
+                      'isOpen',
+                    ),
+                    [sty.tableauDeBordmembres]: hasVariant(
+                      $state,
+                      'membres',
+                      'membres',
+                    ),
+                    [sty.tableauDeBordparametreDuProjet]: hasVariant(
+                      $state,
+                      'parametreDuProjet',
+                      'parametreDuProjet',
+                    ),
+                    [sty.tableauDeBordservices]: hasVariant(
+                      $state,
+                      'services',
+                      'services',
+                    ),
+                    [sty.tableauDeBordtableauDeBord2]: hasVariant(
+                      $state,
+                      'tableauDeBord2',
+                      'tableauDeBord2',
+                    ),
+                  })}
+                  isActive={
+                    hasVariant($state, 'tableauDeBord2', 'tableauDeBord2')
+                      ? true
+                      : undefined
+                  }
+                  link={
+                    hasVariant($state, 'tableauDeBord2', 'tableauDeBord2')
+                      ? `/`
+                      : hasVariant($state, 'isOpen', 'isOpen') &&
+                          hasVariant(globalVariants, 'screen', 'mobile')
+                        ? `/`
+                        : `/`
+                  }
+                  nom={'Tableau de bord'}
+                >
+                  <HomeIcon
+                    className={classNames(projectcss.all, sty.svg___6URSb)}
+                    role={'img'}
+                  />
+                </BtnSideBar>
+              </div>
+              <div className={classNames(projectcss.all, sty.freeBox___01Fke)}>
+                <BtnSideBar
+                  data-plasmic-name={'equipes2'}
+                  data-plasmic-override={overrides.equipes2}
+                  className={classNames('__wab_instance', sty.equipes2, {
+                    [sty.equipes2equipes]: hasVariant(
+                      $state,
+                      'equipes',
+                      'equipes',
+                    ),
+                  })}
+                  isActive={
+                    hasVariant($state, 'equipes', 'equipes') ? true : undefined
+                  }
+                  link={`/`}
+                  nom={'\u00c9quipes'}
+                >
+                  <UserIcon
+                    className={classNames(projectcss.all, sty.svg__j3Qoq)}
+                    role={'img'}
+                  />
+                </BtnSideBar>
+              </div>
+              <div className={classNames(projectcss.all, sty.freeBox__dwOfF)}>
+                <BtnSideBar
+                  data-plasmic-name={'plan'}
+                  data-plasmic-override={overrides.plan}
+                  className={classNames('__wab_instance', sty.plan, {
+                    [sty.planplan2]: hasVariant($state, 'plan2', 'plan2'),
+                  })}
+                  isActive={
+                    hasVariant($state, 'plan2', 'plan2') ? true : undefined
+                  }
+                  link={`/`}
+                  nom={'Plan et facturation'}
+                >
+                  <FactureIcon
+                    className={classNames(projectcss.all, sty.svg___7X8Xe)}
+                    role={'img'}
+                  />
+                </BtnSideBar>
+              </div>
+              <BtnSideBar
+                data-plasmic-name={'parametre'}
+                data-plasmic-override={overrides.parametre}
+                className={classNames('__wab_instance', sty.parametre, {
+                  [sty.parametreparametresGeneraux]: hasVariant(
+                    $state,
+                    'parametresGeneraux',
+                    'parametresGeneraux',
+                  ),
+                  [sty.parametreplan2]: hasVariant($state, 'plan2', 'plan2'),
+                })}
+                isActive={
+                  hasVariant($state, 'parametresGeneraux', 'parametresGeneraux')
+                    ? true
+                    : undefined
+                }
+                link={`/`}
+                nom={'Param\u00e8tres g\u00e9n\u00e9raux'}
               >
-                {'Notification'}
-              </PlasmicLink__>
+                <SettingsIcon
+                  className={classNames(projectcss.all, sty.svg__wsiQy)}
+                  role={'img'}
+                />
+              </BtnSideBar>
             </Stack__>
-          </Stack__>
-          <div
-            data-plasmic-name={'divider'}
-            data-plasmic-override={overrides.divider}
-            className={classNames(projectcss.all, sty.divider)}
-          />
-
-          <Stack__
-            as={'div'}
-            data-plasmic-name={'general'}
-            data-plasmic-override={overrides.general}
-            hasGap={true}
-            className={classNames(projectcss.all, sty.general)}
-          >
-            <div className={classNames(projectcss.all, sty.freeBox__z3XLo)}>
-              <BtnSideBar
-                data-plasmic-name={'tableauDeBord'}
-                data-plasmic-override={overrides.tableauDeBord}
-                className={classNames('__wab_instance', sty.tableauDeBord)}
-                link={`/`}
-                nom={'Tableau de bord'}
-              >
-                <HomeIcon
-                  className={classNames(projectcss.all, sty.svg___6URSb)}
-                  role={'img'}
-                />
-              </BtnSideBar>
-            </div>
-            <div className={classNames(projectcss.all, sty.freeBox___01Fke)}>
-              <BtnSideBar
-                data-plasmic-name={'equipes2'}
-                data-plasmic-override={overrides.equipes2}
-                className={classNames('__wab_instance', sty.equipes2)}
-                link={`/`}
-                nom={'\u00c9quipes'}
-              />
-            </div>
-            <div className={classNames(projectcss.all, sty.freeBox__dwOfF)}>
-              <BtnSideBar
-                data-plasmic-name={'plan'}
-                data-plasmic-override={overrides.plan}
-                className={classNames('__wab_instance', sty.plan)}
-                link={`/`}
-                nom={'Plan et facturation'}
-              >
-                <FactureIcon
-                  className={classNames(projectcss.all, sty.svg___7X8Xe)}
-                  role={'img'}
-                />
-              </BtnSideBar>
-            </div>
-            <BtnSideBar
-              data-plasmic-name={'parametre'}
-              data-plasmic-override={overrides.parametre}
-              className={classNames('__wab_instance', sty.parametre)}
-              link={`/`}
-              nom={'Param\u00e8tres g\u00e9n\u00e9raux'}
-            >
-              <SettingsIcon
-                className={classNames(projectcss.all, sty.svg__wsiQy)}
-                role={'img'}
-              />
-            </BtnSideBar>
-          </Stack__>
-          <div
-            data-plasmic-name={'divider2'}
-            data-plasmic-override={overrides.divider2}
-            className={classNames(projectcss.all, sty.divider2)}
-          />
-
-          <Stack__
-            as={'div'}
-            data-plasmic-name={'projet'}
-            data-plasmic-override={overrides.projet}
-            hasGap={true}
-            className={classNames(projectcss.all, sty.projet)}
-          >
             <div
-              className={classNames(
-                projectcss.all,
-                projectcss.__wab_text,
-                sty.text__aGplf,
-              )}
-            >
-              {'PROJET'}
-            </div>
+              data-plasmic-name={'divider2'}
+              data-plasmic-override={overrides.divider2}
+              className={classNames(projectcss.all, sty.divider2)}
+            />
+
             <Stack__
               as={'div'}
+              data-plasmic-name={'projet'}
+              data-plasmic-override={overrides.projet}
               hasGap={true}
-              className={classNames(projectcss.all, sty.freeBox__jKyRd)}
+              className={classNames(projectcss.all, sty.projet, {
+                [sty.projetisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+              })}
             >
-              <DevSquareIcon
-                className={classNames(projectcss.all, sty.svg__uuk36)}
-                role={'img'}
-              />
-
-              <PlasmicLink__
+              <div
                 className={classNames(
                   projectcss.all,
-                  projectcss.a,
                   projectcss.__wab_text,
-                  sty.link___35TtG,
+                  sty.text__aGplf,
                 )}
-                href={'https://www.plasmic.app/'}
-                platform={'react'}
               >
-                {'Instances'}
-              </PlasmicLink__>
+                {'PROJET'}
+              </div>
+              <BtnSideBar
+                data-plasmic-name={'parametre3'}
+                data-plasmic-override={overrides.parametre3}
+                className={classNames('__wab_instance', sty.parametre3, {
+                  [sty.parametre3equipes]: hasVariant(
+                    $state,
+                    'equipes',
+                    'equipes',
+                  ),
+                  [sty.parametre3instances]: hasVariant(
+                    $state,
+                    'instances',
+                    'instances',
+                  ),
+                  [sty.parametre3isOpen]: hasVariant(
+                    $state,
+                    'isOpen',
+                    'isOpen',
+                  ),
+                  [sty.parametre3membres]: hasVariant(
+                    $state,
+                    'membres',
+                    'membres',
+                  ),
+                  [sty.parametre3parametreDuProjet]: hasVariant(
+                    $state,
+                    'parametreDuProjet',
+                    'parametreDuProjet',
+                  ),
+                  [sty.parametre3services]: hasVariant(
+                    $state,
+                    'services',
+                    'services',
+                  ),
+                  [sty.parametre3tableauDeBord2]: hasVariant(
+                    $state,
+                    'tableauDeBord2',
+                    'tableauDeBord2',
+                  ),
+                })}
+                isActive={
+                  hasVariant($state, 'instances', 'instances')
+                    ? true
+                    : undefined
+                }
+                link={
+                  hasVariant($state, 'parametreDuProjet', 'parametreDuProjet')
+                    ? `/instances`
+                    : hasVariant($state, 'membres', 'membres')
+                      ? `/instances`
+                      : hasVariant($state, 'services', 'services')
+                        ? `/instances`
+                        : hasVariant($state, 'instances', 'instances')
+                          ? `/instances`
+                          : hasVariant($state, 'isOpen', 'isOpen') &&
+                              hasVariant(globalVariants, 'screen', 'mobile')
+                            ? `/instances`
+                            : `/instances`
+                }
+                nom={'Instances'}
+              >
+                <DevSquareIcon
+                  className={classNames(projectcss.all, sty.svg__aeTd)}
+                  role={'img'}
+                />
+              </BtnSideBar>
+              <BtnSideBar
+                data-plasmic-name={'parametre6'}
+                data-plasmic-override={overrides.parametre6}
+                className={classNames('__wab_instance', sty.parametre6, {
+                  [sty.parametre6isOpen]: hasVariant(
+                    $state,
+                    'isOpen',
+                    'isOpen',
+                  ),
+                  [sty.parametre6services]: hasVariant(
+                    $state,
+                    'services',
+                    'services',
+                  ),
+                })}
+                isActive={
+                  hasVariant($state, 'services', 'services') ? true : undefined
+                }
+                link={`/`}
+                nom={'Services'}
+              >
+                <DevSquareIcon
+                  className={classNames(projectcss.all, sty.svg__pGfe2)}
+                  role={'img'}
+                />
+              </BtnSideBar>
+              <BtnSideBar
+                data-plasmic-name={'parametre4'}
+                data-plasmic-override={overrides.parametre4}
+                className={classNames('__wab_instance', sty.parametre4, {
+                  [sty.parametre4membres]: hasVariant(
+                    $state,
+                    'membres',
+                    'membres',
+                  ),
+                })}
+                isActive={
+                  hasVariant($state, 'membres', 'membres') ? true : undefined
+                }
+                link={`/`}
+                nom={'Membres'}
+              >
+                <UserIcon
+                  className={classNames(projectcss.all, sty.svg__zzrJu)}
+                  role={'img'}
+                />
+              </BtnSideBar>
+              <BtnSideBar
+                data-plasmic-name={'parametre5'}
+                data-plasmic-override={overrides.parametre5}
+                className={classNames('__wab_instance', sty.parametre5, {
+                  [sty.parametre5parametreDuProjet]: hasVariant(
+                    $state,
+                    'parametreDuProjet',
+                    'parametreDuProjet',
+                  ),
+                })}
+                isActive={
+                  hasVariant($state, 'parametreDuProjet', 'parametreDuProjet')
+                    ? true
+                    : undefined
+                }
+                link={`/`}
+                nom={'Param\u00e8tres du projet'}
+              >
+                <BellIcon
+                  className={classNames(projectcss.all, sty.svg__aupw)}
+                  role={'img'}
+                />
+              </BtnSideBar>
             </Stack__>
+          </Stack__>
+          <div
+            data-plasmic-name={'divider3'}
+            data-plasmic-override={overrides.divider3}
+            className={classNames(projectcss.all, sty.divider3)}
+          />
+
+          <Stack__
+            as={'div'}
+            data-plasmic-name={'profil'}
+            data-plasmic-override={overrides.profil}
+            hasGap={true}
+            className={classNames(projectcss.all, sty.profil)}
+          >
             <Stack__
               as={'div'}
               hasGap={true}
-              className={classNames(projectcss.all, sty.freeBox__lQhaN)}
+              className={classNames(projectcss.all, sty.freeBox__n30Jz)}
             >
-              <DevSquareIcon
-                className={classNames(projectcss.all, sty.svg__nNcbA)}
-                role={'img'}
-              />
-
-              <PlasmicLink__
-                className={classNames(
-                  projectcss.all,
-                  projectcss.a,
-                  projectcss.__wab_text,
-                  sty.link__oYrVb,
-                )}
-                href={'https://www.plasmic.app/'}
-                platform={'react'}
+              <BtnSideBar
+                data-plasmic-name={'parametre7'}
+                data-plasmic-override={overrides.parametre7}
+                className={classNames('__wab_instance', sty.parametre7, {
+                  [sty.parametre7isOpen]: hasVariant(
+                    $state,
+                    'isOpen',
+                    'isOpen',
+                  ),
+                  [sty.parametre7parametreDuProjet]: hasVariant(
+                    $state,
+                    'parametreDuProjet',
+                    'parametreDuProjet',
+                  ),
+                })}
+                link={`/`}
+                nom={'Profil'}
               >
-                {'Services'}
-              </PlasmicLink__>
-            </Stack__>
-            <Stack__
-              as={'div'}
-              hasGap={true}
-              className={classNames(projectcss.all, sty.freeBox__l5EJl)}
-            >
-              <UserIcon
-                className={classNames(projectcss.all, sty.svg__bf85V)}
-                role={'img'}
-              />
-
-              <PlasmicLink__
-                className={classNames(
-                  projectcss.all,
-                  projectcss.a,
-                  projectcss.__wab_text,
-                  sty.link___998AI,
-                )}
-                href={'https://www.plasmic.app/'}
-                platform={'react'}
+                <Icon11Icon
+                  className={classNames(projectcss.all, sty.svg__zftOu)}
+                  role={'img'}
+                />
+              </BtnSideBar>
+              <BtnSideBar
+                data-plasmic-name={'parametre9'}
+                data-plasmic-override={overrides.parametre9}
+                className={classNames('__wab_instance', sty.parametre9)}
+                link={`/`}
+                nom={'FAQ'}
               >
-                {'Membres'}
-              </PlasmicLink__>
-            </Stack__>
-            <Stack__
-              as={'div'}
-              hasGap={true}
-              className={classNames(projectcss.all, sty.freeBox__pitv8)}
-            >
-              <Icon4Icon
-                className={classNames(projectcss.all, sty.svg__rqh5L)}
-                role={'img'}
-              />
-
-              <PlasmicLink__
-                className={classNames(
-                  projectcss.all,
-                  projectcss.a,
-                  projectcss.__wab_text,
-                  sty.link__s6Hfv,
-                )}
-                href={'https://www.plasmic.app/'}
-                platform={'react'}
-              >
-                {'Param\u00e8tres du projet'}
-              </PlasmicLink__>
+                <Icon10Icon
+                  className={classNames(projectcss.all, sty.svg__m2Ofs)}
+                  role={'img'}
+                />
+              </BtnSideBar>
             </Stack__>
           </Stack__>
         </Stack__>
         <div
-          data-plasmic-name={'divider3'}
-          data-plasmic-override={overrides.divider3}
-          className={classNames(projectcss.all, sty.divider3)}
-        />
+          className={classNames(projectcss.all, sty.freeBox__vJyR1, {
+            [sty.freeBoxisOpen__vJyR1Vo8B3]: hasVariant(
+              $state,
+              'isOpen',
+              'isOpen',
+            ),
+          })}
+          onClick={async (event) => {
+            const $steps = {};
 
-        <Stack__
-          as={'div'}
-          data-plasmic-name={'profil'}
-          data-plasmic-override={overrides.profil}
-          hasGap={true}
-          className={classNames(projectcss.all, sty.profil)}
+            $steps['updateIsClose'] = true
+              ? (() => {
+                  const actionArgs = { vgroup: 'isOpen', operation: 2 };
+                  return (({ vgroup, value }) => {
+                    if (typeof value === 'string') {
+                      value = [value];
+                    }
+
+                    const oldValue = $stateGet($state, vgroup);
+                    $stateSet($state, vgroup, !oldValue);
+                    return !oldValue;
+                  })?.apply(null, [actionArgs]);
+                })()
+              : undefined;
+            if (
+              $steps['updateIsClose'] != null &&
+              typeof $steps['updateIsClose'] === 'object' &&
+              typeof $steps['updateIsClose'].then === 'function'
+            ) {
+              $steps['updateIsClose'] = await $steps['updateIsClose'];
+            }
+          }}
         >
-          <Stack__
-            as={'div'}
-            hasGap={true}
-            className={classNames(projectcss.all, sty.freeBox__n30Jz)}
-          >
-            <Icon11Icon
-              className={classNames(projectcss.all, sty.svg__pc0LT)}
-              role={'img'}
-            />
-
-            <PlasmicLink__
-              className={classNames(
-                projectcss.all,
-                projectcss.a,
-                projectcss.__wab_text,
-                sty.link___2570G,
-              )}
-              href={'https://www.plasmic.app/'}
-              platform={'react'}
-            >
-              {'Profil'}
-            </PlasmicLink__>
-          </Stack__>
-          <Stack__
-            as={'div'}
-            hasGap={true}
-            className={classNames(projectcss.all, sty.freeBox__nwccv)}
-          >
-            <Icon10Icon
-              className={classNames(projectcss.all, sty.svg__imKm)}
-              role={'img'}
-            />
-
-            <PlasmicLink__
-              className={classNames(
-                projectcss.all,
-                projectcss.a,
-                projectcss.__wab_text,
-                sty.link___0W0QO,
-              )}
-              href={'https://www.plasmic.app/'}
-              platform={'react'}
-            >
-              {'Param\u00e8tres du projet'}
-            </PlasmicLink__>
-          </Stack__>
-        </Stack__>
-      </Stack__>
+          <ChevronRightIcon
+            className={classNames(projectcss.all, sty.svg__e0FkA, {
+              [sty.svgisOpen__e0FkAvo8B3]: hasVariant(
+                $state,
+                'isOpen',
+                'isOpen',
+              ),
+            })}
+            role={'img'}
+          />
+        </div>
+      </div>
     </div>
   ) as React.ReactElement | null;
 }
@@ -543,8 +831,14 @@ const PlasmicDescendants = {
     'parametre',
     'divider2',
     'projet',
+    'parametre3',
+    'parametre6',
+    'parametre4',
+    'parametre5',
     'divider3',
     'profil',
+    'parametre7',
+    'parametre9',
   ],
   recherche: ['recherche', 'textField'],
   textField: ['textField'],
@@ -555,9 +849,15 @@ const PlasmicDescendants = {
   plan: ['plan'],
   parametre: ['parametre'],
   divider2: ['divider2'],
-  projet: ['projet'],
+  projet: ['projet', 'parametre3', 'parametre6', 'parametre4', 'parametre5'],
+  parametre3: ['parametre3'],
+  parametre6: ['parametre6'],
+  parametre4: ['parametre4'],
+  parametre5: ['parametre5'],
   divider3: ['divider3'],
-  profil: ['profil'],
+  profil: ['profil', 'parametre7', 'parametre9'],
+  parametre7: ['parametre7'],
+  parametre9: ['parametre9'],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -574,8 +874,14 @@ type NodeDefaultElementType = {
   parametre: typeof BtnSideBar;
   divider2: 'div';
   projet: 'div';
+  parametre3: typeof BtnSideBar;
+  parametre6: typeof BtnSideBar;
+  parametre4: typeof BtnSideBar;
+  parametre5: typeof BtnSideBar;
   divider3: 'div';
   profil: 'div';
+  parametre7: typeof BtnSideBar;
+  parametre9: typeof BtnSideBar;
 };
 
 type ReservedPropsType = 'variants' | 'args' | 'overrides';
@@ -648,8 +954,14 @@ export const PlasmicSideBar = Object.assign(
     parametre: makeNodeComponent('parametre'),
     divider2: makeNodeComponent('divider2'),
     projet: makeNodeComponent('projet'),
+    parametre3: makeNodeComponent('parametre3'),
+    parametre6: makeNodeComponent('parametre6'),
+    parametre4: makeNodeComponent('parametre4'),
+    parametre5: makeNodeComponent('parametre5'),
     divider3: makeNodeComponent('divider3'),
     profil: makeNodeComponent('profil'),
+    parametre7: makeNodeComponent('parametre7'),
+    parametre9: makeNodeComponent('parametre9'),
 
     // Metadata about props expected for PlasmicSideBar
     internalVariantProps: PlasmicSideBar__VariantProps,
