@@ -58,7 +58,7 @@ import { BaseDialogTrigger } from '@plasmicpkgs/react-aria/skinny/registerDialog
 import { BaseModal } from '@plasmicpkgs/react-aria/skinny/registerModal';
 import * as React from 'react';
 
-import Button from '../../Button';
+import FormButton from '../../FormButton';
 import plasmic_antd_5_hostless_css from '../antd_5_hostless/plasmic.module.css';
 import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from './PlasmicGlobalVariant__Screen';
 // plasmic-import: aqt4bw2qhfo7d76ADZhQFo/projectcss
@@ -327,7 +327,7 @@ function PlasmicModal__RenderFunc(props: {
             {renderPlasmicSlot({
               defaultContents: (
                 <div className={classNames(projectcss.all, sty.freeBox__hGspm)}>
-                  <Button
+                  <FormButton
                     color={'muted'}
                     label={
                       <div
@@ -399,7 +399,7 @@ function PlasmicModal__RenderFunc(props: {
       trigger={
         (hasVariant($state, 'noTrigger', 'noTrigger') ? false : true)
           ? renderPlasmicSlot({
-              defaultContents: <Button label={'Open Modal'} />,
+              defaultContents: <FormButton label={'Open Modal'} />,
 
               value: args.trigger,
             })

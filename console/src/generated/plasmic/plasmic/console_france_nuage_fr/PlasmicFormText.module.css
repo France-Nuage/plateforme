@@ -1,0 +1,15 @@
+.copy4 {
+  display: block;
+  font-size: var(--token-bJUUcSmKw7_T);
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-weight: 400;
+  letter-spacing: 0px;
+  line-height: var(--token-jUfReUr_1n5q);
+  color: rgba(96, 113, 140, 1);
+  position: relative;
+}
+@media (max-width: 414px) {
+  .copy4 {
+    font-size: var(--token-bJUUcSmKw7_T);
+  }
+}

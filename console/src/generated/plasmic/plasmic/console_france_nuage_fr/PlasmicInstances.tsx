@@ -44,8 +44,6 @@ import {
   useTrigger,
   wrapWithClassName,
 } from '@plasmicapp/react-web';
-// plasmic-import: 7igOedWgPhE0/component
-import { Fetcher } from '@plasmicapp/react-web/lib/data-sources';
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -58,20 +56,22 @@ import * as React from 'react';
 
 import { ConsoleProvider } from '../../../../providers/ConsoleProvider';
 // plasmic-import: vWN9dmdYefpY/codeComponent
-import Breadcrumbs from '../../Breadcrumbs';
+import ConsoleBreadcrumb from '../../ConsoleBreadcrumb';
 // plasmic-import: tYFejTQb0c1A/component
-import Button from '../../Button';
+import FormButton from '../../FormButton';
 // plasmic-import: hFREyvMXF-HZ/component
-import Combobox from '../../Combobox';
-// plasmic-import: 1VSU1092sLjX/component
-import MenuItem from '../../MenuItem';
+import FormSelect2 from '../../FormSelect2';
+// plasmic-import: BPkDJbnqSOZ0/component
+import FormTextInput from '../../FormTextInput';
 // plasmic-import: WgBKdGHdVFBy/component
 import Modal from '../../Modal';
 // plasmic-import: PEgOxZRQTA56/component
-import SideBar from '../../SideBar';
-// plasmic-import: BPkDJbnqSOZ0/component
-import TextInput from '../../TextInput';
+import NavigationDrawer from '../../NavigationDrawer';
+// plasmic-import: 1VSU1092sLjX/component
+import NavigationMenuItem from '../../NavigationMenuItem';
 import plasmic_antd_5_hostless_css from '../antd_5_hostless/plasmic.module.css';
+// plasmic-import: 7igOedWgPhE0/component
+
 import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from './PlasmicGlobalVariant__Screen';
 // plasmic-import: aqt4bw2qhfo7d76ADZhQFo/projectcss
 import sty from './PlasmicInstances.module.css';
@@ -99,15 +99,15 @@ export const PlasmicInstances__ArgProps = new Array<ArgPropType>();
 export type PlasmicInstances__OverridesType = {
   root?: Flex__<'div'>;
   consoleProvider?: Flex__<typeof ConsoleProvider>;
-  breadcrumbs?: Flex__<typeof Breadcrumbs>;
+  consoleBreadcrumb?: Flex__<typeof ConsoleBreadcrumb>;
   dessous?: Flex__<'div'>;
-  sideBar?: Flex__<typeof SideBar>;
+  navigationDrawer?: Flex__<typeof NavigationDrawer>;
   instances?: Flex__<'div'>;
   modal?: Flex__<typeof Modal>;
   h3?: Flex__<'h3'>;
-  nom?: Flex__<typeof TextInput>;
-  cpu?: Flex__<typeof Combobox>;
-  memoire?: Flex__<typeof Combobox>;
+  nom?: Flex__<typeof FormTextInput>;
+  cpu?: Flex__<typeof FormSelect2>;
+  memoire?: Flex__<typeof FormSelect2>;
 };
 
 export interface DefaultInstancesProps {
@@ -274,10 +274,13 @@ function PlasmicInstances__RenderFunc(props: {
             <DataCtxReader__>
               {($ctx) => (
                 <React.Fragment>
-                  <Breadcrumbs
-                    data-plasmic-name={'breadcrumbs'}
-                    data-plasmic-override={overrides.breadcrumbs}
-                    className={classNames('__wab_instance', sty.breadcrumbs)}
+                  <ConsoleBreadcrumb
+                    data-plasmic-name={'consoleBreadcrumb'}
+                    data-plasmic-override={overrides.consoleBreadcrumb}
+                    className={classNames(
+                      '__wab_instance',
+                      sty.consoleBreadcrumb,
+                    )}
                   />
 
                   <div
@@ -285,11 +288,13 @@ function PlasmicInstances__RenderFunc(props: {
                     data-plasmic-override={overrides.dessous}
                     className={classNames(projectcss.all, sty.dessous)}
                   >
-                    <SideBar
-                      data-plasmic-name={'sideBar'}
-                      data-plasmic-override={overrides.sideBar}
-                      className={classNames('__wab_instance', sty.sideBar)}
-                      instances={true}
+                    <NavigationDrawer
+                      data-plasmic-name={'navigationDrawer'}
+                      data-plasmic-override={overrides.navigationDrawer}
+                      className={classNames(
+                        '__wab_instance',
+                        sty.navigationDrawer,
+                      )}
                     />
 
                     <Stack__
@@ -533,7 +538,7 @@ function PlasmicInstances__RenderFunc(props: {
                                 sty.freeBox__pEQk6,
                               )}
                             >
-                              <TextInput
+                              <FormTextInput
                                 data-plasmic-name={'nom'}
                                 data-plasmic-override={overrides.nom}
                                 ariaLabel={``}
@@ -632,7 +637,7 @@ function PlasmicInstances__RenderFunc(props: {
                                 </React.Fragment>
                               </div>
                             </Stack__>
-                            <Combobox
+                            <FormSelect2
                               data-plasmic-name={'cpu'}
                               data-plasmic-override={overrides.cpu}
                               className={classNames('__wab_instance', sty.cpu)}
@@ -657,18 +662,18 @@ function PlasmicInstances__RenderFunc(props: {
                               ])}
                               items={
                                 <React.Fragment>
-                                  <MenuItem
+                                  <NavigationMenuItem
                                     className={classNames(
                                       '__wab_instance',
-                                      sty.menuItem__gmYsG,
+                                      sty.navigationMenuItem__gmYsG,
                                     )}
                                     label={'2'}
                                     value={'2'}
                                   />
 
-                                  <MenuItem label={'4'} value={'4'} />
+                                  <NavigationMenuItem label={'4'} value={'4'} />
 
-                                  <MenuItem label={'8'} value={'8'} />
+                                  <NavigationMenuItem label={'8'} value={'8'} />
                                 </React.Fragment>
                               }
                               onChange={async (...eventArgs: any) => {
@@ -754,7 +759,7 @@ function PlasmicInstances__RenderFunc(props: {
                               ])}
                             />
 
-                            <Combobox
+                            <FormSelect2
                               data-plasmic-name={'memoire'}
                               data-plasmic-override={overrides.memoire}
                               className={classNames(
@@ -781,18 +786,24 @@ function PlasmicInstances__RenderFunc(props: {
                               ])}
                               items={
                                 <React.Fragment>
-                                  <MenuItem
+                                  <NavigationMenuItem
                                     className={classNames(
                                       '__wab_instance',
-                                      sty.menuItem__po29M,
+                                      sty.navigationMenuItem__po29M,
                                     )}
                                     label={'4 Go'}
                                     value={'4'}
                                   />
 
-                                  <MenuItem label={'8 Go'} value={'8'} />
+                                  <NavigationMenuItem
+                                    label={'8 Go'}
+                                    value={'8'}
+                                  />
 
-                                  <MenuItem label={'16 Go'} value={'16'} />
+                                  <NavigationMenuItem
+                                    label={'16 Go'}
+                                    value={'16'}
+                                  />
                                 </React.Fragment>
                               }
                               label={'Label'}
@@ -886,7 +897,7 @@ function PlasmicInstances__RenderFunc(props: {
                               sty.freeBox__tHnNw,
                             )}
                           >
-                            <Button
+                            <FormButton
                               label={
                                 <div
                                   className={classNames(
@@ -1049,7 +1060,7 @@ function PlasmicInstances__RenderFunc(props: {
                         showFooter={true}
                         showHeader={true}
                         trigger={
-                          <Button
+                          <FormButton
                             label={'Ajouter une instance'}
                             onClick={async (event) => {
                               const $steps = {};
@@ -1141,9 +1152,9 @@ const PlasmicDescendants = {
   root: [
     'root',
     'consoleProvider',
-    'breadcrumbs',
+    'consoleBreadcrumb',
     'dessous',
-    'sideBar',
+    'navigationDrawer',
     'instances',
     'modal',
     'h3',
@@ -1153,9 +1164,9 @@ const PlasmicDescendants = {
   ],
   consoleProvider: [
     'consoleProvider',
-    'breadcrumbs',
+    'consoleBreadcrumb',
     'dessous',
-    'sideBar',
+    'navigationDrawer',
     'instances',
     'modal',
     'h3',
@@ -1163,10 +1174,10 @@ const PlasmicDescendants = {
     'cpu',
     'memoire',
   ],
-  breadcrumbs: ['breadcrumbs'],
+  consoleBreadcrumb: ['consoleBreadcrumb'],
   dessous: [
     'dessous',
-    'sideBar',
+    'navigationDrawer',
     'instances',
     'modal',
     'h3',
@@ -1174,7 +1185,7 @@ const PlasmicDescendants = {
     'cpu',
     'memoire',
   ],
-  sideBar: ['sideBar'],
+  navigationDrawer: ['navigationDrawer'],
   instances: ['instances', 'modal', 'h3', 'nom', 'cpu', 'memoire'],
   modal: ['modal', 'h3', 'nom', 'cpu', 'memoire'],
   h3: ['h3'],
@@ -1188,15 +1199,15 @@ type DescendantsType<T extends NodeNameType> =
 type NodeDefaultElementType = {
   root: 'div';
   consoleProvider: typeof ConsoleProvider;
-  breadcrumbs: typeof Breadcrumbs;
+  consoleBreadcrumb: typeof ConsoleBreadcrumb;
   dessous: 'div';
-  sideBar: typeof SideBar;
+  navigationDrawer: typeof NavigationDrawer;
   instances: 'div';
   modal: typeof Modal;
   h3: 'h3';
-  nom: typeof TextInput;
-  cpu: typeof Combobox;
-  memoire: typeof Combobox;
+  nom: typeof FormTextInput;
+  cpu: typeof FormSelect2;
+  memoire: typeof FormSelect2;
 };
 
 type ReservedPropsType = 'variants' | 'args' | 'overrides';
@@ -1260,9 +1271,9 @@ export const PlasmicInstances = Object.assign(
   {
     // Helper components rendering sub-elements
     consoleProvider: makeNodeComponent('consoleProvider'),
-    breadcrumbs: makeNodeComponent('breadcrumbs'),
+    consoleBreadcrumb: makeNodeComponent('consoleBreadcrumb'),
     dessous: makeNodeComponent('dessous'),
-    sideBar: makeNodeComponent('sideBar'),
+    navigationDrawer: makeNodeComponent('navigationDrawer'),
     instances: makeNodeComponent('instances'),
     modal: makeNodeComponent('modal'),
     h3: makeNodeComponent('h3'),
@@ -1276,7 +1287,7 @@ export const PlasmicInstances = Object.assign(
 
     // Page metadata
     pageMetadata: {
-      title: '',
+      title: 'Instances',
       description: '',
       ogImageSrc: '',
       canonical: '',

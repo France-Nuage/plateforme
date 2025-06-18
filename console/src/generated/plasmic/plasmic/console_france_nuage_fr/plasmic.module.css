@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato%3Aital%2Cwght%400%2C400%3B0%2C700&family=Inconsolata%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Inter%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Outfit%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&family=Nunito+Sans%3Aital%2Cwght%400%2C400%3B0%2C600%3B0%2C700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C700&family=Inconsolata%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C600%3B0%2C700&family=Outfit%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C600%3B0%2C700&display=swap');
 
 .plasmic_tokens {
   --token-PKw3mKbzBr62: #1a4ce5;
@@ -6,9 +6,7 @@
   --token-Wg7N_OBtTq5_: 0.5rem;
   --plasmic-token-size-8: var(--token-Wg7N_OBtTq5_);
   --token-xJyIxpbdm7M0: Lato;
-  --plasmic-token-body: var(--token-xJyIxpbdm7M0);
-  --token-7xKkXWUJlfs8: 1rem;
-  --plasmic-token-font-md: var(--token-7xKkXWUJlfs8);
+  --plasmic-token-font-family-text: var(--token-xJyIxpbdm7M0);
   --token-0Kpg2wzGk3wu: 1.25;
   --plasmic-token-line-height-md: var(--token-0Kpg2wzGk3wu);
   --token-yByw3KgAJ_yl: 0.375rem;
@@ -21,12 +19,10 @@
   --plasmic-token-muted-muted: var(--token-gkTROJ4AvyUP);
   --token-fncr5OCrhHFI: 0.25rem;
   --plasmic-token-size-4: var(--token-fncr5OCrhHFI);
-  --token-B4qLOOGP-C40: 0.75rem;
-  --plasmic-token-font-sm: var(--token-B4qLOOGP-C40);
   --token-jUfReUr_1n5q: 1;
   --plasmic-token-line-height-sm: var(--token-jUfReUr_1n5q);
   --token-L6tWcuP8NvrU: 1.25rem;
-  --plasmic-token-font-lg: var(--token-L6tWcuP8NvrU);
+  --plasmic-token-font-size-title: var(--token-L6tWcuP8NvrU);
   --token-NDqb1HqOfMvx: 1.4;
   --plasmic-token-line-height-lg: var(--token-NDqb1HqOfMvx);
   --token-yD_grHTyRaeK: 0.125rem;
@@ -108,17 +104,13 @@
   --token-Bml44OgekI9b: #f9faff;
   --plasmic-token-background: var(--token-Bml44OgekI9b);
   --token-R-I-KIV08TJv: Outfit;
-  --plasmic-token-titre: var(--token-R-I-KIV08TJv);
+  --plasmic-token-font-family-title: var(--token-R-I-KIV08TJv);
   --token-9BvQ2cxVEs4b: #eff6ff;
   --plasmic-token-bg-stack: var(--token-9BvQ2cxVEs4b);
   --token-ZQpiPlj-4OYJ: #dbe6f2;
   --plasmic-token-contour-stack: var(--token-ZQpiPlj-4OYJ);
-  --token-xI_MJejjjCRj: 12px;
-  --plasmic-token-system-s: var(--token-xI_MJejjjCRj);
   --token-AVjrb1VpMneH: #ffffff;
   --plasmic-token-basic-container-background: var(--token-AVjrb1VpMneH);
-  --token-NqA2b1_MYJ-V: Inter;
-  --plasmic-token-sans-serif: var(--token-NqA2b1_MYJ-V);
   --token-ZKnSqz-AoN98: 1rem;
   --plasmic-token-size-16: var(--token-ZKnSqz-AoN98);
   --token-uzx5vY_oUTDL: #0a0a0a80;
@@ -131,6 +123,22 @@
   --plasmic-token-size-20: var(--token-LndKBjsKUOCP);
   --token-fnZm-7SHBYMc: #9ca3af;
   --plasmic-token-basic-ring: var(--token-fnZm-7SHBYMc);
+  --token-bJUUcSmKw7_T: 1rem;
+  --plasmic-token-font-size-text: var(--token-bJUUcSmKw7_T);
+  --token-P45HDGz4MqIV: 20px;
+  --plasmic-token-size-20-2: var(--token-P45HDGz4MqIV);
+  --token-fYu2D5FmAA39: var(--token-WsdYlPIouqUZ);
+  --plasmic-token-form-input-group: var(--token-fYu2D5FmAA39);
+  --token-WsdYlPIouqUZ: 0.5rem;
+  --plasmic-token-unnamed-style-token: var(--token-WsdYlPIouqUZ);
+  --token-MeMRQjxXd5fQ: 1rem;
+  --plasmic-token-form-gap-between-input-group: var(--token-MeMRQjxXd5fQ);
+  --token-A3Z7k0PCR3YA: 250px;
+  --plasmic-token-navigation-drawer-width: var(--token-A3Z7k0PCR3YA);
+  --token-qFXr9pcppAoX: 1rem;
+  --plasmic-token-navigation-drawer-padding: var(--token-qFXr9pcppAoX);
+  --token--cbbMwIvXrqn: 30px;
+  --plasmic-token-console-background-logo-padding: var(--token--cbbMwIvXrqn);
 }
 
 @media (max-width: 414px) {
@@ -139,6 +147,12 @@
     --plasmic-token-basic-text-secondary: var(--token-9DYAKh_l4jQS);
     --token-74Qsc5U_cwQo: #1c274d;
     --plasmic-token-basic-text-primary: var(--token-74Qsc5U_cwQo);
+    --token-ZKnSqz-AoN98: 0.7rem;
+    --plasmic-token-size-16: var(--token-ZKnSqz-AoN98);
+    --token-bJUUcSmKw7_T: 12px;
+    --plasmic-token-font-size-text: var(--token-bJUUcSmKw7_T);
+    --token-P45HDGz4MqIV: 1px;
+    --plasmic-token-size-20-2: var(--token-P45HDGz4MqIV);
   }
 }
 
@@ -277,6 +291,16 @@
   --mixin-2Qu7oGSiCsFc_white-space: pre-wrap;
   --mixin-LXnsHoPHtpCW_white-space: pre-wrap;
   --mixin-Go8LYsyVBWOo_white-space: pre-wrap;
+}
+
+.plasmic_mixins,
+.plasmic_mixins:where(.global_unnamedGlobalGroupOfVariants_unnamedVariant) {
+  --mixin-BYoqNLeYTUhg_white-space: pre-wrap;
+  --plasmic-mixin-body_white-space: var(--mixin-BYoqNLeYTUhg_white-space);
+  --mixin-pLLkNvX3oUte_white-space: pre-wrap;
+  --plasmic-mixin-petit-titre_white-space: var(
+    --mixin-pLLkNvX3oUte_white-space
+  );
 }
 
 :where(.all) {

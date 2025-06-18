@@ -81,16 +81,6 @@
       }
     },
     {
-      "name": "Body 2",
-      "type": "fontsize",
-      "value": "16px",
-      "category": "fontsize",
-      "meta": {
-        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
-        "id": "qyVVHWhnmJED"
-      }
-    },
-    {
       "name": "Brand/Brand",
       "type": "color",
       "value": "#1A4CE5",
@@ -188,36 +178,6 @@
       "meta": {
         "projectId": "aqt4bw2qhfo7d76ADZhQFo",
         "id": "-SFLsQ7Sb-gT"
-      }
-    },
-    {
-      "name": "Font-LG",
-      "type": "fontsize",
-      "value": "1.25rem",
-      "category": "fontsize",
-      "meta": {
-        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
-        "id": "L6tWcuP8NvrU"
-      }
-    },
-    {
-      "name": "Font-MD",
-      "type": "fontsize",
-      "value": "1rem",
-      "category": "fontsize",
-      "meta": {
-        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
-        "id": "7xKkXWUJlfs8"
-      }
-    },
-    {
-      "name": "Font-SM",
-      "type": "fontsize",
-      "value": "0.75rem",
-      "category": "fontsize",
-      "meta": {
-        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
-        "id": "B4qLOOGP-C40"
       }
     },
     {
@@ -1291,16 +1251,6 @@
       }
     },
     {
-      "name": "System: S",
-      "type": "fontsize",
-      "value": "12px",
-      "category": "fontsize",
-      "meta": {
-        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
-        "id": "xI_MJejjjCRj"
-      }
-    },
-    {
       "name": "System: SM",
       "type": "fontsize",
       "value": "var(--antd-fontSizeSM)",
@@ -1581,6 +1531,16 @@
       }
     },
     {
+      "name": "Unnamed Style Token",
+      "type": "spacing",
+      "value": "0.5rem",
+      "category": "spacing",
+      "meta": {
+        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+        "id": "WsdYlPIouqUZ"
+      }
+    },
+    {
       "name": "Warning/Warning",
       "type": "color",
       "value": "#FACC15",
@@ -1641,13 +1601,13 @@
       }
     },
     {
-      "name": "body",
-      "type": "fontfamily",
-      "value": "Lato",
-      "category": "fontfamily",
+      "name": "console/background/logo-padding",
+      "type": "spacing",
+      "value": "30px",
+      "category": "spacing",
       "meta": {
         "projectId": "aqt4bw2qhfo7d76ADZhQFo",
-        "id": "xJyIxpbdm7M0"
+        "id": "-cbbMwIvXrqn"
       }
     },
     {
@@ -1661,9 +1621,29 @@
       }
     },
     {
-      "name": "petit titre",
+      "name": "font-family/text",
+      "type": "fontfamily",
+      "value": "Lato",
+      "category": "fontfamily",
+      "meta": {
+        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+        "id": "xJyIxpbdm7M0"
+      }
+    },
+    {
+      "name": "font-family/title",
+      "type": "fontfamily",
+      "value": "Outfit",
+      "category": "fontfamily",
+      "meta": {
+        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+        "id": "R-I-KIV08TJv"
+      }
+    },
+    {
+      "name": "font-size/text",
       "type": "fontsize",
-      "value": "14px",
+      "value": "1rem",
       "category": "fontsize",
       "meta": {
         "projectId": "aqt4bw2qhfo7d76ADZhQFo",
@@ -1671,13 +1651,53 @@
       }
     },
     {
-      "name": "titre",
-      "type": "fontfamily",
-      "value": "Outfit",
-      "category": "fontfamily",
+      "name": "font-size/title",
+      "type": "fontsize",
+      "value": "1.25rem",
+      "category": "fontsize",
       "meta": {
         "projectId": "aqt4bw2qhfo7d76ADZhQFo",
-        "id": "R-I-KIV08TJv"
+        "id": "L6tWcuP8NvrU"
+      }
+    },
+    {
+      "name": "form/gap-between-input-group",
+      "type": "spacing",
+      "value": "1rem",
+      "category": "spacing",
+      "meta": {
+        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+        "id": "MeMRQjxXd5fQ"
+      }
+    },
+    {
+      "name": "form/input-group",
+      "type": "spacing",
+      "value": "0.5rem",
+      "category": "spacing",
+      "meta": {
+        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+        "id": "fYu2D5FmAA39"
+      }
+    },
+    {
+      "name": "navigation/drawer/padding",
+      "type": "spacing",
+      "value": "1rem",
+      "category": "spacing",
+      "meta": {
+        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+        "id": "qFXr9pcppAoX"
+      }
+    },
+    {
+      "name": "navigation/drawer/width",
+      "type": "spacing",
+      "value": "250px",
+      "category": "spacing",
+      "meta": {
+        "projectId": "aqt4bw2qhfo7d76ADZhQFo",
+        "id": "A3Z7k0PCR3YA"
       }
     }
   ],
