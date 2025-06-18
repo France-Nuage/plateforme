@@ -20,7 +20,7 @@ async fn test_the_delete_instance_procedure_works(
         .with_vm_delete();
     let mock_url = mock.url();
 
-    let organization = Organization::factory().create(pool.clone()).await?;
+    let organization = Organization::factory().create(&pool).await?;
 
     let instance = Instance::factory()
         .distant_id("100".into())
@@ -28,7 +28,7 @@ async fn test_the_delete_instance_procedure_works(
             hypervisor.organization_id(organization.id).url(mock_url)
         })
         .for_project_with(move |project| project.organization_id(organization.id))
-        .create(pool.clone())
+        .create(&pool)
         .await?;
 
     let config = ServerConfig::new(pool.clone());

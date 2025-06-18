@@ -20,11 +20,11 @@ impl database::Persistable for Missile {
     type Connection = ();
     type Error = ();
 
-    async fn create(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+    async fn create(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
         Ok(self)
     }
 
-    async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+    async fn update(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
         Ok(self)
     }
 }
@@ -40,11 +40,11 @@ impl database::Persistable for Category {
     type Connection = ();
     type Error = ();
 
-    async fn create(self, _pool: ()) -> Result<Self, Self::Error> {
+    async fn create(self, _pool: &()) -> Result<Self, Self::Error> {
         Ok(self)
     }
 
-    async fn update(self, _pool: ()) -> Result<Self, Self::Error> {
+    async fn update(self, _pool: &()) -> Result<Self, Self::Error> {
         Ok(self)
     }
 }
@@ -54,7 +54,7 @@ async fn test_a_struct_can_be_factorized() {
     let missile = Missile::factory()
         .owner("Wile E. Coyote".to_string())
         .target("Road Runner".to_owned())
-        .create(())
+        .create(&())
         .await
         .expect("Should create successfully");
 
@@ -76,7 +76,7 @@ async fn test_a_struct_can_be_factorized_with_a_relation() {
         .for_category_with(|category| category.name("Weaponry".into()))
         .owner("Wile E. Coyote".to_string())
         .target("Road Runner".to_owned())
-        .create(())
+        .create(&())
         .await
         .expect("Should create successfully");
 

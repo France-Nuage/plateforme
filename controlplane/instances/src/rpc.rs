@@ -129,7 +129,7 @@ mod tests {
         let server = MockServer::new().await.with_cluster_resource_list();
         let url = server.url();
         let organization = Organization::factory()
-            .create(pool.clone())
+            .create(&pool)
             .await
             .expect("could not create organization");
         Instance::factory()
@@ -137,7 +137,7 @@ mod tests {
                 hypervisor.organization_id(organization.id).url(url)
             })
             .for_project_with(move |project| project.organization_id(organization.id))
-            .create(pool.clone())
+            .create(&pool)
             .await
             .expect("could not create instance");
         let service = InstancesRpcService::new(pool);

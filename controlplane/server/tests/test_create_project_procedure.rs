@@ -15,7 +15,7 @@ async fn test_the_create_project_procedure_works(
     let shutdown_tx = server.serve_with_shutdown().await?;
     let mut client = ResourcesClient::connect(format!("http://{}", addr)).await?;
 
-    let organization = Organization::factory().create(pool.clone()).await?;
+    let organization = Organization::factory().create(&pool).await?;
 
     // Act the request to the test_the_status_procedure_works
     let response = client

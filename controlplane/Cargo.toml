@@ -10,7 +10,7 @@ members = [
   "instances",
   "resources",
   "server",
-  "synchronizer",
+  "synchronizer", "derive_repository",
 ]
 
 resolver = "3"

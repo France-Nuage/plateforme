@@ -11,7 +11,7 @@ async fn test_the_list_projects_procedure_works(
     // Arrange the test
     Project::factory()
         .for_organization_with(|organization| organization)
-        .create(pool.clone())
+        .create(&pool)
         .await?;
 
     let config = ServerConfig::new(pool);
