@@ -1,0 +1,17 @@
+.label7 {
+  display: block;
+  font-size: var(--token-bJUUcSmKw7_T);
+  text-align: center;
+  text-decoration-line: underline;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-weight: 400;
+  letter-spacing: 0px;
+  line-height: var(--token-jUfReUr_1n5q);
+  color: rgba(26, 76, 229, 1);
+  position: relative;
+}
+@media (max-width: 414px) {
+  .label7 {
+    font-size: var(--token-o0Nl0Hefncwa);
+  }
+}

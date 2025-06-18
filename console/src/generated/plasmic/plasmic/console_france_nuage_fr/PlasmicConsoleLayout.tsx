@@ -54,9 +54,9 @@ import {
 import '@plasmicapp/react-web/lib/plasmic.css';
 import * as React from 'react';
 
-import Breadcrumbs from '../../Breadcrumbs';
+import ConsoleBreadcrumb from '../../ConsoleBreadcrumb';
 // plasmic-import: PEgOxZRQTA56/component
-import SideBar from '../../SideBar';
+import NavigationDrawer from '../../NavigationDrawer';
 import plasmic_antd_5_hostless_css from '../antd_5_hostless/plasmic.module.css';
 // plasmic-import: aqt4bw2qhfo7d76ADZhQFo/projectcss
 import sty from './PlasmicConsoleLayout.module.css';
@@ -83,8 +83,8 @@ export const PlasmicConsoleLayout__ArgProps = new Array<ArgPropType>(
 
 export type PlasmicConsoleLayout__OverridesType = {
   root?: Flex__<'div'>;
-  breadcrumbs?: Flex__<typeof Breadcrumbs>;
-  sideBar?: Flex__<typeof SideBar>;
+  consoleBreadcrumb?: Flex__<typeof ConsoleBreadcrumb>;
+  navigationDrawer?: Flex__<typeof NavigationDrawer>;
 };
 
 export interface DefaultConsoleLayoutProps {
@@ -142,17 +142,17 @@ function PlasmicConsoleLayout__RenderFunc(props: {
         sty.root,
       )}
     >
-      <Breadcrumbs
-        data-plasmic-name={'breadcrumbs'}
-        data-plasmic-override={overrides.breadcrumbs}
-        className={classNames('__wab_instance', sty.breadcrumbs)}
+      <ConsoleBreadcrumb
+        data-plasmic-name={'consoleBreadcrumb'}
+        data-plasmic-override={overrides.consoleBreadcrumb}
+        className={classNames('__wab_instance', sty.consoleBreadcrumb)}
       />
 
       <div className={classNames(projectcss.all, sty.freeBox__vp0Ai)}>
-        <SideBar
-          data-plasmic-name={'sideBar'}
-          data-plasmic-override={overrides.sideBar}
-          className={classNames('__wab_instance', sty.sideBar)}
+        <NavigationDrawer
+          data-plasmic-name={'navigationDrawer'}
+          data-plasmic-override={overrides.navigationDrawer}
+          className={classNames('__wab_instance', sty.navigationDrawer)}
         />
 
         <Stack__
@@ -171,17 +171,17 @@ function PlasmicConsoleLayout__RenderFunc(props: {
 }
 
 const PlasmicDescendants = {
-  root: ['root', 'breadcrumbs', 'sideBar'],
-  breadcrumbs: ['breadcrumbs'],
-  sideBar: ['sideBar'],
+  root: ['root', 'consoleBreadcrumb', 'navigationDrawer'],
+  consoleBreadcrumb: ['consoleBreadcrumb'],
+  navigationDrawer: ['navigationDrawer'],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
   (typeof PlasmicDescendants)[T][number];
 type NodeDefaultElementType = {
   root: 'div';
-  breadcrumbs: typeof Breadcrumbs;
-  sideBar: typeof SideBar;
+  consoleBreadcrumb: typeof ConsoleBreadcrumb;
+  navigationDrawer: typeof NavigationDrawer;
 };
 
 type ReservedPropsType = 'variants' | 'args' | 'overrides';
@@ -244,8 +244,8 @@ export const PlasmicConsoleLayout = Object.assign(
   makeNodeComponent('root'),
   {
     // Helper components rendering sub-elements
-    breadcrumbs: makeNodeComponent('breadcrumbs'),
-    sideBar: makeNodeComponent('sideBar'),
+    consoleBreadcrumb: makeNodeComponent('consoleBreadcrumb'),
+    navigationDrawer: makeNodeComponent('navigationDrawer'),
 
     // Metadata about props expected for PlasmicConsoleLayout
     internalVariantProps: PlasmicConsoleLayout__VariantProps,
