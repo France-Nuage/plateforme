@@ -1,0 +1,85 @@
+.ariaSlider:global(.__wab_instance) {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  color: var(--token-74Qsc5U_cwQo);
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-bJUUcSmKw7_T);
+  line-height: var(--token-0Kpg2wzGk3wu);
+  width: 100%;
+  row-gap: var(--token-p66QJDZEUly2);
+}
+.ariaSlider[data-disabled]:global(.__wab_instance) {
+  opacity: 0.5;
+}
+.freeBox__wjt5 {
+  display: flex;
+  flex-direction: row;
+}
+.freeBox__wjt5 > :global(.__wab_flex-container) {
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  margin-left: calc(0px - var(--token-Wg7N_OBtTq5_));
+  width: calc(100% + var(--token-Wg7N_OBtTq5_));
+}
+.freeBox__wjt5 > :global(.__wab_flex-container) > *,
+.freeBox__wjt5 > :global(.__wab_flex-container) > :global(.__wab_slot) > *,
+.freeBox__wjt5 > :global(.__wab_flex-container) > picture > img,
+.freeBox__wjt5
+  > :global(.__wab_flex-container)
+  > :global(.__wab_slot)
+  > picture
+  > img {
+  margin-left: var(--token-Wg7N_OBtTq5_);
+}
+.text__c8DFd {
+  position: relative;
+}
+.freeBox__ymuC4 {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding-top: var(--token-yByw3KgAJ_yl);
+  padding-bottom: var(--token-yByw3KgAJ_yl);
+  width: 100%;
+  min-width: 0;
+}
+.background {
+  display: flex;
+  background: var(--token-7nCJEcCaJ2mS);
+  height: var(--token-Wg7N_OBtTq5_);
+  width: 100%;
+  min-width: 0;
+  border-radius: 99px;
+}
+.ariaSliderTrack:global(.__wab_instance) {
+  cursor: pointer;
+  opacity: 1;
+  box-sizing: border-box;
+  background: none;
+  height: var(--token-Wg7N_OBtTq5_);
+  width: 100%;
+  min-width: 0;
+}
+.ariaSlider[data-disabled] .ariaSliderTrack:global(.__wab_instance) {
+  cursor: not-allowed;
+}
+.formSliderThumb__mG3Kx:global(.__wab_instance):global(.__wab_instance) {
+  position: relative;
+  margin-top: var(--token-fncr5OCrhHFI);
+}
+.foreground {
+  display: block;
+  background: var(--token-PKw3mKbzBr62);
+  height: var(--token-Wg7N_OBtTq5_);
+  border-radius: 99px 0rem 0rem 99px;
+}
+.formDescription:global(.__wab_instance):global(.__wab_instance) {
+  max-width: 100%;
+  position: relative;
+}

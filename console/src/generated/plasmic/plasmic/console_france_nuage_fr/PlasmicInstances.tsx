@@ -44,8 +44,6 @@ import {
   useTrigger,
   wrapWithClassName,
 } from '@plasmicapp/react-web';
-// plasmic-import: 7igOedWgPhE0/component
-import { Fetcher } from '@plasmicapp/react-web/lib/data-sources';
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -57,19 +55,23 @@ import '@plasmicapp/react-web/lib/plasmic.css';
 import * as React from 'react';
 
 import { ConsoleProvider } from '../../../../providers/ConsoleProvider';
-// plasmic-import: tYFejTQb0c1A/component
-import Button from '../../Button';
-// plasmic-import: hFREyvMXF-HZ/component
-import Combobox from '../../Combobox';
 // plasmic-import: vWN9dmdYefpY/codeComponent
-import ConsoleLayout from '../../ConsoleLayout';
-// plasmic-import: 1VSU1092sLjX/component
-import MenuItem from '../../MenuItem';
-// plasmic-import: p-wD1wOjqe01/component
-import Modal from '../../Modal';
+import ConsoleBreadcrumb from '../../ConsoleBreadcrumb';
+// plasmic-import: tYFejTQb0c1A/component
+import FormButton from '../../FormButton';
+// plasmic-import: hFREyvMXF-HZ/component
+import FormSelect2 from '../../FormSelect2';
 // plasmic-import: BPkDJbnqSOZ0/component
-import TextInput from '../../TextInput';
+import FormTextInput from '../../FormTextInput';
+// plasmic-import: WgBKdGHdVFBy/component
+import Modal from '../../Modal';
+// plasmic-import: PEgOxZRQTA56/component
+import NavigationDrawer from '../../NavigationDrawer';
+// plasmic-import: 1VSU1092sLjX/component
+import NavigationMenuItem from '../../NavigationMenuItem';
 import plasmic_antd_5_hostless_css from '../antd_5_hostless/plasmic.module.css';
+// plasmic-import: 7igOedWgPhE0/component
+
 import { useScreenVariants as useScreenVariantseEvMbXdv1ZEe } from './PlasmicGlobalVariant__Screen';
 // plasmic-import: aqt4bw2qhfo7d76ADZhQFo/projectcss
 import sty from './PlasmicInstances.module.css';
@@ -97,12 +99,15 @@ export const PlasmicInstances__ArgProps = new Array<ArgPropType>();
 export type PlasmicInstances__OverridesType = {
   root?: Flex__<'div'>;
   consoleProvider?: Flex__<typeof ConsoleProvider>;
-  consoleLayout?: Flex__<typeof ConsoleLayout>;
+  consoleBreadcrumb?: Flex__<typeof ConsoleBreadcrumb>;
+  dessous?: Flex__<'div'>;
+  navigationDrawer?: Flex__<typeof NavigationDrawer>;
+  instances?: Flex__<'div'>;
   modal?: Flex__<typeof Modal>;
   h3?: Flex__<'h3'>;
-  nom?: Flex__<typeof TextInput>;
-  cpu?: Flex__<typeof Combobox>;
-  memoire?: Flex__<typeof Combobox>;
+  nom?: Flex__<typeof FormTextInput>;
+  cpu?: Flex__<typeof FormSelect2>;
+  memoire?: Flex__<typeof FormSelect2>;
 };
 
 export interface DefaultInstancesProps {
@@ -142,6 +147,16 @@ function PlasmicInstances__RenderFunc(props: {
   const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
     () => [
       {
+        path: 'instanceDraft',
+        type: 'private',
+        variableType: 'object',
+        initFunc: ({ $props, $state, $queries, $ctx }) => ({
+          name: '',
+          cpu: '',
+          memory: '',
+        }),
+      },
+      {
         path: 'modal.isOpen',
         type: 'private',
         variableType: 'boolean',
@@ -165,16 +180,6 @@ function PlasmicInstances__RenderFunc(props: {
               throw e;
             }
           })(),
-      },
-      {
-        path: 'instanceDraft',
-        type: 'private',
-        variableType: 'object',
-        initFunc: ({ $props, $state, $queries, $ctx }) => ({
-          name: '',
-          cpu: '',
-          memory: '',
-        }),
       },
       {
         path: 'cpu.isOpen',
@@ -268,214 +273,412 @@ function PlasmicInstances__RenderFunc(props: {
           >
             <DataCtxReader__>
               {($ctx) => (
-                <ConsoleLayout
-                  data-plasmic-name={'consoleLayout'}
-                  data-plasmic-override={overrides.consoleLayout}
-                  className={classNames('__wab_instance', sty.consoleLayout)}
-                >
-                  <Stack__
-                    as={'div'}
-                    hasGap={true}
-                    className={classNames(projectcss.all, sty.freeBox___75YEu)}
+                <React.Fragment>
+                  <ConsoleBreadcrumb
+                    data-plasmic-name={'consoleBreadcrumb'}
+                    data-plasmic-override={overrides.consoleBreadcrumb}
+                    className={classNames(
+                      '__wab_instance',
+                      sty.consoleBreadcrumb,
+                    )}
+                  />
+
+                  <div
+                    data-plasmic-name={'dessous'}
+                    data-plasmic-override={overrides.dessous}
+                    className={classNames(projectcss.all, sty.dessous)}
                   >
-                    <div
-                      className={classNames(projectcss.all, sty.freeBox__fHjmA)}
+                    <NavigationDrawer
+                      data-plasmic-name={'navigationDrawer'}
+                      data-plasmic-override={overrides.navigationDrawer}
+                      className={classNames(
+                        '__wab_instance',
+                        sty.navigationDrawer,
+                      )}
+                    />
+
+                    <Stack__
+                      as={'div'}
+                      data-plasmic-name={'instances'}
+                      data-plasmic-override={overrides.instances}
+                      hasGap={true}
+                      className={classNames(projectcss.all, sty.instances)}
                     >
                       <div
                         className={classNames(
                           projectcss.all,
-                          projectcss.__wab_text,
-                          sty.text__jOUi,
+                          sty.freeBox__zOu2Q,
                         )}
                       >
-                        {'Nom'}
-                      </div>
-                      <div
-                        className={classNames(
-                          projectcss.all,
-                          projectcss.__wab_text,
-                          sty.text__fS6D,
-                        )}
-                      >
-                        {'Status'}
-                      </div>
-                      <div
-                        className={classNames(
-                          projectcss.all,
-                          projectcss.__wab_text,
-                          sty.text__vcQG,
-                        )}
-                      >
-                        {'% CPU utilis\u00e9'}
-                      </div>
-                      <div
-                        className={classNames(
-                          projectcss.all,
-                          projectcss.__wab_text,
-                          sty.text___6K4Qr,
-                        )}
-                      >
-                        {'Max m\u00e9moire'}
-                      </div>
-                    </div>
-                    {((_par) =>
-                      !_par ? [] : Array.isArray(_par) ? _par : [_par])(
-                      (() => {
-                        try {
-                          return $ctx['France Nuage'].instances;
-                        } catch (e) {
-                          if (
-                            e instanceof TypeError ||
-                            e?.plasmicType === 'PlasmicUndefinedDataError'
-                          ) {
-                            return [];
-                          }
-                          throw e;
-                        }
-                      })(),
-                    ).map((__plasmic_item_0, __plasmic_idx_0) => {
-                      const currentItem = __plasmic_item_0;
-                      const currentIndex = __plasmic_idx_0;
-                      return (
                         <Stack__
                           as={'div'}
                           hasGap={true}
                           className={classNames(
                             projectcss.all,
-                            sty.freeBox__hsVu2,
+                            sty.freeBox__b46J9,
                           )}
-                          key={currentIndex}
                         >
                           <div
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.text__esS5T,
+                              sty.text__qcbsq,
                             )}
                           >
-                            <React.Fragment>
-                              {(() => {
-                                try {
-                                  return currentItem.name;
-                                } catch (e) {
-                                  if (
-                                    e instanceof TypeError ||
-                                    e?.plasmicType ===
-                                      'PlasmicUndefinedDataError'
-                                  ) {
-                                    return '';
-                                  }
-                                  throw e;
-                                }
-                              })()}
-                            </React.Fragment>
+                            {'Nom'}
                           </div>
                           <div
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.text__n94CP,
+                              sty.text__cr3RZ,
                             )}
                           >
-                            <React.Fragment>
-                              {(() => {
-                                try {
-                                  return currentItem.status;
-                                } catch (e) {
-                                  if (
-                                    e instanceof TypeError ||
-                                    e?.plasmicType ===
-                                      'PlasmicUndefinedDataError'
-                                  ) {
-                                    return '';
-                                  }
-                                  throw e;
-                                }
-                              })()}
-                            </React.Fragment>
+                            {'ID projet'}
                           </div>
                           <div
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.text__rhlXq,
+                              sty.text__lxhAj,
                             )}
                           >
-                            <React.Fragment>
-                              {(() => {
-                                try {
-                                  return currentItem.cpuUsagePercent;
-                                } catch (e) {
-                                  if (
-                                    e instanceof TypeError ||
-                                    e?.plasmicType ===
-                                      'PlasmicUndefinedDataError'
-                                  ) {
-                                    return '';
-                                  }
-                                  throw e;
-                                }
-                              })()}
-                            </React.Fragment>
+                            {'Status'}
                           </div>
                           <div
                             className={classNames(
                               projectcss.all,
                               projectcss.__wab_text,
-                              sty.text__nZdJy,
+                              sty.text__hMlRh,
                             )}
                           >
-                            <React.Fragment>
-                              {(() => {
-                                try {
-                                  return currentItem.maxMemoryBytes;
-                                } catch (e) {
-                                  if (
-                                    e instanceof TypeError ||
-                                    e?.plasmicType ===
-                                      'PlasmicUndefinedDataError'
-                                  ) {
-                                    return '';
-                                  }
-                                  throw e;
-                                }
-                              })()}
-                            </React.Fragment>
+                            {'% CPU utilis\u00e9'}
+                          </div>
+                          <div
+                            className={classNames(
+                              projectcss.all,
+                              projectcss.__wab_text,
+                              sty.text___77Vbl,
+                            )}
+                          >
+                            {'RAM'}
                           </div>
                         </Stack__>
-                      );
-                    })}
-                    <Modal
-                      data-plasmic-name={'modal'}
-                      data-plasmic-override={overrides.modal}
-                      className={classNames('__wab_instance', sty.modal)}
-                      closeOnBackdropClick={true}
-                      content={
-                        <Stack__
-                          as={'div'}
-                          hasGap={true}
-                          className={classNames(
-                            projectcss.all,
-                            sty.freeBox__xF0OW,
-                          )}
-                        >
+                        {((_par) =>
+                          !_par ? [] : Array.isArray(_par) ? _par : [_par])(
+                          (() => {
+                            try {
+                              return $ctx['France Nuage'].instances;
+                            } catch (e) {
+                              if (
+                                e instanceof TypeError ||
+                                e?.plasmicType === 'PlasmicUndefinedDataError'
+                              ) {
+                                return [];
+                              }
+                              throw e;
+                            }
+                          })(),
+                        ).map((__plasmic_item_0, __plasmic_idx_0) => {
+                          const currentItem = __plasmic_item_0;
+                          const currentIndex = __plasmic_idx_0;
+                          return (
+                            <Stack__
+                              as={'div'}
+                              hasGap={true}
+                              className={classNames(
+                                projectcss.all,
+                                sty.freeBox__hGzJl,
+                              )}
+                              key={currentIndex}
+                            >
+                              <div
+                                className={classNames(
+                                  projectcss.all,
+                                  projectcss.__wab_text,
+                                  sty.text__bSzPa,
+                                )}
+                              >
+                                <React.Fragment>
+                                  {(() => {
+                                    try {
+                                      return currentItem.name;
+                                    } catch (e) {
+                                      if (
+                                        e instanceof TypeError ||
+                                        e?.plasmicType ===
+                                          'PlasmicUndefinedDataError'
+                                      ) {
+                                        return '';
+                                      }
+                                      throw e;
+                                    }
+                                  })()}
+                                </React.Fragment>
+                              </div>
+                              <div
+                                className={classNames(
+                                  projectcss.all,
+                                  projectcss.__wab_text,
+                                  sty.text__g1Gty,
+                                )}
+                              >
+                                <React.Fragment>
+                                  {(() => {
+                                    try {
+                                      return currentItem.projectId;
+                                    } catch (e) {
+                                      if (
+                                        e instanceof TypeError ||
+                                        e?.plasmicType ===
+                                          'PlasmicUndefinedDataError'
+                                      ) {
+                                        return '';
+                                      }
+                                      throw e;
+                                    }
+                                  })()}
+                                </React.Fragment>
+                              </div>
+                              <div
+                                className={classNames(
+                                  projectcss.all,
+                                  projectcss.__wab_text,
+                                  sty.text__fUcon,
+                                )}
+                              >
+                                <React.Fragment>
+                                  {(() => {
+                                    try {
+                                      return currentItem.status;
+                                    } catch (e) {
+                                      if (
+                                        e instanceof TypeError ||
+                                        e?.plasmicType ===
+                                          'PlasmicUndefinedDataError'
+                                      ) {
+                                        return '';
+                                      }
+                                      throw e;
+                                    }
+                                  })()}
+                                </React.Fragment>
+                              </div>
+                              <div
+                                className={classNames(
+                                  projectcss.all,
+                                  projectcss.__wab_text,
+                                  sty.text__l9AxT,
+                                )}
+                              >
+                                <React.Fragment>
+                                  {(() => {
+                                    try {
+                                      return currentItem.cpuUsagePercent;
+                                    } catch (e) {
+                                      if (
+                                        e instanceof TypeError ||
+                                        e?.plasmicType ===
+                                          'PlasmicUndefinedDataError'
+                                      ) {
+                                        return '';
+                                      }
+                                      throw e;
+                                    }
+                                  })()}
+                                </React.Fragment>
+                              </div>
+                              <div
+                                className={classNames(
+                                  projectcss.all,
+                                  projectcss.__wab_text,
+                                  sty.text__k1L6A,
+                                )}
+                              >
+                                <React.Fragment>
+                                  {(() => {
+                                    try {
+                                      return currentItem.maxMemoryBytes;
+                                    } catch (e) {
+                                      if (
+                                        e instanceof TypeError ||
+                                        e?.plasmicType ===
+                                          'PlasmicUndefinedDataError'
+                                      ) {
+                                        return '';
+                                      }
+                                      throw e;
+                                    }
+                                  })()}
+                                </React.Fragment>
+                              </div>
+                            </Stack__>
+                          );
+                        })}
+                      </div>
+                      <Modal
+                        data-plasmic-name={'modal'}
+                        data-plasmic-override={overrides.modal}
+                        className={classNames('__wab_instance', sty.modal)}
+                        closeOnBackdropClick={true}
+                        content={
                           <Stack__
                             as={'div'}
                             hasGap={true}
                             className={classNames(
                               projectcss.all,
-                              sty.freeBox__paX97,
+                              sty.freeBox__kAy2X,
                             )}
                           >
-                            <TextInput
-                              data-plasmic-name={'nom'}
-                              data-plasmic-override={overrides.nom}
-                              ariaLabel={``}
-                              autoComplete={[]}
-                              className={classNames('__wab_instance', sty.nom)}
+                            <Stack__
+                              as={'div'}
+                              hasGap={true}
+                              className={classNames(
+                                projectcss.all,
+                                sty.freeBox__pEQk6,
+                              )}
+                            >
+                              <FormTextInput
+                                data-plasmic-name={'nom'}
+                                data-plasmic-override={overrides.nom}
+                                ariaLabel={``}
+                                autoComplete={[]}
+                                className={classNames(
+                                  '__wab_instance',
+                                  sty.nom,
+                                )}
+                                onChange={async (...eventArgs: any) => {
+                                  generateStateOnChangeProp($state, [
+                                    'nom',
+                                    'value',
+                                  ]).apply(null, eventArgs);
+
+                                  if (
+                                    eventArgs.length > 1 &&
+                                    eventArgs[1] &&
+                                    eventArgs[1]._plasmic_state_init_
+                                  ) {
+                                    return;
+                                  }
+
+                                  (async (val) => {
+                                    const $steps = {};
+
+                                    $steps['updateInstanceDraft'] = true
+                                      ? (() => {
+                                          const actionArgs = {
+                                            variable: {
+                                              objRoot: $state,
+                                              variablePath: ['instanceDraft'],
+                                            },
+                                            operation: 0,
+                                            value: $state.nom.value,
+                                          };
+                                          return (({
+                                            variable,
+                                            value,
+                                            startIndex,
+                                            deleteCount,
+                                          }) => {
+                                            if (!variable) {
+                                              return;
+                                            }
+                                            const { objRoot, variablePath } =
+                                              variable;
+
+                                            $stateSet(
+                                              objRoot,
+                                              variablePath,
+                                              value,
+                                            );
+                                            return value;
+                                          })?.apply(null, [actionArgs]);
+                                        })()
+                                      : undefined;
+                                    if (
+                                      $steps['updateInstanceDraft'] != null &&
+                                      typeof $steps['updateInstanceDraft'] ===
+                                        'object' &&
+                                      typeof $steps['updateInstanceDraft']
+                                        .then === 'function'
+                                    ) {
+                                      $steps['updateInstanceDraft'] =
+                                        await $steps['updateInstanceDraft'];
+                                    }
+                                  }).apply(null, eventArgs);
+                                }}
+                                placeholder={'Nom'}
+                                value={generateStateValueProp($state, [
+                                  'nom',
+                                  'value',
+                                ])}
+                              />
+
+                              <div
+                                className={classNames(
+                                  projectcss.all,
+                                  projectcss.__wab_text,
+                                  sty.text__wkl9V,
+                                )}
+                              >
+                                <React.Fragment>
+                                  <span
+                                    className={
+                                      'plasmic_default__all plasmic_default__span'
+                                    }
+                                    style={{
+                                      color: 'var(--token-9DYAKh_l4jQS)',
+                                    }}
+                                  >
+                                    {
+                                      'Le nom de votre instance ne peut contenir que des caract\u00e8res alphanum\u00e9riques, des points et des tirets.'
+                                    }
+                                  </span>
+                                </React.Fragment>
+                              </div>
+                            </Stack__>
+                            <FormSelect2
+                              data-plasmic-name={'cpu'}
+                              data-plasmic-override={overrides.cpu}
+                              className={classNames('__wab_instance', sty.cpu)}
+                              disabled={false}
+                              inputDisplayValue={(() => {
+                                try {
+                                  return $state.instanceDraft.cpu;
+                                } catch (e) {
+                                  if (
+                                    e instanceof TypeError ||
+                                    e?.plasmicType ===
+                                      'PlasmicUndefinedDataError'
+                                  ) {
+                                    return undefined;
+                                  }
+                                  throw e;
+                                }
+                              })()}
+                              isOpen={generateStateValueProp($state, [
+                                'cpu',
+                                'isOpen',
+                              ])}
+                              items={
+                                <React.Fragment>
+                                  <NavigationMenuItem
+                                    className={classNames(
+                                      '__wab_instance',
+                                      sty.navigationMenuItem__gmYsG,
+                                    )}
+                                    label={'2'}
+                                    value={'2'}
+                                  />
+
+                                  <NavigationMenuItem label={'4'} value={'4'} />
+
+                                  <NavigationMenuItem label={'8'} value={'8'} />
+                                </React.Fragment>
+                              }
                               onChange={async (...eventArgs: any) => {
                                 generateStateOnChangeProp($state, [
-                                  'nom',
+                                  'cpu',
                                   'value',
                                 ]).apply(null, eventArgs);
 
@@ -498,7 +701,7 @@ function PlasmicInstances__RenderFunc(props: {
                                             variablePath: ['instanceDraft'],
                                           },
                                           operation: 0,
-                                          value: $state.nom.value,
+                                          value: $state.cpu.value,
                                         };
                                         return (({
                                           variable,
@@ -533,218 +736,261 @@ function PlasmicInstances__RenderFunc(props: {
                                   }
                                 }).apply(null, eventArgs);
                               }}
-                              placeholder={'Nom'}
+                              onOpenChange={async (...eventArgs: any) => {
+                                generateStateOnChangeProp($state, [
+                                  'cpu',
+                                  'isOpen',
+                                ]).apply(null, eventArgs);
+
+                                if (
+                                  eventArgs.length > 1 &&
+                                  eventArgs[1] &&
+                                  eventArgs[1]._plasmic_state_init_
+                                ) {
+                                  return;
+                                }
+                              }}
+                              placeholder={'CPU '}
+                              readOnly={false}
+                              showLabel={false}
                               value={generateStateValueProp($state, [
-                                'nom',
+                                'cpu',
                                 'value',
                               ])}
                             />
 
-                            <div
+                            <FormSelect2
+                              data-plasmic-name={'memoire'}
+                              data-plasmic-override={overrides.memoire}
                               className={classNames(
-                                projectcss.all,
-                                projectcss.__wab_text,
-                                sty.text___0NfFd,
+                                '__wab_instance',
+                                sty.memoire,
                               )}
-                            >
-                              <React.Fragment>
-                                <span
-                                  className={
-                                    'plasmic_default__all plasmic_default__span'
+                              inputDisplayValue={(() => {
+                                try {
+                                  return $state.instanceDraft.memory;
+                                } catch (e) {
+                                  if (
+                                    e instanceof TypeError ||
+                                    e?.plasmicType ===
+                                      'PlasmicUndefinedDataError'
+                                  ) {
+                                    return undefined;
                                   }
-                                  style={{ color: 'var(--token-9DYAKh_l4jQS)' }}
-                                >
-                                  {
-                                    'Le nom de votre instance ne peut contenir que des caract\u00e8res alphanum\u00e9riques, des points et des tirets.'
+                                  throw e;
+                                }
+                              })()}
+                              isOpen={generateStateValueProp($state, [
+                                'memoire',
+                                'isOpen',
+                              ])}
+                              items={
+                                <React.Fragment>
+                                  <NavigationMenuItem
+                                    className={classNames(
+                                      '__wab_instance',
+                                      sty.navigationMenuItem__po29M,
+                                    )}
+                                    label={'4 Go'}
+                                    value={'4'}
+                                  />
+
+                                  <NavigationMenuItem
+                                    label={'8 Go'}
+                                    value={'8'}
+                                  />
+
+                                  <NavigationMenuItem
+                                    label={'16 Go'}
+                                    value={'16'}
+                                  />
+                                </React.Fragment>
+                              }
+                              label={'Label'}
+                              onChange={async (...eventArgs: any) => {
+                                generateStateOnChangeProp($state, [
+                                  'memoire',
+                                  'value',
+                                ]).apply(null, eventArgs);
+
+                                if (
+                                  eventArgs.length > 1 &&
+                                  eventArgs[1] &&
+                                  eventArgs[1]._plasmic_state_init_
+                                ) {
+                                  return;
+                                }
+
+                                (async (val) => {
+                                  const $steps = {};
+
+                                  $steps['updateInstanceDraft'] = true
+                                    ? (() => {
+                                        const actionArgs = {
+                                          variable: {
+                                            objRoot: $state,
+                                            variablePath: ['instanceDraft'],
+                                          },
+                                          operation: 0,
+                                          value: $state.memoire.value,
+                                        };
+                                        return (({
+                                          variable,
+                                          value,
+                                          startIndex,
+                                          deleteCount,
+                                        }) => {
+                                          if (!variable) {
+                                            return;
+                                          }
+                                          const { objRoot, variablePath } =
+                                            variable;
+
+                                          $stateSet(
+                                            objRoot,
+                                            variablePath,
+                                            value,
+                                          );
+                                          return value;
+                                        })?.apply(null, [actionArgs]);
+                                      })()
+                                    : undefined;
+                                  if (
+                                    $steps['updateInstanceDraft'] != null &&
+                                    typeof $steps['updateInstanceDraft'] ===
+                                      'object' &&
+                                    typeof $steps['updateInstanceDraft']
+                                      .then === 'function'
+                                  ) {
+                                    $steps['updateInstanceDraft'] =
+                                      await $steps['updateInstanceDraft'];
                                   }
-                                </span>
-                              </React.Fragment>
-                            </div>
+                                }).apply(null, eventArgs);
+                              }}
+                              onOpenChange={async (...eventArgs: any) => {
+                                generateStateOnChangeProp($state, [
+                                  'memoire',
+                                  'isOpen',
+                                ]).apply(null, eventArgs);
+
+                                if (
+                                  eventArgs.length > 1 &&
+                                  eventArgs[1] &&
+                                  eventArgs[1]._plasmic_state_init_
+                                ) {
+                                  return;
+                                }
+                              }}
+                              placeholder={'Memory'}
+                              showLabel={false}
+                              value={generateStateValueProp($state, [
+                                'memoire',
+                                'value',
+                              ])}
+                            />
                           </Stack__>
-                          <Combobox
-                            data-plasmic-name={'cpu'}
-                            data-plasmic-override={overrides.cpu}
-                            className={classNames('__wab_instance', sty.cpu)}
-                            disabled={false}
-                            inputDisplayValue={(() => {
-                              try {
-                                return $state.instanceDraft.cpu;
-                              } catch (e) {
-                                if (
-                                  e instanceof TypeError ||
-                                  e?.plasmicType === 'PlasmicUndefinedDataError'
-                                ) {
-                                  return undefined;
-                                }
-                                throw e;
-                              }
-                            })()}
-                            isOpen={generateStateValueProp($state, [
-                              'cpu',
-                              'isOpen',
-                            ])}
-                            items={
-                              <React.Fragment>
-                                <MenuItem
-                                  className={classNames(
-                                    '__wab_instance',
-                                    sty.menuItem___4Zrrn,
-                                  )}
-                                  label={'2'}
-                                  value={'2'}
-                                />
-
-                                <MenuItem label={'4'} value={'4'} />
-
-                                <MenuItem label={'8'} value={'8'} />
-                              </React.Fragment>
-                            }
-                            onChange={async (...eventArgs: any) => {
-                              generateStateOnChangeProp($state, [
-                                'cpu',
-                                'value',
-                              ]).apply(null, eventArgs);
-
-                              if (
-                                eventArgs.length > 1 &&
-                                eventArgs[1] &&
-                                eventArgs[1]._plasmic_state_init_
-                              ) {
-                                return;
-                              }
-
-                              (async (val) => {
-                                const $steps = {};
-
-                                $steps['updateInstanceDraft'] = true
-                                  ? (() => {
-                                      const actionArgs = {
-                                        variable: {
-                                          objRoot: $state,
-                                          variablePath: ['instanceDraft'],
-                                        },
-                                        operation: 0,
-                                        value: $state.cpu.value,
-                                      };
-                                      return (({
-                                        variable,
-                                        value,
-                                        startIndex,
-                                        deleteCount,
-                                      }) => {
-                                        if (!variable) {
-                                          return;
-                                        }
-                                        const { objRoot, variablePath } =
-                                          variable;
-
-                                        $stateSet(objRoot, variablePath, value);
-                                        return value;
-                                      })?.apply(null, [actionArgs]);
-                                    })()
-                                  : undefined;
-                                if (
-                                  $steps['updateInstanceDraft'] != null &&
-                                  typeof $steps['updateInstanceDraft'] ===
-                                    'object' &&
-                                  typeof $steps['updateInstanceDraft'].then ===
-                                    'function'
-                                ) {
-                                  $steps['updateInstanceDraft'] =
-                                    await $steps['updateInstanceDraft'];
-                                }
-                              }).apply(null, eventArgs);
-                            }}
-                            onOpenChange={async (...eventArgs: any) => {
-                              generateStateOnChangeProp($state, [
-                                'cpu',
-                                'isOpen',
-                              ]).apply(null, eventArgs);
-
-                              if (
-                                eventArgs.length > 1 &&
-                                eventArgs[1] &&
-                                eventArgs[1]._plasmic_state_init_
-                              ) {
-                                return;
-                              }
-                            }}
-                            placeholder={'CPU '}
-                            readOnly={false}
-                            showLabel={false}
-                            value={generateStateValueProp($state, [
-                              'cpu',
-                              'value',
-                            ])}
-                          />
-
-                          <Combobox
-                            data-plasmic-name={'memoire'}
-                            data-plasmic-override={overrides.memoire}
+                        }
+                        footer={
+                          <div
                             className={classNames(
-                              '__wab_instance',
-                              sty.memoire,
+                              projectcss.all,
+                              sty.freeBox__tHnNw,
                             )}
-                            inputDisplayValue={(() => {
-                              try {
-                                return $state.instanceDraft.memory;
-                              } catch (e) {
-                                if (
-                                  e instanceof TypeError ||
-                                  e?.plasmicType === 'PlasmicUndefinedDataError'
-                                ) {
-                                  return undefined;
-                                }
-                                throw e;
-                              }
-                            })()}
-                            isOpen={generateStateValueProp($state, [
-                              'memoire',
-                              'isOpen',
-                            ])}
-                            items={
-                              <React.Fragment>
-                                <MenuItem
+                          >
+                            <FormButton
+                              label={
+                                <div
                                   className={classNames(
-                                    '__wab_instance',
-                                    sty.menuItem__e8XK7,
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.text___0RZa6,
                                   )}
-                                  label={'4 Go'}
-                                  value={'4'}
-                                />
-
-                                <MenuItem label={'8 Go'} value={'8'} />
-
-                                <MenuItem label={'16 Go'} value={'16'} />
-                              </React.Fragment>
-                            }
-                            label={'Label'}
-                            onChange={async (...eventArgs: any) => {
-                              generateStateOnChangeProp($state, [
-                                'memoire',
-                                'value',
-                              ]).apply(null, eventArgs);
-
-                              if (
-                                eventArgs.length > 1 &&
-                                eventArgs[1] &&
-                                eventArgs[1]._plasmic_state_init_
-                              ) {
-                                return;
+                                >
+                                  {'Go'}
+                                </div>
                               }
-
-                              (async (val) => {
+                              onClick={async (event) => {
                                 const $steps = {};
 
-                                $steps['updateInstanceDraft'] = true
+                                $steps['runActionOnConsoleProvider'] = true
+                                  ? (() => {
+                                      const actionArgs = {
+                                        tplRef: 'consoleProvider',
+                                        action: 'createInstance',
+                                        args: [
+                                          (() => {
+                                            try {
+                                              return $state.cpu.value;
+                                            } catch (e) {
+                                              if (
+                                                e instanceof TypeError ||
+                                                e?.plasmicType ===
+                                                  'PlasmicUndefinedDataError'
+                                              ) {
+                                                return undefined;
+                                              }
+                                              throw e;
+                                            }
+                                          })(),
+                                          (() => {
+                                            try {
+                                              return $state.memoire.value;
+                                            } catch (e) {
+                                              if (
+                                                e instanceof TypeError ||
+                                                e?.plasmicType ===
+                                                  'PlasmicUndefinedDataError'
+                                              ) {
+                                                return undefined;
+                                              }
+                                              throw e;
+                                            }
+                                          })(),
+                                          (() => {
+                                            try {
+                                              return $state.nom.value;
+                                            } catch (e) {
+                                              if (
+                                                e instanceof TypeError ||
+                                                e?.plasmicType ===
+                                                  'PlasmicUndefinedDataError'
+                                              ) {
+                                                return undefined;
+                                              }
+                                              throw e;
+                                            }
+                                          })(),
+                                        ],
+                                      };
+                                      return (({ tplRef, action, args }) => {
+                                        return $refs?.[tplRef]?.[action]?.(
+                                          ...(args ?? []),
+                                        );
+                                      })?.apply(null, [actionArgs]);
+                                    })()
+                                  : undefined;
+                                if (
+                                  $steps['runActionOnConsoleProvider'] !=
+                                    null &&
+                                  typeof $steps[
+                                    'runActionOnConsoleProvider'
+                                  ] === 'object' &&
+                                  typeof $steps['runActionOnConsoleProvider']
+                                    .then === 'function'
+                                ) {
+                                  $steps['runActionOnConsoleProvider'] =
+                                    await $steps['runActionOnConsoleProvider'];
+                                }
+
+                                $steps['updateModalIsOpen'] = true
                                   ? (() => {
                                       const actionArgs = {
                                         variable: {
                                           objRoot: $state,
-                                          variablePath: ['instanceDraft'],
+                                          variablePath: ['modal', 'isOpen'],
                                         },
                                         operation: 0,
-                                        value: $state.memoire.value,
+                                        value: false,
                                       };
                                       return (({
                                         variable,
@@ -764,59 +1010,58 @@ function PlasmicInstances__RenderFunc(props: {
                                     })()
                                   : undefined;
                                 if (
-                                  $steps['updateInstanceDraft'] != null &&
-                                  typeof $steps['updateInstanceDraft'] ===
+                                  $steps['updateModalIsOpen'] != null &&
+                                  typeof $steps['updateModalIsOpen'] ===
                                     'object' &&
-                                  typeof $steps['updateInstanceDraft'].then ===
+                                  typeof $steps['updateModalIsOpen'].then ===
                                     'function'
                                 ) {
-                                  $steps['updateInstanceDraft'] =
-                                    await $steps['updateInstanceDraft'];
+                                  $steps['updateModalIsOpen'] =
+                                    await $steps['updateModalIsOpen'];
                                 }
-                              }).apply(null, eventArgs);
-                            }}
-                            onOpenChange={async (...eventArgs: any) => {
-                              generateStateOnChangeProp($state, [
-                                'memoire',
-                                'isOpen',
-                              ]).apply(null, eventArgs);
+                              }}
+                              type={'bordered'}
+                            />
+                          </div>
+                        }
+                        heading={
+                          <h3
+                            data-plasmic-name={'h3'}
+                            data-plasmic-override={overrides.h3}
+                            className={classNames(
+                              projectcss.all,
+                              projectcss.h3,
+                              projectcss.__wab_text,
+                              sty.h3,
+                            )}
+                          >
+                            {'Configurer votre instance'}
+                          </h3>
+                        }
+                        isKeyboardDismissDisabled={false}
+                        isOpen={generateStateValueProp($state, [
+                          'modal',
+                          'isOpen',
+                        ])}
+                        onOpenChange={async (...eventArgs: any) => {
+                          generateStateOnChangeProp($state, [
+                            'modal',
+                            'isOpen',
+                          ]).apply(null, eventArgs);
 
-                              if (
-                                eventArgs.length > 1 &&
-                                eventArgs[1] &&
-                                eventArgs[1]._plasmic_state_init_
-                              ) {
-                                return;
-                              }
-                            }}
-                            placeholder={'Memory'}
-                            showLabel={false}
-                            value={generateStateValueProp($state, [
-                              'memoire',
-                              'value',
-                            ])}
-                          />
-                        </Stack__>
-                      }
-                      footer={
-                        <div
-                          className={classNames(
-                            projectcss.all,
-                            sty.freeBox__qsCuz,
-                          )}
-                        >
-                          <Button
-                            label={
-                              <div
-                                className={classNames(
-                                  projectcss.all,
-                                  projectcss.__wab_text,
-                                  sty.text__zymnf,
-                                )}
-                              >
-                                {'Go'}
-                              </div>
-                            }
+                          if (
+                            eventArgs.length > 1 &&
+                            eventArgs[1] &&
+                            eventArgs[1]._plasmic_state_init_
+                          ) {
+                            return;
+                          }
+                        }}
+                        showFooter={true}
+                        showHeader={true}
+                        trigger={
+                          <FormButton
+                            label={'Ajouter une instance'}
                             onClick={async (event) => {
                               const $steps = {};
 
@@ -828,7 +1073,7 @@ function PlasmicInstances__RenderFunc(props: {
                                       args: [
                                         (() => {
                                           try {
-                                            return $state.cpu.value;
+                                            return $state.instanceDraft.cpu;
                                           } catch (e) {
                                             if (
                                               e instanceof TypeError ||
@@ -842,7 +1087,7 @@ function PlasmicInstances__RenderFunc(props: {
                                         })(),
                                         (() => {
                                           try {
-                                            return $state.memoire.value;
+                                            return $state.instanceDraft.memory;
                                           } catch (e) {
                                             if (
                                               e instanceof TypeError ||
@@ -856,7 +1101,7 @@ function PlasmicInstances__RenderFunc(props: {
                                         })(),
                                         (() => {
                                           try {
-                                            return $state.nom.value;
+                                            return $state.instanceDraft.name;
                                           } catch (e) {
                                             if (
                                               e instanceof TypeError ||
@@ -887,182 +1132,13 @@ function PlasmicInstances__RenderFunc(props: {
                                 $steps['runActionOnConsoleProvider'] =
                                   await $steps['runActionOnConsoleProvider'];
                               }
-
-                              $steps['updateModalIsOpen'] = true
-                                ? (() => {
-                                    const actionArgs = {
-                                      variable: {
-                                        objRoot: $state,
-                                        variablePath: ['modal', 'isOpen'],
-                                      },
-                                      operation: 0,
-                                      value: false,
-                                    };
-                                    return (({
-                                      variable,
-                                      value,
-                                      startIndex,
-                                      deleteCount,
-                                    }) => {
-                                      if (!variable) {
-                                        return;
-                                      }
-                                      const { objRoot, variablePath } =
-                                        variable;
-
-                                      $stateSet(objRoot, variablePath, value);
-                                      return value;
-                                    })?.apply(null, [actionArgs]);
-                                  })()
-                                : undefined;
-                              if (
-                                $steps['updateModalIsOpen'] != null &&
-                                typeof $steps['updateModalIsOpen'] ===
-                                  'object' &&
-                                typeof $steps['updateModalIsOpen'].then ===
-                                  'function'
-                              ) {
-                                $steps['updateModalIsOpen'] =
-                                  await $steps['updateModalIsOpen'];
-                              }
                             }}
-                            type={'bordered'}
                           />
-                        </div>
-                      }
-                      heading={
-                        <h3
-                          data-plasmic-name={'h3'}
-                          data-plasmic-override={overrides.h3}
-                          className={classNames(
-                            projectcss.all,
-                            projectcss.h3,
-                            projectcss.__wab_text,
-                            sty.h3,
-                          )}
-                        >
-                          {'Configurer votre instance'}
-                        </h3>
-                      }
-                      isKeyboardDismissDisabled={false}
-                      isOpen={generateStateValueProp($state, [
-                        'modal',
-                        'isOpen',
-                      ])}
-                      onOpenChange={async (...eventArgs: any) => {
-                        generateStateOnChangeProp($state, [
-                          'modal',
-                          'isOpen',
-                        ]).apply(null, eventArgs);
-
-                        if (
-                          eventArgs.length > 1 &&
-                          eventArgs[1] &&
-                          eventArgs[1]._plasmic_state_init_
-                        ) {
-                          return;
                         }
-                      }}
-                      showFooter={true}
-                      showHeader={true}
-                      trigger={
-                        <Button
-                          label={'Ajouter une instance'}
-                          onClick={async (event) => {
-                            const $steps = {};
-
-                            $steps['runActionOnConsoleProvider'] = true
-                              ? (() => {
-                                  const actionArgs = {
-                                    tplRef: 'consoleProvider',
-                                    action: 'createInstance',
-                                    args: [
-                                      (() => {
-                                        try {
-                                          return $state.instanceDraft.cpu;
-                                        } catch (e) {
-                                          if (
-                                            e instanceof TypeError ||
-                                            e?.plasmicType ===
-                                              'PlasmicUndefinedDataError'
-                                          ) {
-                                            return undefined;
-                                          }
-                                          throw e;
-                                        }
-                                      })(),
-                                      (() => {
-                                        try {
-                                          return $state.instanceDraft.memory;
-                                        } catch (e) {
-                                          if (
-                                            e instanceof TypeError ||
-                                            e?.plasmicType ===
-                                              'PlasmicUndefinedDataError'
-                                          ) {
-                                            return undefined;
-                                          }
-                                          throw e;
-                                        }
-                                      })(),
-                                      (() => {
-                                        try {
-                                          return $state.instanceDraft.name;
-                                        } catch (e) {
-                                          if (
-                                            e instanceof TypeError ||
-                                            e?.plasmicType ===
-                                              'PlasmicUndefinedDataError'
-                                          ) {
-                                            return undefined;
-                                          }
-                                          throw e;
-                                        }
-                                      })(),
-                                    ],
-                                  };
-                                  return (({ tplRef, action, args }) => {
-                                    return $refs?.[tplRef]?.[action]?.(
-                                      ...(args ?? []),
-                                    );
-                                  })?.apply(null, [actionArgs]);
-                                })()
-                              : undefined;
-                            if (
-                              $steps['runActionOnConsoleProvider'] != null &&
-                              typeof $steps['runActionOnConsoleProvider'] ===
-                                'object' &&
-                              typeof $steps['runActionOnConsoleProvider']
-                                .then === 'function'
-                            ) {
-                              $steps['runActionOnConsoleProvider'] =
-                                await $steps['runActionOnConsoleProvider'];
-                            }
-                          }}
-                        />
-                      }
-                    />
-                  </Stack__>
-                  <Stack__
-                    as={'div'}
-                    hasGap={true}
-                    className={classNames(projectcss.all, sty.freeBox__foejO)}
-                  >
-                    <div
-                      className={classNames(projectcss.all, sty.freeBox__ikiPb)}
-                    >
-                      <div
-                        className={classNames(
-                          projectcss.all,
-                          projectcss.__wab_text,
-                          sty.text__zPbUy,
-                        )}
-                      >
-                        {'Choisissez un service'}
-                      </div>
-                    </div>
-                  </Stack__>
-                </ConsoleLayout>
+                      />
+                    </Stack__>
+                  </div>
+                </React.Fragment>
               )}
             </DataCtxReader__>
           </ConsoleProvider>
@@ -1076,7 +1152,10 @@ const PlasmicDescendants = {
   root: [
     'root',
     'consoleProvider',
-    'consoleLayout',
+    'consoleBreadcrumb',
+    'dessous',
+    'navigationDrawer',
+    'instances',
     'modal',
     'h3',
     'nom',
@@ -1085,14 +1164,29 @@ const PlasmicDescendants = {
   ],
   consoleProvider: [
     'consoleProvider',
-    'consoleLayout',
+    'consoleBreadcrumb',
+    'dessous',
+    'navigationDrawer',
+    'instances',
     'modal',
     'h3',
     'nom',
     'cpu',
     'memoire',
   ],
-  consoleLayout: ['consoleLayout', 'modal', 'h3', 'nom', 'cpu', 'memoire'],
+  consoleBreadcrumb: ['consoleBreadcrumb'],
+  dessous: [
+    'dessous',
+    'navigationDrawer',
+    'instances',
+    'modal',
+    'h3',
+    'nom',
+    'cpu',
+    'memoire',
+  ],
+  navigationDrawer: ['navigationDrawer'],
+  instances: ['instances', 'modal', 'h3', 'nom', 'cpu', 'memoire'],
   modal: ['modal', 'h3', 'nom', 'cpu', 'memoire'],
   h3: ['h3'],
   nom: ['nom'],
@@ -1105,12 +1199,15 @@ type DescendantsType<T extends NodeNameType> =
 type NodeDefaultElementType = {
   root: 'div';
   consoleProvider: typeof ConsoleProvider;
-  consoleLayout: typeof ConsoleLayout;
+  consoleBreadcrumb: typeof ConsoleBreadcrumb;
+  dessous: 'div';
+  navigationDrawer: typeof NavigationDrawer;
+  instances: 'div';
   modal: typeof Modal;
   h3: 'h3';
-  nom: typeof TextInput;
-  cpu: typeof Combobox;
-  memoire: typeof Combobox;
+  nom: typeof FormTextInput;
+  cpu: typeof FormSelect2;
+  memoire: typeof FormSelect2;
 };
 
 type ReservedPropsType = 'variants' | 'args' | 'overrides';
@@ -1174,7 +1271,10 @@ export const PlasmicInstances = Object.assign(
   {
     // Helper components rendering sub-elements
     consoleProvider: makeNodeComponent('consoleProvider'),
-    consoleLayout: makeNodeComponent('consoleLayout'),
+    consoleBreadcrumb: makeNodeComponent('consoleBreadcrumb'),
+    dessous: makeNodeComponent('dessous'),
+    navigationDrawer: makeNodeComponent('navigationDrawer'),
+    instances: makeNodeComponent('instances'),
     modal: makeNodeComponent('modal'),
     h3: makeNodeComponent('h3'),
     nom: makeNodeComponent('nom'),
@@ -1187,7 +1287,7 @@ export const PlasmicInstances = Object.assign(
 
     // Page metadata
     pageMetadata: {
-      title: '',
+      title: 'Instances',
       description: '',
       ogImageSrc: '',
       canonical: '',

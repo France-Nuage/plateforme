@@ -158,6 +158,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let factory_empty = generate_factory_empty(fields, relation_fields.iter());
     let create_fields = generate_create_fields(fields);
     let relation_factory_methods = generate_relation_factory_methods(relation_fields.iter());
+    let default_relation_factory_methods =
+        generate_default_relation_factory_methods(relation_fields.iter());
     let relation_creation = generate_relation_creation(relation_fields.iter());
 
     let expanded = quote! {
@@ -184,6 +186,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
             #(#factory_methods)*
             #(#relation_factory_methods)*
+            #(#default_relation_factory_methods)*
 
             pub async fn create(mut self, connection: &<#name as database::Persistable>::Connection) -> Result<#name, <#name as database::Persistable>::Error>
             {
@@ -341,6 +344,26 @@ fn generate_relation_factory_methods<'a>(
                 }
             }
             Err(error) => error.to_compile_error(),
+        }
+    })
+}
+
+/// Generate relation factory methods.
+fn generate_default_relation_factory_methods<'a>(
+    relations: impl Iterator<Item = &'a Relation> + 'a,
+) -> impl Iterator<Item = proc_macro2::TokenStream> + 'a {
+    relations.map(|relation| {
+        let factory_field_name = &relation.factory_field_ident;
+        let method_name = syn::Ident::new(
+            &format!("for_default_{}", relation.relation_name),
+            proc_macro2::Span::call_site(),
+        );
+        quote! {
+            pub fn #method_name(mut self) -> Self
+            {
+                self.#factory_field_name = Some(Box::new(|factory| factory));
+                self
+            }
         }
     })
 }

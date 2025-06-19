@@ -1,0 +1,13 @@
+.root {
+  font-family: var(--token-R-I-KIV08TJv);
+  font-size: var(--token-bJUUcSmKw7_T);
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  color: var(--token-9DYAKh_l4jQS);
+  position: relative;
+  text-transform: uppercase;
+  font-weight: 600;
+  min-width: 0;
+  padding: 8px;
+}
