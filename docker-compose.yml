@@ -196,7 +196,7 @@ services:
       - /app/node_modules
 
   traefik:
-    image: traefik:v3.0
+    image: traefik:v3.4
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
