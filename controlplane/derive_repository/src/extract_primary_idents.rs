@@ -16,7 +16,7 @@ pub fn extract_primary_idents(idents: &Punctuated<Field, Comma>) -> Vec<&Ident> 
                                 false
                             }
                         });
-                    } 
+                    }
                 }
                 false
             })

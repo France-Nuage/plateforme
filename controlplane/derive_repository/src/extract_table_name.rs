@@ -5,7 +5,7 @@ use syn::DeriveInput;
 /// Extract the table name from the input
 pub fn extract_table_name(input: &DeriveInput) -> String {
     let cased = input.ident.to_string().to_snake_case();
-    
+
     pluralize(&cased, 2, false)
 }
 

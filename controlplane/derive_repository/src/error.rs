@@ -14,6 +14,9 @@ pub enum Error {
 
     #[error("Macro cannot be derived from a unit struct.")]
     DerivedFromUnitStruct(Span),
+
+    #[error("Other")]
+    Other(Span),
 }
 
 impl From<Error> for syn::Error {
@@ -23,6 +26,7 @@ impl From<Error> for syn::Error {
             Error::DerivedFromTupleStruct(span) => syn::Error::new(span, value.to_string()),
             Error::DerivedFromUnion(span) => syn::Error::new(span, value.to_string()),
             Error::DerivedFromUnitStruct(span) => syn::Error::new(span, value.to_string()),
+            Error::Other(span) => syn::Error::new(span, value.to_string()),
         }
     }
 }
