@@ -18,6 +18,7 @@ import { userManager } from '@/services';
 
 export type Props = {
   children: ReactNode;
+  className?: string;
 };
 
 /**
