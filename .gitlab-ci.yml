@@ -156,6 +156,15 @@ build:
   dependencies:
     - "sync console with plasmic"
 
+"deploy / synchronizer":
+  stage: deploy
+  script:
+    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/synchronizer:release --push synchronizer
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
+
 "documentation / controlplane":
   stage: documentation
   script:
