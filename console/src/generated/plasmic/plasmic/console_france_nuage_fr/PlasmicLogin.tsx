@@ -110,7 +110,7 @@ export type PlasmicLogin__OverridesType = {
   password?: Flex__<typeof FormTextInput>;
   forgotPassword?: Flex__<typeof FormLink>;
   login?: Flex__<typeof FormButton>;
-  text?: Flex__<'div'>;
+  login2?: Flex__<typeof FormButton>;
   logIn?: Flex__<'div'>;
   noAccount?: Flex__<typeof FormText>;
   signUpLink?: Flex__<typeof FormLink>;
@@ -346,15 +346,64 @@ function PlasmicLogin__RenderFunc(props: {
                                 )}
                                 label={
                                   <div
-                                    data-plasmic-name={'text'}
-                                    data-plasmic-override={overrides.text}
                                     className={classNames(
                                       projectcss.all,
                                       projectcss.__wab_text,
-                                      sty.text,
+                                      sty.text__rLoGi,
                                     )}
                                   >
                                     {'Se connecter'}
+                                  </div>
+                                }
+                                onClick={async (event) => {
+                                  const $steps = {};
+
+                                  $steps['runActionOnConsoleProvider'] = true
+                                    ? (() => {
+                                        const actionArgs = {
+                                          tplRef: 'consoleProvider',
+                                          action: 'signin',
+                                        };
+                                        return (({ tplRef, action, args }) => {
+                                          return $refs?.[tplRef]?.[action]?.(
+                                            ...(args ?? []),
+                                          );
+                                        })?.apply(null, [actionArgs]);
+                                      })()
+                                    : undefined;
+                                  if (
+                                    $steps['runActionOnConsoleProvider'] !=
+                                      null &&
+                                    typeof $steps[
+                                      'runActionOnConsoleProvider'
+                                    ] === 'object' &&
+                                    typeof $steps['runActionOnConsoleProvider']
+                                      .then === 'function'
+                                  ) {
+                                    $steps['runActionOnConsoleProvider'] =
+                                      await $steps[
+                                        'runActionOnConsoleProvider'
+                                      ];
+                                  }
+                                }}
+                              />
+
+                              <FormButton
+                                data-plasmic-name={'login2'}
+                                data-plasmic-override={overrides.login2}
+                                className={classNames(
+                                  '__wab_instance',
+                                  sty.login2,
+                                )}
+                                label={
+                                  <div
+                                    className={classNames(
+                                      projectcss.all,
+                                      projectcss.__wab_text,
+                                      sty.text__fkIl4,
+                                    )}
+                                  >
+                                    {'Se connecter avec Gitlab'}
                                   </div>
                                 }
                                 onClick={async (event) => {
@@ -448,7 +497,7 @@ const PlasmicDescendants = {
     'password',
     'forgotPassword',
     'login',
-    'text',
+    'login2',
     'logIn',
     'noAccount',
     'signUpLink',
@@ -462,7 +511,7 @@ const PlasmicDescendants = {
     'password',
     'forgotPassword',
     'login',
-    'text',
+    'login2',
     'logIn',
     'noAccount',
     'signUpLink',
@@ -475,7 +524,7 @@ const PlasmicDescendants = {
     'password',
     'forgotPassword',
     'login',
-    'text',
+    'login2',
     'logIn',
     'noAccount',
     'signUpLink',
@@ -487,7 +536,7 @@ const PlasmicDescendants = {
     'password',
     'forgotPassword',
     'login',
-    'text',
+    'login2',
     'logIn',
     'noAccount',
     'signUpLink',
@@ -495,8 +544,8 @@ const PlasmicDescendants = {
   email: ['email'],
   password: ['password'],
   forgotPassword: ['forgotPassword'],
-  login: ['login', 'text'],
-  text: ['text'],
+  login: ['login'],
+  login2: ['login2'],
   logIn: ['logIn', 'noAccount', 'signUpLink'],
   noAccount: ['noAccount'],
   signUpLink: ['signUpLink'],
@@ -514,7 +563,7 @@ type NodeDefaultElementType = {
   password: typeof FormTextInput;
   forgotPassword: typeof FormLink;
   login: typeof FormButton;
-  text: 'div';
+  login2: typeof FormButton;
   logIn: 'div';
   noAccount: typeof FormText;
   signUpLink: typeof FormLink;
@@ -588,7 +637,7 @@ export const PlasmicLogin = Object.assign(
     password: makeNodeComponent('password'),
     forgotPassword: makeNodeComponent('forgotPassword'),
     login: makeNodeComponent('login'),
-    text: makeNodeComponent('text'),
+    login2: makeNodeComponent('login2'),
     logIn: makeNodeComponent('logIn'),
     noAccount: makeNodeComponent('noAccount'),
     signUpLink: makeNodeComponent('signUpLink'),

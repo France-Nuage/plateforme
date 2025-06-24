@@ -205,11 +205,13 @@ function PlasmicNavigationDrawer__RenderFunc(props: {
   });
 
   return (
-    <div
+    <Stack__
+      as={'div'}
       data-plasmic-name={'drawer'}
       data-plasmic-override={overrides.drawer}
       data-plasmic-root={true}
       data-plasmic-for-node={forNode}
+      hasGap={true}
       className={classNames(
         projectcss.all,
         projectcss.root_reset,
@@ -221,282 +223,334 @@ function PlasmicNavigationDrawer__RenderFunc(props: {
         { [sty.drawerisOpen]: hasVariant($state, 'isOpen', 'isOpen') },
       )}
     >
-      <div className={classNames(projectcss.all, sty.freeBox__qA2N)}>
-        <FormTextField
-          data-plasmic-name={'search'}
-          data-plasmic-override={overrides.search}
-          className={classNames('__wab_instance', sty.search)}
-          end={
-            <CircleIcon
-              className={classNames(projectcss.all, sty.svg__fd1Xj)}
-              role={'img'}
-            />
-          }
-          iconStart={true}
-          inputMode={'text'}
-          label={
-            <div
-              data-plasmic-name={'text'}
-              data-plasmic-override={overrides.text}
-              className={classNames(
-                projectcss.all,
-                projectcss.__wab_text,
-                sty.text,
-              )}
-            >
-              {'Label'}
-            </div>
-          }
-          onChange={async (...eventArgs: any) => {
-            generateStateOnChangeProp($state, ['search', 'value']).apply(
-              null,
-              eventArgs,
-            );
-
-            if (
-              eventArgs.length > 1 &&
-              eventArgs[1] &&
-              eventArgs[1]._plasmic_state_init_
-            ) {
-              return;
-            }
-          }}
-          placeholder={'Rechercher...'}
-          showLabel={false}
-          start={
-            <SearchIcon
-              className={classNames(projectcss.all, sty.svg__zpqF9)}
-              role={'img'}
-            />
-          }
-          type={'text'}
-          value={generateStateValueProp($state, ['search', 'value'])}
-        />
-
-        <NavigationDrawerNavDivider
-          className={classNames(
-            '__wab_instance',
-            sty.navigationDrawerNavDivider__pKcOb,
-          )}
-        />
-
-        <NavigationDrawerNavItem
-          data-plasmic-name={'dashboard'}
-          data-plasmic-override={overrides.dashboard}
-          className={classNames('__wab_instance', sty.dashboard, {
-            [sty.dashboardisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
-          })}
-          isActive={(() => {
-            try {
-              return undefined;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === 'PlasmicUndefinedDataError'
-              ) {
-                return [];
-              }
-              throw e;
-            }
-          })()}
-          link={
-            hasVariant($state, 'isOpen', 'isOpen') &&
-            hasVariant(globalVariants, 'screen', 'mobile')
-              ? `/`
-              : `/`
-          }
-          nom={'Tableau de bord'}
-        >
-          <HomeIcon
-            className={classNames(projectcss.all, sty.svg___6URSb)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-        <NavigationDrawerNavItem
-          data-plasmic-name={'teams'}
-          data-plasmic-override={overrides.teams}
-          className={classNames('__wab_instance', sty.teams)}
-          link={`/`}
-          nom={'\u00c9quipes'}
-        >
-          <UserIcon
-            className={classNames(projectcss.all, sty.svg__j3Qoq)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-        <NavigationDrawerNavItem
-          data-plasmic-name={'plan'}
-          data-plasmic-override={overrides.plan}
-          className={classNames('__wab_instance', sty.plan)}
-          link={`/`}
-          nom={'Plan et facturation'}
-        >
-          <FactureIcon
-            className={classNames(projectcss.all, sty.svg___7X8Xe)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-        <NavigationDrawerNavItem
-          data-plasmic-name={'settings'}
-          data-plasmic-override={overrides.settings}
-          className={classNames('__wab_instance', sty.settings)}
-          link={`/`}
-          nom={'Param\u00e8tres g\u00e9n\u00e9raux'}
-        >
-          <SettingsIcon
-            className={classNames(projectcss.all, sty.svg__wsiQy)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-        <NavigationDrawerNavDivider
-          className={classNames(
-            '__wab_instance',
-            sty.navigationDrawerNavDivider__kdgJ6,
-          )}
-        />
-
-        <NavigationDrawerNavTitle
-          data-plasmic-name={'project'}
-          data-plasmic-override={overrides.project}
-          className={classNames('__wab_instance', sty.project)}
-          title={'PROJET'}
-        />
-
-        <NavigationDrawerNavItem
-          data-plasmic-name={'instances2'}
-          data-plasmic-override={overrides.instances2}
-          className={classNames('__wab_instance', sty.instances2, {
-            [sty.instances2isOpen]: hasVariant($state, 'isOpen', 'isOpen'),
-          })}
-          link={
-            hasVariant($state, 'isOpen', 'isOpen') &&
-            hasVariant(globalVariants, 'screen', 'mobile')
-              ? `/instances`
-              : `/instances`
-          }
-          nom={'Instances'}
-        >
-          <DevSquareIcon
-            className={classNames(projectcss.all, sty.svg__aeTd)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-        <NavigationDrawerNavItem
-          data-plasmic-name={'services2'}
-          data-plasmic-override={overrides.services2}
-          className={classNames('__wab_instance', sty.services2, {
-            [sty.services2isOpen]: hasVariant($state, 'isOpen', 'isOpen'),
-          })}
-          link={`/`}
-          nom={'Services'}
-        >
-          <DevSquareIcon
-            className={classNames(projectcss.all, sty.svg__pGfe2)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-        <NavigationDrawerNavItem
-          data-plasmic-name={'membres2'}
-          data-plasmic-override={overrides.membres2}
-          className={classNames('__wab_instance', sty.membres2)}
-          link={`/`}
-          nom={'Membres'}
-        >
-          <UserIcon
-            className={classNames(projectcss.all, sty.svg__zzrJu)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-        <NavigationDrawerNavItem
-          data-plasmic-name={'projectSettings'}
-          data-plasmic-override={overrides.projectSettings}
-          className={classNames('__wab_instance', sty.projectSettings)}
-          link={`/`}
-          nom={'Param\u00e8tres du projet'}
-        >
-          <BellIcon
-            className={classNames(projectcss.all, sty.svg__aupw)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-      </div>
-      <div className={classNames(projectcss.all, sty.freeBox__n8Yax)}>
-        <NavigationDrawerNavDivider
-          className={classNames(
-            '__wab_instance',
-            sty.navigationDrawerNavDivider___4E6YD,
-          )}
-        />
-
-        <NavigationDrawerNavItem
-          data-plasmic-name={'profile'}
-          data-plasmic-override={overrides.profile}
-          className={classNames('__wab_instance', sty.profile, {
-            [sty.profileisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
-          })}
-          link={`/`}
-          nom={'Profil'}
-        >
-          <Icon11Icon
-            className={classNames(projectcss.all, sty.svg__zftOu)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-        <NavigationDrawerNavItem
-          data-plasmic-name={'faq'}
-          data-plasmic-override={overrides.faq}
-          className={classNames('__wab_instance', sty.faq)}
-          link={`/`}
-          nom={'FAQ'}
-        >
-          <Icon10Icon
-            className={classNames(projectcss.all, sty.svg__m2Ofs)}
-            role={'img'}
-          />
-        </NavigationDrawerNavItem>
-      </div>
       <div
-        className={classNames(projectcss.all, sty.freeBox__vJyR1, {
-          [sty.freeBoxisOpen__vJyR1Vo8B3]: hasVariant(
+        className={classNames(projectcss.all, sty.freeBox__f81Z1, {
+          [sty.freeBoxisOpen__f81Z1Vo8B3]: hasVariant(
             $state,
             'isOpen',
             'isOpen',
           ),
         })}
-        onClick={async (event) => {
-          const $steps = {};
-
-          $steps['updateIsClose'] = true
-            ? (() => {
-                const actionArgs = { vgroup: 'isOpen', operation: 2 };
-                return (({ vgroup, value }) => {
-                  if (typeof value === 'string') {
-                    value = [value];
-                  }
-
-                  const oldValue = $stateGet($state, vgroup);
-                  $stateSet($state, vgroup, !oldValue);
-                  return !oldValue;
-                })?.apply(null, [actionArgs]);
-              })()
-            : undefined;
-          if (
-            $steps['updateIsClose'] != null &&
-            typeof $steps['updateIsClose'] === 'object' &&
-            typeof $steps['updateIsClose'].then === 'function'
-          ) {
-            $steps['updateIsClose'] = await $steps['updateIsClose'];
-          }
-        }}
       >
-        <ChevronRightIcon
-          className={classNames(projectcss.all, sty.svg__e0FkA, {
-            [sty.svgisOpen__e0FkAvo8B3]: hasVariant($state, 'isOpen', 'isOpen'),
+        <div
+          className={classNames(projectcss.all, sty.freeBox__qA2N, {
+            [sty.freeBoxisOpen__qA2Nvo8B3]: hasVariant(
+              $state,
+              'isOpen',
+              'isOpen',
+            ),
           })}
-          role={'img'}
-        />
+        >
+          <FormTextField
+            data-plasmic-name={'search'}
+            data-plasmic-override={overrides.search}
+            className={classNames('__wab_instance', sty.search, {
+              [sty.searchisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+            })}
+            end={
+              <CircleIcon
+                className={classNames(projectcss.all, sty.svg__fd1Xj)}
+                role={'img'}
+              />
+            }
+            iconStart={true}
+            inputMode={'text'}
+            label={
+              <div
+                data-plasmic-name={'text'}
+                data-plasmic-override={overrides.text}
+                className={classNames(
+                  projectcss.all,
+                  projectcss.__wab_text,
+                  sty.text,
+                )}
+              >
+                {'Label'}
+              </div>
+            }
+            onChange={async (...eventArgs: any) => {
+              generateStateOnChangeProp($state, ['search', 'value']).apply(
+                null,
+                eventArgs,
+              );
+
+              if (
+                eventArgs.length > 1 &&
+                eventArgs[1] &&
+                eventArgs[1]._plasmic_state_init_
+              ) {
+                return;
+              }
+            }}
+            placeholder={'Rechercher...'}
+            showLabel={false}
+            start={
+              <SearchIcon
+                className={classNames(projectcss.all, sty.svg__zpqF9, {
+                  [sty.svgisOpen__zpqF9Vo8B3]: hasVariant(
+                    $state,
+                    'isOpen',
+                    'isOpen',
+                  ),
+                })}
+                role={'img'}
+              />
+            }
+            type={'text'}
+            value={generateStateValueProp($state, ['search', 'value'])}
+          />
+
+          <NavigationDrawerNavDivider
+            className={classNames(
+              '__wab_instance',
+              sty.navigationDrawerNavDivider__pKcOb,
+            )}
+          />
+
+          <NavigationDrawerNavItem
+            data-plasmic-name={'dashboard'}
+            data-plasmic-override={overrides.dashboard}
+            className={classNames('__wab_instance', sty.dashboard, {
+              [sty.dashboardisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+            })}
+            isActive={(() => {
+              try {
+                return undefined;
+              } catch (e) {
+                if (
+                  e instanceof TypeError ||
+                  e?.plasmicType === 'PlasmicUndefinedDataError'
+                ) {
+                  return [];
+                }
+                throw e;
+              }
+            })()}
+            link={
+              hasVariant($state, 'isOpen', 'isOpen') &&
+              hasVariant(globalVariants, 'screen', 'mobile')
+                ? `/`
+                : `/`
+            }
+            nom={'Tableau de bord'}
+          >
+            <HomeIcon
+              className={classNames(projectcss.all, sty.svg___6URSb)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+          <NavigationDrawerNavItem
+            data-plasmic-name={'teams'}
+            data-plasmic-override={overrides.teams}
+            className={classNames('__wab_instance', sty.teams)}
+            link={`/`}
+            nom={'\u00c9quipes'}
+          >
+            <UserIcon
+              className={classNames(projectcss.all, sty.svg__j3Qoq)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+          <NavigationDrawerNavItem
+            data-plasmic-name={'plan'}
+            data-plasmic-override={overrides.plan}
+            className={classNames('__wab_instance', sty.plan, {
+              [sty.planisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+            })}
+            link={`/`}
+            nom={'Plan et facturation'}
+          >
+            <FactureIcon
+              className={classNames(projectcss.all, sty.svg___7X8Xe)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+          <NavigationDrawerNavItem
+            data-plasmic-name={'settings'}
+            data-plasmic-override={overrides.settings}
+            className={classNames('__wab_instance', sty.settings, {
+              [sty.settingsisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+            })}
+            link={`/`}
+            nom={'Param\u00e8tres g\u00e9n\u00e9raux'}
+          >
+            <SettingsIcon
+              className={classNames(projectcss.all, sty.svg__wsiQy)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+          <NavigationDrawerNavDivider
+            className={classNames(
+              '__wab_instance',
+              sty.navigationDrawerNavDivider__kdgJ6,
+            )}
+          />
+
+          <NavigationDrawerNavTitle
+            data-plasmic-name={'project'}
+            data-plasmic-override={overrides.project}
+            className={classNames('__wab_instance', sty.project)}
+            title={'PROJET'}
+          />
+
+          <NavigationDrawerNavItem
+            data-plasmic-name={'instances2'}
+            data-plasmic-override={overrides.instances2}
+            className={classNames('__wab_instance', sty.instances2, {
+              [sty.instances2isOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+            })}
+            link={
+              hasVariant($state, 'isOpen', 'isOpen') &&
+              hasVariant(globalVariants, 'screen', 'mobile')
+                ? `/instances`
+                : `/instances`
+            }
+            nom={'Instances'}
+          >
+            <DevSquareIcon
+              className={classNames(projectcss.all, sty.svg__aeTd)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+          <NavigationDrawerNavItem
+            data-plasmic-name={'services2'}
+            data-plasmic-override={overrides.services2}
+            className={classNames('__wab_instance', sty.services2, {
+              [sty.services2isOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+            })}
+            link={`/`}
+            nom={'Services'}
+          >
+            <DevSquareIcon
+              className={classNames(projectcss.all, sty.svg__pGfe2)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+          <NavigationDrawerNavItem
+            data-plasmic-name={'membres2'}
+            data-plasmic-override={overrides.membres2}
+            className={classNames('__wab_instance', sty.membres2)}
+            link={`/`}
+            nom={'Membres'}
+          >
+            <UserIcon
+              className={classNames(projectcss.all, sty.svg__zzrJu)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+          <NavigationDrawerNavItem
+            data-plasmic-name={'projectSettings'}
+            data-plasmic-override={overrides.projectSettings}
+            className={classNames('__wab_instance', sty.projectSettings)}
+            link={`/`}
+            nom={'Param\u00e8tres du projet'}
+          >
+            <BellIcon
+              className={classNames(projectcss.all, sty.svg__aupw)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+        </div>
+        <div
+          className={classNames(projectcss.all, sty.freeBox__n8Yax, {
+            [sty.freeBoxisOpen__n8YaxVo8B3]: hasVariant(
+              $state,
+              'isOpen',
+              'isOpen',
+            ),
+          })}
+        >
+          <NavigationDrawerNavDivider
+            className={classNames(
+              '__wab_instance',
+              sty.navigationDrawerNavDivider___4E6YD,
+            )}
+          />
+
+          <NavigationDrawerNavItem
+            data-plasmic-name={'profile'}
+            data-plasmic-override={overrides.profile}
+            className={classNames('__wab_instance', sty.profile, {
+              [sty.profileisOpen]: hasVariant($state, 'isOpen', 'isOpen'),
+            })}
+            link={`/`}
+            nom={'Profil'}
+          >
+            <Icon11Icon
+              className={classNames(projectcss.all, sty.svg__zftOu)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+          <NavigationDrawerNavItem
+            data-plasmic-name={'faq'}
+            data-plasmic-override={overrides.faq}
+            className={classNames('__wab_instance', sty.faq)}
+            link={`/`}
+            nom={'FAQ'}
+          >
+            <Icon10Icon
+              className={classNames(projectcss.all, sty.svg__m2Ofs)}
+              role={'img'}
+            />
+          </NavigationDrawerNavItem>
+        </div>
       </div>
-    </div>
+      {(
+        hasVariant($state, 'isOpen', 'isOpen')
+          ? true
+          : hasVariant(globalVariants, 'screen', 'mobile')
+            ? true
+            : hasVariant(globalVariants, 'screen', 'tablet')
+              ? true
+              : false
+      ) ? (
+        <div
+          className={classNames(projectcss.all, sty.freeBox___5KE3R, {
+            [sty.freeBoxisOpen___5KE3Rvo8B3]: hasVariant(
+              $state,
+              'isOpen',
+              'isOpen',
+            ),
+          })}
+          onClick={async (event) => {
+            const $steps = {};
+
+            $steps['updateIsOpen'] = true
+              ? (() => {
+                  const actionArgs = { vgroup: 'isOpen', operation: 2 };
+                  return (({ vgroup, value }) => {
+                    if (typeof value === 'string') {
+                      value = [value];
+                    }
+
+                    const oldValue = $stateGet($state, vgroup);
+                    $stateSet($state, vgroup, !oldValue);
+                    return !oldValue;
+                  })?.apply(null, [actionArgs]);
+                })()
+              : undefined;
+            if (
+              $steps['updateIsOpen'] != null &&
+              typeof $steps['updateIsOpen'] === 'object' &&
+              typeof $steps['updateIsOpen'].then === 'function'
+            ) {
+              $steps['updateIsOpen'] = await $steps['updateIsOpen'];
+            }
+          }}
+        >
+          <ChevronRightIcon
+            className={classNames(projectcss.all, sty.svg___2KwqK, {
+              [sty.svgisOpen___2KwqKvo8B3]: hasVariant(
+                $state,
+                'isOpen',
+                'isOpen',
+              ),
+            })}
+            role={'img'}
+          />
+        </div>
+      ) : null}
+    </Stack__>
   ) as React.ReactElement | null;
 }
 

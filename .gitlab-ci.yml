@@ -1,8 +1,8 @@
 # Define the pipeline stages
 stages:
   - security
-  - build
   - sync
+  - build
   - code-style
   - unit-tests
   - system-tests
@@ -66,6 +66,8 @@ gitleaks:
 
 build:
   stage: build
+  dependencies:
+    - "sync console with plasmic"
   script:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
@@ -111,6 +113,8 @@ build:
     - docker compose logs > docker-compose-logs.txt
   script:
     - docker compose run --remove-orphans system-tests npm run test:ci
+  dependencies:
+    - "sync console with plasmic"
   artifacts:
     when: always
     paths:
@@ -155,6 +159,15 @@ build:
     - when: never
   dependencies:
     - "sync console with plasmic"
+
+"deploy / synchronizer":
+  stage: deploy
+  script:
+    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/synchronizer:release --push synchronizer
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
 
 "documentation / controlplane":
   stage: documentation

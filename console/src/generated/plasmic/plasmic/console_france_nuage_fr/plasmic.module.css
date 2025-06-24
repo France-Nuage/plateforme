@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C700&family=Inconsolata%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C600%3B0%2C700&family=Outfit%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C600%3B0%2C700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C700%3B1%2C300%3B1%2C400%3B1%2C700&family=Inconsolata%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C600%3B0%2C700&family=Outfit%3Aital%2Cwght%400%2C300%3B0%2C400%3B0%2C600%3B0%2C700&display=swap');
 
 .plasmic_tokens {
   --token-PKw3mKbzBr62: #1a4ce5;
@@ -195,7 +195,7 @@
   --mixin-igVz04WK_XV5_letter-spacing: -0.5px;
   --mixin-igVz04WK_XV5_line-height: 1.1;
   --mixin-igVz04WK_XV5_white-space: pre-wrap;
-  --mixin-ycbtzYBZm-1u_color: #0070f3;
+  --mixin-ycbtzYBZm-1u_color: var(--token-74Qsc5U_cwQo);
   --mixin-ycbtzYBZm-1u_white-space: pre-wrap;
   --mixin-B28t0-Rpp0nF_color: #000000;
   --mixin-B28t0-Rpp0nF_font-size: 32px;
@@ -287,7 +287,8 @@
   --mixin-dM2ZT029eaf8_font-weight: 600;
   --mixin-dM2ZT029eaf8_line-height: 1.5;
   --mixin-dM2ZT029eaf8_white-space: pre-wrap;
-  --mixin-2Qu7oGSiCsFc_color: #3291ff;
+  --mixin-2Qu7oGSiCsFc_color: var(--token-PKw3mKbzBr62);
+  --mixin-2Qu7oGSiCsFc_font-style: italic;
   --mixin-2Qu7oGSiCsFc_white-space: pre-wrap;
   --mixin-LXnsHoPHtpCW_white-space: pre-wrap;
   --mixin-Go8LYsyVBWOo_white-space: pre-wrap;
@@ -807,6 +808,7 @@ a:where(.root_reset.a):hover,
 :where(.root_reset_tags) a:hover,
 a:where(.root_reset_tags):hover {
   color: var(--mixin-2Qu7oGSiCsFc_color);
+  font-style: var(--mixin-2Qu7oGSiCsFc_font-style);
 }
 
 :where(.root_reset) li:where(.li),
