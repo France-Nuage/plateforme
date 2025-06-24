@@ -85,6 +85,7 @@ export type PlasmicConsole__OverridesType = {
   root?: Flex__<'div'>;
   consoleProvider?: Flex__<typeof ConsoleProvider>;
   consoleBreadcrumb?: Flex__<typeof ConsoleBreadcrumb>;
+  freeBox?: Flex__<'div'>;
   navigationDrawer?: Flex__<typeof NavigationDrawer>;
 };
 
@@ -164,14 +165,20 @@ function PlasmicConsole__RenderFunc(props: {
                     )}
                   />
 
-                  <NavigationDrawer
-                    data-plasmic-name={'navigationDrawer'}
-                    data-plasmic-override={overrides.navigationDrawer}
-                    className={classNames(
-                      '__wab_instance',
-                      sty.navigationDrawer,
-                    )}
-                  />
+                  <div
+                    data-plasmic-name={'freeBox'}
+                    data-plasmic-override={overrides.freeBox}
+                    className={classNames(projectcss.all, sty.freeBox)}
+                  >
+                    <NavigationDrawer
+                      data-plasmic-name={'navigationDrawer'}
+                      data-plasmic-override={overrides.navigationDrawer}
+                      className={classNames(
+                        '__wab_instance',
+                        sty.navigationDrawer,
+                      )}
+                    />
+                  </div>
                 </React.Fragment>
               )}
             </DataCtxReader__>
@@ -183,9 +190,21 @@ function PlasmicConsole__RenderFunc(props: {
 }
 
 const PlasmicDescendants = {
-  root: ['root', 'consoleProvider', 'consoleBreadcrumb', 'navigationDrawer'],
-  consoleProvider: ['consoleProvider', 'consoleBreadcrumb', 'navigationDrawer'],
+  root: [
+    'root',
+    'consoleProvider',
+    'consoleBreadcrumb',
+    'freeBox',
+    'navigationDrawer',
+  ],
+  consoleProvider: [
+    'consoleProvider',
+    'consoleBreadcrumb',
+    'freeBox',
+    'navigationDrawer',
+  ],
   consoleBreadcrumb: ['consoleBreadcrumb'],
+  freeBox: ['freeBox', 'navigationDrawer'],
   navigationDrawer: ['navigationDrawer'],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
@@ -195,6 +214,7 @@ type NodeDefaultElementType = {
   root: 'div';
   consoleProvider: typeof ConsoleProvider;
   consoleBreadcrumb: typeof ConsoleBreadcrumb;
+  freeBox: 'div';
   navigationDrawer: typeof NavigationDrawer;
 };
 
@@ -260,6 +280,7 @@ export const PlasmicConsole = Object.assign(
     // Helper components rendering sub-elements
     consoleProvider: makeNodeComponent('consoleProvider'),
     consoleBreadcrumb: makeNodeComponent('consoleBreadcrumb'),
+    freeBox: makeNodeComponent('freeBox'),
     navigationDrawer: makeNodeComponent('navigationDrawer'),
 
     // Metadata about props expected for PlasmicConsole

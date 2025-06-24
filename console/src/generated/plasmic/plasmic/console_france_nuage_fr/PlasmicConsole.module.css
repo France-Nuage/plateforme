@@ -19,13 +19,24 @@
   width: 100%;
   min-width: 0;
 }
+.freeBox {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  top: auto;
+  left: auto;
+  min-width: 0;
+  min-height: 0;
+}
 .navigationDrawer:global(.__wab_instance) {
   max-width: 100%;
   width: auto;
   flex-shrink: 1;
-  position: relative;
-  left: auto;
-  top: auto;
   height: 100%;
   flex-grow: 0;
   transform: none;
