@@ -88,7 +88,6 @@ export type PlasmicConsoleBreadcrumb__OverridesType = {
   img?: Flex__<typeof PlasmicImg__>;
   section?: Flex__<'section'>;
   breadcrumb?: Flex__<typeof AntdBreadcrumb>;
-  svg?: Flex__<'svg'>;
 };
 
 export interface DefaultConsoleBreadcrumbProps {
@@ -125,6 +124,30 @@ function PlasmicConsoleBreadcrumb__RenderFunc(props: {
   const refsRef = React.useRef({});
   const $refs = refsRef.current;
 
+  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+    () => [
+      {
+        path: 'isVisibleOrg',
+        type: 'private',
+        variableType: 'boolean',
+        initFunc: ({ $props, $state, $queries, $ctx }) => false,
+      },
+      {
+        path: 'isVisiblePro',
+        type: 'private',
+        variableType: 'boolean',
+        initFunc: ({ $props, $state, $queries, $ctx }) => false,
+      },
+    ],
+    [$props, $ctx, $refs],
+  );
+  const $state = useDollarState(stateSpecs, {
+    $props,
+    $ctx,
+    $queries: {},
+    $refs,
+  });
+
   const globalVariants = ensureGlobalVariants({
     screen: useScreenVariantseEvMbXdv1ZEe(),
   });
@@ -155,165 +178,557 @@ function PlasmicConsoleBreadcrumb__RenderFunc(props: {
       >
         <DataCtxReader__>
           {($ctx) => (
-            <Stack__
-              as={'div'}
-              hasGap={true}
-              className={classNames(projectcss.all, sty.freeBox__cJl75)}
-            >
-              <div className={classNames(projectcss.all, sty.freeBox__cRNeO)}>
-                <PlasmicImg__
-                  data-plasmic-name={'img'}
-                  data-plasmic-override={overrides.img}
-                  alt={''}
-                  className={classNames(sty.img)}
-                  displayHeight={'40px'}
-                  displayMaxHeight={'none'}
-                  displayMaxWidth={'none'}
-                  displayMinHeight={'0'}
-                  displayMinWidth={'0'}
-                  displayWidth={'40px'}
-                  src={{
-                    src: '/plasmic/console_france_nuage_fr/images/cloudModelSvg.svg',
-                    fullWidth: 28,
-                    fullHeight: 16,
-                    aspectRatio: 1.75,
-                  }}
+            <React.Fragment>
+              <Stack__
+                as={'div'}
+                hasGap={true}
+                className={classNames(projectcss.all, sty.freeBox__cJl75)}
+              >
+                <div className={classNames(projectcss.all, sty.freeBox__cRNeO)}>
+                  <PlasmicImg__
+                    data-plasmic-name={'img'}
+                    data-plasmic-override={overrides.img}
+                    alt={''}
+                    className={classNames(sty.img)}
+                    displayHeight={'40px'}
+                    displayMaxHeight={'none'}
+                    displayMaxWidth={'none'}
+                    displayMinHeight={'0'}
+                    displayMinWidth={'0'}
+                    displayWidth={'40px'}
+                    src={{
+                      src: '/plasmic/console_france_nuage_fr/images/cloudModelSvg.svg',
+                      fullWidth: 28,
+                      fullHeight: 16,
+                      aspectRatio: 1.75,
+                    }}
+                  />
+                </div>
+                <section
+                  data-plasmic-name={'section'}
+                  data-plasmic-override={overrides.section}
+                  className={classNames(projectcss.all, sty.section)}
                 />
-              </div>
-              <section
-                data-plasmic-name={'section'}
-                data-plasmic-override={overrides.section}
-                className={classNames(projectcss.all, sty.section)}
-              />
 
-              <AntdBreadcrumb
-                data-plasmic-name={'breadcrumb'}
-                data-plasmic-override={overrides.breadcrumb}
-                className={classNames('__wab_instance', sty.breadcrumb)}
-                itemsRaw={
-                  <React.Fragment>
-                    <AntdBreadcrumbItem
-                      className={classNames(
-                        '__wab_instance',
-                        sty.breadcrumbItem__cMjl4,
-                      )}
-                    >
-                      <Stack__
-                        as={'div'}
-                        hasGap={true}
+                <AntdBreadcrumb
+                  data-plasmic-name={'breadcrumb'}
+                  data-plasmic-override={overrides.breadcrumb}
+                  className={classNames('__wab_instance', sty.breadcrumb)}
+                  itemsRaw={
+                    <React.Fragment>
+                      <AntdBreadcrumbItem
                         className={classNames(
-                          projectcss.all,
-                          sty.freeBox__huRb,
+                          '__wab_instance',
+                          sty.breadcrumbItem__cMjl4,
                         )}
                       >
-                        <div
+                        <Stack__
+                          as={'div'}
+                          hasGap={true}
                           className={classNames(
                             projectcss.all,
-                            projectcss.__wab_text,
-                            sty.text___0Gnvt,
+                            sty.freeBox__huRb,
                           )}
                           onClick={async (event) => {
                             const $steps = {};
 
-                            $steps['runElementAction'] = true
+                            $steps['updateIsVisibleOrg'] = true
                               ? (() => {
-                                  const actionArgs = {};
-                                  return (({ tplRef, action, args }) => {
-                                    return $refs?.[tplRef]?.[action]?.(
-                                      ...(args ?? []),
+                                  const actionArgs = {
+                                    variable: {
+                                      objRoot: $state,
+                                      variablePath: ['isVisibleOrg'],
+                                    },
+                                    operation: 4,
+                                    value: true,
+                                  };
+                                  return (({
+                                    variable,
+                                    value,
+                                    startIndex,
+                                    deleteCount,
+                                  }) => {
+                                    if (!variable) {
+                                      return;
+                                    }
+                                    const { objRoot, variablePath } = variable;
+
+                                    const oldValue = $stateGet(
+                                      objRoot,
+                                      variablePath,
                                     );
+                                    $stateSet(objRoot, variablePath, !oldValue);
+                                    return !oldValue;
                                   })?.apply(null, [actionArgs]);
                                 })()
                               : undefined;
                             if (
-                              $steps['runElementAction'] != null &&
-                              typeof $steps['runElementAction'] === 'object' &&
-                              typeof $steps['runElementAction'].then ===
+                              $steps['updateIsVisibleOrg'] != null &&
+                              typeof $steps['updateIsVisibleOrg'] ===
+                                'object' &&
+                              typeof $steps['updateIsVisibleOrg'].then ===
                                 'function'
                             ) {
-                              $steps['runElementAction'] =
-                                await $steps['runElementAction'];
+                              $steps['updateIsVisibleOrg'] =
+                                await $steps['updateIsVisibleOrg'];
+                            }
+
+                            $steps['updateIsVisibleOrg2'] = true
+                              ? (() => {
+                                  const actionArgs = {
+                                    variable: {
+                                      objRoot: $state,
+                                      variablePath: ['isVisiblePro'],
+                                    },
+                                    operation: 0,
+                                    value: false,
+                                  };
+                                  return (({
+                                    variable,
+                                    value,
+                                    startIndex,
+                                    deleteCount,
+                                  }) => {
+                                    if (!variable) {
+                                      return;
+                                    }
+                                    const { objRoot, variablePath } = variable;
+
+                                    $stateSet(objRoot, variablePath, value);
+                                    return value;
+                                  })?.apply(null, [actionArgs]);
+                                })()
+                              : undefined;
+                            if (
+                              $steps['updateIsVisibleOrg2'] != null &&
+                              typeof $steps['updateIsVisibleOrg2'] ===
+                                'object' &&
+                              typeof $steps['updateIsVisibleOrg2'].then ===
+                                'function'
+                            ) {
+                              $steps['updateIsVisibleOrg2'] =
+                                await $steps['updateIsVisibleOrg2'];
                             }
                           }}
                         >
-                          <React.Fragment>
+                          <div
+                            className={classNames(
+                              projectcss.all,
+                              projectcss.__wab_text,
+                              sty.text___0Gnvt,
+                            )}
+                            onClick={async (event) => {
+                              const $steps = {};
+
+                              $steps['runElementAction'] = true
+                                ? (() => {
+                                    const actionArgs = {};
+                                    return (({ tplRef, action, args }) => {
+                                      return $refs?.[tplRef]?.[action]?.(
+                                        ...(args ?? []),
+                                      );
+                                    })?.apply(null, [actionArgs]);
+                                  })()
+                                : undefined;
+                              if (
+                                $steps['runElementAction'] != null &&
+                                typeof $steps['runElementAction'] ===
+                                  'object' &&
+                                typeof $steps['runElementAction'].then ===
+                                  'function'
+                              ) {
+                                $steps['runElementAction'] =
+                                  await $steps['runElementAction'];
+                              }
+                            }}
+                          >
+                            <React.Fragment>
+                              {(() => {
+                                try {
+                                  return $ctx['France Nuage'].application
+                                    .activeOrganization.name;
+                                } catch (e) {
+                                  if (
+                                    e instanceof TypeError ||
+                                    e?.plasmicType ===
+                                      'PlasmicUndefinedDataError'
+                                  ) {
+                                    return "Nom de l'organisation";
+                                  }
+                                  throw e;
+                                }
+                              })()}
+                            </React.Fragment>
+                          </div>
+                          <div
+                            className={classNames(
+                              projectcss.all,
+                              sty.freeBox___1AwU0,
+                            )}
+                          >
                             {(() => {
                               try {
-                                return $ctx['France Nuage'].application
-                                  .activeOrganization.name;
+                                return $state.isVisibleOrg === false;
                               } catch (e) {
                                 if (
                                   e instanceof TypeError ||
                                   e?.plasmicType === 'PlasmicUndefinedDataError'
                                 ) {
-                                  return "Nom de l'organisation";
+                                  return true;
                                 }
                                 throw e;
                               }
-                            })()}
-                          </React.Fragment>
-                        </div>
+                            })() ? (
+                              <ChevronDownIcon
+                                className={classNames(
+                                  projectcss.all,
+                                  sty.svg__m84M5,
+                                )}
+                                role={'img'}
+                              />
+                            ) : null}
+                            {(() => {
+                              try {
+                                return $state.isVisibleOrg;
+                              } catch (e) {
+                                if (
+                                  e instanceof TypeError ||
+                                  e?.plasmicType === 'PlasmicUndefinedDataError'
+                                ) {
+                                  return true;
+                                }
+                                throw e;
+                              }
+                            })() ? (
+                              <ChevronDownIcon
+                                className={classNames(
+                                  projectcss.all,
+                                  sty.svg__j59Gz,
+                                )}
+                                role={'img'}
+                              />
+                            ) : null}
+                          </div>
+                        </Stack__>
+                      </AntdBreadcrumbItem>
+                      <AntdBreadcrumbItem
+                        className={classNames(
+                          '__wab_instance',
+                          sty.breadcrumbItem__jydZx,
+                        )}
+                      >
                         <div
                           className={classNames(
                             projectcss.all,
-                            sty.freeBox___1AwU0,
+                            sty.freeBox___167NA,
                           )}
+                          onClick={async (event) => {
+                            const $steps = {};
+
+                            $steps['updateIsVisiblePro'] = true
+                              ? (() => {
+                                  const actionArgs = {
+                                    variable: {
+                                      objRoot: $state,
+                                      variablePath: ['isVisiblePro'],
+                                    },
+                                    operation: 4,
+                                  };
+                                  return (({
+                                    variable,
+                                    value,
+                                    startIndex,
+                                    deleteCount,
+                                  }) => {
+                                    if (!variable) {
+                                      return;
+                                    }
+                                    const { objRoot, variablePath } = variable;
+
+                                    const oldValue = $stateGet(
+                                      objRoot,
+                                      variablePath,
+                                    );
+                                    $stateSet(objRoot, variablePath, !oldValue);
+                                    return !oldValue;
+                                  })?.apply(null, [actionArgs]);
+                                })()
+                              : undefined;
+                            if (
+                              $steps['updateIsVisiblePro'] != null &&
+                              typeof $steps['updateIsVisiblePro'] ===
+                                'object' &&
+                              typeof $steps['updateIsVisiblePro'].then ===
+                                'function'
+                            ) {
+                              $steps['updateIsVisiblePro'] =
+                                await $steps['updateIsVisiblePro'];
+                            }
+
+                            $steps['updateIsVisiblePro2'] = true
+                              ? (() => {
+                                  const actionArgs = {
+                                    variable: {
+                                      objRoot: $state,
+                                      variablePath: ['isVisibleOrg'],
+                                    },
+                                    operation: 0,
+                                    value: false,
+                                  };
+                                  return (({
+                                    variable,
+                                    value,
+                                    startIndex,
+                                    deleteCount,
+                                  }) => {
+                                    if (!variable) {
+                                      return;
+                                    }
+                                    const { objRoot, variablePath } = variable;
+
+                                    $stateSet(objRoot, variablePath, value);
+                                    return value;
+                                  })?.apply(null, [actionArgs]);
+                                })()
+                              : undefined;
+                            if (
+                              $steps['updateIsVisiblePro2'] != null &&
+                              typeof $steps['updateIsVisiblePro2'] ===
+                                'object' &&
+                              typeof $steps['updateIsVisiblePro2'].then ===
+                                'function'
+                            ) {
+                              $steps['updateIsVisiblePro2'] =
+                                await $steps['updateIsVisiblePro2'];
+                            }
+                          }}
                         >
-                          <ChevronDownIcon
-                            data-plasmic-name={'svg'}
-                            data-plasmic-override={overrides.svg}
-                            className={classNames(projectcss.all, sty.svg)}
-                            role={'img'}
-                          />
+                          <div
+                            className={classNames(
+                              projectcss.all,
+                              projectcss.__wab_text,
+                              sty.text__gL1OR,
+                            )}
+                          >
+                            <React.Fragment>
+                              {(() => {
+                                try {
+                                  return $ctx['France Nuage'].application
+                                    .activeProject.name;
+                                } catch (e) {
+                                  if (
+                                    e instanceof TypeError ||
+                                    e?.plasmicType ===
+                                      'PlasmicUndefinedDataError'
+                                  ) {
+                                    return 'Nom du projet';
+                                  }
+                                  throw e;
+                                }
+                              })()}
+                            </React.Fragment>
+                          </div>
+                          <div
+                            className={classNames(
+                              projectcss.all,
+                              sty.freeBox__mIBn4,
+                            )}
+                          >
+                            {(() => {
+                              try {
+                                return $state.isVisiblePro === false;
+                              } catch (e) {
+                                if (
+                                  e instanceof TypeError ||
+                                  e?.plasmicType === 'PlasmicUndefinedDataError'
+                                ) {
+                                  return true;
+                                }
+                                throw e;
+                              }
+                            })() ? (
+                              <ChevronDownIcon
+                                className={classNames(
+                                  projectcss.all,
+                                  sty.svg__u6Spq,
+                                )}
+                                role={'img'}
+                              />
+                            ) : null}
+                            {(() => {
+                              try {
+                                return $state.isVisiblePro;
+                              } catch (e) {
+                                if (
+                                  e instanceof TypeError ||
+                                  e?.plasmicType === 'PlasmicUndefinedDataError'
+                                ) {
+                                  return true;
+                                }
+                                throw e;
+                              }
+                            })() ? (
+                              <ChevronDownIcon
+                                className={classNames(
+                                  projectcss.all,
+                                  sty.svg__rdb8A,
+                                )}
+                                role={'img'}
+                              />
+                            ) : null}
+                          </div>
                         </div>
-                      </Stack__>
-                    </AntdBreadcrumbItem>
-                    <AntdBreadcrumbItem
+                      </AntdBreadcrumbItem>
+                    </React.Fragment>
+                  }
+                  separator={
+                    <div
                       className={classNames(
-                        '__wab_instance',
-                        sty.breadcrumbItem__jydZx,
+                        projectcss.all,
+                        projectcss.__wab_text,
+                        sty.text__bamdb,
                       )}
                     >
-                      <div
+                      {'/'}
+                    </div>
+                  }
+                />
+              </Stack__>
+              {(() => {
+                try {
+                  return $state.isVisibleOrg;
+                } catch (e) {
+                  if (
+                    e instanceof TypeError ||
+                    e?.plasmicType === 'PlasmicUndefinedDataError'
+                  ) {
+                    return true;
+                  }
+                  throw e;
+                }
+              })() ? (
+                <Stack__
+                  as={'div'}
+                  hasGap={true}
+                  className={classNames(projectcss.all, sty.freeBox___5Lmof)}
+                >
+                  {((_par) =>
+                    !_par ? [] : Array.isArray(_par) ? _par : [_par])(
+                    (() => {
+                      try {
+                        return $ctx['France Nuage'].organizations;
+                      } catch (e) {
+                        if (
+                          e instanceof TypeError ||
+                          e?.plasmicType === 'PlasmicUndefinedDataError'
+                        ) {
+                          return [];
+                        }
+                        throw e;
+                      }
+                    })(),
+                  ).map((__plasmic_item_0, __plasmic_idx_0) => {
+                    const currentItem = __plasmic_item_0;
+                    const currentIndex = __plasmic_idx_0;
+                    return (
+                      <PlasmicLink__
                         className={classNames(
                           projectcss.all,
+                          projectcss.a,
                           projectcss.__wab_text,
-                          sty.text__gL1OR,
+                          sty.link__pVbaB,
                         )}
+                        key={currentIndex}
+                        platform={'react'}
                       >
                         <React.Fragment>
                           {(() => {
                             try {
-                              return $ctx['France Nuage'].application
-                                .activeProject.name;
+                              return currentItem.name;
                             } catch (e) {
                               if (
                                 e instanceof TypeError ||
                                 e?.plasmicType === 'PlasmicUndefinedDataError'
                               ) {
-                                return 'Nom du projet';
+                                return '';
                               }
                               throw e;
                             }
                           })()}
                         </React.Fragment>
-                      </div>
-                    </AntdBreadcrumbItem>
-                  </React.Fragment>
+                      </PlasmicLink__>
+                    );
+                  })}
+                </Stack__>
+              ) : null}
+              {(() => {
+                try {
+                  return $state.isVisiblePro;
+                } catch (e) {
+                  if (
+                    e instanceof TypeError ||
+                    e?.plasmicType === 'PlasmicUndefinedDataError'
+                  ) {
+                    return true;
+                  }
+                  throw e;
                 }
-                separator={
-                  <div
-                    className={classNames(
-                      projectcss.all,
-                      projectcss.__wab_text,
-                      sty.text__bamdb,
-                    )}
-                  >
-                    {'/'}
-                  </div>
-                }
-              />
-            </Stack__>
+              })() ? (
+                <Stack__
+                  as={'div'}
+                  hasGap={true}
+                  className={classNames(projectcss.all, sty.freeBox__mQmx)}
+                >
+                  {((_par) =>
+                    !_par ? [] : Array.isArray(_par) ? _par : [_par])(
+                    (() => {
+                      try {
+                        return $ctx['France Nuage'].projects;
+                      } catch (e) {
+                        if (
+                          e instanceof TypeError ||
+                          e?.plasmicType === 'PlasmicUndefinedDataError'
+                        ) {
+                          return [];
+                        }
+                        throw e;
+                      }
+                    })(),
+                  ).map((__plasmic_item_0, __plasmic_idx_0) => {
+                    const currentItem = __plasmic_item_0;
+                    const currentIndex = __plasmic_idx_0;
+                    return (
+                      <PlasmicLink__
+                        className={classNames(
+                          projectcss.all,
+                          projectcss.a,
+                          projectcss.__wab_text,
+                          sty.link__kvs4L,
+                        )}
+                        key={currentIndex}
+                        platform={'react'}
+                      >
+                        <React.Fragment>
+                          {(() => {
+                            try {
+                              return currentItem.name;
+                            } catch (e) {
+                              if (
+                                e instanceof TypeError ||
+                                e?.plasmicType === 'PlasmicUndefinedDataError'
+                              ) {
+                                return '';
+                              }
+                              throw e;
+                            }
+                          })()}
+                        </React.Fragment>
+                      </PlasmicLink__>
+                    );
+                  })}
+                </Stack__>
+              ) : null}
+            </React.Fragment>
           )}
         </DataCtxReader__>
       </ConsoleProvider>
@@ -322,12 +737,11 @@ function PlasmicConsoleBreadcrumb__RenderFunc(props: {
 }
 
 const PlasmicDescendants = {
-  root: ['root', 'consoleProvider', 'img', 'section', 'breadcrumb', 'svg'],
-  consoleProvider: ['consoleProvider', 'img', 'section', 'breadcrumb', 'svg'],
+  root: ['root', 'consoleProvider', 'img', 'section', 'breadcrumb'],
+  consoleProvider: ['consoleProvider', 'img', 'section', 'breadcrumb'],
   img: ['img'],
   section: ['section'],
-  breadcrumb: ['breadcrumb', 'svg'],
-  svg: ['svg'],
+  breadcrumb: ['breadcrumb'],
 } as const;
 type NodeNameType = keyof typeof PlasmicDescendants;
 type DescendantsType<T extends NodeNameType> =
@@ -338,7 +752,6 @@ type NodeDefaultElementType = {
   img: typeof PlasmicImg__;
   section: 'section';
   breadcrumb: typeof AntdBreadcrumb;
-  svg: 'svg';
 };
 
 type ReservedPropsType = 'variants' | 'args' | 'overrides';
@@ -405,7 +818,6 @@ export const PlasmicConsoleBreadcrumb = Object.assign(
     img: makeNodeComponent('img'),
     section: makeNodeComponent('section'),
     breadcrumb: makeNodeComponent('breadcrumb'),
-    svg: makeNodeComponent('svg'),
 
     // Metadata about props expected for PlasmicConsoleBreadcrumb
     internalVariantProps: PlasmicConsoleBreadcrumb__VariantProps,

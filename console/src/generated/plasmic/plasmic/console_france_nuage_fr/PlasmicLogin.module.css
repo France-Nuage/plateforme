@@ -41,11 +41,29 @@
   position: relative;
   height: 1em;
 }
-.text {
+.text__rLoGi {
   white-space: pre;
   color: var(--token-Bml44OgekI9b);
 }
 .svg___5Ld9W {
+  position: relative;
+  height: 1em;
+}
+.login2:global(.__wab_instance):global(.__wab_instance) {
+  height: 48px;
+  position: relative;
+  align-self: stretch;
+}
+.svg__xkshP {
+  position: relative;
+  height: 1em;
+}
+.text__fkIl4 {
+  white-space: pre;
+  color: var(--token-Bml44OgekI9b);
+  padding-bottom: 0px;
+}
+.svg__ubBg {
   position: relative;
   height: 1em;
 }
