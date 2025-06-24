@@ -111,6 +111,8 @@ build:
     - docker compose logs > docker-compose-logs.txt
   script:
     - docker compose run --remove-orphans system-tests npm run test:ci
+  dependencies:
+    - "sync console with plasmic"
   artifacts:
     when: always
     paths:
