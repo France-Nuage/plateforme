@@ -230,7 +230,8 @@ mod tests {
         // Arrange a service and an organization
         let service = ResourcesRpcService::new(pool.clone());
 
-        let organization = crate::organizations::repository::create(&pool, Organization::default())
+        let organization = Organization::factory()
+            .create(&pool)
             .await
             .expect("could not create organization");
 

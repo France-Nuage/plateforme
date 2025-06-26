@@ -13,7 +13,6 @@ tonic::include_proto!("francenuage.fr.api.controlplane.v1.hypervisors");
 ///
 /// This implementation maps the fields from the API request to the corresponding
 /// fields in the database model, generating a new UUID for the hypervisor ID.
-
 impl TryFrom<RegisterHypervisorRequest> for crate::model::Hypervisor {
     type Error = Status;
 

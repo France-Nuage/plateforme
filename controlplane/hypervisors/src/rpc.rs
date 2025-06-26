@@ -144,7 +144,7 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_register_hypervisor_works(pool: sqlx::PgPool) {
         // Arrange a service
-        let organization = Organization::factory().create(pool.clone()).await.unwrap();
+        let organization = Organization::factory().create(&pool).await.unwrap();
         let service = HypervisorsRpcService::new(pool);
 
         // Act the call to the register_hypervisor procedure
@@ -180,7 +180,7 @@ mod tests {
         // Arrange a service
         let hypervisor = Hypervisor::factory()
             .for_organization_with(|organization| organization)
-            .create(pool.clone())
+            .create(&pool)
             .await
             .unwrap();
         let service = HypervisorsRpcService::new(pool);

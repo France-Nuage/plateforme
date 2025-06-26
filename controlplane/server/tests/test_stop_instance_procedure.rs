@@ -20,14 +20,14 @@ async fn test_the_stop_instance_procedure_works(
         .with_vm_status_stop();
     let mock_url = mock.url();
 
-    let organization = Organization::factory().create(pool.clone()).await?;
+    let organization = Organization::factory().create(&pool).await?;
     let instance = Instance::factory()
         .for_hypervisor_with(move |hypervisor| {
             hypervisor.organization_id(organization.id).url(mock_url)
         })
         .for_project_with(move |project| project.organization_id(organization.id))
         .distant_id("100".into())
-        .create(pool.clone())
+        .create(&pool)
         .await?;
 
     let config = ServerConfig::new(pool);

@@ -56,16 +56,16 @@ pub async fn create(pool: &sqlx::PgPool, instance: Instance) -> Result<Instance,
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at
         "#,
-        &instance.id,
-        &instance.hypervisor_id,
-        &instance.project_id,
-        &instance.distant_id,
+        instance.id,
+        instance.hypervisor_id,
+        instance.project_id,
+        instance.distant_id,
         instance.cpu_usage_percent,
-        &instance.max_cpu_cores,
+        instance.max_cpu_cores,
         instance.max_memory_bytes as i64,
         instance.memory_usage_bytes as i64,
-        &instance.name,
-        instance.status.to_string()
+        instance.name,
+        String::from(instance.status)
     )
     .fetch_one(pool)
     .await

@@ -22,18 +22,18 @@ async fn test_the_create_instance_procedure_works(
         .with_vm_create();
     let mock_url = mock.url();
 
-    let organization = Organization::factory().create(pool.clone()).await?;
+    let organization = Organization::factory().create(&pool).await?;
 
     Hypervisor::factory()
         .url(mock_url)
         .organization_id(organization.id)
-        .create(pool.clone())
+        .create(&pool)
         .await?;
 
     let project = Project::factory()
         .name(DEFAULT_PROJECT_NAME.into())
         .organization_id(organization.id)
-        .create(pool.clone())
+        .create(&pool)
         .await?;
 
     let config = ServerConfig::new(pool.clone());

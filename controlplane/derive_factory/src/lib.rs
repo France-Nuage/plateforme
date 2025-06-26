@@ -20,11 +20,11 @@
 //!     type Connection = ();
 //!     type Error = ();
 //!     
-//!     async fn create(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!     async fn create(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
 //!         Ok(self)
 //!     }
 //!
-//!     async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!     async fn update(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
 //!         Ok(self)
 //!     }
 //! }
@@ -35,7 +35,7 @@
 //!     .owner("Wile E. Coyote".to_owned())
 //!     .target("Road Runner".to_owned())
 //!     .max_range(1000)
-//!     .create(())
+//!     .create(&())
 //!     .await
 //!     .unwrap();
 //! # })
@@ -59,11 +59,11 @@
 //!     type Connection = ();
 //!     type Error = ();
 //!     
-//!     async fn create(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!     async fn create(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
 //!         Ok(self)
 //!     }
 //!
-//!     async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!     async fn update(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
 //!         Ok(self)
 //!     }
 //! }
@@ -79,11 +79,11 @@
 //!     type Connection = ();
 //!     type Error = ();
 //!     
-//!     async fn create(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!     async fn create(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
 //!         Ok(self)
 //!     }
 //!
-//!     async fn update(self, _pool: Self::Connection) -> Result<Self, Self::Error> {
+//!     async fn update(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
 //!         Ok(self)
 //!     }
 //! }
@@ -96,7 +96,7 @@
 //!             .name("Explosive".to_string())
 //!             .id("cat-001".to_string())
 //!     })
-//!     .create(())
+//!     .create(&())
 //!     .await
 //!     .unwrap();
 //! # })
@@ -188,7 +188,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             #(#relation_factory_methods)*
             #(#default_relation_factory_methods)*
 
-            pub async fn create(mut self, connection: <#name as database::Persistable>::Connection) -> Result<#name, <#name as database::Persistable>::Error>
+            pub async fn create(mut self, connection: &<#name as database::Persistable>::Connection) -> Result<#name, <#name as database::Persistable>::Error>
             {
                 #(#relation_creation)*
 
@@ -381,7 +381,7 @@ fn generate_relation_creation<'a>(
                     if let Some(factory_fn) = self.#factory_field_name {
                         let factory = #factory_type_ident::new();
                         let factory = factory_fn(factory);
-                        let model = factory.create(connection.clone()).await?;
+                        let model = factory.create(connection).await?;
                         self.#original_field_name = Some(model.id);
                     }
                 }

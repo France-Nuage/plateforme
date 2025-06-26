@@ -4,9 +4,11 @@ pub trait Persistable: Sized {
     type Connection: Clone;
     type Error;
 
-    fn create(self, executor: Self::Connection) -> impl Future<Output = Result<Self, Self::Error>>;
+    fn create(self, executor: &Self::Connection)
+    -> impl Future<Output = Result<Self, Self::Error>>;
 
-    fn update(self, executor: Self::Connection) -> impl Future<Output = Result<Self, Self::Error>>;
+    fn update(self, executor: &Self::Connection)
+    -> impl Future<Output = Result<Self, Self::Error>>;
 }
 
 /// deprecated

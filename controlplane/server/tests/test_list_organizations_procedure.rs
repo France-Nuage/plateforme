@@ -9,7 +9,7 @@ async fn test_the_list_organizations_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
-    Organization::factory().create(pool.clone()).await?;
+    Organization::factory().create(&pool).await?;
     let config = ServerConfig::new(pool);
     let server = Server::new(config).await?;
     let addr = server.addr;

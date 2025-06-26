@@ -11,7 +11,7 @@ async fn test_the_detach_hypervisor_procedure_works(
     // Arrange the grpc server and a client
     let hypervisor = Hypervisor::factory()
         .for_organization_with(|organization| organization)
-        .create(pool.clone())
+        .create(&pool)
         .await?;
 
     let config = ServerConfig::new(pool);

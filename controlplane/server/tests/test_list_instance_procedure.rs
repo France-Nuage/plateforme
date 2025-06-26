@@ -64,7 +64,7 @@ async fn test_the_list_instances_procedure_works(
     let mock = MockServer::new().await.with_cluster_resource_list();
     let mock_url = mock.url();
 
-    let organization = Organization::factory().create(pool.clone()).await?;
+    let organization = Organization::factory().create(&pool).await?;
     Instance::factory()
         .for_hypervisor_with(move |hypervisor| {
             hypervisor.organization_id(organization.id).url(mock_url)
@@ -74,7 +74,7 @@ async fn test_the_list_instances_procedure_works(
                 .name(DEFAULT_PROJECT_NAME.into())
                 .organization_id(organization.id)
         })
-        .create(pool.clone())
+        .create(&pool)
         .await?;
 
     let config = ServerConfig::new(pool);
