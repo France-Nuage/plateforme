@@ -3,6 +3,7 @@
 members = [
   "database",
   "derive_factory",
+  "derive_repository",
   "hypervisors",
   "hypervisor_connector",
   "hypervisor_connector_proxmox",
@@ -10,7 +11,7 @@ members = [
   "instances",
   "resources",
   "server",
-  "synchronizer", "derive_repository",
+  "synchronizer",
 ]
 
 resolver = "3"
