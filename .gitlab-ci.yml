@@ -163,9 +163,11 @@ build:
 "deploy / synchronizer":
   stage: deploy
   script:
-    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/synchronizer:release --push synchronizer
+    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/synchronizer:release --file=Dockerfile.synchronizer --push controlplane
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "fix-synchronizer-release-build"'
       when: on_success
     - when: never
 
