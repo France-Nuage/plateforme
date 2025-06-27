@@ -1,7 +1,9 @@
+use std::fmt::Display;
+
 use serde::Deserialize;
 
 use crate::proxmox_api::{
-    VMStatus,
+    Problem, VMStatus,
     api_response::{ApiResponse, ApiResponseExt},
 };
 
@@ -28,8 +30,14 @@ pub struct Resource {
     /// CPU utilization (for types 'node', 'qemu' and 'lxc').
     pub cpu: Option<f32>,
 
+    /// Used disk space in bytes (for type 'storage'), used root image space for VMs (for types 'qemu' and 'lxc').
+    pub disk: Option<u64>,
+
     /// Number of available CPUs (for types 'node', 'qemu' and 'lxc').
     pub maxcpu: Option<u8>,
+
+    /// Storage size in bytes (for type 'storage'), root image size for VMs (for types 'qemu' and 'lxc').
+    pub maxdisk: Option<u64>,
 
     /// Number of available memory in bytes (for types 'node', 'qemu' and 'lxc').
     pub maxmem: Option<u64>,
@@ -54,7 +62,7 @@ pub struct Resource {
     pub vmid: Option<u32>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ResourceType {
     Node,
@@ -66,17 +74,46 @@ pub enum ResourceType {
     Sdn,
 }
 
-impl From<Resource> for hypervisor_connector::InstanceInfo {
-    fn from(value: Resource) -> Self {
-        hypervisor_connector::InstanceInfo {
-            cpu_usage_percent: value.cpu.unwrap(),
-            id: value.vmid.unwrap().to_string(),
-            max_cpu_cores: value.maxcpu.unwrap() as u32,
-            max_memory_bytes: value.maxmem.unwrap(),
-            memory_usage_bytes: value.mem.unwrap(),
+impl Display for ResourceType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            ResourceType::Node => "node",
+            ResourceType::Storage => "storage",
+            ResourceType::Pool => "pool",
+            ResourceType::Qemu => "qemu",
+            ResourceType::Lxc => "lxc",
+            ResourceType::Openvz => "openvz",
+            ResourceType::Sdn => "sdn",
+        };
+        write!(f, "{}", s)
+    }
+}
+
+impl TryFrom<Resource> for hypervisor_connector::InstanceInfo {
+    type Error = Problem;
+
+    fn try_from(value: Resource) -> Result<Self, Self::Error> {
+        let required_field = |field: &str| Problem::ResourceMissingField {
+            id: value
+                .vmid
+                .map(|id| id.to_string())
+                .unwrap_or("unknown".to_owned()),
+            resource_type: value.resource_type.clone(),
+            field: field.to_owned(),
+        };
+        let info = hypervisor_connector::InstanceInfo {
+            cpu_usage_percent: value.cpu.ok_or(required_field("cpu_usage_percent"))?,
+            disk_usage_bytes: value.disk.ok_or(required_field("disk_usage_bytes"))?,
+            id: value.vmid.ok_or(required_field("id"))?.to_string(),
+            max_cpu_cores: value.maxcpu.ok_or(required_field("max_cpu_cores"))? as u32,
+            max_disk_bytes: value.maxdisk.ok_or(required_field("max_disk_bytes"))?,
+            max_memory_bytes: value.maxmem.ok_or(required_field("max_memory_bytes"))?,
+            memory_usage_bytes: value.mem.ok_or(required_field("memory_usage_bytes"))?,
             name: value.name.unwrap_or_else(|| String::from("unnamed")),
             status: value.status.expect("no status in response").into(),
-        }
+        };
+
+        Ok(info)
     }
 }
 
@@ -121,7 +158,9 @@ mod tests {
             resources,
             vec![Resource {
                 cpu: Some(0.11579899),
+                disk: Some(0),
                 maxcpu: Some(1),
+                maxdisk: Some(53687091200),
                 maxmem: Some(4294967296),
                 mem: Some(1395277824),
                 name: Some(String::from("proxmox-dev")),

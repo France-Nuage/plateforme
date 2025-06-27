@@ -19,7 +19,7 @@ use crate::model::Instance;
 pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Instance>, sqlx::Error> {
     sqlx::query_as!(
         Instance,
-        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes , memory_usage_bytes, name, status, created_at, updated_at FROM instances"
+        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes , memory_usage_bytes, name, status, created_at, updated_at FROM instances"
     )
     .fetch_all(pool)
     .await
@@ -31,43 +31,10 @@ pub async fn find_one_by_distant_id(
 ) -> Result<Option<Instance>, sqlx::Error> {
     sqlx::query_as!(
         Instance,
-        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE distant_id = $1",
+        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE distant_id = $1",
         distant_id
     )
     .fetch_optional(pool)
-    .await
-}
-
-/// Creates a new instance record in the database.
-///
-/// # Arguments
-///
-/// * `pool` - PostgreSQL connection pool
-/// * `instance` - The Instance to be created
-///
-/// # Returns
-///
-/// Ok(()) on success or a Problem if the operation fails
-pub async fn create(pool: &sqlx::PgPool, instance: Instance) -> Result<Instance, sqlx::Error> {
-    sqlx::query_as!(
-        Instance,
-        r#"
-        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        RETURNING id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at
-        "#,
-        instance.id,
-        instance.hypervisor_id,
-        instance.project_id,
-        instance.distant_id,
-        instance.cpu_usage_percent,
-        instance.max_cpu_cores,
-        instance.max_memory_bytes as i64,
-        instance.memory_usage_bytes as i64,
-        instance.name,
-        String::from(instance.status)
-    )
-    .fetch_one(pool)
     .await
 }
 
@@ -84,7 +51,7 @@ pub async fn create(pool: &sqlx::PgPool, instance: Instance) -> Result<Instance,
 pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Instance, sqlx::Error> {
     sqlx::query_as!(
         Instance,
-        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE id = $1",
+        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE id = $1",
         &id
     )
     .fetch_one(pool)

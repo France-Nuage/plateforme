@@ -1,3 +1,4 @@
+use database::Persistable;
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor_connector::{InstanceConfig, InstanceService};
 use hypervisors::{Hypervisor, HypervisorsService};
@@ -61,7 +62,10 @@ impl InstancesService {
                             project_id: existing.project_id,
                             distant_id: distant_instance.id,
                             cpu_usage_percent: distant_instance.cpu_usage_percent as f64,
+                            disk_usage_bytes: distant_instance.disk_usage_bytes as i64,
+                            ip_v4: existing.ip_v4,
                             max_cpu_cores: distant_instance.max_cpu_cores as i32,
+                            max_disk_bytes: distant_instance.max_disk_bytes as i64,
                             max_memory_bytes: distant_instance.max_memory_bytes as i64,
                             memory_usage_bytes: distant_instance.memory_usage_bytes as i64,
                             name: distant_instance.name,
@@ -95,9 +99,7 @@ impl InstancesService {
             ..existing
         };
 
-        repository::create(&self.pool, instance)
-            .await
-            .map_err(Into::into)
+        instance.create(&self.pool).await.map_err(Into::into)
     }
 
     pub async fn create(
@@ -122,9 +124,7 @@ impl InstancesService {
             ..Default::default()
         };
 
-        repository::create(&self.pool, instance)
-            .await
-            .map_err(Into::into)
+        instance.create(&self.pool).await.map_err(Into::into)
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<(), Problem> {

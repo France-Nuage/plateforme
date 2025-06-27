@@ -1,4 +1,7 @@
-use super::api_response::{ApiInternalErrorResponse, ApiInvalidResponse};
+use super::{
+    api_response::{ApiInternalErrorResponse, ApiInvalidResponse},
+    cluster_resources_list::ResourceType,
+};
 use thiserror::Error;
 use url::Url;
 
@@ -18,6 +21,13 @@ pub enum Problem {
 
     #[error("No nodes are available on the cluster.")]
     NoNodesAvailable,
+
+    #[error("Proxmox resource #{id} of type {resource_type} is missing field {field}")]
+    ResourceMissingField {
+        id: String,
+        resource_type: ResourceType,
+        field: String,
+    },
 
     #[error("Proxmox Task #{0} has not completed")]
     TaskNotCompleted(String),

@@ -120,26 +120,28 @@ mod tests {
         MockServer, WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock,
         WithVMCloneMock, WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
     };
-    use hypervisors::Hypervisor;
-    use resources::{organizations::Organization, projects::Project};
+    use resources::organizations::Organization;
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_instances_works(pool: sqlx::PgPool) {
         // Arrange a service and a request for the list_instances procedure
         let server = MockServer::new().await.with_cluster_resource_list();
-        let url = server.url();
+        let mock_url = server.url();
+
         let organization = Organization::factory()
             .create(&pool)
             .await
             .expect("could not create organization");
+
         Instance::factory()
             .for_hypervisor_with(move |hypervisor| {
-                hypervisor.organization_id(organization.id).url(url)
+                hypervisor.organization_id(organization.id).url(mock_url)
             })
             .for_project_with(move |project| project.organization_id(organization.id))
             .create(&pool)
             .await
             .expect("could not create instance");
+
         let service = InstancesRpcService::new(pool);
 
         // Act the call to the list_instances procedure
@@ -163,28 +165,23 @@ mod tests {
             .with_cluster_resource_list()
             .with_vm_clone()
             .with_task_status_read();
-        resources::organizations::repository::create(&pool, Organization::default())
+        let mock_url = server.url();
+
+        let organization = Organization::factory()
+            .create(&pool)
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(&pool, Project::default())
-            .await
-            .expect("could not create project");
-        let hypervisor = Hypervisor {
-            url: server.url(),
-            ..Default::default()
-        };
-        let hypervisor = hypervisors::repository::create(&pool, hypervisor)
-            .await
-            .expect("could not create hypervisor");
 
-        let instance = Instance {
-            hypervisor_id: hypervisor.id,
-            distant_id: String::from("100"),
-            ..Default::default()
-        };
-        let instance = crate::repository::create(&pool, instance)
+        let instance = Instance::factory()
+            .for_project_with(move |project| project.organization_id(organization.id))
+            .for_hypervisor_with(move |hypervisor| {
+                hypervisor.url(mock_url).organization_id(organization.id)
+            })
+            .distant_id(String::from("100"))
+            .create(&pool)
             .await
             .expect("could not create instance");
+
         let service = InstancesRpcService::new(pool);
 
         // Act the call to the start_instance procedure
@@ -205,28 +202,24 @@ mod tests {
             .with_cluster_resource_list()
             .with_vm_delete()
             .with_task_status_read();
-        resources::organizations::repository::create(&pool, Organization::default())
+
+        let mock_url = server.url();
+
+        let organization = Organization::factory()
+            .create(&pool)
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(&pool, Project::default())
-            .await
-            .expect("could not create project");
-        let hypervisor = Hypervisor {
-            url: server.url(),
-            ..Default::default()
-        };
-        let hypervisor = hypervisors::repository::create(&pool, hypervisor)
-            .await
-            .expect("could not create hypervisor");
 
-        let instance = Instance {
-            hypervisor_id: hypervisor.id,
-            distant_id: String::from("100"),
-            ..Default::default()
-        };
-        let instance = crate::repository::create(&pool, instance)
+        let instance = Instance::factory()
+            .for_project_with(move |project| project.organization_id(organization.id))
+            .for_hypervisor_with(move |hypervisor| {
+                hypervisor.url(mock_url).organization_id(organization.id)
+            })
+            .distant_id(String::from("100"))
+            .create(&pool)
             .await
             .expect("could not create instance");
+
         let service = InstancesRpcService::new(pool);
 
         // Act the call to the start_instance procedure
@@ -247,28 +240,23 @@ mod tests {
             .with_cluster_resource_list()
             .with_task_status_read()
             .with_vm_status_start();
-        resources::organizations::repository::create(&pool, Organization::default())
+        let mock_url = server.url();
+
+        let organization = Organization::factory()
+            .create(&pool)
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(&pool, Project::default())
-            .await
-            .expect("could not create project");
-        let hypervisor = Hypervisor {
-            url: server.url(),
-            ..Default::default()
-        };
-        let hypervisor = hypervisors::repository::create(&pool, hypervisor)
-            .await
-            .expect("could not create hypervisor");
 
-        let instance = Instance {
-            hypervisor_id: hypervisor.id,
-            distant_id: String::from("100"),
-            ..Default::default()
-        };
-        let instance = crate::repository::create(&pool, instance)
+        let instance = Instance::factory()
+            .for_project_with(move |project| project.organization_id(organization.id))
+            .for_hypervisor_with(move |hypervisor| {
+                hypervisor.url(mock_url).organization_id(organization.id)
+            })
+            .distant_id(String::from("100"))
+            .create(&pool)
             .await
             .expect("could not create instance");
+
         let service = InstancesRpcService::new(pool);
 
         // Act the call to the start_instance procedure
@@ -289,28 +277,24 @@ mod tests {
             .with_cluster_resource_list()
             .with_task_status_read()
             .with_vm_status_stop();
-        resources::organizations::repository::create(&pool, Organization::default())
+
+        let mock_url = server.url();
+
+        let organization = Organization::factory()
+            .create(&pool)
             .await
             .expect("could not create organization");
-        resources::projects::repository::create(&pool, Project::default())
-            .await
-            .expect("could not create project");
-        let hypervisor = Hypervisor {
-            url: server.url(),
-            ..Default::default()
-        };
-        let hypervisor = hypervisors::repository::create(&pool, hypervisor)
-            .await
-            .expect("could not create hypervisor");
 
-        let instance = Instance {
-            hypervisor_id: hypervisor.id,
-            distant_id: String::from("100"),
-            ..Default::default()
-        };
-        let instance = crate::repository::create(&pool, instance)
+        let instance = Instance::factory()
+            .for_project_with(move |project| project.organization_id(organization.id))
+            .for_hypervisor_with(move |hypervisor| {
+                hypervisor.url(mock_url).organization_id(organization.id)
+            })
+            .distant_id(String::from("100"))
+            .create(&pool)
             .await
             .expect("could not create instance");
+
         let service = InstancesRpcService::new(pool);
 
         // Act the call to the start_instance procedure

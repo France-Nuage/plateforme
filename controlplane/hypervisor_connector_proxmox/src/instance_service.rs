@@ -18,7 +18,10 @@ impl InstanceService for ProxmoxInstanceService {
         )
         .await?
         .data;
-        Ok(response.into_iter().map(Into::into).collect())
+        response
+            .into_iter()
+            .map(|resource| resource.try_into().map_err(Into::into))
+            .collect()
     }
 
     /// Clones the instance.
