@@ -40,7 +40,7 @@ message InstanceConfig {
         max_len: 36, 
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
-    
+
     // Display name of the instance configuration
     string name = 2 [(validate.rules).string = {
         min_len: 1,
@@ -87,14 +87,38 @@ message Instance {
         lte: 68719476736  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
     }];
 
+    // Maximum disk available to the instance (in bytes, max 64GB)
+    uint64 max_disk_bytes = 7 [(validate.rules).uint64 = {
+        gt: 0,  // Must have some memory
+        lte: 109951162777600  // 100TB = 100 * 1024^4 = 109,951,162,777,600 bytes
+    }];
+
+    // Current disk utilization (in bytes, cannot exceed max_disk_bytes)
+    uint64 disk_usage_bytes = 8 [(validate.rules).uint64 = {
+        gte: 0,  // Cannot be negative
+        lte: 109951162777600  // 100TB = 100 * 1024^4 = 109,951,162,777,600 bytes
+    }];
+
     // Human-readable name, defined on the instance
-    string name = 7;
+    string name = 9;
+
+    // The IP v4 address of the instance
+    string ip_v4 = 10 [(validate.rules).string = {
+        pattern: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
+    }];
+
+    // Unique identifier for the instance project
+    string project_id = 100 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
 
     // Creation time of the instance
-    google.protobuf.Timestamp created_at = 10;
+    google.protobuf.Timestamp created_at = 997;
 
     // Time of the instance last change
-    google.protobuf.Timestamp updated_at = 11;
+    google.protobuf.Timestamp updated_at = 998;
 
 }
 
@@ -194,7 +218,11 @@ message CreateInstanceRequest {
     string snippet = 5;
 
     // The id of the project the instance belongs to
-    string project_id = 7;
+    string project_id = 7 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
 }
 
 // CreateInstanceResponse contains the result of a create instance operation.

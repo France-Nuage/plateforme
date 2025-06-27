@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes , memory_usage_bytes, name, status, created_at, updated_at FROM instances",
+  "query": "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes , memory_usage_bytes, name, status, created_at, updated_at FROM instances",
   "describe": {
     "columns": [
       {
@@ -30,36 +30,51 @@
       },
       {
         "ordinal": 5,
+        "name": "disk_usage_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "ip_v4",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
         "name": "max_cpu_cores",
         "type_info": "Int4"
       },
       {
-        "ordinal": 6,
+        "ordinal": 8,
+        "name": "max_disk_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 9,
         "name": "max_memory_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 7,
+        "ordinal": 10,
         "name": "memory_usage_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 8,
+        "ordinal": 11,
         "name": "name",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 9,
+        "ordinal": 12,
         "name": "status",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 10,
+        "ordinal": 13,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 11,
+        "ordinal": 14,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -79,8 +94,11 @@
       false,
       false,
       false,
+      false,
+      false,
+      false,
       false
     ]
   },
-  "hash": "92050c7f423e279c26f526a44b9408e2e819212f20cd009b2da2e12034c70d09"
+  "hash": "b59ee05cc974c4979163e5f762333ab99f04f6ba528d0a8c8816c0c0a694df20"
 }

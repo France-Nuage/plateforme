@@ -8,6 +8,7 @@ use instances::v1::{
 };
 use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
 use server::{Server, ServerConfig};
+use sqlx::types::Uuid;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_create_instance_procedure_works(
@@ -62,6 +63,7 @@ async fn test_the_create_instance_procedure_works(
         CreateInstanceResponse {
             instance: Some(instances::v1::Instance {
                 id: instance.id.to_string(),
+                project_id: Uuid::default().to_string(),
                 created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
                     instance.created_at
                 ))),
