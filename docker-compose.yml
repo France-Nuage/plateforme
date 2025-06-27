@@ -149,6 +149,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
     volumes:
       - ./controlplane:/app
       - /app/target

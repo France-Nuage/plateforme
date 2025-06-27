@@ -35,9 +35,9 @@ impl From<crate::model::Instance> for Instance {
         Instance {
             id: value.id.to_string(),
             cpu_usage_percent: value.cpu_usage_percent as f32,
-            disk_usage_bytes: 0_u64,
+            disk_usage_bytes: value.disk_usage_bytes as u64,
             max_cpu_cores: value.max_cpu_cores as u32,
-            max_disk_bytes: 0_u64,
+            max_disk_bytes: value.max_disk_bytes as u64,
             max_memory_bytes: value.max_memory_bytes as u64,
             memory_usage_bytes: value.memory_usage_bytes as u64,
             ip_v4: String::from(""),

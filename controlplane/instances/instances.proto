@@ -89,7 +89,7 @@ message Instance {
 
     // Maximum disk available to the instance (in bytes, max 64GB)
     uint64 max_disk_bytes = 7 [(validate.rules).uint64 = {
-        gt: 0,  // Must have some memory
+        gt: 0,  // Must have some disk space
         lte: 109951162777600  // 100TB = 100 * 1024^4 = 109,951,162,777,600 bytes
     }];
 
