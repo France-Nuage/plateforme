@@ -1,3 +1,10 @@
+# [1.19.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.18.0...v1.19.0) (2025-06-27)
+
+
+### Features
+
+* track disk metrics in controlplane ([b344944](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b344944bef313440d9c23af3aa5f1511756a86ab))
+
 # [1.18.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.17.0...v1.18.0) (2025-06-26)
 
 
