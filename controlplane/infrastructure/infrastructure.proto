@@ -93,18 +93,7 @@ message ListZeroTrustNetworksResponse {
 }
 
 // ListZeroTrustNetworkTypesRequest contains the necessary information to list zero trust network types.
-message ListZeroTrustNetworkTypesRequest {
-    // Optional filter to only return network types compatible with specific zero trust networks
-    repeated string zero_trust_network_ids = 1 [(validate.rules).repeated = {
-        items: {
-            string: {
-                min_len: 1, 
-                max_len: 36, 
-                pattern: "^[a-zA-Z0-9_-]+$"
-            }
-        }
-    }];
-}
+message ListZeroTrustNetworkTypesRequest {}
 
 // ListZeroTrustNetworkTypesResponse contains a collection of zero trust network type information.
 message ListZeroTrustNetworkTypesResponse {

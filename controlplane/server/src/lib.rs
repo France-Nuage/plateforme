@@ -66,6 +66,12 @@ impl Server {
         health_reporter
             .set_serving::<InstancesServer<InstancesRpcService>>()
             .await;
+        health_reporter
+            .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>()
+            .await;
+        health_reporter
+            .set_serving::<ZeroTrustNetworksServer<ZeroTrustNetworkRpcService>>()
+            .await;
 
         let hypervisors_service =
             HypervisorsServer::new(HypervisorsRpcService::new(config.pool.clone()));
