@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ -I ../controlplane/resources/ --ts_out src/generated/rpc --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto ../controlplane/resources/resources.proto",
+    "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ -I ../controlplane/infrastructure/ -I ../controlplane/resources/ --ts_out src/generated/rpc --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto ../controlplane/infrastructure/infrastructure.proto ../controlplane/resources/resources.proto",
     "lint": "eslint .",
     "preview": "vite preview"
   },

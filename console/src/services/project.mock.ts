@@ -1,4 +1,4 @@
-import { acme, project, projects } from '@/fixtures/project';
+import { acmeProject, project, projects } from '@/fixtures';
 import { ProjectFormValue } from '@/types';
 
 import { ProjectService } from './project.interface';
@@ -14,7 +14,7 @@ export class ProjectMockService implements ProjectService {
 
   /** @inheritdoc */
   list() {
-    return Promise.resolve([acme, ...projects(3)]);
+    return Promise.resolve([acmeProject, ...projects(3)]);
   }
 }
 

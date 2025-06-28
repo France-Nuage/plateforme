@@ -16,7 +16,7 @@ pub struct InstancesService {
 
 impl InstancesService {
     pub async fn list(&self) -> Result<Vec<Instance>, Problem> {
-        repository::list(&self.pool).await.map_err(Into::into)
+        Instance::list(&self.pool).await.map_err(Into::into)
     }
 
     pub async fn sync(&self) -> Result<Vec<Instance>, Problem> {
@@ -60,6 +60,7 @@ impl InstancesService {
                             id: existing.id,
                             hypervisor_id: hypervisor.id,
                             project_id: existing.project_id,
+                            zero_trust_network_id: existing.zero_trust_network_id,
                             distant_id: distant_instance.id,
                             cpu_usage_percent: distant_instance.cpu_usage_percent as f64,
                             disk_usage_bytes: distant_instance.disk_usage_bytes as i64,

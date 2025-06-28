@@ -4,6 +4,7 @@ import {
   applicationSlice,
   authenticationSlice,
   hypervisorsSlice,
+  infrastructureSlice,
   instancesSlice,
   resourcesSlice,
 } from '@/features';
@@ -13,6 +14,7 @@ export const store = configureStore({
     [applicationSlice.name]: applicationSlice.reducer,
     [authenticationSlice.name]: authenticationSlice.reducer,
     [hypervisorsSlice.name]: hypervisorsSlice.reducer,
+    [infrastructureSlice.name]: infrastructureSlice.reducer,
     [instancesSlice.name]: instancesSlice.reducer,
     [resourcesSlice.name]: resourcesSlice.reducer,
   },

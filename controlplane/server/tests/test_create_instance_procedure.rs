@@ -1,3 +1,4 @@
+use database::Persistable;
 use hypervisor_connector_proxmox::mock::{
     MockServer, WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock,
     WithVMCreateMock,
@@ -57,12 +58,13 @@ async fn test_the_create_instance_procedure_works(
 
     // Assert the result
     assert!(response.is_ok());
-    let instance = &instances::repository::list(&pool).await.unwrap()[0];
+    let instance = &instances::Instance::list(&pool).await.unwrap()[0];
     assert_eq!(
         response.unwrap().into_inner(),
         CreateInstanceResponse {
             instance: Some(instances::v1::Instance {
                 id: instance.id.to_string(),
+                hypervisor_id: Uuid::default().to_string(),
                 project_id: Uuid::default().to_string(),
                 created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
                     instance.created_at

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at",
+  "query": "UPDATE instances SET hypervisor_id = $2, project_id = $3, zero_trust_network_id = $4, distant_id = $5, cpu_usage_percent = $6, disk_usage_bytes = $7, ip_v4 = $8, max_cpu_cores = $9, max_disk_bytes = $10, max_memory_bytes = $11, memory_usage_bytes = $12, name = $13, status = $14, created_at = $15, updated_at = $16 WHERE id = $1 RETURNING id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -20,67 +20,73 @@
       },
       {
         "ordinal": 3,
+        "name": "zero_trust_network_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
         "name": "distant_id",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "cpu_usage_percent",
         "type_info": "Float8"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "disk_usage_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "ip_v4",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "max_cpu_cores",
         "type_info": "Int4"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "max_disk_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "max_memory_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "memory_usage_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 11,
+        "ordinal": 12,
         "name": "name",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 12,
+        "ordinal": 13,
         "name": "status",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 13,
+        "ordinal": 14,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 14,
+        "ordinal": 15,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
+        "Uuid",
         "Uuid",
         "Uuid",
         "Uuid",
@@ -102,6 +108,7 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -116,5 +123,5 @@
       false
     ]
   },
-  "hash": "6ac286d70ea16a1f2e77a31d11fc692c0caa434402b501787d40136c2c9f86fd"
+  "hash": "31d3d75734b119571ab67a4ed5f3b438a62c21b94726defe0caa056ac3d315d0"
 }

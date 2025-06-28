@@ -7,6 +7,8 @@ import {
   fetchAllInstances,
   fetchAllOrganizations,
   fetchAllProjects,
+  fetchAllZeroTrustNetworkTypes,
+  fetchAllZeroTrustNetworks,
   setOIDCUser,
 } from '@/features';
 import { useAppDispatch, useAppSelector } from '@/hooks';
@@ -57,6 +59,8 @@ export const ApplicationLoader: FunctionComponent<ApplicationLoaderProps> = ({
     dispatch(fetchAllInstances());
     dispatch(fetchAllOrganizations());
     dispatch(fetchAllProjects());
+    dispatch(fetchAllZeroTrustNetworkTypes());
+    dispatch(fetchAllZeroTrustNetworks());
   }, [application.mode, dispatch]);
 
   return loading ? 'loading' : children;

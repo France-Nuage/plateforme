@@ -107,8 +107,22 @@ message Instance {
         pattern: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
     }];
 
+    // Unique identifier for the instance hypervisor
+    string hypervisor_id = 100 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
+
     // Unique identifier for the instance project
-    string project_id = 100 [(validate.rules).string = {
+    string project_id = 101 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
+
+    // Unique identifier for the instance zero trust network
+    optional string zero_trust_network_id = 102 [(validate.rules).string = {
         min_len: 1, 
         max_len: 36, 
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
