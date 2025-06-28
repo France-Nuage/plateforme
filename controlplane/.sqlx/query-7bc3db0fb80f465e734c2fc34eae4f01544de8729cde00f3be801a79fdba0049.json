@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances",
+  "query": "INSERT INTO instances (id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -20,72 +20,95 @@
       },
       {
         "ordinal": 3,
+        "name": "zero_trust_network_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
         "name": "distant_id",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "cpu_usage_percent",
         "type_info": "Float8"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "disk_usage_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "ip_v4",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "max_cpu_cores",
         "type_info": "Int4"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "max_disk_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "max_memory_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "memory_usage_bytes",
         "type_info": "Int8"
       },
       {
-        "ordinal": 11,
+        "ordinal": 12,
         "name": "name",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 12,
+        "ordinal": 13,
         "name": "status",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 13,
+        "ordinal": 14,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 14,
+        "ordinal": 15,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Float8",
+        "Int8",
+        "Varchar",
+        "Int4",
+        "Int8",
+        "Int8",
+        "Int8",
+        "Varchar",
+        "Varchar",
+        "Timestamptz",
+        "Timestamptz"
+      ]
     },
     "nullable": [
       false,
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -100,5 +123,5 @@
       false
     ]
   },
-  "hash": "aa7eb5cf05ebaf862e83107ef15761dfbe4418e8d25365791c5a3082ae34fb74"
+  "hash": "7bc3db0fb80f465e734c2fc34eae4f01544de8729cde00f3be801a79fdba0049"
 }

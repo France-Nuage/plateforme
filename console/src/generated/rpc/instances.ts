@@ -68,21 +68,57 @@ export interface Instance {
    */
   memoryUsageBytes: bigint;
   /**
+   * Maximum disk available to the instance (in bytes, max 64GB)
+   *
+   * @generated from protobuf field: uint64 max_disk_bytes = 7
+   */
+  maxDiskBytes: bigint;
+  /**
+   * Current disk utilization (in bytes, cannot exceed max_disk_bytes)
+   *
+   * @generated from protobuf field: uint64 disk_usage_bytes = 8
+   */
+  diskUsageBytes: bigint;
+  /**
    * Human-readable name, defined on the instance
    *
-   * @generated from protobuf field: string name = 7
+   * @generated from protobuf field: string name = 9
    */
   name: string;
   /**
+   * The IP v4 address of the instance
+   *
+   * @generated from protobuf field: string ip_v4 = 10
+   */
+  ipV4: string;
+  /**
+   * Unique identifier for the instance hypervisor
+   *
+   * @generated from protobuf field: string hypervisor_id = 100
+   */
+  hypervisorId: string;
+  /**
+   * Unique identifier for the instance project
+   *
+   * @generated from protobuf field: string project_id = 101
+   */
+  projectId: string;
+  /**
+   * Unique identifier for the instance zero trust network
+   *
+   * @generated from protobuf field: optional string zero_trust_network_id = 102
+   */
+  zeroTrustNetworkId?: string;
+  /**
    * Creation time of the instance
    *
-   * @generated from protobuf field: google.protobuf.Timestamp created_at = 10
+   * @generated from protobuf field: google.protobuf.Timestamp created_at = 997
    */
   createdAt?: Timestamp;
   /**
    * Time of the instance last change
    *
-   * @generated from protobuf field: google.protobuf.Timestamp updated_at = 11
+   * @generated from protobuf field: google.protobuf.Timestamp updated_at = 998
    */
   updatedAt?: Timestamp;
 }
@@ -400,9 +436,76 @@ class Instance$Type extends MessageType<Instance> {
           'validate.rules': { uint64: { lte: '68719476736', gte: '0' } },
         },
       },
-      { no: 7, name: 'name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 10, name: 'created_at', kind: 'message', T: () => Timestamp },
-      { no: 11, name: 'updated_at', kind: 'message', T: () => Timestamp },
+      {
+        no: 7,
+        name: 'max_disk_bytes',
+        kind: 'scalar',
+        T: 4 /*ScalarType.UINT64*/,
+        L: 0 /*LongType.BIGINT*/,
+        options: {
+          'validate.rules': { uint64: { lte: '109951162777600', gt: '0' } },
+        },
+      },
+      {
+        no: 8,
+        name: 'disk_usage_bytes',
+        kind: 'scalar',
+        T: 4 /*ScalarType.UINT64*/,
+        L: 0 /*LongType.BIGINT*/,
+        options: {
+          'validate.rules': { uint64: { lte: '109951162777600', gte: '0' } },
+        },
+      },
+      { no: 9, name: 'name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 10,
+        name: 'ip_v4',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: {
+              pattern: '^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$',
+            },
+          },
+        },
+      },
+      {
+        no: 100,
+        name: 'hypervisor_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+      {
+        no: 101,
+        name: 'project_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+      {
+        no: 102,
+        name: 'zero_trust_network_id',
+        kind: 'scalar',
+        opt: true,
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+      { no: 997, name: 'created_at', kind: 'message', T: () => Timestamp },
+      { no: 998, name: 'updated_at', kind: 'message', T: () => Timestamp },
     ]);
   }
 }
@@ -555,6 +658,15 @@ class CreateInstanceRequest$Type extends MessageType<CreateInstanceRequest> {
           name: 'project_id',
           kind: 'scalar',
           T: 9 /*ScalarType.STRING*/,
+          options: {
+            'validate.rules': {
+              string: {
+                minLen: '1',
+                maxLen: '36',
+                pattern: '^[a-zA-Z0-9_-]+$',
+              },
+            },
+          },
         },
       ],
     );

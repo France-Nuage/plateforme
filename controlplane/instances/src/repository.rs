@@ -7,31 +7,13 @@ use uuid::Uuid;
 
 use crate::model::Instance;
 
-/// Retrieves all instances from the database.
-///
-/// # Arguments
-///
-/// * `pool` - PostgreSQL connection pool
-///
-/// # Returns
-///
-/// A vector of all Instance records or a Problem if the operation fails
-pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Instance>, sqlx::Error> {
-    sqlx::query_as!(
-        Instance,
-        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes , memory_usage_bytes, name, status, created_at, updated_at FROM instances"
-    )
-    .fetch_all(pool)
-    .await
-}
-
 pub async fn find_one_by_distant_id(
     pool: &sqlx::PgPool,
     distant_id: &str,
 ) -> Result<Option<Instance>, sqlx::Error> {
     sqlx::query_as!(
         Instance,
-        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE distant_id = $1",
+        "SELECT id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE distant_id = $1",
         distant_id
     )
     .fetch_optional(pool)
@@ -51,7 +33,7 @@ pub async fn find_one_by_distant_id(
 pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Instance, sqlx::Error> {
     sqlx::query_as!(
         Instance,
-        "SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE id = $1",
+        "SELECT id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, disk_usage_bytes, ip_v4, max_cpu_cores, max_disk_bytes, max_memory_bytes, memory_usage_bytes, name, status, created_at, updated_at FROM instances WHERE id = $1",
         &id
     )
     .fetch_one(pool)

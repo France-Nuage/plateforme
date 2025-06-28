@@ -22,6 +22,8 @@ pub struct Instance {
     /// The project this instance belongs to
     #[factory(relation = "ProjectFactory")]
     pub project_id: Uuid,
+    /// The zero trust network this instance belongs to
+    pub zero_trust_network_id: Option<Uuid>,
     /// ID used by the hypervisor to identify this instance remotely
     pub distant_id: String,
     /// Current CPU utilization as a percentage (0.0-100.0)

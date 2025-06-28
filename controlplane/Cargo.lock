@@ -1220,6 +1220,7 @@ dependencies = [
  "hypervisor_connector_proxmox",
  "hypervisor_connector_resolver",
  "hypervisors",
+ "infrastructure",
  "prost",
  "prost-types",
  "reqwest",
