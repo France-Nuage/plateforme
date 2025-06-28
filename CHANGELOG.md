@@ -1,3 +1,10 @@
+# [1.21.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.20.0...v1.21.0) (2025-06-28)
+
+
+### Features
+
+* add zero trust networks to the headless console ([b5fccd7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b5fccd794e6dd742499ec335042daeb61c4a4d43))
+
 # [1.20.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.19.0...v1.20.0) (2025-06-28)
 
 
