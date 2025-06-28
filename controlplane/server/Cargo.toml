@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 hyper = "1.6"
 hypervisors = { path = "../hypervisors" }
+infrastructure = { path = "../infrastructure" }
 instances = { path = "../instances" }
 prost = "0.13"
 prost-types = "0.13"

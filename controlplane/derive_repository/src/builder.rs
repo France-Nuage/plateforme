@@ -3,9 +3,9 @@ use quote::quote;
 use syn::DeriveInput;
 
 use crate::{
-    build_method_create::build_method_create, build_method_update::build_method_update,
-    error::Error, extract_fields::extract_fields, extract_primary_idents::extract_primary_idents,
-    extract_table_name::extract_table_name,
+    build_method_create::build_method_create, build_method_list::build_method_list,
+    build_method_update::build_method_update, error::Error, extract_fields::extract_fields,
+    extract_primary_idents::extract_primary_idents, extract_table_name::extract_table_name,
 };
 
 pub struct RepositoryBuilder {
@@ -21,6 +21,7 @@ impl RepositoryBuilder {
         let primary_idents = extract_primary_idents(fields);
 
         let table_name = extract_table_name(&self.input);
+        let method_list = build_method_list(&table_name, fields);
         let method_create = build_method_create(&table_name, fields);
         let method_update = build_method_update(&table_name, fields, primary_idents);
 
@@ -28,6 +29,8 @@ impl RepositoryBuilder {
             impl database::Persistable for #model_name {
                 type Connection = sqlx::PgPool;
                 type Error = sqlx::Error;
+
+                #method_list
 
                 #method_create
 
@@ -69,6 +72,14 @@ mod tests {
             impl database::Persistable for Missile {
                 type Connection = sqlx::PgPool;
                 type Error = sqlx::Error;
+
+                /// List all existing records in the database.
+                async fn list(executor: &Self::Connection) -> Result<Vec<Self>, Self::Error> {
+                    sqlx::query_as!(
+                        Self,
+                        "SELECT id, blast_radius, damage FROM missiles"
+                    ).fetch_all(executor).await
+                }
 
                 /// Create a new record in the database.
                 async fn create(self, executor: &Self::Connection) -> Result<Self, Self::Error> {

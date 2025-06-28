@@ -20,6 +20,10 @@ impl database::Persistable for Missile {
     type Connection = ();
     type Error = ();
 
+    async fn list(_pool: &Self::Connection) -> Result<Vec<Self>, Self::Error> {
+        Ok(vec![])
+    }
+
     async fn create(self, _pool: &Self::Connection) -> Result<Self, Self::Error> {
         Ok(self)
     }
@@ -39,6 +43,10 @@ struct Category {
 impl database::Persistable for Category {
     type Connection = ();
     type Error = ();
+
+    async fn list(_pool: &Self::Connection) -> Result<Vec<Self>, Self::Error> {
+        Ok(vec![])
+    }
 
     async fn create(self, _pool: &()) -> Result<Self, Self::Error> {
         Ok(self)

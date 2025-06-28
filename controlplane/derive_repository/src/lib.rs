@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 
 mod build_method_create;
+mod build_method_list;
 mod build_method_update;
 mod build_sqlx_macro_parameters;
 mod builder;
