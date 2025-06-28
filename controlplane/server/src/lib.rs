@@ -1,5 +1,12 @@
 use hyper::http;
 use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
+use infrastructure::{
+    ZeroTrustNetworkRpcService, ZeroTrustNetworkTypeRpcService,
+    v1::{
+        zero_trust_network_types_server::ZeroTrustNetworkTypesServer,
+        zero_trust_networks_server::ZeroTrustNetworksServer,
+    },
+};
 use instances::InstancesRpcService;
 use instances::v1::instances_server::InstancesServer;
 use resources::{rpc::ResourcesRpcService, v1::resources_server::ResourcesServer};
@@ -59,11 +66,22 @@ impl Server {
         health_reporter
             .set_serving::<InstancesServer<InstancesRpcService>>()
             .await;
+        health_reporter
+            .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>()
+            .await;
+        health_reporter
+            .set_serving::<ZeroTrustNetworksServer<ZeroTrustNetworkRpcService>>()
+            .await;
 
         let hypervisors_service =
             HypervisorsServer::new(HypervisorsRpcService::new(config.pool.clone()));
         let instances_service = InstancesServer::new(InstancesRpcService::new(config.pool.clone()));
         let resources_service = ResourcesServer::new(ResourcesRpcService::new(config.pool.clone()));
+        let zero_trust_network_types_service = ZeroTrustNetworkTypesServer::new(
+            ZeroTrustNetworkTypeRpcService::new(config.pool.clone()),
+        );
+        let zero_trust_networks_service =
+            ZeroTrustNetworksServer::new(ZeroTrustNetworkRpcService::new(config.pool.clone()));
 
         let cors = CorsLayer::new()
             .allow_origin(
@@ -87,7 +105,9 @@ impl Server {
             .add_service(health_service)
             .add_service(tonic_web::enable(hypervisors_service))
             .add_service(tonic_web::enable(instances_service))
-            .add_service(tonic_web::enable(resources_service));
+            .add_service(tonic_web::enable(resources_service))
+            .add_service(tonic_web::enable(zero_trust_network_types_service))
+            .add_service(tonic_web::enable(zero_trust_networks_service));
 
         // Return a Server instance
         Ok(Server { addr, router })

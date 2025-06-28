@@ -4,6 +4,8 @@ pub trait Persistable: Sized {
     type Connection: Clone;
     type Error;
 
+    fn list(executor: &Self::Connection) -> impl Future<Output = Result<Vec<Self>, Self::Error>>;
+
     fn create(self, executor: &Self::Connection)
     -> impl Future<Output = Result<Self, Self::Error>>;
 

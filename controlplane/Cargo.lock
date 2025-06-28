@@ -1192,6 +1192,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "infrastructure"
+version = "0.1.0"
+dependencies = [
+ "database",
+ "derive_factory",
+ "derive_repository",
+ "prost",
+ "prost-types",
+ "resources",
+ "sqlx",
+ "thiserror",
+ "tonic",
+ "tonic-build",
+ "uuid",
+]
+
+[[package]]
 name = "instances"
 version = "0.1.0"
 dependencies = [
@@ -2174,6 +2191,7 @@ dependencies = [
  "hyper",
  "hypervisor_connector_proxmox",
  "hypervisors",
+ "infrastructure",
  "instances",
  "prost",
  "prost-types",
