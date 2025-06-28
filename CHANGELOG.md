@@ -1,3 +1,10 @@
+# [1.20.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.19.0...v1.20.0) (2025-06-28)
+
+
+### Features
+
+* add zero trust network types ([ac176d5](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ac176d51822b95110ded4e1fdd09af98f66655ba))
+
 # [1.19.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.18.0...v1.19.0) (2025-06-27)
 
 
