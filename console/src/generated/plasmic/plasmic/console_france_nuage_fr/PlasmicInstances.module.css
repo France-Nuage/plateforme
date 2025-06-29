@@ -227,49 +227,136 @@
     margin-top: 0px;
   }
 }
-.text__qcbsq {
+.nameLabel {
   width: 100%;
   height: auto;
   max-width: 100%;
   font-family: var(--token-R-I-KIV08TJv);
   font-weight: 700;
-  font-size: var(--token-B10hUni6jzpI);
   min-width: 0;
 }
-.text__cr3RZ {
+.dcLabel {
   width: 100%;
   height: auto;
   max-width: 100%;
   font-family: var(--token-R-I-KIV08TJv);
   font-weight: 700;
-  font-size: var(--token-B10hUni6jzpI);
   min-width: 0;
 }
-.text__lxhAj {
+.zeroTrustNetworkLabel {
   width: 100%;
   height: auto;
   max-width: 100%;
   font-family: var(--token-R-I-KIV08TJv);
   font-weight: 700;
-  font-size: var(--token-B10hUni6jzpI);
   min-width: 0;
 }
-.text__hMlRh {
+.organizationLabel {
   width: 100%;
   height: auto;
   max-width: 100%;
   font-family: var(--token-R-I-KIV08TJv);
   font-weight: 700;
-  font-size: var(--token-B10hUni6jzpI);
   min-width: 0;
 }
-.text___77Vbl {
+.projectLabel {
   width: 100%;
   height: auto;
   max-width: 100%;
   font-family: var(--token-R-I-KIV08TJv);
   font-weight: 700;
-  font-size: var(--token-B10hUni6jzpI);
+  min-width: 0;
+}
+.ipAddressLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  min-width: 0;
+}
+.statusLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  min-width: 0;
+}
+.cpuMaxLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  min-width: 0;
+}
+.cpuUsageLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  padding-bottom: 0px;
+  min-width: 0;
+}
+.memoryMaxLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  min-width: 0;
+}
+.memoryUsageLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  padding-bottom: 0px;
+  min-width: 0;
+}
+.diskMaxLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  padding-bottom: 0px;
+  min-width: 0;
+}
+.diskUsageLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  padding-bottom: 0px;
+  min-width: 0;
+}
+.createdAtLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  min-width: 0;
+}
+.updatedAtLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
+  min-width: 0;
+}
+.actionsLabel {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-R-I-KIV08TJv);
+  font-weight: 700;
   min-width: 0;
 }
 .freeBox__hGzJl {
@@ -330,7 +417,7 @@
     margin-top: 0px;
   }
 }
-.text__bSzPa {
+.name {
   position: relative;
   width: 100%;
   height: auto;
@@ -339,7 +426,7 @@
   font-size: var(--token-7z5Kw5B89TZR);
   min-width: 0;
 }
-.text__g1Gty {
+.datacenter {
   position: relative;
   width: 100%;
   height: auto;
@@ -348,7 +435,7 @@
   font-size: var(--token-7z5Kw5B89TZR);
   min-width: 0;
 }
-.text__fUcon {
+.zeroTrustNetwork {
   position: relative;
   width: 100%;
   height: auto;
@@ -357,7 +444,106 @@
   font-size: var(--token-7z5Kw5B89TZR);
   min-width: 0;
 }
-.text__l9AxT {
+.organization {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.project {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.ipAddress {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.status {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.cpuMax {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.cpuUsage {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.memoryMax {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.memoryUsage {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.diskMax {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.diskUsage {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.createdAt {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  font-family: var(--token-xJyIxpbdm7M0);
+  font-size: var(--token-7z5Kw5B89TZR);
+  min-width: 0;
+}
+.updatedAt {
   position: relative;
   width: 100%;
   height: auto;
@@ -365,7 +551,7 @@
   font-family: var(--token-xJyIxpbdm7M0);
   min-width: 0;
 }
-.text__k1L6A {
+.actions {
   position: relative;
   width: 100%;
   height: auto;
