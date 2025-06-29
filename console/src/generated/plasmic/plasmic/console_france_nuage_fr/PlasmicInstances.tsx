@@ -626,7 +626,28 @@ function PlasmicInstances__RenderFunc(props: {
                                     sty.zeroTrustNetwork,
                                   )}
                                 >
-                                  {'-'}
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return $ctx[
+                                          'France Nuage'
+                                        ].zeroTrustNetworks.find(
+                                          (ztn) =>
+                                            ztn.id ===
+                                            currentItem.zeroTrustNetworkId,
+                                        )?.name;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
                                 </div>
                                 <div
                                   data-plasmic-name={'organization'}
@@ -645,17 +666,17 @@ function PlasmicInstances__RenderFunc(props: {
                                             'France Nuage'
                                           ].projects.find(
                                             (project) =>
-                                              (project.id =
-                                                currentItem.projectId),
+                                              project.id ===
+                                              currentItem.projectId,
                                           );
                                           const organization = $ctx[
                                             'France Nuage'
                                           ].organizations.find(
                                             (organization) =>
-                                              (organization.id =
-                                                project.organizationId),
+                                              organization.id ===
+                                              project?.organizationId,
                                           );
-                                          return organization.name;
+                                          return organization?.name;
                                         })();
                                       } catch (e) {
                                         if (
@@ -686,9 +707,9 @@ function PlasmicInstances__RenderFunc(props: {
                                           'France Nuage'
                                         ].projects.find(
                                           (project) =>
-                                            (project.id =
-                                              currentItem.projectId),
-                                        ).name;
+                                            project.id ===
+                                            currentItem.projectId,
+                                        )?.name;
                                       } catch (e) {
                                         if (
                                           e instanceof TypeError ||
@@ -711,7 +732,22 @@ function PlasmicInstances__RenderFunc(props: {
                                     sty.ipAddress,
                                   )}
                                 >
-                                  {'-'}
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return currentItem.ipV4;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
                                 </div>
                                 <div
                                   data-plasmic-name={'status'}
@@ -803,13 +839,10 @@ function PlasmicInstances__RenderFunc(props: {
                                   <React.Fragment>
                                     {(() => {
                                       try {
-                                        return `${
-                                          Math.round(
-                                            (currentItem.maxMemoryBytes /
-                                              1024 ** 3) *
-                                              1000,
-                                          ) / 1000
-                                        }GB`;
+                                        return `${Math.round(
+                                          currentItem.maxMemoryBytes /
+                                            1024 ** 3,
+                                        )}GB`;
                                       } catch (e) {
                                         if (
                                           e instanceof TypeError ||
@@ -835,13 +868,10 @@ function PlasmicInstances__RenderFunc(props: {
                                   <React.Fragment>
                                     {(() => {
                                       try {
-                                        return `${
-                                          Math.round(
-                                            (currentItem.memoryUsageBytes /
-                                              1024 ** 3) *
-                                              1000,
-                                          ) / 1000
-                                        }GB`;
+                                        return `${Math.round(
+                                          currentItem.memoryUsageBytes /
+                                            1024 ** 3,
+                                        )}GB`;
                                       } catch (e) {
                                         if (
                                           e instanceof TypeError ||
@@ -864,7 +894,24 @@ function PlasmicInstances__RenderFunc(props: {
                                     sty.diskMax,
                                   )}
                                 >
-                                  {'-'}
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return `${Math.round(
+                                          currentItem.maxDiskBytes / 1024 ** 3,
+                                        )}GB`;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
                                 </div>
                                 <div
                                   data-plasmic-name={'diskUsage'}
@@ -875,7 +922,25 @@ function PlasmicInstances__RenderFunc(props: {
                                     sty.diskUsage,
                                   )}
                                 >
-                                  {'-'}
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return `${Math.round(
+                                          currentItem.diskUsageBytes /
+                                            1024 ** 3,
+                                        )}GB`;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
                                 </div>
                                 <div
                                   data-plasmic-name={'createdAt'}
@@ -886,7 +951,24 @@ function PlasmicInstances__RenderFunc(props: {
                                     sty.createdAt,
                                   )}
                                 >
-                                  {'-'}
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return new Date(
+                                          currentItem.createdAt,
+                                        ).toLocaleDateString();
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
                                 </div>
                                 <div
                                   data-plasmic-name={'updatedAt'}
@@ -908,7 +990,24 @@ function PlasmicInstances__RenderFunc(props: {
                                     sty.actions,
                                   )}
                                 >
-                                  {'start - delete'}
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return new Date(
+                                          currentItem.updatedAt,
+                                        ).toLocaleDateString();
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return 'start - delete';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
                                 </div>
                               </Stack__>
                             );
