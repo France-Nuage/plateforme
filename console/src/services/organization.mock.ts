@@ -1,4 +1,8 @@
-import { acme, organization, organizations } from '@/fixtures/organization';
+import {
+  acmeOrganization,
+  organization,
+  organizations,
+} from '@/fixtures/organization';
 import { OrganizationFormValue } from '@/types';
 
 import { OrganizationService } from './organization.interface';
@@ -14,7 +18,7 @@ export class OrganizationMockService implements OrganizationService {
 
   /** @inheritdoc */
   list() {
-    return Promise.resolve([acme, ...organizations(4)]);
+    return Promise.resolve([acmeOrganization, ...organizations(4)]);
   }
 }
 

@@ -5,6 +5,7 @@ import { InstanceStatus } from '@/types';
 
 export const instance = (preset?: Partial<Instance>): Instance => ({
   cpuUsagePercent: faker.number.float({ fractionDigits: 2, max: 100, min: 0 }),
+  createdAt: faker.date.recent().toISOString(),
   diskUsageBytes: faker.number.int({ max: 1073741824000, min: 10737418240 }),
   hypervisorId: faker.string.uuid(),
   id: faker.string.uuid(),
@@ -16,6 +17,7 @@ export const instance = (preset?: Partial<Instance>): Instance => ({
   name: faker.commerce.productName(),
   projectId: faker.string.uuid(),
   status: faker.helpers.arrayElement(Object.values(InstanceStatus)),
+  updatedAt: faker.date.recent().toISOString(),
   zeroTrustNetworkId: faker.string.uuid(),
   ...preset,
 });

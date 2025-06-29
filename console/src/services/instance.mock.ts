@@ -1,4 +1,9 @@
-import { instance, instances } from '@/fixtures';
+import {
+  acmeOrganization,
+  acmeZeroTrustNetwork,
+  instance,
+  instances,
+} from '@/fixtures';
 import { InstanceFormValue } from '@/types';
 
 import { InstanceService } from './instance.interface';
@@ -11,7 +16,12 @@ export class InstanceMockService implements InstanceService {
 
   /** @inheritdoc */
   list() {
-    return Promise.resolve(instances(5));
+    return Promise.resolve(
+      instances(5, {
+        projectId: acmeOrganization.id,
+        zeroTrustNetworkId: acmeZeroTrustNetwork.id,
+      }),
+    );
   }
 }
 

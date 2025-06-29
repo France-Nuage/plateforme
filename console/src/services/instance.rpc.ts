@@ -57,6 +57,10 @@ export const instanceRpcService = new InstanceRpcService(transport);
 function fromRpcInstance(instance: RpcInstance): Instance {
   return {
     cpuUsagePercent: instance.cpuUsagePercent,
+    createdAt: (instance.createdAt
+      ? new Date(Number(instance.createdAt!.seconds))
+      : new Date()
+    ).toISOString(),
     diskUsageBytes: Number(instance.diskUsageBytes),
     hypervisorId: instance.hypervisorId,
     id: instance.id,
@@ -68,6 +72,10 @@ function fromRpcInstance(instance: RpcInstance): Instance {
     name: instance.name,
     projectId: instance.projectId,
     status: fromRpcInstanceStatus(instance.status),
+    updatedAt: (instance.updatedAt
+      ? new Date(Number(instance.updatedAt!.seconds))
+      : new Date()
+    ).toISOString(),
     zeroTrustNetworkId: instance.zeroTrustNetworkId,
   };
 }

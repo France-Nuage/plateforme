@@ -5,6 +5,9 @@ export type Instance = {
   // Current CPU utilization as a percentage (0.0-100.0)
   cpuUsagePercent: number;
 
+  // The instance creation time.
+  createdAt: string;
+
   // Current disk space utilization (in bytes, cannot exceed max_disk_bytes)
   diskUsageBytes: number;
 
@@ -37,6 +40,9 @@ export type Instance = {
 
   // Current operational status of the instance
   status: InstanceStatus;
+
+  // The instance last update time.
+  updatedAt: string;
 
   // The instance zero trust network id.
   zeroTrustNetworkId: string | undefined;
