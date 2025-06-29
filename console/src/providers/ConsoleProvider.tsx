@@ -88,7 +88,7 @@ export type Actions = {
  * @see https://docs.plasmic.app/learn/data-provider/
  */
 export const ConsoleProvider = forwardRef<Actions, Props>(
-  ({ children }, ref) => {
+  ({ children, className }, ref) => {
     const dispatch = useAppDispatch();
     const [, setSearchParams] = useSearchParams();
 
@@ -103,6 +103,12 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
     );
     const projects = useAppSelector((state) => state.resources.projects);
     const user = useAppSelector((state) => state.authentication.user);
+    const zeroTrustNetworkTypes = useAppSelector(
+      (state) => state.infrastructure.zeroTrustNetworkTypes,
+    );
+    const zeroTrustNetworks = useAppSelector(
+      (state) => state.infrastructure.zeroTrustNetworks,
+    );
 
     // Expose actions to the plasmic app
     useImperativeHandle(ref, () => ({
@@ -152,19 +158,23 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
 
     // Wrap the children in the plasmic DataProvider.
     return (
-      <DataProvider
-        name="France Nuage"
-        data={{
-          application,
-          hypervisors,
-          instances,
-          organizations,
-          projects,
-          user,
-        }}
-      >
-        {children}
-      </DataProvider>
+      <div className={className}>
+        <DataProvider
+          name="France Nuage"
+          data={{
+            application,
+            hypervisors,
+            instances,
+            organizations,
+            projects,
+            user,
+            zeroTrustNetworks,
+            zeroTrustNetworkTypes,
+          }}
+        >
+          {children}
+        </DataProvider>
+      </div>
     );
   },
 );

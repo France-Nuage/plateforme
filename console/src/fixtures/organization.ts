@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 
 import { Organization } from '@/types';
 
-export const acme: Organization = {
+export const acmeOrganization: Organization = {
   id: '00000000-0000-0000-0000-000000000000',
   name: 'ACME',
 };

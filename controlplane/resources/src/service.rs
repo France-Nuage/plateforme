@@ -31,6 +31,7 @@ impl ResourcesService {
         crate::projects::repository::create(
             &self.pool,
             Project {
+                id: Uuid::new_v4(),
                 name: DEFAULT_PROJECT_NAME.to_owned(),
                 organization_id,
                 ..Default::default()

@@ -103,6 +103,38 @@ export type PlasmicInstances__OverridesType = {
   dessous?: Flex__<'div'>;
   navigationDrawer?: Flex__<typeof NavigationDrawer>;
   instances?: Flex__<'div'>;
+  nameLabel?: Flex__<'div'>;
+  dcLabel?: Flex__<'div'>;
+  zeroTrustNetworkLabel?: Flex__<'div'>;
+  organizationLabel?: Flex__<'div'>;
+  projectLabel?: Flex__<'div'>;
+  ipAddressLabel?: Flex__<'div'>;
+  statusLabel?: Flex__<'div'>;
+  cpuMaxLabel?: Flex__<'div'>;
+  cpuUsageLabel?: Flex__<'div'>;
+  memoryMaxLabel?: Flex__<'div'>;
+  memoryUsageLabel?: Flex__<'div'>;
+  diskMaxLabel?: Flex__<'div'>;
+  diskUsageLabel?: Flex__<'div'>;
+  createdAtLabel?: Flex__<'div'>;
+  updatedAtLabel?: Flex__<'div'>;
+  actionsLabel?: Flex__<'div'>;
+  name?: Flex__<'div'>;
+  datacenter?: Flex__<'div'>;
+  zeroTrustNetwork?: Flex__<'div'>;
+  organization?: Flex__<'div'>;
+  project?: Flex__<'div'>;
+  ipAddress?: Flex__<'div'>;
+  status?: Flex__<'div'>;
+  cpuMax?: Flex__<'div'>;
+  cpuUsage?: Flex__<'div'>;
+  memoryMax?: Flex__<'div'>;
+  memoryUsage?: Flex__<'div'>;
+  diskMax?: Flex__<'div'>;
+  diskUsage?: Flex__<'div'>;
+  createdAt?: Flex__<'div'>;
+  updatedAt?: Flex__<'div'>;
+  actions?: Flex__<'div'>;
   modal?: Flex__<typeof Modal>;
   h3?: Flex__<'h3'>;
   nom?: Flex__<typeof FormTextInput>;
@@ -338,49 +370,184 @@ function PlasmicInstances__RenderFunc(props: {
                             )}
                           >
                             <div
+                              data-plasmic-name={'nameLabel'}
+                              data-plasmic-override={overrides.nameLabel}
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.text__qcbsq,
+                                sty.nameLabel,
                               )}
                             >
                               {'Nom'}
                             </div>
                             <div
+                              data-plasmic-name={'dcLabel'}
+                              data-plasmic-override={overrides.dcLabel}
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.text__cr3RZ,
+                                sty.dcLabel,
                               )}
                             >
-                              {'ID projet'}
+                              {'DC'}
                             </div>
                             <div
+                              data-plasmic-name={'zeroTrustNetworkLabel'}
+                              data-plasmic-override={
+                                overrides.zeroTrustNetworkLabel
+                              }
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.text__lxhAj,
+                                sty.zeroTrustNetworkLabel,
+                              )}
+                            >
+                              {'ZTN'}
+                            </div>
+                            <div
+                              data-plasmic-name={'organizationLabel'}
+                              data-plasmic-override={
+                                overrides.organizationLabel
+                              }
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.organizationLabel,
+                              )}
+                            >
+                              {'Orga'}
+                            </div>
+                            <div
+                              data-plasmic-name={'projectLabel'}
+                              data-plasmic-override={overrides.projectLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.projectLabel,
+                              )}
+                            >
+                              {'Projet'}
+                            </div>
+                            <div
+                              data-plasmic-name={'ipAddressLabel'}
+                              data-plasmic-override={overrides.ipAddressLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.ipAddressLabel,
+                              )}
+                            >
+                              {'IP'}
+                            </div>
+                            <div
+                              data-plasmic-name={'statusLabel'}
+                              data-plasmic-override={overrides.statusLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.statusLabel,
                               )}
                             >
                               {'Status'}
                             </div>
                             <div
+                              data-plasmic-name={'cpuMaxLabel'}
+                              data-plasmic-override={overrides.cpuMaxLabel}
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.text__hMlRh,
+                                sty.cpuMaxLabel,
                               )}
                             >
-                              {'% CPU utilis\u00e9'}
+                              {'CPU max'}
                             </div>
                             <div
+                              data-plasmic-name={'cpuUsageLabel'}
+                              data-plasmic-override={overrides.cpuUsageLabel}
                               className={classNames(
                                 projectcss.all,
                                 projectcss.__wab_text,
-                                sty.text___77Vbl,
+                                sty.cpuUsageLabel,
                               )}
                             >
-                              {'RAM'}
+                              {'CPU usage'}
+                            </div>
+                            <div
+                              data-plasmic-name={'memoryMaxLabel'}
+                              data-plasmic-override={overrides.memoryMaxLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.memoryMaxLabel,
+                              )}
+                            >
+                              {'RAM max'}
+                            </div>
+                            <div
+                              data-plasmic-name={'memoryUsageLabel'}
+                              data-plasmic-override={overrides.memoryUsageLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.memoryUsageLabel,
+                              )}
+                            >
+                              {'RAM usage'}
+                            </div>
+                            <div
+                              data-plasmic-name={'diskMaxLabel'}
+                              data-plasmic-override={overrides.diskMaxLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.diskMaxLabel,
+                              )}
+                            >
+                              {'disk max'}
+                            </div>
+                            <div
+                              data-plasmic-name={'diskUsageLabel'}
+                              data-plasmic-override={overrides.diskUsageLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.diskUsageLabel,
+                              )}
+                            >
+                              {'disk usage'}
+                            </div>
+                            <div
+                              data-plasmic-name={'createdAtLabel'}
+                              data-plasmic-override={overrides.createdAtLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.createdAtLabel,
+                              )}
+                            >
+                              {'created at'}
+                            </div>
+                            <div
+                              data-plasmic-name={'updatedAtLabel'}
+                              data-plasmic-override={overrides.updatedAtLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.updatedAtLabel,
+                              )}
+                            >
+                              {'updated at'}
+                            </div>
+                            <div
+                              data-plasmic-name={'actionsLabel'}
+                              data-plasmic-override={overrides.actionsLabel}
+                              className={classNames(
+                                projectcss.all,
+                                projectcss.__wab_text,
+                                sty.actionsLabel,
+                              )}
+                            >
+                              {'actions'}
                             </div>
                           </Stack__>
                           {((_par) =>
@@ -412,10 +579,12 @@ function PlasmicInstances__RenderFunc(props: {
                                 key={currentIndex}
                               >
                                 <div
+                                  data-plasmic-name={'name'}
+                                  data-plasmic-override={overrides.name}
                                   className={classNames(
                                     projectcss.all,
                                     projectcss.__wab_text,
-                                    sty.text__bSzPa,
+                                    sty.name,
                                   )}
                                 >
                                   <React.Fragment>
@@ -436,23 +605,44 @@ function PlasmicInstances__RenderFunc(props: {
                                   </React.Fragment>
                                 </div>
                                 <div
+                                  data-plasmic-name={'datacenter'}
+                                  data-plasmic-override={overrides.datacenter}
                                   className={classNames(
                                     projectcss.all,
                                     projectcss.__wab_text,
-                                    sty.text__g1Gty,
+                                    sty.datacenter,
+                                  )}
+                                >
+                                  {'-'}
+                                </div>
+                                <div
+                                  data-plasmic-name={'zeroTrustNetwork'}
+                                  data-plasmic-override={
+                                    overrides.zeroTrustNetwork
+                                  }
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.zeroTrustNetwork,
                                   )}
                                 >
                                   <React.Fragment>
                                     {(() => {
                                       try {
-                                        return currentItem.projectId;
+                                        return $ctx[
+                                          'France Nuage'
+                                        ].zeroTrustNetworks.find(
+                                          (ztn) =>
+                                            ztn.id ===
+                                            currentItem.zeroTrustNetworkId,
+                                        )?.name;
                                       } catch (e) {
                                         if (
                                           e instanceof TypeError ||
                                           e?.plasmicType ===
                                             'PlasmicUndefinedDataError'
                                         ) {
-                                          return '';
+                                          return '-';
                                         }
                                         throw e;
                                       }
@@ -460,10 +650,112 @@ function PlasmicInstances__RenderFunc(props: {
                                   </React.Fragment>
                                 </div>
                                 <div
+                                  data-plasmic-name={'organization'}
+                                  data-plasmic-override={overrides.organization}
                                   className={classNames(
                                     projectcss.all,
                                     projectcss.__wab_text,
-                                    sty.text__fUcon,
+                                    sty.organization,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return (() => {
+                                          const project = $ctx[
+                                            'France Nuage'
+                                          ].projects.find(
+                                            (project) =>
+                                              project.id ===
+                                              currentItem.projectId,
+                                          );
+                                          const organization = $ctx[
+                                            'France Nuage'
+                                          ].organizations.find(
+                                            (organization) =>
+                                              organization.id ===
+                                              project?.organizationId,
+                                          );
+                                          return organization?.name;
+                                        })();
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'project'}
+                                  data-plasmic-override={overrides.project}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.project,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return $ctx[
+                                          'France Nuage'
+                                        ].projects.find(
+                                          (project) =>
+                                            project.id ===
+                                            currentItem.projectId,
+                                        )?.name;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'ipAddress'}
+                                  data-plasmic-override={overrides.ipAddress}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.ipAddress,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return currentItem.ipV4;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'status'}
+                                  data-plasmic-override={overrides.status}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.status,
                                   )}
                                 >
                                   <React.Fragment>
@@ -476,7 +768,7 @@ function PlasmicInstances__RenderFunc(props: {
                                           e?.plasmicType ===
                                             'PlasmicUndefinedDataError'
                                         ) {
-                                          return '';
+                                          return '-';
                                         }
                                         throw e;
                                       }
@@ -484,23 +776,25 @@ function PlasmicInstances__RenderFunc(props: {
                                   </React.Fragment>
                                 </div>
                                 <div
+                                  data-plasmic-name={'cpuMax'}
+                                  data-plasmic-override={overrides.cpuMax}
                                   className={classNames(
                                     projectcss.all,
                                     projectcss.__wab_text,
-                                    sty.text__l9AxT,
+                                    sty.cpuMax,
                                   )}
                                 >
                                   <React.Fragment>
                                     {(() => {
                                       try {
-                                        return currentItem.cpuUsagePercent;
+                                        return currentItem.maxCpuCores;
                                       } catch (e) {
                                         if (
                                           e instanceof TypeError ||
                                           e?.plasmicType ===
                                             'PlasmicUndefinedDataError'
                                         ) {
-                                          return '';
+                                          return '-';
                                         }
                                         throw e;
                                       }
@@ -508,23 +802,207 @@ function PlasmicInstances__RenderFunc(props: {
                                   </React.Fragment>
                                 </div>
                                 <div
+                                  data-plasmic-name={'cpuUsage'}
+                                  data-plasmic-override={overrides.cpuUsage}
                                   className={classNames(
                                     projectcss.all,
                                     projectcss.__wab_text,
-                                    sty.text__k1L6A,
+                                    sty.cpuUsage,
                                   )}
                                 >
                                   <React.Fragment>
                                     {(() => {
                                       try {
-                                        return currentItem.maxMemoryBytes;
+                                        return `${currentItem.cpuUsagePercent}%`;
                                       } catch (e) {
                                         if (
                                           e instanceof TypeError ||
                                           e?.plasmicType ===
                                             'PlasmicUndefinedDataError'
                                         ) {
-                                          return '';
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'memoryMax'}
+                                  data-plasmic-override={overrides.memoryMax}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.memoryMax,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return `${Math.round(
+                                          currentItem.maxMemoryBytes /
+                                            1024 ** 3,
+                                        )}GB`;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'memoryUsage'}
+                                  data-plasmic-override={overrides.memoryUsage}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.memoryUsage,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return `${Math.round(
+                                          currentItem.memoryUsageBytes /
+                                            1024 ** 3,
+                                        )}GB`;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'diskMax'}
+                                  data-plasmic-override={overrides.diskMax}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.diskMax,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return `${Math.round(
+                                          currentItem.maxDiskBytes / 1024 ** 3,
+                                        )}GB`;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'diskUsage'}
+                                  data-plasmic-override={overrides.diskUsage}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.diskUsage,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return `${Math.round(
+                                          currentItem.diskUsageBytes /
+                                            1024 ** 3,
+                                        )}GB`;
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'createdAt'}
+                                  data-plasmic-override={overrides.createdAt}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.createdAt,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return new Date(
+                                          currentItem.createdAt,
+                                        ).toLocaleDateString();
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return '-';
+                                        }
+                                        throw e;
+                                      }
+                                    })()}
+                                  </React.Fragment>
+                                </div>
+                                <div
+                                  data-plasmic-name={'updatedAt'}
+                                  data-plasmic-override={overrides.updatedAt}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.updatedAt,
+                                  )}
+                                >
+                                  {'-'}
+                                </div>
+                                <div
+                                  data-plasmic-name={'actions'}
+                                  data-plasmic-override={overrides.actions}
+                                  className={classNames(
+                                    projectcss.all,
+                                    projectcss.__wab_text,
+                                    sty.actions,
+                                  )}
+                                >
+                                  <React.Fragment>
+                                    {(() => {
+                                      try {
+                                        return new Date(
+                                          currentItem.updatedAt,
+                                        ).toLocaleDateString();
+                                      } catch (e) {
+                                        if (
+                                          e instanceof TypeError ||
+                                          e?.plasmicType ===
+                                            'PlasmicUndefinedDataError'
+                                        ) {
+                                          return 'start - delete';
                                         }
                                         throw e;
                                       }
@@ -1194,6 +1672,38 @@ const PlasmicDescendants = {
     'dessous',
     'navigationDrawer',
     'instances',
+    'nameLabel',
+    'dcLabel',
+    'zeroTrustNetworkLabel',
+    'organizationLabel',
+    'projectLabel',
+    'ipAddressLabel',
+    'statusLabel',
+    'cpuMaxLabel',
+    'cpuUsageLabel',
+    'memoryMaxLabel',
+    'memoryUsageLabel',
+    'diskMaxLabel',
+    'diskUsageLabel',
+    'createdAtLabel',
+    'updatedAtLabel',
+    'actionsLabel',
+    'name',
+    'datacenter',
+    'zeroTrustNetwork',
+    'organization',
+    'project',
+    'ipAddress',
+    'status',
+    'cpuMax',
+    'cpuUsage',
+    'memoryMax',
+    'memoryUsage',
+    'diskMax',
+    'diskUsage',
+    'createdAt',
+    'updatedAt',
+    'actions',
     'modal',
     'h3',
     'nom',
@@ -1206,6 +1716,38 @@ const PlasmicDescendants = {
     'dessous',
     'navigationDrawer',
     'instances',
+    'nameLabel',
+    'dcLabel',
+    'zeroTrustNetworkLabel',
+    'organizationLabel',
+    'projectLabel',
+    'ipAddressLabel',
+    'statusLabel',
+    'cpuMaxLabel',
+    'cpuUsageLabel',
+    'memoryMaxLabel',
+    'memoryUsageLabel',
+    'diskMaxLabel',
+    'diskUsageLabel',
+    'createdAtLabel',
+    'updatedAtLabel',
+    'actionsLabel',
+    'name',
+    'datacenter',
+    'zeroTrustNetwork',
+    'organization',
+    'project',
+    'ipAddress',
+    'status',
+    'cpuMax',
+    'cpuUsage',
+    'memoryMax',
+    'memoryUsage',
+    'diskMax',
+    'diskUsage',
+    'createdAt',
+    'updatedAt',
+    'actions',
     'modal',
     'h3',
     'nom',
@@ -1217,6 +1759,38 @@ const PlasmicDescendants = {
     'dessous',
     'navigationDrawer',
     'instances',
+    'nameLabel',
+    'dcLabel',
+    'zeroTrustNetworkLabel',
+    'organizationLabel',
+    'projectLabel',
+    'ipAddressLabel',
+    'statusLabel',
+    'cpuMaxLabel',
+    'cpuUsageLabel',
+    'memoryMaxLabel',
+    'memoryUsageLabel',
+    'diskMaxLabel',
+    'diskUsageLabel',
+    'createdAtLabel',
+    'updatedAtLabel',
+    'actionsLabel',
+    'name',
+    'datacenter',
+    'zeroTrustNetwork',
+    'organization',
+    'project',
+    'ipAddress',
+    'status',
+    'cpuMax',
+    'cpuUsage',
+    'memoryMax',
+    'memoryUsage',
+    'diskMax',
+    'diskUsage',
+    'createdAt',
+    'updatedAt',
+    'actions',
     'modal',
     'h3',
     'nom',
@@ -1224,7 +1798,78 @@ const PlasmicDescendants = {
     'memoire',
   ],
   navigationDrawer: ['navigationDrawer'],
-  instances: ['instances', 'modal', 'h3', 'nom', 'cpu', 'memoire'],
+  instances: [
+    'instances',
+    'nameLabel',
+    'dcLabel',
+    'zeroTrustNetworkLabel',
+    'organizationLabel',
+    'projectLabel',
+    'ipAddressLabel',
+    'statusLabel',
+    'cpuMaxLabel',
+    'cpuUsageLabel',
+    'memoryMaxLabel',
+    'memoryUsageLabel',
+    'diskMaxLabel',
+    'diskUsageLabel',
+    'createdAtLabel',
+    'updatedAtLabel',
+    'actionsLabel',
+    'name',
+    'datacenter',
+    'zeroTrustNetwork',
+    'organization',
+    'project',
+    'ipAddress',
+    'status',
+    'cpuMax',
+    'cpuUsage',
+    'memoryMax',
+    'memoryUsage',
+    'diskMax',
+    'diskUsage',
+    'createdAt',
+    'updatedAt',
+    'actions',
+    'modal',
+    'h3',
+    'nom',
+    'cpu',
+    'memoire',
+  ],
+  nameLabel: ['nameLabel'],
+  dcLabel: ['dcLabel'],
+  zeroTrustNetworkLabel: ['zeroTrustNetworkLabel'],
+  organizationLabel: ['organizationLabel'],
+  projectLabel: ['projectLabel'],
+  ipAddressLabel: ['ipAddressLabel'],
+  statusLabel: ['statusLabel'],
+  cpuMaxLabel: ['cpuMaxLabel'],
+  cpuUsageLabel: ['cpuUsageLabel'],
+  memoryMaxLabel: ['memoryMaxLabel'],
+  memoryUsageLabel: ['memoryUsageLabel'],
+  diskMaxLabel: ['diskMaxLabel'],
+  diskUsageLabel: ['diskUsageLabel'],
+  createdAtLabel: ['createdAtLabel'],
+  updatedAtLabel: ['updatedAtLabel'],
+  actionsLabel: ['actionsLabel'],
+  name: ['name'],
+  datacenter: ['datacenter'],
+  zeroTrustNetwork: ['zeroTrustNetwork'],
+  organization: ['organization'],
+  project: ['project'],
+  ipAddress: ['ipAddress'],
+  status: ['status'],
+  cpuMax: ['cpuMax'],
+  cpuUsage: ['cpuUsage'],
+  memoryMax: ['memoryMax'],
+  memoryUsage: ['memoryUsage'],
+  diskMax: ['diskMax'],
+  diskUsage: ['diskUsage'],
+  createdAt: ['createdAt'],
+  updatedAt: ['updatedAt'],
+  actions: ['actions'],
   modal: ['modal', 'h3', 'nom', 'cpu', 'memoire'],
   h3: ['h3'],
   nom: ['nom'],
@@ -1241,6 +1886,38 @@ type NodeDefaultElementType = {
   dessous: 'div';
   navigationDrawer: typeof NavigationDrawer;
   instances: 'div';
+  nameLabel: 'div';
+  dcLabel: 'div';
+  zeroTrustNetworkLabel: 'div';
+  organizationLabel: 'div';
+  projectLabel: 'div';
+  ipAddressLabel: 'div';
+  statusLabel: 'div';
+  cpuMaxLabel: 'div';
+  cpuUsageLabel: 'div';
+  memoryMaxLabel: 'div';
+  memoryUsageLabel: 'div';
+  diskMaxLabel: 'div';
+  diskUsageLabel: 'div';
+  createdAtLabel: 'div';
+  updatedAtLabel: 'div';
+  actionsLabel: 'div';
+  name: 'div';
+  datacenter: 'div';
+  zeroTrustNetwork: 'div';
+  organization: 'div';
+  project: 'div';
+  ipAddress: 'div';
+  status: 'div';
+  cpuMax: 'div';
+  cpuUsage: 'div';
+  memoryMax: 'div';
+  memoryUsage: 'div';
+  diskMax: 'div';
+  diskUsage: 'div';
+  createdAt: 'div';
+  updatedAt: 'div';
+  actions: 'div';
   modal: typeof Modal;
   h3: 'h3';
   nom: typeof FormTextInput;
@@ -1313,6 +1990,38 @@ export const PlasmicInstances = Object.assign(
     dessous: makeNodeComponent('dessous'),
     navigationDrawer: makeNodeComponent('navigationDrawer'),
     instances: makeNodeComponent('instances'),
+    nameLabel: makeNodeComponent('nameLabel'),
+    dcLabel: makeNodeComponent('dcLabel'),
+    zeroTrustNetworkLabel: makeNodeComponent('zeroTrustNetworkLabel'),
+    organizationLabel: makeNodeComponent('organizationLabel'),
+    projectLabel: makeNodeComponent('projectLabel'),
+    ipAddressLabel: makeNodeComponent('ipAddressLabel'),
+    statusLabel: makeNodeComponent('statusLabel'),
+    cpuMaxLabel: makeNodeComponent('cpuMaxLabel'),
+    cpuUsageLabel: makeNodeComponent('cpuUsageLabel'),
+    memoryMaxLabel: makeNodeComponent('memoryMaxLabel'),
+    memoryUsageLabel: makeNodeComponent('memoryUsageLabel'),
+    diskMaxLabel: makeNodeComponent('diskMaxLabel'),
+    diskUsageLabel: makeNodeComponent('diskUsageLabel'),
+    createdAtLabel: makeNodeComponent('createdAtLabel'),
+    updatedAtLabel: makeNodeComponent('updatedAtLabel'),
+    actionsLabel: makeNodeComponent('actionsLabel'),
+    _name: makeNodeComponent('name'),
+    datacenter: makeNodeComponent('datacenter'),
+    zeroTrustNetwork: makeNodeComponent('zeroTrustNetwork'),
+    organization: makeNodeComponent('organization'),
+    project: makeNodeComponent('project'),
+    ipAddress: makeNodeComponent('ipAddress'),
+    status: makeNodeComponent('status'),
+    cpuMax: makeNodeComponent('cpuMax'),
+    cpuUsage: makeNodeComponent('cpuUsage'),
+    memoryMax: makeNodeComponent('memoryMax'),
+    memoryUsage: makeNodeComponent('memoryUsage'),
+    diskMax: makeNodeComponent('diskMax'),
+    diskUsage: makeNodeComponent('diskUsage'),
+    createdAt: makeNodeComponent('createdAt'),
+    updatedAt: makeNodeComponent('updatedAt'),
+    actions: makeNodeComponent('actions'),
     modal: makeNodeComponent('modal'),
     h3: makeNodeComponent('h3'),
     nom: makeNodeComponent('nom'),

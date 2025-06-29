@@ -5,11 +5,26 @@ export type Instance = {
   // Current CPU utilization as a percentage (0.0-100.0)
   cpuUsagePercent: number;
 
+  // The instance creation time.
+  createdAt: string;
+
+  // Current disk space utilization (in bytes, cannot exceed max_disk_bytes)
+  diskUsageBytes: number;
+
+  // The instance hypervisor id.
+  hypervisorId: string;
+
   // The instance id.
   id: string;
 
+  // The instance ip address.
+  ipV4: string;
+
   // Maximum CPU cores available to the instance (max 99).
   maxCpuCores: number;
+
+  // Maximum disk space available to the instance (in bytes, max 100TB)
+  maxDiskBytes: number;
 
   // Maximum memory available to the instance (in bytes, max 64GB)
   maxMemoryBytes: number;
@@ -25,6 +40,12 @@ export type Instance = {
 
   // Current operational status of the instance
   status: InstanceStatus;
+
+  // The instance last update time.
+  updatedAt: string;
+
+  // The instance zero trust network id.
+  zeroTrustNetworkId: string | undefined;
 };
 
 /**
