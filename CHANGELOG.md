@@ -1,3 +1,11 @@
+# [1.22.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.21.0...v1.22.0) (2025-06-29)
+
+
+### Features
+
+* add ztns to plasmic studio state ([99e931f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/99e931f105a83d7829837169b09e7270d7e6d81b))
+* expose instance relations to console ([138f826](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/138f82646bcafbb2350d49c39a8b668345ed789d))
+
 # [1.21.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.20.0...v1.21.0) (2025-06-28)
 
 
