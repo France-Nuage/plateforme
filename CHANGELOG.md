@@ -1,3 +1,10 @@
+# [1.23.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.22.0...v1.23.0) (2025-07-01)
+
+
+### Features
+
+* add sourcemaps to console ([0b37999](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/0b3799999319d4eed69bd509c487b8f06febcb77))
+
 # [1.22.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.21.0...v1.22.0) (2025-06-29)
 
 
