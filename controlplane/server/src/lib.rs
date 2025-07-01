@@ -1,8 +1,9 @@
 use hyper::http;
 use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
 use infrastructure::{
-    ZeroTrustNetworkRpcService, ZeroTrustNetworkTypeRpcService,
+    DatacenterRpcService, ZeroTrustNetworkRpcService, ZeroTrustNetworkTypeRpcService,
     v1::{
+        datacenters_server::DatacentersServer,
         zero_trust_network_types_server::ZeroTrustNetworkTypesServer,
         zero_trust_networks_server::ZeroTrustNetworksServer,
     },
@@ -61,6 +62,9 @@ impl Server {
 
         let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
         health_reporter
+            .set_serving::<DatacentersServer<DatacenterRpcService>>()
+            .await;
+        health_reporter
             .set_serving::<HypervisorsServer<HypervisorsRpcService>>()
             .await;
         health_reporter
@@ -73,6 +77,8 @@ impl Server {
             .set_serving::<ZeroTrustNetworksServer<ZeroTrustNetworkRpcService>>()
             .await;
 
+        let datacenters_service =
+            DatacentersServer::new(DatacenterRpcService::new(config.pool.clone()));
         let hypervisors_service =
             HypervisorsServer::new(HypervisorsRpcService::new(config.pool.clone()));
         let instances_service = InstancesServer::new(InstancesRpcService::new(config.pool.clone()));
@@ -103,6 +109,7 @@ impl Server {
             .layer(trace)
             .layer(cors)
             .add_service(health_service)
+            .add_service(tonic_web::enable(datacenters_service))
             .add_service(tonic_web::enable(hypervisors_service))
             .add_service(tonic_web::enable(instances_service))
             .add_service(tonic_web::enable(resources_service))

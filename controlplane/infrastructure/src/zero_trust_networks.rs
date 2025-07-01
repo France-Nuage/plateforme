@@ -1,6 +1,6 @@
-pub mod model;
-pub mod rpc;
-pub mod service;
+mod model;
+mod rpc;
+mod service;
 
 pub use model::{ZeroTrustNetwork, ZeroTrustNetworkFactory};
 pub use rpc::ZeroTrustNetworkRpcService;
