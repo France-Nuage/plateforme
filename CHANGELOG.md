@@ -1,3 +1,10 @@
+# [1.24.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.23.0...v1.24.0) (2025-07-01)
+
+
+### Features
+
+* add datacenters to controlplane ([588cc6b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/588cc6b9a33fd9594bf1a49e80d98f5dd2fa851d))
+
 # [1.23.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.22.0...v1.23.0) (2025-07-01)
 
 
