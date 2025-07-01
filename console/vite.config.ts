@@ -18,6 +18,9 @@ for (const envVar of requiredEnvVars) {
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    sourcemap: true,
+  },
   plugins: [react()],
   resolve: {
     alias: {
