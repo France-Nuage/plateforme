@@ -22,9 +22,9 @@ pub struct ZeroTrustNetwork {
     /// Zero trust network name
     pub name: String,
 
-    // Creation time of the zero trust network type name
+    // Creation time of the zero trust network type
     pub created_at: chrono::DateTime<chrono::Utc>,
 
-    // Time of the zero trust network type name last update
+    // Time of the zero trust network type last update
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }

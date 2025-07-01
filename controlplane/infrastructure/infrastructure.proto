@@ -5,6 +5,13 @@ package francenuage.fr.api.controlplane.v1.infrastructure;
 import "google/protobuf/timestamp.proto";
 import "validate.proto";
 
+// Datacenters service providers operations to manage datacenter resources.
+service Datacenters {
+  // List retrieves information about Human-readable available datacenters.
+  // Returns a collection of datacenters.
+  rpc List(ListDatacentersRequest) returns (ListDatacentersResponse);
+}
+
 // ZeroTrustNetworks service provides operations to manage zero trust network resources.
 // Zero trust networks implement security models where no user or device is trusted by default.
 service ZeroTrustNetworks {
@@ -19,6 +26,29 @@ service ZeroTrustNetworkTypes {
     // List retrieves information about all available zero trust network types.
     // Returns a collection of zero trust network types.
     rpc List(ListZeroTrustNetworkTypesRequest) returns (ListZeroTrustNetworkTypesResponse);
+}
+
+// Datacenter represents a physical datacenter.
+message Datacenter {
+    // Unique identifier for the datacenter
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    }];
+    
+    // Human-readable name of the datacenter
+    string name = 2 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 64,
+        pattern: "^[a-zA-Z0-9_\\- ]+$"  // Alphanumeric with spaces, underscores and hyphens
+    }];
+ 
+    // Creation time of the zero trust network
+    google.protobuf.Timestamp created_at = 3;
+
+    // Time of the zero trust network's last update
+    google.protobuf.Timestamp updated_at = 4;
 }
 
 // ZeroTrustNetwork represents a zero trust network configuration.
@@ -81,6 +111,15 @@ message ZeroTrustNetworkType {
 
     // Time of the zero trust network type's last update
     google.protobuf.Timestamp updated_at = 4;
+}
+
+// ListDatacenterRequest is an empty message for listing datacenters.
+message ListDatacentersRequest {}
+
+// ListDatacentersResponse contains a collection of datacenter information.
+message ListDatacentersResponse {
+    // List of datacenter details
+    repeated Datacenter datacenters = 1;
 }
 
 // ListZeroTrustNetworksRequest is an empty message for listing zero trust networks.
