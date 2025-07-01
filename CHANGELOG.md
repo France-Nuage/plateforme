@@ -1,3 +1,11 @@
+# [1.25.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.24.0...v1.25.0) (2025-07-01)
+
+
+### Features
+
+* expose datacenters to console ([8548b23](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/8548b23c578e4a374c1e639e7c8725c22819137b))
+* expose relation between datacenter and hypervisor ([5e9b957](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/5e9b95708716a7d6024ff4fb91ea795a0f9595e1))
+
 # [1.24.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.23.0...v1.24.0) (2025-07-01)
 
 
