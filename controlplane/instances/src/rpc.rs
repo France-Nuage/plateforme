@@ -135,7 +135,10 @@ mod tests {
 
         Instance::factory()
             .for_hypervisor_with(move |hypervisor| {
-                hypervisor.organization_id(organization.id).url(mock_url)
+                hypervisor
+                    .for_default_datacenter()
+                    .organization_id(organization.id)
+                    .url(mock_url)
             })
             .for_project_with(move |project| project.organization_id(organization.id))
             .create(&pool)
@@ -175,7 +178,10 @@ mod tests {
         let instance = Instance::factory()
             .for_project_with(move |project| project.organization_id(organization.id))
             .for_hypervisor_with(move |hypervisor| {
-                hypervisor.url(mock_url).organization_id(organization.id)
+                hypervisor
+                    .for_default_datacenter()
+                    .url(mock_url)
+                    .organization_id(organization.id)
             })
             .distant_id(String::from("100"))
             .create(&pool)
@@ -213,7 +219,10 @@ mod tests {
         let instance = Instance::factory()
             .for_project_with(move |project| project.organization_id(organization.id))
             .for_hypervisor_with(move |hypervisor| {
-                hypervisor.url(mock_url).organization_id(organization.id)
+                hypervisor
+                    .for_default_datacenter()
+                    .url(mock_url)
+                    .organization_id(organization.id)
             })
             .distant_id(String::from("100"))
             .create(&pool)
@@ -250,7 +259,10 @@ mod tests {
         let instance = Instance::factory()
             .for_project_with(move |project| project.organization_id(organization.id))
             .for_hypervisor_with(move |hypervisor| {
-                hypervisor.url(mock_url).organization_id(organization.id)
+                hypervisor
+                    .for_default_datacenter()
+                    .url(mock_url)
+                    .organization_id(organization.id)
             })
             .distant_id(String::from("100"))
             .create(&pool)
@@ -288,7 +300,10 @@ mod tests {
         let instance = Instance::factory()
             .for_project_with(move |project| project.organization_id(organization.id))
             .for_hypervisor_with(move |hypervisor| {
-                hypervisor.url(mock_url).organization_id(organization.id)
+                hypervisor
+                    .for_default_datacenter()
+                    .url(mock_url)
+                    .organization_id(organization.id)
             })
             .distant_id(String::from("100"))
             .create(&pool)

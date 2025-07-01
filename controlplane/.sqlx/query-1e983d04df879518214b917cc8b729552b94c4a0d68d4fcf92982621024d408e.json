@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE hypervisors SET organization_id = $2, url = $3, authorization_token = $4, storage_name = $5 WHERE id = $1 RETURNING id, organization_id, url, authorization_token, storage_name",
+  "query": "SELECT id, datacenter_id, organization_id, url, authorization_token, storage_name FROM hypervisors WHERE hypervisors.id = $1",
   "describe": {
     "columns": [
       {
@@ -10,32 +10,33 @@
       },
       {
         "ordinal": 1,
-        "name": "organization_id",
+        "name": "datacenter_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 2,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
         "name": "url",
         "type_info": "Text"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "authorization_token",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "storage_name",
         "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Uuid",
-        "Text",
-        "Text",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -43,8 +44,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "17d0af3e0794c6a017a6f35d5b2581f9b29ebeb9978aafd930c82ab8ed5ee0b9"
+  "hash": "1e983d04df879518214b917cc8b729552b94c4a0d68d4fcf92982621024d408e"
 }

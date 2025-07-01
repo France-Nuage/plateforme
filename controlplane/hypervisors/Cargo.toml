@@ -7,6 +7,7 @@ edition = "2024"
 database = { path = "../database" }
 derive_factory = { path = "../derive_factory" }
 derive_repository = { path = "../derive_repository" }
+infrastructure = { path = "../infrastructure" }
 prost = "0.13"
 resources = { path = "../resources" }
 sqlx = { version = "0.8", features = [

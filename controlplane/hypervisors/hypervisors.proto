@@ -37,8 +37,11 @@ message RegisterHypervisorRequest {
     // URL endpoint of the hypervisor API
     string url = 3;
 
+    // Id of the datacenter this hypervisor belongs to
+    string datacenter_id = 4;
+
     // Id of the organization this hypervisor belongs to
-    string organization_id = 4;
+    string organization_id = 5;
 }
 
 // RegisterHypervisorResponse contains the result of a register hypervisor operation.
@@ -67,6 +70,9 @@ message Hypervisor {
     // URL endpoint of the hypervisor API
     string url = 3;
 
+    // Id of the datacenter the hypervisor belongs to
+    string datacenter_id = 4;
+
     // Id of the organization the hypervisor belongs to
-    string organization_id = 4;
+    string organization_id = 5;
 }

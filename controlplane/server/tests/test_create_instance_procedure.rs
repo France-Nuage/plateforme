@@ -28,6 +28,7 @@ async fn test_the_create_instance_procedure_works(
 
     Hypervisor::factory()
         .url(mock_url)
+        .for_default_datacenter()
         .organization_id(organization.id)
         .create(&pool)
         .await?;

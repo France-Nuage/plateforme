@@ -26,7 +26,10 @@ async fn test_the_clone_instance_procedure_works(
     let instance = Instance::factory()
         .distant_id("100".into())
         .for_hypervisor_with(move |hypervisor| {
-            hypervisor.url(mock_url).organization_id(organization.id)
+            hypervisor
+                .url(mock_url)
+                .for_default_datacenter()
+                .organization_id(organization.id)
         })
         .for_project_with(move |project| project.organization_id(organization.id))
         .create(&pool)

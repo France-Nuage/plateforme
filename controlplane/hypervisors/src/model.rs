@@ -1,6 +1,7 @@
 use database::Persistable;
 use derive_factory::Factory;
 use derive_repository::Repository;
+use infrastructure::DatacenterFactory;
 use resources::organizations::OrganizationFactory;
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -10,6 +11,9 @@ pub struct Hypervisor {
     /// The hypervisor id
     #[repository(primary)]
     pub id: Uuid,
+
+    #[factory(relation = "DatacenterFactory")]
+    pub datacenter_id: Uuid,
 
     /// The id of the organization the hypervisor belongs to
     #[factory(relation = "OrganizationFactory")]

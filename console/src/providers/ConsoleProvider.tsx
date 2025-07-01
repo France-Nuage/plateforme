@@ -53,6 +53,7 @@ export type Actions = {
    */
   registerHypervisor: (
     authorizationToken: string,
+    datacenterId: string,
     organizationId: string,
     storageName: string,
     url: string,
@@ -122,6 +123,7 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
         ),
       registerHypervisor: (
         authorizationToken,
+        datacenterId,
         organizationId,
         storageName,
         url,
@@ -129,6 +131,7 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
         dispatch(
           registerHypervisor({
             authorizationToken,
+            datacenterId,
             organizationId,
             storageName,
             url,

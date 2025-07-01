@@ -34,6 +34,7 @@ export class HypervisorRpcService implements HypervisorService {
    */
   public register({
     authorizationToken = '',
+    datacenterId,
     storageName,
     organizationId,
     url,
@@ -41,6 +42,7 @@ export class HypervisorRpcService implements HypervisorService {
     return this.client
       .registerHypervisor({
         authorizationToken,
+        datacenterId,
         organizationId,
         storageName,
         url,
@@ -55,6 +57,7 @@ export const hypervisorsRpcService = new HypervisorRpcService(transport);
 // Converts a protocol Hypervisor into a concrete Hypervisor.
 function fromRpcHypervisor(hypervisor: RpcHypervisor): Hypervisor {
   return {
+    datacenterId: hypervisor.datacenterId,
     id: hypervisor.id,
     organizationId: hypervisor.organizationId,
     storageName: hypervisor.storageName,

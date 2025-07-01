@@ -5,7 +5,7 @@ use crate::{Problem, model::Hypervisor};
 pub async fn list(pool: &sqlx::PgPool) -> Result<Vec<Hypervisor>, Problem> {
     sqlx::query_as!(
         Hypervisor,
-        "SELECT id, organization_id, url, authorization_token, storage_name FROM hypervisors"
+        "SELECT id, datacenter_id, organization_id, url, authorization_token, storage_name FROM hypervisors"
     )
     .fetch_all(pool)
     .await
@@ -19,11 +19,12 @@ pub async fn create(
     sqlx::query_as!(
         Hypervisor,
         r#"
-        INSERT INTO hypervisors (id, organization_id, url, authorization_token, storage_name)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, organization_id, url, authorization_token, storage_name
+        INSERT INTO hypervisors (id, datacenter_id, organization_id, url, authorization_token, storage_name)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id, datacenter_id, organization_id, url, authorization_token, storage_name
         "#,
         &hypervisor.id,
+        &hypervisor.datacenter_id,
         &hypervisor.organization_id,
         &hypervisor.url,
         &hypervisor.authorization_token,
@@ -36,7 +37,7 @@ pub async fn create(
 pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Hypervisor, Problem> {
     sqlx::query_as!(
         Hypervisor,
-        "SELECT id, organization_id, url, authorization_token, storage_name FROM hypervisors WHERE hypervisors.id = $1", id
+        "SELECT id, datacenter_id, organization_id, url, authorization_token, storage_name FROM hypervisors WHERE hypervisors.id = $1", id
     )
     .fetch_one(pool)
     .await.map_err(|err| {
