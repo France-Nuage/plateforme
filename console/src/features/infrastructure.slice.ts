@@ -1,9 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { Datacenter } from '@/generated/rpc/infrastructure';
 import { services } from '@/services';
 import { RootState } from '@/store';
-import { ZeroTrustNetwork, ZeroTrustNetworkType } from '@/types';
+import { Datacenter, ZeroTrustNetwork, ZeroTrustNetworkType } from '@/types';
 
 /**
  * Fetch all datacenters
