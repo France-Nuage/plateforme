@@ -13,7 +13,58 @@ import type { ListZeroTrustNetworkTypesRequest } from './infrastructure';
 import { ZeroTrustNetworks } from './infrastructure';
 import type { ListZeroTrustNetworksResponse } from './infrastructure';
 import type { ListZeroTrustNetworksRequest } from './infrastructure';
+import { Datacenters } from './infrastructure';
+import type { ListDatacentersResponse } from './infrastructure';
+import type { ListDatacentersRequest } from './infrastructure';
 
+/**
+ * Datacenters service providers operations to manage datacenter resources.
+ *
+ * @generated from protobuf service francenuage.fr.api.controlplane.v1.infrastructure.Datacenters
+ */
+export interface IDatacentersClient {
+  /**
+   * List retrieves information about Human-readable available datacenters.
+   * Returns a collection of datacenters.
+   *
+   * @generated from protobuf rpc: List
+   */
+  list(
+    input: ListDatacentersRequest,
+    options?: RpcOptions,
+  ): UnaryCall<ListDatacentersRequest, ListDatacentersResponse>;
+}
+/**
+ * Datacenters service providers operations to manage datacenter resources.
+ *
+ * @generated from protobuf service francenuage.fr.api.controlplane.v1.infrastructure.Datacenters
+ */
+export class DatacentersClient implements IDatacentersClient, ServiceInfo {
+  typeName = Datacenters.typeName;
+  methods = Datacenters.methods;
+  options = Datacenters.options;
+  constructor(private readonly _transport: RpcTransport) {}
+  /**
+   * List retrieves information about Human-readable available datacenters.
+   * Returns a collection of datacenters.
+   *
+   * @generated from protobuf rpc: List
+   */
+  list(
+    input: ListDatacentersRequest,
+    options?: RpcOptions,
+  ): UnaryCall<ListDatacentersRequest, ListDatacentersResponse> {
+    const method = this.methods[0],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<ListDatacentersRequest, ListDatacentersResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+}
 /**
  * ZeroTrustNetworks service provides operations to manage zero trust network resources.
  * Zero trust networks implement security models where no user or device is trusted by default.

@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 
 import {
   clearAuthenticationState,
+  fetchAllDatacenters,
   fetchAllHypervisors,
   fetchAllInstances,
   fetchAllOrganizations,
@@ -55,6 +56,7 @@ export const ApplicationLoader: FunctionComponent<ApplicationLoaderProps> = ({
   // Load data on provider instantiation. This should be moved to the
   // ApplicationLoader component.
   useEffect(() => {
+    dispatch(fetchAllDatacenters());
     dispatch(fetchAllHypervisors());
     dispatch(fetchAllInstances());
     dispatch(fetchAllOrganizations());

@@ -7,6 +7,37 @@ import { ServiceType } from '@protobuf-ts/runtime-rpc';
 import { Timestamp } from './google/protobuf/timestamp';
 
 /**
+ * Datacenter represents a physical datacenter.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.infrastructure.Datacenter
+ */
+export interface Datacenter {
+  /**
+   * Unique identifier for the datacenter
+   *
+   * @generated from protobuf field: string id = 1
+   */
+  id: string;
+  /**
+   * Human-readable name of the datacenter
+   *
+   * @generated from protobuf field: string name = 2
+   */
+  name: string;
+  /**
+   * Creation time of the zero trust network
+   *
+   * @generated from protobuf field: google.protobuf.Timestamp created_at = 3
+   */
+  createdAt?: Timestamp;
+  /**
+   * Time of the zero trust network's last update
+   *
+   * @generated from protobuf field: google.protobuf.Timestamp updated_at = 4
+   */
+  updatedAt?: Timestamp;
+}
+/**
  * ZeroTrustNetwork represents a zero trust network configuration.
  * Zero trust networks enforce strict identity verification and access controls.
  *
@@ -83,6 +114,25 @@ export interface ZeroTrustNetworkType {
   updatedAt?: Timestamp;
 }
 /**
+ * ListDatacenterRequest is an empty message for listing datacenters.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.infrastructure.ListDatacentersRequest
+ */
+export interface ListDatacentersRequest {}
+/**
+ * ListDatacentersResponse contains a collection of datacenter information.
+ *
+ * @generated from protobuf message francenuage.fr.api.controlplane.v1.infrastructure.ListDatacentersResponse
+ */
+export interface ListDatacentersResponse {
+  /**
+   * List of datacenter details
+   *
+   * @generated from protobuf field: repeated francenuage.fr.api.controlplane.v1.infrastructure.Datacenter datacenters = 1
+   */
+  datacenters: Datacenter[];
+}
+/**
  * ListZeroTrustNetworksRequest is an empty message for listing zero trust networks.
  *
  * @generated from protobuf message francenuage.fr.api.controlplane.v1.infrastructure.ListZeroTrustNetworksRequest
@@ -120,6 +170,45 @@ export interface ListZeroTrustNetworkTypesResponse {
    */
   zeroTrustNetworkTypes: ZeroTrustNetworkType[];
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class Datacenter$Type extends MessageType<Datacenter> {
+  constructor() {
+    super('francenuage.fr.api.controlplane.v1.infrastructure.Datacenter', [
+      {
+        no: 1,
+        name: 'id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+      {
+        no: 2,
+        name: 'name',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: {
+              minLen: '1',
+              maxLen: '64',
+              pattern: '^[a-zA-Z0-9_\\- ]+$',
+            },
+          },
+        },
+      },
+      { no: 3, name: 'created_at', kind: 'message', T: () => Timestamp },
+      { no: 4, name: 'updated_at', kind: 'message', T: () => Timestamp },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.infrastructure.Datacenter
+ */
+export const Datacenter = new Datacenter$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ZeroTrustNetwork$Type extends MessageType<ZeroTrustNetwork> {
   constructor() {
@@ -243,6 +332,40 @@ class ZeroTrustNetworkType$Type extends MessageType<ZeroTrustNetworkType> {
  */
 export const ZeroTrustNetworkType = new ZeroTrustNetworkType$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class ListDatacentersRequest$Type extends MessageType<ListDatacentersRequest> {
+  constructor() {
+    super(
+      'francenuage.fr.api.controlplane.v1.infrastructure.ListDatacentersRequest',
+      [],
+    );
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.infrastructure.ListDatacentersRequest
+ */
+export const ListDatacentersRequest = new ListDatacentersRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListDatacentersResponse$Type extends MessageType<ListDatacentersResponse> {
+  constructor() {
+    super(
+      'francenuage.fr.api.controlplane.v1.infrastructure.ListDatacentersResponse',
+      [
+        {
+          no: 1,
+          name: 'datacenters',
+          kind: 'message',
+          repeat: 2 /*RepeatType.UNPACKED*/,
+          T: () => Datacenter,
+        },
+      ],
+    );
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.api.controlplane.v1.infrastructure.ListDatacentersResponse
+ */
+export const ListDatacentersResponse = new ListDatacentersResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class ListZeroTrustNetworksRequest$Type extends MessageType<ListZeroTrustNetworksRequest> {
   constructor() {
     super(
@@ -314,6 +437,20 @@ class ListZeroTrustNetworkTypesResponse$Type extends MessageType<ListZeroTrustNe
  */
 export const ListZeroTrustNetworkTypesResponse =
   new ListZeroTrustNetworkTypesResponse$Type();
+/**
+ * @generated ServiceType for protobuf service francenuage.fr.api.controlplane.v1.infrastructure.Datacenters
+ */
+export const Datacenters = new ServiceType(
+  'francenuage.fr.api.controlplane.v1.infrastructure.Datacenters',
+  [
+    {
+      name: 'List',
+      options: {},
+      I: ListDatacentersRequest,
+      O: ListDatacentersResponse,
+    },
+  ],
+);
 /**
  * @generated ServiceType for protobuf service francenuage.fr.api.controlplane.v1.infrastructure.ZeroTrustNetworks
  */

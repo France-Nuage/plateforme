@@ -94,6 +94,9 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
 
     // Extract state subsets to expose to the plasmic app
     const application = useAppSelector((state) => state.application);
+    const datacenters = useAppSelector(
+      (state) => state.infrastructure.datacenters,
+    );
     const hypervisors = useAppSelector(
       (state) => state.hypervisors.hypervisors,
     );
@@ -163,6 +166,7 @@ export const ConsoleProvider = forwardRef<Actions, Props>(
           name="France Nuage"
           data={{
             application,
+            datacenters,
             hypervisors,
             instances,
             organizations,

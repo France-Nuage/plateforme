@@ -1,5 +1,8 @@
 import { ServiceMode } from '@/types';
 
+import { DatacenterService } from './datacenter.interface';
+import { datacenterMockService } from './datacenter.mock';
+import { datacenterRpcService } from './datacenter.rpc';
 import { HypervisorService } from './hypervisor.interface';
 import { hypervisorMockService } from './hypervisor.mock';
 import { hypervisorsRpcService } from './hypervisor.rpc';
@@ -20,6 +23,7 @@ import { zeroTrustNetworkMockService } from './zero-trust-network.mock';
 import { zeroTrustNetworkRpcService } from './zero-trust-network.rpc';
 
 type Services = {
+  datacenter: DatacenterService;
   hypervisor: HypervisorService;
   instance: InstanceService;
   organization: OrganizationService;
@@ -30,6 +34,7 @@ type Services = {
 
 export const services: Record<ServiceMode, Services> = {
   [ServiceMode.Mock]: {
+    datacenter: datacenterMockService,
     hypervisor: hypervisorMockService,
     instance: instanceMockService,
     organization: organizationMockService,
@@ -38,6 +43,7 @@ export const services: Record<ServiceMode, Services> = {
     zeroTrustNetworkType: zeroTrustNetworkTypeMockService,
   },
   [ServiceMode.Rpc]: {
+    datacenter: datacenterRpcService,
     hypervisor: hypervisorsRpcService,
     instance: instanceRpcService,
     organization: organizationRpcService,

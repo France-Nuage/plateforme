@@ -1,3 +1,4 @@
+export * from './datacenter';
 export * from './hypervisor';
 export * from './instance';
 export * from './organization';
