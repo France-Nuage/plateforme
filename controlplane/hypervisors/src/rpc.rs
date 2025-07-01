@@ -136,6 +136,7 @@ mod tests {
             hypervisors_server::Hypervisors,
         },
     };
+    use infrastructure::Datacenter;
     use resources::organizations::Organization;
     use tonic::Request;
 
@@ -144,12 +145,14 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_register_hypervisor_works(pool: sqlx::PgPool) {
         // Arrange a service
+        let datacenter = Datacenter::factory().create(&pool).await.unwrap();
         let organization = Organization::factory().create(&pool).await.unwrap();
         let service = HypervisorsRpcService::new(pool);
 
         // Act the call to the register_hypervisor procedure
         let result = service
             .register_hypervisor(Request::new(RegisterHypervisorRequest {
+                datacenter_id: datacenter.id.to_string(),
                 organization_id: organization.id.to_string(),
                 ..Default::default()
             }))
@@ -179,6 +182,7 @@ mod tests {
     async fn test_detach_hypervisor_works(pool: sqlx::PgPool) {
         // Arrange a service
         let hypervisor = Hypervisor::factory()
+            .for_default_datacenter()
             .for_organization_with(|organization| organization)
             .create(&pool)
             .await

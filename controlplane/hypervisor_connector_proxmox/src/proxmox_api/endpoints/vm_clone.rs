@@ -25,6 +25,7 @@ pub async fn vm_clone(
 #[derive(Debug, Serialize)]
 pub struct VMCloneOptions {
     pub newid: u32,
+    pub full: bool,
 }
 
 #[cfg(feature = "mock")]
@@ -60,7 +61,10 @@ mod tests {
     async fn test_vm_status_read() {
         let client = reqwest::Client::new();
         let server = MockServer::new().await.with_vm_clone();
-        let options = VMCloneOptions { newid: 101 };
+        let options = VMCloneOptions {
+            newid: 101,
+            full: true,
+        };
         let result = vm_clone(&server.url(), &client, "", "pve-node1", 100, &options).await;
 
         assert!(result.is_ok());

@@ -10,6 +10,7 @@ async fn test_the_detach_hypervisor_procedure_works(
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
     let hypervisor = Hypervisor::factory()
+        .for_default_datacenter()
         .for_organization_with(|organization| organization)
         .create(&pool)
         .await?;

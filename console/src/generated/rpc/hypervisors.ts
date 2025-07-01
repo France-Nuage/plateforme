@@ -48,9 +48,15 @@ export interface RegisterHypervisorRequest {
    */
   url: string;
   /**
+   * Id of the datacenter this hypervisor belongs to
+   *
+   * @generated from protobuf field: string datacenter_id = 4
+   */
+  datacenterId: string;
+  /**
    * Id of the organization this hypervisor belongs to
    *
-   * @generated from protobuf field: string organization_id = 4
+   * @generated from protobuf field: string organization_id = 5
    */
   organizationId: string;
 }
@@ -111,9 +117,15 @@ export interface Hypervisor {
    */
   url: string;
   /**
+   * Id of the datacenter the hypervisor belongs to
+   *
+   * @generated from protobuf field: string datacenter_id = 4
+   */
+  datacenterId: string;
+  /**
    * Id of the organization the hypervisor belongs to
    *
-   * @generated from protobuf field: string organization_id = 4
+   * @generated from protobuf field: string organization_id = 5
    */
   organizationId: string;
 }
@@ -172,6 +184,12 @@ class RegisterHypervisorRequest$Type extends MessageType<RegisterHypervisorReque
         { no: 3, name: 'url', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
         {
           no: 4,
+          name: 'datacenter_id',
+          kind: 'scalar',
+          T: 9 /*ScalarType.STRING*/,
+        },
+        {
+          no: 5,
           name: 'organization_id',
           kind: 'scalar',
           T: 9 /*ScalarType.STRING*/,
@@ -237,6 +255,12 @@ class Hypervisor$Type extends MessageType<Hypervisor> {
       { no: 3, name: 'url', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
         no: 4,
+        name: 'datacenter_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 5,
         name: 'organization_id',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,

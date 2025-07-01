@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker';
 import { Hypervisor } from '@/types';
 
 export const hypervisor = (): Hypervisor => ({
+  datacenterId: faker.string.uuid(),
   id: faker.string.uuid(),
   organizationId: faker.string.uuid(),
   storageName: faker.commerce.productName(),

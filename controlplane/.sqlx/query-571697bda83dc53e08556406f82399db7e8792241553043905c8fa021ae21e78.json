@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO hypervisors (id, organization_id, url, authorization_token, storage_name) VALUES ($1, $2, $3, $4, $5) RETURNING id, organization_id, url, authorization_token, storage_name",
+  "query": "\n        INSERT INTO hypervisors (id, datacenter_id, organization_id, url, authorization_token, storage_name)\n        VALUES ($1, $2, $3, $4, $5, $6)\n        RETURNING id, datacenter_id, organization_id, url, authorization_token, storage_name\n        ",
   "describe": {
     "columns": [
       {
@@ -10,27 +10,33 @@
       },
       {
         "ordinal": 1,
-        "name": "organization_id",
+        "name": "datacenter_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 2,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
         "name": "url",
         "type_info": "Text"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "authorization_token",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "storage_name",
         "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
+        "Uuid",
         "Uuid",
         "Uuid",
         "Text",
@@ -43,8 +49,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "ced81058e4b73b1ff3f3fd9bc630c669e9526a75c9f766c2768544ece9c2734b"
+  "hash": "571697bda83dc53e08556406f82399db7e8792241553043905c8fa021ae21e78"
 }

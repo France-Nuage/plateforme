@@ -39,7 +39,10 @@ impl InstanceService for ProxmoxInstanceService {
             helpers::get_vm_execution_node(&self.api_url, &self.client, &self.authorization, id)
                 .await?;
 
-        let options = VMCloneOptions { newid: next_id };
+        let options = VMCloneOptions {
+            newid: next_id,
+            full: true,
+        };
 
         let task = crate::proxmox_api::vm_clone(
             &self.api_url,

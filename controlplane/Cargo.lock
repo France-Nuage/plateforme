@@ -991,6 +991,7 @@ dependencies = [
  "database",
  "derive_factory",
  "derive_repository",
+ "infrastructure",
  "prost",
  "resources",
  "sqlx",

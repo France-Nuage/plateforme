@@ -25,7 +25,10 @@ async fn test_the_delete_instance_procedure_works(
     let instance = Instance::factory()
         .distant_id("100".into())
         .for_hypervisor_with(move |hypervisor| {
-            hypervisor.organization_id(organization.id).url(mock_url)
+            hypervisor
+                .for_default_datacenter()
+                .organization_id(organization.id)
+                .url(mock_url)
         })
         .for_project_with(move |project| project.organization_id(organization.id))
         .create(&pool)

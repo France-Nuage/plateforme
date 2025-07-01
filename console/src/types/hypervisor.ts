@@ -8,6 +8,9 @@ export type Hypervisor = {
   // The hypervisor default storage name.
   storageName: string;
 
+  // The id of the datacenter the hypervisor belongs to.
+  datacenterId: string;
+
   // The id of the organization the hypervisor belongs to.
   organizationId: string;
 
@@ -20,7 +23,7 @@ export type Hypervisor = {
  */
 export type HypervisorFormValue = Pick<
   Hypervisor,
-  'storageName' | 'organizationId' | 'url'
+  'storageName' | 'datacenterId' | 'organizationId' | 'url'
 > & {
   authorizationToken: string;
 };

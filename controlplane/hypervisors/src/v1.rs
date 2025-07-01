@@ -20,8 +20,12 @@ impl TryFrom<RegisterHypervisorRequest> for crate::model::Hypervisor {
         let organization_id = Uuid::parse_str(&value.organization_id)
             .map_err(|_| Status::invalid_argument("Invalid organization_id format"))?;
 
+        let datacenter_id = Uuid::parse_str(&value.datacenter_id)
+            .map_err(|_| Status::invalid_argument("Invalid datacenter_id format"))?;
+
         Ok(crate::model::Hypervisor {
             id: Uuid::new_v4(),
+            datacenter_id,
             organization_id,
             url: value.url,
             authorization_token: value.authorization_token,
@@ -38,6 +42,7 @@ impl From<crate::model::Hypervisor> for Hypervisor {
     fn from(value: crate::model::Hypervisor) -> Self {
         Hypervisor {
             id: value.id.to_string(),
+            datacenter_id: value.datacenter_id.to_string(),
             organization_id: value.organization_id.to_string(),
             storage_name: value.storage_name,
             url: value.url,

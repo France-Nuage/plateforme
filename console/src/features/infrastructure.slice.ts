@@ -2,7 +2,18 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { services } from '@/services';
 import { RootState } from '@/store';
-import { ZeroTrustNetwork, ZeroTrustNetworkType } from '@/types';
+import { Datacenter, ZeroTrustNetwork, ZeroTrustNetworkType } from '@/types';
+
+/**
+ * Fetch all datacenters
+ */
+export const fetchAllDatacenters = createAsyncThunk<
+  Datacenter[],
+  void,
+  { state: RootState }
+>('resources/fetchAllDatacenters', async (_, { getState }) =>
+  services[getState().application.mode].datacenter.list(),
+);
 
 /**
  * Fetch all zero trust network types
@@ -30,6 +41,7 @@ export const fetchAllZeroTrustNetworks = createAsyncThunk<
  * The resources slice state shape.
  */
 export type InfrastructureState = {
+  datacenters: Datacenter[];
   zeroTrustNetworkTypes: ZeroTrustNetworkType[];
   zeroTrustNetworks: ZeroTrustNetwork[];
 };
@@ -38,6 +50,7 @@ export type InfrastructureState = {
  * The resources slice initial state.
  */
 const initialState: InfrastructureState = {
+  datacenters: [],
   zeroTrustNetworks: [],
   zeroTrustNetworkTypes: [],
 };
@@ -48,6 +61,9 @@ const initialState: InfrastructureState = {
 export const infrastructureSlice = createSlice({
   extraReducers: (builder) => {
     builder
+      .addCase(fetchAllDatacenters.fulfilled, (state, action) => {
+        state.datacenters = action.payload;
+      })
       .addCase(fetchAllZeroTrustNetworkTypes.fulfilled, (state, action) => {
         state.zeroTrustNetworkTypes = action.payload;
       })
