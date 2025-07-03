@@ -18,8 +18,8 @@ sqlx = { version = "0.8", features = [
   "uuid",
 ] }
 thiserror = "2"
-tonic = "0.12"
+tonic = "0.13"
 uuid = "1"
 
 [build-dependencies]
-tonic-build = "0.12"
+tonic-build = "0.13"
