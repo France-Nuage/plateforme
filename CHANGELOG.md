@@ -1,3 +1,10 @@
+## [1.25.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.25.0...v1.25.1) (2025-07-08)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @plasmicapp/loader-react to v1.0.392 ([7e5a372](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7e5a372b98c9c817c8eba9973263dbbf64b3569a))
+
 # [1.25.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.24.0...v1.25.0) (2025-07-01)
 
 
