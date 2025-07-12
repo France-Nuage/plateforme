@@ -1,4 +1,4 @@
-mod api_response;
+pub mod api_response;
 mod endpoints;
 pub mod helpers;
 mod problem;

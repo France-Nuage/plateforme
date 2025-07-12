@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use database::Persistable;
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor_connector::{InstanceConfig, InstanceService};
@@ -37,44 +39,75 @@ impl InstancesService {
         &self,
         hypervisor: &Hypervisor,
     ) -> Result<Vec<Instance>, Problem> {
+        // Get the default project for the hypervisor
         let default_project = self
             .resources_service
             .get_default_project(&hypervisor.organization_id)
             .await?;
-        let distant_instances = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
-            .list()
-            .await?;
+
+        // Get a instance_service instance
+        let instance_service = Arc::new(hypervisor_connector_resolver::resolve_for_hypervisor(
+            hypervisor,
+        ));
+
+        // Retrieve the distant instances
+        let distant_instances = instance_service.list().await?;
 
         let instances = stream::iter(distant_instances)
-            .map(|distant_instance| async move {
-                repository::find_one_by_distant_id(&self.pool, &distant_instance.id)
-                    .await
-                    .map(|result| {
-                        let existing = result.unwrap_or(Instance {
-                            id: Uuid::new_v4(),
-                            project_id: default_project.id,
-                            ..Default::default()
-                        });
+            .map(|distant_instance| {
+                let instance_service = instance_service.clone();
+                async move {
+                    let result =
+                        repository::find_one_by_distant_id(&self.pool, &distant_instance.id).await;
 
-                        Instance {
-                            id: existing.id,
-                            hypervisor_id: hypervisor.id,
-                            project_id: existing.project_id,
-                            zero_trust_network_id: existing.zero_trust_network_id,
-                            distant_id: distant_instance.id,
-                            cpu_usage_percent: distant_instance.cpu_usage_percent as f64,
-                            disk_usage_bytes: distant_instance.disk_usage_bytes as i64,
-                            ip_v4: existing.ip_v4,
-                            max_cpu_cores: distant_instance.max_cpu_cores as i32,
-                            max_disk_bytes: distant_instance.max_disk_bytes as i64,
-                            max_memory_bytes: distant_instance.max_memory_bytes as i64,
-                            memory_usage_bytes: distant_instance.memory_usage_bytes as i64,
-                            name: distant_instance.name,
-                            status: distant_instance.status.into(),
-                            created_at: chrono::Utc::now(),
-                            updated_at: chrono::Utc::now(),
+                    match result {
+                        Ok(maybe_instance) => {
+                            let mut existing = maybe_instance.unwrap_or(Instance {
+                                id: Uuid::new_v4(),
+                                project_id: default_project.id,
+                                ..Default::default()
+                            });
+
+                            // Try to retrieve the ip address if it is not known yet
+                            if existing.ip_v4 == *"0.0.0.0" {
+                                let ip = match instance_service
+                                    .get_ip_address(&distant_instance.id)
+                                    .await
+                                {
+                                    Ok(value) => Ok(Some(value)),
+                                    Err(hypervisor_connector::Problem::InstanceNotRunning(_)) => {
+                                        Ok(None)
+                                    }
+                                    Err(err) => Err(err),
+                                }?;
+
+                                if let Some(ip) = ip {
+                                    existing.ip_v4 = ip;
+                                }
+                            }
+
+                            Ok(Instance {
+                                id: existing.id,
+                                hypervisor_id: hypervisor.id,
+                                project_id: existing.project_id,
+                                zero_trust_network_id: existing.zero_trust_network_id,
+                                distant_id: distant_instance.id,
+                                cpu_usage_percent: distant_instance.cpu_usage_percent as f64,
+                                disk_usage_bytes: distant_instance.disk_usage_bytes as i64,
+                                ip_v4: existing.ip_v4,
+                                max_cpu_cores: distant_instance.max_cpu_cores as i32,
+                                max_disk_bytes: distant_instance.max_disk_bytes as i64,
+                                max_memory_bytes: distant_instance.max_memory_bytes as i64,
+                                memory_usage_bytes: distant_instance.memory_usage_bytes as i64,
+                                name: distant_instance.name,
+                                status: distant_instance.status.into(),
+                                created_at: chrono::Utc::now(),
+                                updated_at: chrono::Utc::now(),
+                            })
                         }
-                    })
+                        Err(err) => Err(Problem::from(err)),
+                    }
+                }
             })
             .buffer_unordered(4)
             .try_collect::<Vec<Instance>>()
