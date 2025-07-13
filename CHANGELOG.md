@@ -1,3 +1,10 @@
+# [1.27.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.26.0...v1.27.0) (2025-07-13)
+
+
+### Features
+
+* wire datacenter mocks ([57300f1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/57300f1cbeca3d6ab38be233f978fa530af516db))
+
 # [1.26.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.25.1...v1.26.0) (2025-07-13)
 
 
