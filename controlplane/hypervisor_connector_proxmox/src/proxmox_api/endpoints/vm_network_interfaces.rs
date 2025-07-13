@@ -2,6 +2,21 @@ use serde::Deserialize;
 
 use crate::proxmox_api::api_response::{ApiResponse, ApiResponseExt};
 
+/// Retrieves network interface information for a Proxmox VM via the QEMU guest agent.
+///
+/// # Arguments
+/// * `api_url` - Base URL of the Proxmox API
+/// * `client` - HTTP client for making requests
+/// * `authorization` - Authorization header value
+/// * `node_id` - Proxmox node identifier
+/// * `vm_id` - VM identifier
+///
+/// # Returns
+/// Returns the network interfaces data on success, or a Problem on failure.
+///
+/// # Errors
+/// May return `Problem::MissingAgent` if QEMU guest agent is not configured,
+/// or `Problem::VMNotRunning` if the VM is not currently running.
 pub async fn vm_network_interfaces(
     api_url: &str,
     client: &reqwest::Client,

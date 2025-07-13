@@ -57,7 +57,7 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
                     message if missing_agent_rx.is_match(message) => Err(Problem::MissingAgent),
                     // Handle "VM Not Found" error
                     message if vm_not_found_rx.is_match(message) => {
-                        let id = vm_not_found_rx.captures(message).unwrap()[0]
+                        let id = vm_not_found_rx.captures(message).unwrap()[1]
                             .parse::<u32>()
                             .expect("could not parse vm id to u32");
                         Err(Problem::VMNotFound(id))
@@ -101,11 +101,26 @@ pub mod mock {
     use crate::mock::MockServer;
 
     pub trait WithApiInternalResponseError {
+        fn with_vm_not_found_error(self) -> Self;
         fn with_vm_not_running_error(self) -> Self;
-        fn with_no_agent_configured(self) -> Self;
+        fn with_no_agent_configured_error(self) -> Self;
     }
 
     impl WithApiInternalResponseError for MockServer {
+        fn with_vm_not_found_error(mut self) -> Self {
+            for method in ["DELETE", "GET", "POST", "PATCH", "PUT"].into_iter() {
+                let mock = self
+                    .server
+                    .mock(method, mockito::Matcher::Any)
+                    .with_body(r#"{"data":null,"message":"Configuration file 'nodes/pvedev02-dc03/qemu-server/100.conf' does not exist\n"}"#)
+                    .with_status(500)
+                    .create();
+                self.mocks.push(mock);
+            }
+
+            self
+        }
+
         fn with_vm_not_running_error(mut self) -> Self {
             for method in ["DELETE", "GET", "POST", "PATCH", "PUT"].into_iter() {
                 let mock = self
@@ -120,7 +135,7 @@ pub mod mock {
             self
         }
 
-        fn with_no_agent_configured(mut self) -> Self {
+        fn with_no_agent_configured_error(mut self) -> Self {
             for method in ["DELETE", "GET", "POST", "PATCH", "PUT"].into_iter() {
                 let mock = self
                     .server
@@ -145,10 +160,23 @@ mod tests {
     };
 
     #[tokio::test]
+    async fn test_a_vm_not_found_error_is_properly_detected() {
+        // Arrange a client responding with a "no QEMU guest agent configured"
+        let client = reqwest::Client::new();
+        let server = MockServer::new().await.with_vm_not_found_error();
+
+        // Act the call to the function
+        let result = cluster_next_id(&server.url(), &client, "").await;
+
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), Problem::VMNotFound(100)));
+    }
+
+    #[tokio::test]
     async fn test_a_missing_agent_error_is_properly_detected() {
         // Arrange a client responding with a "no QEMU guest agent configured"
         let client = reqwest::Client::new();
-        let server = MockServer::new().await.with_no_agent_configured();
+        let server = MockServer::new().await.with_no_agent_configured_error();
 
         // Act the call to the function
         let result = cluster_next_id(&server.url(), &client, "").await;

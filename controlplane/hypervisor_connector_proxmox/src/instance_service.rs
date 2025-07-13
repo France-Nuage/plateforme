@@ -117,15 +117,15 @@ impl InstanceService for ProxmoxInstanceService {
 
     /// Gets the instance ip address.
     async fn get_ip_address(&self, id: &str) -> Result<String, Problem> {
+        // Parse the id to a u32
+        let id = id
+            .parse::<u32>()
+            .map_err(|_| Problem::MalformedVmId(id.to_owned()))?;
+
         // Get the VM execution node
-        let node_id = helpers::get_vm_execution_node(
-            &self.api_url,
-            &self.client,
-            &self.authorization,
-            id.parse::<u32>()
-                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
-        )
-        .await?;
+        let node_id =
+            helpers::get_vm_execution_node(&self.api_url, &self.client, &self.authorization, id)
+                .await?;
 
         // Get the VM network interfaces
         let interfaces = crate::proxmox_api::vm_network_interfaces(
@@ -133,8 +133,7 @@ impl InstanceService for ProxmoxInstanceService {
             &self.client,
             &self.authorization,
             &node_id,
-            id.parse::<u32>()
-                .map_err(|_| Problem::MalformedVmId(id.to_owned()))?,
+            id,
         )
         .await?
         .data
