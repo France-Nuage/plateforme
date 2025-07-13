@@ -1,4 +1,5 @@
 import {
+  acmeHypervisor,
   acmeOrganization,
   acmeZeroTrustNetwork,
   instance,
@@ -18,6 +19,7 @@ export class InstanceMockService implements InstanceService {
   list() {
     return Promise.resolve(
       instances(5, {
+        hypervisorId: acmeHypervisor.id,
         projectId: acmeOrganization.id,
         zeroTrustNetworkId: acmeZeroTrustNetwork.id,
       }),

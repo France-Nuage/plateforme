@@ -1,11 +1,11 @@
-import { hypervisor, hypervisors } from '@/fixtures';
+import { acmeHypervisor, hypervisor } from '@/fixtures';
 
 import { HypervisorService } from './hypervisor.interface';
 
 export class HypervisorMockService implements HypervisorService {
   /** @inheritdoc */
   list() {
-    return Promise.resolve(hypervisors(2));
+    return Promise.resolve([acmeHypervisor, hypervisor()]);
   }
 
   /** @inheritdoc */
