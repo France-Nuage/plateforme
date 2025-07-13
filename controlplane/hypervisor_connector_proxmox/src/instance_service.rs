@@ -152,7 +152,9 @@ impl InstanceService for ProxmoxInstanceService {
         let ip_address = vmbr_interface
             .ip_addresses
             .ok_or(Problem::Other(
-                "network interface does not have any ip address".to_string().into(),
+                "network interface does not have any ip address"
+                    .to_string()
+                    .into(),
             ))?
             .into_iter()
             .find(|ip_address| ip_address.ip_address_type == IpAddressType::Ipv4)
