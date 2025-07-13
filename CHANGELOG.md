@@ -1,3 +1,15 @@
+# [1.26.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.25.1...v1.26.0) (2025-07-13)
+
+
+### Bug Fixes
+
+* address review ([69a022d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/69a022de5cce5079901e09a6d0a53616e1e118b9))
+
+
+### Features
+
+* add get_network_interfaces function ([47f5a36](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/47f5a3659890ad599ddf1cd14a4f16edf3c409ea))
+
 ## [1.25.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.25.0...v1.25.1) (2025-07-08)
 
 
