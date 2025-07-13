@@ -46,7 +46,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             // If the synchronization worked, trigger a heartbeat if the url is defined
             Ok(_) => heartbeat(&client, &heartbeat_url).await,
             // Otherwise log an error
-            Err(e) => error!(error = %e, "Sync failed"),
+            Err(e) => {
+                error!("Problem happened: {:#?}", &e);
+                error!(error = %e, "Sync failed")
+            }
         }
 
         // Mark sync as complete

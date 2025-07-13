@@ -10,6 +10,9 @@ pub enum Problem {
     #[error("Instance {0} not found.")]
     InstanceNotFound(Uuid),
 
+    #[error("Instance {0} not started.")]
+    InstanceNotStarted(Uuid),
+
     #[error("The hypervisor {0} could not be found.")]
     HypervisorNotFound(Uuid),
 

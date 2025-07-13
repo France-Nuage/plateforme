@@ -16,6 +16,9 @@ pub trait InstanceService {
         options: InstanceConfig,
     ) -> impl Future<Output = Result<String, Problem>> + Send;
 
+    /// Gets the instance ip address.
+    fn get_ip_address(&self, id: &str) -> impl Future<Output = Result<String, Problem>> + Send;
+
     /// Deletes the instance.
     fn delete(&self, id: &str) -> impl Future<Output = Result<(), Problem>> + Send;
 

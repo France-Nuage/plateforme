@@ -971,6 +971,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-retry",
+ "tracing",
  "url",
 ]
 
