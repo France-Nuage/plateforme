@@ -1,3 +1,10 @@
+## [1.27.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.0...v1.27.1) (2025-07-15)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @plasmicapp/react-web to v0.2.393 ([3d64792](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3d64792e2d78a688b848600456b048845ac9062e))
+
 # [1.27.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.26.0...v1.27.0) (2025-07-13)
 
 
