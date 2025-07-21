@@ -1,3 +1,10 @@
+## [1.27.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.1...v1.27.2) (2025-07-21)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @plasmicpkgs/antd5 to ^0.0.295 ([006e8d2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/006e8d2e4ee44da49d9ae7b927c6ec953b571f80))
+
 ## [1.27.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.0...v1.27.1) (2025-07-15)
 
 
