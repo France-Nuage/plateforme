@@ -1,3 +1,11 @@
+## [1.27.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.2...v1.27.3) (2025-07-29)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @plasmicapp/loader-react to v1.0.394 ([9b4038a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9b4038a531de8b9812ebd0c2555da6ea1bcee30a))
+* **deps:** update dependency @plasmicpkgs/plasmic-basic-components to ^0.0.250 ([c268974](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/c268974c3468a9dbac282b7001bf17c4bc0a0d9b))
+
 ## [1.27.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.1...v1.27.2) (2025-07-21)
 
 
