@@ -1,3 +1,10 @@
+## [1.27.4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.3...v1.27.4) (2025-07-29)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @types/lodash to v4.17.20 ([1ca8057](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1ca80573e857ef4ce71a2fffd88168005314ce7b))
+
 ## [1.27.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.2...v1.27.3) (2025-07-29)
 
 
