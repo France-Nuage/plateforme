@@ -1,7 +1,6 @@
-use crate::proxmox_api::{
-    self, helpers, vm_clone::VMCloneOptions, vm_create::VMConfig,
-    vm_network_interfaces::IpAddressType,
-};
+use std::net::Ipv4Addr;
+
+use crate::proxmox_api::{self, helpers, vm_clone::VMCloneOptions, vm_create::VMConfig};
 use hypervisor_connector::{
     InstanceConfig, InstanceInfo, InstanceService, InstanceStatus, Problem,
 };
@@ -116,7 +115,7 @@ impl InstanceService for ProxmoxInstanceService {
     }
 
     /// Gets the instance ip address.
-    async fn get_ip_address(&self, id: &str) -> Result<String, Problem> {
+    async fn get_ip_address(&self, id: &str) -> Result<Option<Ipv4Addr>, Problem> {
         // Parse the id to a u32
         let id = id
             .parse::<u32>()
@@ -128,7 +127,7 @@ impl InstanceService for ProxmoxInstanceService {
                 .await?;
 
         // Get the VM network interfaces
-        let interfaces = crate::proxmox_api::vm_network_interfaces(
+        let ip = crate::proxmox_api::vm_config_read(
             &self.api_url,
             &self.client,
             &self.authorization,
@@ -137,31 +136,10 @@ impl InstanceService for ProxmoxInstanceService {
         )
         .await?
         .data
-        .result;
+        .ipconfig0
+        .map(|config| config.ip);
 
-        // Find the "vmbr0" network interface, which holds the ip address we're looking for
-        let vmbr_interface = interfaces
-            .into_iter()
-            .find(|interface| interface.name.as_str() == "vmbr0")
-            .ok_or(Problem::Other(
-                format!("VM {} does not have a vmbr0 interface", id).into(),
-            ))?;
-
-        // Find the ip_v4 address attached to that address
-        let ip_address = vmbr_interface
-            .ip_addresses
-            .ok_or(Problem::Other(
-                "network interface does not have any ip address"
-                    .to_string()
-                    .into(),
-            ))?
-            .into_iter()
-            .find(|ip_address| ip_address.ip_address_type == IpAddressType::Ipv4)
-            .ok_or(Problem::Other(
-                format!("VM {} does not have an ipv4 address", id).into(),
-            ))?;
-
-        Ok(ip_address.ip_address)
+        Ok(ip)
     }
 
     /// Deletes the instance.

@@ -51,7 +51,7 @@ pub struct Instance {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum InstanceStatus {
     #[default]
