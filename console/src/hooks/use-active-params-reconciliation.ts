@@ -72,12 +72,17 @@ export const useActiveParamsReconciliation = () => {
 
 function reconciliateActiveProject(
   activeProject: Project | undefined,
-  defaultProject: Project,
+  defaultProject: Project | undefined,
   projectId: string | null,
   projects: Project[],
   dispatch: AppDispatch,
   setSearchParams: SetURLSearchParams,
 ) {
+  // If there is no default project, there is no project, thus aborting
+  if (!defaultProject) {
+    return;
+  }
+
   // If neither the state, neither the url defines an active project, set the default one
   if (!projectId && !activeProject) {
     dispatch(setActiveProject(defaultProject));
@@ -120,12 +125,16 @@ function reconciliateActiveProject(
 function reconciliateActiveOrganization(
   activeProject: Project | undefined,
   activeOrganization: Organization | undefined,
-  defaultOrganization: Organization,
+  defaultOrganization: Organization | undefined,
   organizationId: string | null,
   organizations: Organization[],
   dispatch: AppDispatch,
   setSearchParams: SetURLSearchParams,
 ) {
+  // If there is no default organization, there is no organization, thus aborting
+  if (!defaultOrganization) {
+    return;
+  }
   // If neither the state, neither the url defines an active organization, set the default one
   if (!organizationId && !activeOrganization) {
     dispatch(setActiveOrganization(defaultOrganization));
