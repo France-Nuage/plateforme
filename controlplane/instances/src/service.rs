@@ -8,11 +8,7 @@ use resources::service::ResourcesService;
 use sqlx::{PgPool, types::chrono};
 use uuid::Uuid;
 
-use crate::{
-    model::Instance,
-    problem::Problem,
-    repository,
-};
+use crate::{model::Instance, problem::Problem, repository};
 
 pub struct InstancesService {
     hypervisors_service: HypervisorsService,

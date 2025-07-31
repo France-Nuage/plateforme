@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)\n        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes\n        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)\n        ON CONFLICT (id) DO UPDATE\n        SET\n            hypervisor_id = EXCLUDED.hypervisor_id,\n            project_id = EXCLUDED.project_id,\n            distant_id = EXCLUDED.distant_id,\n            cpu_usage_percent = EXCLUDED.cpu_usage_percent,\n            max_cpu_cores = EXCLUDED.max_cpu_cores,\n            max_memory_bytes = EXCLUDED.max_memory_bytes,\n            memory_usage_bytes = EXCLUDED.memory_usage_bytes,\n            name = EXCLUDED.name,\n            status = EXCLUDED.status,\n            ip_v4 = EXCLUDED.ip_v4,\n            disk_usage_bytes = EXCLUDED.disk_usage_bytes,\n            max_disk_bytes = EXCLUDED.max_disk_bytes,\n            updated_at = NOW()\n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "UuidArray",
+        "UuidArray",
+        "UuidArray",
+        "TextArray",
+        "Float8Array",
+        "Int4Array",
+        "Int8Array",
+        "Int8Array",
+        "TextArray",
+        "TextArray",
+        "TextArray",
+        "Int8Array",
+        "Int8Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "47e6198c73b54a9b3f1a09a7fc8417bdebfa53202c40989c46996a1ccfbd94ef"
+}
