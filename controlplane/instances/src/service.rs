@@ -8,7 +8,11 @@ use resources::service::ResourcesService;
 use sqlx::{PgPool, types::chrono};
 use uuid::Uuid;
 
-use crate::{model::Instance, problem::Problem, repository};
+use crate::{
+    model::Instance,
+    problem::Problem,
+    repository,
+};
 
 pub struct InstancesService {
     hypervisors_service: HypervisorsService,
@@ -74,7 +78,7 @@ impl InstancesService {
                                     .get_ip_address(&distant_instance.id)
                                     .await
                                 {
-                                    Ok(value) => Ok(Some(value)),
+                                    Ok(value) => Ok(value),
                                     Err(hypervisor_connector::Problem::InstanceNotRunning(_)) => {
                                         Ok(None)
                                     }
@@ -82,7 +86,7 @@ impl InstancesService {
                                 }?;
 
                                 if let Some(ip) = ip {
-                                    existing.ip_v4 = ip;
+                                    existing.ip_v4 = ip.to_string();
                                 }
                             }
 

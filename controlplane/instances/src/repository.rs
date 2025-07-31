@@ -62,12 +62,15 @@ pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), s
     let memory_usage_bytes: Vec<i64> = instances.iter().map(|i| i.memory_usage_bytes).collect();
     let names: Vec<String> = instances.iter().map(|i| i.name.clone()).collect();
     let statuses: Vec<String> = instances.iter().map(|i| i.status.to_string()).collect();
+    let ip_v4s: Vec<String> = instances.iter().map(|i| i.ip_v4.clone()).collect();
+    let disk_usage_bytes: Vec<i64> = instances.iter().map(|i| i.disk_usage_bytes).collect();
+    let max_disk_bytes: Vec<i64> = instances.iter().map(|i| i.max_disk_bytes).collect();
 
     sqlx::query!(
         r#"
-        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status)
-        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status
-        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status)
+        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
+        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes
+        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
         ON CONFLICT (id) DO UPDATE
         SET
             hypervisor_id = EXCLUDED.hypervisor_id,
@@ -79,6 +82,9 @@ pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), s
             memory_usage_bytes = EXCLUDED.memory_usage_bytes,
             name = EXCLUDED.name,
             status = EXCLUDED.status,
+            ip_v4 = EXCLUDED.ip_v4,
+            disk_usage_bytes = EXCLUDED.disk_usage_bytes,
+            max_disk_bytes = EXCLUDED.max_disk_bytes,
             updated_at = NOW()
     "#,
         &ids,
@@ -91,6 +97,9 @@ pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), s
         &memory_usage_bytes,
         &names,
         &statuses,
+        &ip_v4s,
+        &disk_usage_bytes,
+        &max_disk_bytes,
     )
     .execute(pool)
     .await?;

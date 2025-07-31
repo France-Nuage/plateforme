@@ -1,3 +1,5 @@
+use std::net::Ipv4Addr;
+
 use crate::InstanceInfo;
 use crate::instance_config::InstanceConfig;
 use crate::instance_status::InstanceStatus;
@@ -17,7 +19,10 @@ pub trait InstanceService {
     ) -> impl Future<Output = Result<String, Problem>> + Send;
 
     /// Gets the instance ip address.
-    fn get_ip_address(&self, id: &str) -> impl Future<Output = Result<String, Problem>> + Send;
+    fn get_ip_address(
+        &self,
+        id: &str,
+    ) -> impl Future<Output = Result<Option<Ipv4Addr>, Problem>> + Send;
 
     /// Deletes the instance.
     fn delete(&self, id: &str) -> impl Future<Output = Result<(), Problem>> + Send;
