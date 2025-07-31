@@ -1,3 +1,10 @@
+# [1.28.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.4...v1.28.0) (2025-07-31)
+
+
+### Features
+
+* synchronize ip address from vm config ([69744a6](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/69744a60c0dbcb3ecfa73f82e50bc905f615d731))
+
 ## [1.27.4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.3...v1.27.4) (2025-07-29)
 
 
