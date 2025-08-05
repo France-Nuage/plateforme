@@ -1,3 +1,12 @@
+## [1.28.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.0...v1.28.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @plasmicapp/react-web to v0.2.396 ([d4a6b9b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d4a6b9b6fbbd7a10c84f1bf2f44a4cf7dd3ce495))
+* **deps:** update dependency @plasmicpkgs/antd5 to ^0.0.298 ([ad878ff](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ad878ff83febde371591b5a151f9ad5cba8ff8d3))
+* handle state reconciliation with no project nor organization ([869c8ca](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/869c8ca17fed29461dc2cd92e704b2b45bcb4229))
+
 # [1.28.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.4...v1.28.0) (2025-07-31)
 
 
