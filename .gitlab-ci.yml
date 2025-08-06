@@ -89,7 +89,7 @@ build:
 "code style / protocol":
   stage: code-style
   script:
-    - docker compose run --no-deps --remove-orphans console npm run lint francenuage
+    - docker compose run --no-deps --remove-orphans protocol buf lint francenuage
 
 "unit tests / controlplane":
   stage: unit-tests
