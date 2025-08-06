@@ -86,6 +86,11 @@ build:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
+"code style / protocol":
+  stage: code-style
+  script:
+    - docker compose run --no-deps --remove-orphans console npm run lint francenuage
+
 "unit tests / controlplane":
   stage: unit-tests
   variables:
@@ -108,7 +113,7 @@ build:
 "unit tests / protocol conformity":
   stage: unit-tests
   script:
-    - docker compose run protocol
+    - docker compose run --no-deps --remove-orphans protocol buf breaking googleapis --against=francenuage
 
 "system tests / console":
   stage: system-tests
