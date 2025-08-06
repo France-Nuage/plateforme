@@ -108,7 +108,7 @@ build:
 "unit tests / protocol conformity":
   stage: unit-tests
   script:
-    - docker compose up protocol
+    - docker compose run protocol
 
 "system tests / console":
   stage: system-tests
