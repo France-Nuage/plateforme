@@ -135,6 +135,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  protocol:
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}protocol:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}protocol:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}protocol:master
+      context: protocol
+    profiles:
+      - donotstart
+
   synchronizer:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:

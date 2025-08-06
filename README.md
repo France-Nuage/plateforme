@@ -116,6 +116,12 @@ To stop the services, run:
 docker compose down
 ```
 
+# 📁 Architecture
+
+For developers working on the platform:
+
+- [`protocol/`](./protocol/README.md) - Protocol Buffer definitions and Google Cloud API compliance validation
+
 # Related
 
 [France nuage Cloud Status Page](https://status.france-nuage.fr/)
