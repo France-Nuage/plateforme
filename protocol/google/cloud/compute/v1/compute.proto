@@ -1,0 +1,18 @@
+// This file originates from https://github.com/googleapis/googleapis/
+// The original source is licensed under Apache License 2.0
+// See: https://github.com/googleapis/googleapis/blob/master/LICENSE
+
+syntax = "proto3";
+
+package google.cloud.compute.v1;
+
+//
+// File Options
+//
+option csharp_namespace = "Google.Cloud.Compute.V1";
+option go_package = "cloud.google.com/go/compute/apiv1/computepb;computepb";
+option java_multiple_files = true;
+option java_package = "com.google.cloud.compute.v1";
+option php_namespace = "Google\\Cloud\\Compute\\V1";
+option ruby_package = "Google::Cloud::Compute::V1";
+
