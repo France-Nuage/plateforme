@@ -1,3 +1,10 @@
+## [1.28.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.1...v1.28.2) (2025-08-07)
+
+
+### Bug Fixes
+
+* add missing file descriptors ([bf422e0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/bf422e0769dce870b8de02a1d64bdaca4b300862))
+
 ## [1.28.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.0...v1.28.1) (2025-08-05)
 
 
