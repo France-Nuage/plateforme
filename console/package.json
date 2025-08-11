@@ -16,7 +16,7 @@
     "@plasmicapp/react-web": "^0.2.388",
     "@plasmicpkgs/antd5": "^0.0.298",
     "@plasmicpkgs/plasmic-basic-components": "^0.0.250",
-    "@plasmicpkgs/plasmic-cms": "^0.0.283",
+    "@plasmicpkgs/plasmic-cms": "^0.0.289",
     "@plasmicpkgs/plasmic-nav": "^0.0.188",
     "@plasmicpkgs/react-aria": "^0.0.137",
     "@plasmicpkgs/react-chartjs-2": "^1.0.131",
