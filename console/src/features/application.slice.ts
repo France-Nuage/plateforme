@@ -1,17 +1,24 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { Project } from '@/generated/rpc/resources';
+import { RootState } from '@/store';
 import { Organization, ServiceMode } from '@/types';
 
+/**
+ * The slice state type.
+ */
 export type ApplicationState = {
-  activeOrganization?: Organization;
-  activeProject?: Project;
+  activeOrganization: Organization;
+  activeProject: Project;
   mode: ServiceMode;
 };
 
+/**
+ * The slice initial state.
+ */
 const initialState: ApplicationState = {
-  activeOrganization: undefined,
-  activeProject: undefined,
+  activeOrganization: {} as Organization,
+  activeProject: {} as Project,
   mode: window.location.pathname.startsWith('/plasmic-host')
     ? ServiceMode.Mock
     : import.meta.env.VITE_APPLICATION_DEFAULT_MODE === 'mock'
@@ -19,27 +26,78 @@ const initialState: ApplicationState = {
       : ServiceMode.Rpc,
 };
 
+/**
+ * Set the active organization.
+ */
+export const setActiveOrganization = createAsyncThunk<
+  { organization: Organization; project: Project },
+  Organization,
+  { state: RootState }
+>('application/setActiveOrganization', (organization, { getState }) => {
+  // Retrieve a default project for the new active organization
+  const state = getState();
+  const project = state.resources.projects.find(
+    (project) => project.organizationId === organization.id,
+  );
+
+  // Throw an error if no active project could be found
+  if (!project) {
+    throw new Error(
+      `Could not find any project for organization ${organization.id}`,
+    );
+  }
+
+  return {
+    organization,
+    project,
+  };
+});
+
+/**
+ * Set the active project.
+ */
+export const setActiveProject = createAsyncThunk<
+  { organization: Organization; project: Project },
+  Project,
+  { state: RootState }
+>('application/setActiveProject', (project, { getState }) => {
+  // Retrieve a default project for the new active organization
+  const state = getState();
+  const organization = state.resources.organizations.find(
+    (organization) => project.organizationId === organization.id,
+  );
+
+  // Throw an error if the organization matching the given project could not be found
+  if (!organization) {
+    throw new Error(
+      `Could not find the organization matching the project ${project.id}`,
+    );
+  }
+
+  return {
+    organization,
+    project: project,
+  };
+});
+
+/**
+ * The application slice.
+ */
 export const applicationSlice = createSlice({
+  extraReducers: (builder) => {
+    builder
+      .addCase(setActiveOrganization.fulfilled, (state, action) => {
+        state.activeOrganization = action.payload.organization;
+        state.activeProject = action.payload.project;
+      })
+      .addCase(setActiveProject.fulfilled, (state, action) => {
+        state.activeOrganization = action.payload.organization;
+        state.activeProject = action.payload.project;
+      });
+  },
   initialState,
   name: 'application',
   reducers: {
-    /**
-     * Set the active organization.
-     */
-    setActiveOrganization: (
-      state,
-      action: PayloadAction<Organization | undefined>,
-    ) => {
-      console.log('setActive0rganization', action.payload);
-      state.activeOrganization = action.payload;
-    },
-    /**
-     * Set the active project.
-     */
-    setActiveProject: (state, action: PayloadAction<Project | undefined>) => {
-      console.log('setActiveProject', action.payload);
-      state.activeProject = action.payload;
-    },
     /**
      * Set the application mode.
      */
@@ -50,7 +108,6 @@ export const applicationSlice = createSlice({
   },
 });
 
-export const { setActiveOrganization, setActiveProject, setMode } =
-  applicationSlice.actions;
+export const { setMode } = applicationSlice.actions;
 
 export default applicationSlice.reducer;

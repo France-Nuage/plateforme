@@ -1,2 +1,2 @@
-export * from './oidc-redirect';
-export * from './plasmic-host';
+export * from './instances.page';
+export * from './oidc-redirect.page';

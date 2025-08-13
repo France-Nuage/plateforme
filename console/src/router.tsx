@@ -1,55 +1,28 @@
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
+import { HiDesktopComputer } from 'react-icons/hi';
 import { BrowserRouter, Route, Routes } from 'react-router';
+import { Navigate } from 'react-router';
 
-import { PageGuard } from '@/components';
-import { OidcRedirectPage, PlasmicHost } from '@/pages';
+import { AppLayout } from '@/components';
+import { InstancesPage, OidcRedirectPage } from '@/pages';
+import { Routes as RoutePath } from '@/types';
 
-import plasmic from '../plasmic.json';
-
-type PlasmicComponent = NonNullable<
-  (typeof plasmic)['projects'][0]['components'][0]
->;
-
-const componentModules = import.meta.glob('./generated/plasmic/*.tsx');
-
-const pages = plasmic.projects
-  .reduce(
-    (pages: PlasmicComponent[], { components }) => [
-      ...pages,
-      ...components.filter(({ componentType }) => componentType === 'page'),
-    ],
-    [],
-  )
-  .map(({ id, importSpec, path }) => {
-    return {
-      Component: React.lazy(
-        () =>
-          componentModules[
-            `./generated/plasmic/${importSpec.modulePath}`
-          ]() as Promise<{ default: React.ComponentType }>,
-      ),
-      id,
-      path,
-    };
-  });
+const links = [
+  { Icon: HiDesktopComputer, label: 'Instances', to: RoutePath.Instances },
+];
 
 const Router = () => (
   <Suspense>
     <BrowserRouter>
       <Routes>
-        <Route path="/auth/redirect/:provider" element={<OidcRedirectPage />} />
-        <Route path="/plasmic-host" element={<PlasmicHost />} />
-        {pages.map(({ Component, id, path }) => (
+        <Route path="/" element={<AppLayout links={links} />}>
           <Route
-            key={id}
-            path={path!.replace(/\[([^\]]+)\]/g, ':$1')}
-            element={
-              <PageGuard>
-                <Component />
-              </PageGuard>
-            }
+            index
+            element={<Navigate replace to={RoutePath.Instances} />}
           />
-        ))}
+          <Route path={RoutePath.Instances} element={<InstancesPage />} />
+        </Route>
+        <Route path="/auth/redirect/:provider" element={<OidcRedirectPage />} />
       </Routes>
     </BrowserRouter>
   </Suspense>
