@@ -4,4 +4,7 @@ export * from './app-layout';
 export * from './app-sidebar';
 export * from './project-global-switcher';
 export * from './application-loader';
+
+export * from './instance-table';
+
 export * from './page-guard';
