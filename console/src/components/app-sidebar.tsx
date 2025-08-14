@@ -14,7 +14,7 @@ export const AppSidebar: FunctionComponent<AppSidebarProps> = ({ links }) => {
   return (
     <Box h="100%" w={320}>
       <Stack bg="bg.panel" p={{ base: 4, md: 6 }}>
-        {links.map(({ Icon, label, to }, index) => (
+        {links.map(({ Icon, label, to }) => (
           <Button
             aria-current={location.pathname === to && 'page'}
             gap={3}

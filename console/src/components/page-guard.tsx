@@ -34,7 +34,7 @@ export const PageGuard: FunctionComponent<PageGuardProps> = ({
     } else {
       setLoading(false);
     }
-  }, [authenticated, isUserAuthenticated]);
+  }, [authenticated, isUserAuthenticated, navigate]);
 
   return isLoading ? <p></p> : <Outlet />;
 };
