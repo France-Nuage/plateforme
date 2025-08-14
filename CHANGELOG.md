@@ -1,3 +1,10 @@
+## [1.28.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.2...v1.28.3) (2025-08-12)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @plasmicpkgs/plasmic-cms to ^0.0.289 ([3a704c3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3a704c370ebc05be3a3f71391c712f6a18e959b6))
+
 ## [1.28.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.1...v1.28.2) (2025-08-07)
 
 
