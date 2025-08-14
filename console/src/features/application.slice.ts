@@ -8,8 +8,8 @@ import { Organization, ServiceMode } from '@/types';
  * The slice state type.
  */
 export type ApplicationState = {
-  activeOrganization: Organization | null;
-  activeProject: Project | null;
+  activeOrganization: Organization | undefined;
+  activeProject: Project | undefined;
   mode: ServiceMode;
 };
 
@@ -17,8 +17,8 @@ export type ApplicationState = {
  * The slice initial state.
  */
 const initialState: ApplicationState = {
-  activeOrganization: null,
-  activeProject: null,
+  activeOrganization: undefined,
+  activeProject: undefined,
   mode: window.location.pathname.startsWith('/plasmic-host')
     ? ServiceMode.Mock
     : import.meta.env.VITE_APPLICATION_DEFAULT_MODE === 'mock'

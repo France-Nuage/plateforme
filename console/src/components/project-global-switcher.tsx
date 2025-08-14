@@ -8,10 +8,10 @@ import { useAppDispatch, useAppSelector } from '@/hooks';
 export const ProjectGlobalSwitcher: FunctionComponent = () => {
   const dispatch = useAppDispatch();
   const activeOrganization = useAppSelector(
-    (state) => state.application.activeOrganization,
+    (state) => state.application.activeOrganization!,
   );
   const activeProject = useAppSelector(
-    (state) => state.application.activeProject,
+    (state) => state.application.activeProject!,
   );
   const organizations = useAppSelector(
     (state) => state.resources.organizations,
