@@ -1,8 +1,6 @@
-use std::{net::Ipv4Addr, str};
-
-use serde::{Deserialize, Deserializer};
-
 use crate::proxmox_api::api_response::{ApiResponse, ApiResponseExt};
+use serde::{Deserialize, Deserializer};
+use std::{net::Ipv4Addr, str};
 
 pub async fn vm_config_read(
     api_url: &str,

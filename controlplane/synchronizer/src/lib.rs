@@ -1,6 +1,5 @@
-use std::error::Error;
-
 use instances::InstancesService;
+use std::error::Error;
 use tracing::{error, instrument};
 
 #[instrument(skip(service))]

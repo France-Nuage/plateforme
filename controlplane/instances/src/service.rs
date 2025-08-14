@@ -1,14 +1,12 @@
-use std::sync::Arc;
-
+use crate::{model::Instance, problem::Problem, repository};
 use database::Persistable;
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor_connector::{InstanceConfig, InstanceService};
 use hypervisors::{Hypervisor, HypervisorsService};
 use resources::service::ResourcesService;
 use sqlx::{PgPool, types::chrono};
+use std::sync::Arc;
 use uuid::Uuid;
-
-use crate::{model::Instance, problem::Problem, repository};
 
 pub struct InstancesService {
     hypervisors_service: HypervisorsService,
