@@ -65,5 +65,5 @@ export const ApplicationLoader: FunctionComponent<ApplicationLoaderProps> = ({
     dispatch(fetchAllZeroTrustNetworks());
   }, [application.mode, dispatch]);
 
-  return loading ? '' : children;
+  return loading ? null : children;
 };

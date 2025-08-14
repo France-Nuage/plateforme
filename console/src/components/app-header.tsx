@@ -28,6 +28,7 @@ export const AppHeader: FunctionComponent = () => (
               colorPalette="gray"
               onClick={() => store.setOpen(!store.open)}
               variant="ghost"
+              aria-label="Open navigation menu"
             >
               <HiMenu />
             </IconButton>
@@ -37,8 +38,9 @@ export const AppHeader: FunctionComponent = () => (
       <Image
         src="/logo.png"
         display={{ base: 'none', md: 'block' }}
-        h={42}
+        h={10}  // 40px if using default Chakra scale
         paddingY={1}
+        alt="France Nuage logo"
       />
       <Heading size="md" display={{ base: 'none', lg: 'block' }}>
         France Nuage

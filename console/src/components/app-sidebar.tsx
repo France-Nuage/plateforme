@@ -19,7 +19,7 @@ export const AppSidebar: FunctionComponent<AppSidebarProps> = ({ links }) => {
             aria-current={location.pathname === to && 'page'}
             gap={3}
             justifyContent="start"
-            key={index}
+            key={to}
             variant="ghost"
             width="full"
             color="fg.muted"
