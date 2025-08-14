@@ -1,4 +1,3 @@
-import { Button } from '@chakra-ui/react';
 import { FunctionComponent } from 'react';
 
 import { InstanceTable } from '@/components';
@@ -19,18 +18,13 @@ export const InstancesPage: FunctionComponent = () => {
   );
 
   return (
-    <>
-      <Button>
-        Besoin d'une nouvelle application ou de plus de ressources?
-      </Button>
-      <InstanceTable
-        datacenters={datacenters}
-        hypervisors={hypervisors}
-        instances={instances}
-        organizations={organizations}
-        projects={projects}
-        vpcs={vpcs}
-      />
-    </>
+    <InstanceTable
+      datacenters={datacenters}
+      hypervisors={hypervisors}
+      instances={instances}
+      organizations={organizations}
+      projects={projects}
+      vpcs={vpcs}
+    />
   );
 };

@@ -1,6 +1,13 @@
-import { Box, Drawer, Flex, Stack } from '@chakra-ui/react';
+import {
+  Alert,
+  Box,
+  Link as ChakraLink,
+  Drawer,
+  Flex,
+  Stack,
+} from '@chakra-ui/react';
 import { FunctionComponent } from 'react';
-import { Outlet } from 'react-router';
+import { Link, Outlet } from 'react-router';
 
 import { AppHeader, AppSidebar, AppSidebarProps } from '@/components';
 
@@ -23,6 +30,22 @@ export const AppLayout: FunctionComponent<AppLayoutProps> = ({ links }) => {
               <AppSidebar links={links} />
             </Box>
             <Box flex={1} p={4} overflowY="auto">
+              <Stack>
+                <Alert.Root mb={4}>
+                  <Alert.Indicator />
+                  <Alert.Content>
+                    <Alert.Title>
+                      Besoin d'une nouvelle application ou de davantage de
+                      ressources ?
+                      <ChakraLink asChild ml={2} variant="underline">
+                        <Link to="mailto:support@france-nuage.fr">
+                          Contactez-nous
+                        </Link>
+                      </ChakraLink>
+                    </Alert.Title>
+                  </Alert.Content>
+                </Alert.Root>
+              </Stack>
               <Outlet />
             </Box>
           </Flex>
