@@ -84,7 +84,6 @@ export const SwitcherMenu = <T,>({
     <Portal>
       <Menu.Positioner>
         <Menu.Content minW={64}>
-          <Menu.ItemGroup>foobar</Menu.ItemGroup>
           {options.map((option, index) => (
             <Menu.Item
               key={index}
