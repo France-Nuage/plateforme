@@ -10,12 +10,14 @@ import { FunctionComponent } from 'react';
 import { Link, Outlet } from 'react-router';
 
 import { AppHeader, AppSidebar, AppSidebarProps } from '@/components';
+import { useActiveParamsReconciliation } from '@/hooks';
 
 export type AppLayoutProps = {
   links: AppSidebarProps['links'];
 };
 
 export const AppLayout: FunctionComponent<AppLayoutProps> = ({ links }) => {
+  useActiveParamsReconciliation();
   return (
     <Box colorPalette={'blue'}>
       <Drawer.Root placement="start">
@@ -29,7 +31,7 @@ export const AppLayout: FunctionComponent<AppLayoutProps> = ({ links }) => {
             >
               <AppSidebar links={links} />
             </Box>
-            <Box flex={1} p={4} overflowY="auto">
+            <Stack flex={1} p={4} overflowY="auto">
               <Stack>
                 <Alert.Root mb={4}>
                   <Alert.Indicator />
@@ -47,7 +49,7 @@ export const AppLayout: FunctionComponent<AppLayoutProps> = ({ links }) => {
                 </Alert.Root>
               </Stack>
               <Outlet />
-            </Box>
+            </Stack>
           </Flex>
         </Stack>
         <Drawer.Backdrop />

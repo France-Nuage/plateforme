@@ -2,10 +2,12 @@ import {
   ActionBar,
   Button,
   Checkbox,
+  Flex,
   Portal,
   Span,
   Table,
   TableCell,
+  Text,
 } from '@chakra-ui/react';
 import {
   DndContext,
@@ -53,11 +55,11 @@ export type InstanceTableProps = {
 };
 
 type InstanceData = Instance & {
-  datacenter: Datacenter;
-  hypervisor: Hypervisor;
-  vpc: ZeroTrustNetwork;
-  organization: Organization;
-  project: Project;
+  datacenter?: Datacenter;
+  hypervisor?: Hypervisor;
+  vpc?: ZeroTrustNetwork;
+  organization?: Organization;
+  project?: Project;
 };
 
 const columnHelper = createColumnHelper<InstanceData>();
@@ -139,16 +141,16 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
       instances.map((instance) => {
         const hypervisor = hypervisors.find(
           (hypervisor) => hypervisor.id === instance.hypervisorId,
-        )!;
+        );
         const datacenter = datacenters.find(
-          (datacenter) => datacenter.id === hypervisor?.id,
-        )!;
+          (datacenter) => datacenter.id === hypervisor?.datacenterId,
+        );
         const project = projects.find(
           (project) => project.id === instance.projectId,
-        )!;
+        );
         const organization = organizations.find(
           (organization) => organization.id === project?.organizationId,
-        )!;
+        );
         const vpc = vpcs.find((vpc) => vpc.id === instance.zeroTrustNetworkId)!;
 
         return {
@@ -206,7 +208,7 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   const indeterminate =
     selection.length > 0 && selection.length < instances.length;
 
-  return (
+  return table.getRowModel().rows.length ? (
     <DndContext
       collisionDetection={closestCenter}
       modifiers={[restrictToHorizontalAxis]}
@@ -305,6 +307,15 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
         </ActionBar.Root>
       </Table.ScrollArea>
     </DndContext>
+  ) : (
+    <Flex
+      alignItems="center"
+      borderWidth={1}
+      flexGrow={1}
+      justifyContent="center"
+    >
+      <Text color="fg.muted">Aucune donnée</Text>
+    </Flex>
   );
 };
 
