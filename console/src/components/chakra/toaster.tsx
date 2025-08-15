@@ -6,13 +6,9 @@ import {
   Spinner,
   Stack,
   Toast,
-  createToaster,
 } from '@chakra-ui/react';
 
-export const toaster = createToaster({
-  pauseOnPageIdle: true,
-  placement: 'bottom-end',
-});
+import { toaster } from '@/toaster';
 
 export const Toaster = () => {
   return (

@@ -38,7 +38,7 @@ export const AppHeader: FunctionComponent = () => (
       <Image
         src="/logo.png"
         display={{ base: 'none', md: 'block' }}
-        h={10}  // 40px if using default Chakra scale
+        h={10} // 40px if using default Chakra scale
         paddingY={1}
         alt="France Nuage logo"
       />
