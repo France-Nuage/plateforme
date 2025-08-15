@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { PayloadAction } from '@reduxjs/toolkit';
 
 import { Project } from '@/generated/rpc/resources';
 import { RootState } from '@/store';
@@ -10,6 +11,7 @@ import { Organization, ServiceMode } from '@/types';
 export type ApplicationState = {
   activeOrganization: Organization | undefined;
   activeProject: Project | undefined;
+  loaded: boolean;
   mode: ServiceMode;
 };
 
@@ -19,6 +21,7 @@ export type ApplicationState = {
 const initialState: ApplicationState = {
   activeOrganization: undefined,
   activeProject: undefined,
+  loaded: false,
   mode: window.location.pathname.startsWith('/plasmic-host')
     ? ServiceMode.Mock
     : import.meta.env.VITE_APPLICATION_DEFAULT_MODE === 'mock'
@@ -99,6 +102,12 @@ export const applicationSlice = createSlice({
   name: 'application',
   reducers: {
     /**
+     * Set the application loading state.
+     */
+    setApplicationLoaded: (state, action: PayloadAction<boolean>) => {
+      state.loaded = action.payload;
+    },
+    /**
      * Set the application mode.
      */
     setMode: (state) => {
@@ -108,6 +117,6 @@ export const applicationSlice = createSlice({
   },
 });
 
-export const { setMode } = applicationSlice.actions;
+export const { setApplicationLoaded, setMode } = applicationSlice.actions;
 
 export default applicationSlice.reducer;

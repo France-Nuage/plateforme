@@ -1,10 +1,9 @@
 import { Suspense } from 'react';
 import { HiDesktopComputer } from 'react-icons/hi';
 import { BrowserRouter, Route, Routes } from 'react-router';
-import { Navigate } from 'react-router';
 
 import { AppLayout, PageGuard } from '@/components';
-import { InstancesPage, LoginPage, OidcRedirectPage } from '@/pages';
+import { HomePage, InstancesPage, LoginPage, OidcRedirectPage } from '@/pages';
 import { Routes as RoutePath } from '@/types';
 
 const links = [
@@ -25,11 +24,8 @@ const Router = () => (
         </Route>
         {/* Authenticated routes */}
         <Route element={<PageGuard authenticated />}>
-          <Route path="/" element={<AppLayout links={links} />}>
-            <Route
-              index
-              element={<Navigate replace to={RoutePath.Instances} />}
-            />
+          <Route element={<AppLayout links={links} />}>
+            <Route index element={<HomePage />} />
             <Route path={RoutePath.Instances} element={<InstancesPage />} />
           </Route>
         </Route>

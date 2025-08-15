@@ -2,6 +2,7 @@ import { FunctionComponent, useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router';
 
 import { useAppSelector } from '@/hooks';
+import { DataProvider } from '@/providers';
 import { Routes } from '@/types';
 
 export type PageGuardProps = {
@@ -36,5 +37,9 @@ export const PageGuard: FunctionComponent<PageGuardProps> = ({
     }
   }, [authenticated, isUserAuthenticated, navigate]);
 
-  return isLoading ? <p></p> : <Outlet />;
+  return isLoading ? null : (
+    <DataProvider>
+      <Outlet />
+    </DataProvider>
+  );
 };
