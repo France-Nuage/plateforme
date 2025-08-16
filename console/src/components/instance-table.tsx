@@ -3,11 +3,14 @@ import {
   Button,
   Checkbox,
   Flex,
+  Heading,
   Portal,
+  Select,
   Span,
   Table,
   TableCell,
   Text,
+  createListCollection,
 } from '@chakra-ui/react';
 import {
   DndContext,
@@ -41,6 +44,7 @@ import {
 import { CSSProperties, FunctionComponent, useMemo, useState } from 'react';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 import { PiDotsSixVertical } from 'react-icons/pi';
+import { useSearchParams } from 'react-router';
 
 import { Organization, Project } from '@/generated/rpc/resources';
 import { Datacenter, Hypervisor, Instance, ZeroTrustNetwork } from '@/types';
@@ -65,12 +69,12 @@ type InstanceData = Instance & {
 const columnHelper = createColumnHelper<InstanceData>();
 
 const bytesToGB = (cell: CellContext<InstanceData, number>) =>
-  `${(cell.getValue() / 1024 ** 3).toFixed()} GB`;
+  `${(cell.getValue() / 1024 ** 3).toFixed(2)}GB`;
 const date = (cell: CellContext<InstanceData, string>) =>
   new Date(cell.getValue()).toLocaleString();
 
 const columns = [
-  columnHelper.accessor('name', { id: 'name' }),
+  columnHelper.accessor('name', { header: 'Name', id: 'name' }),
   columnHelper.accessor('datacenter.name', {
     header: 'Datacenter',
     id: 'datacenterName',
@@ -87,11 +91,12 @@ const columns = [
   columnHelper.accessor('ipV4', { header: 'IpV4', id: 'ipv4' }),
   columnHelper.accessor('status', { header: 'Status', id: 'status' }),
   columnHelper.accessor('maxCpuCores', {
+    cell: (cell) => `${cell.getValue()} coeur${cell.getValue() > 1 ? 's' : ''}`,
     header: 'Cpu Max',
     id: 'maxCpuCores',
   }),
   columnHelper.accessor('cpuUsagePercent', {
-    cell: (cell) => `${cell.getValue()} %`,
+    cell: (cell) => `${Math.round(cell.getValue() * 100)}%`,
     header: 'Cpu Usage',
     id: 'cpuUsagePercent',
   }),
@@ -135,6 +140,10 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   projects,
   vpcs,
 }) => {
+  const [searchParams, setSearchParams] = useSearchParams({
+    columns: 'name,ipV4,status',
+  });
+
   // Compute the instances data with associated relations.
   const data: InstanceData[] = useMemo(
     () =>
@@ -208,114 +217,176 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   const indeterminate =
     selection.length > 0 && selection.length < instances.length;
 
-  return table.getRowModel().rows.length ? (
-    <DndContext
-      collisionDetection={closestCenter}
-      modifiers={[restrictToHorizontalAxis]}
-      onDragEnd={handleDragEnd}
-      sensors={sensors}
-    >
-      <Table.ScrollArea borderWidth={1}>
-        <Table.Root variant="outline">
-          <Table.Header>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <Table.Row key={headerGroup.id}>
-                <Table.ColumnHeader w={6}>
-                  <Checkbox.Root
-                    verticalAlign="middle"
-                    size="sm"
-                    aria-label="Select all rows"
-                    checked={
-                      indeterminate ? 'indeterminate' : selection.length > 0
-                    }
-                    onCheckedChange={(changes) =>
-                      setSelection(
-                        changes.checked
-                          ? table.getRowModel().rows.map((row) => row.id)
-                          : [],
-                      )
-                    }
-                  >
-                    <Checkbox.HiddenInput />
-                    <Checkbox.Control />
-                  </Checkbox.Root>
-                </Table.ColumnHeader>
-                <SortableContext
-                  items={columnOrder}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {headerGroup.headers.map((header) => (
-                    <DraggableTableHeader header={header} key={header.id} />
-                  ))}
-                </SortableContext>
-              </Table.Row>
-            ))}
-          </Table.Header>
-          <Table.Body>
-            {table.getRowModel().rows.map((row) => (
-              <Table.Row key={row.id}>
-                <TableCell>
-                  <Checkbox.Root
-                    size="sm"
-                    aria-label="Select row"
-                    checked={selection.includes(row.id)}
-                    onCheckedChange={(changes) =>
-                      setSelection((prev) =>
-                        changes.checked
-                          ? [...prev, row.id]
-                          : selection.filter((id) => id !== row.id),
-                      )
-                    }
-                  >
-                    <Checkbox.HiddenInput />
-                    <Checkbox.Control />
-                  </Checkbox.Root>
-                </TableCell>
-                {row.getVisibleCells().map((cell) => (
-                  <SortableContext
-                    key={cell.id}
-                    items={columnOrder}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    <DragAlongTableCell cell={cell} />
-                  </SortableContext>
-                ))}
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Root>
-        <ActionBar.Root open={selection.length > 0}>
+  // Track the displayed columns
+  const collection = createListCollection({
+    items: table.getAllColumns().map((c) => c.id),
+  });
+
+  const displayedColumns = searchParams.get('columns')?.split(',');
+  const handleColumnChange = (value: string[]) => {
+    setSearchParams((state) => {
+      state.set('columns', value.join(','));
+      return state;
+    });
+  };
+
+  return (
+    <>
+      <Flex>
+        <Heading flexGrow={1} whiteSpace="nowrap">
+          Instances de VM
+        </Heading>
+        <Select.Root
+          multiple
+          collection={collection}
+          value={displayedColumns}
+          onValueChange={(e) => handleColumnChange(e.value)}
+          maxW={60}
+        >
+          <Select.Control>
+            <Select.Trigger>
+              <Select.ValueText placeholder="Colonnes à afficher" />
+            </Select.Trigger>
+            <Select.IndicatorGroup>
+              <Select.Indicator />
+            </Select.IndicatorGroup>
+          </Select.Control>
           <Portal>
-            <ActionBar.Positioner>
-              <ActionBar.Content>
-                <ActionBar.SelectionTrigger>
-                  {selection.length} selected
-                </ActionBar.SelectionTrigger>
-                <ActionBar.Separator />
-                <Button variant="outline" size="sm">
-                  Start
-                </Button>
-                <Button variant="outline" size="sm">
-                  Stop
-                </Button>
-                <Button variant="outline" size="sm">
-                  Delete
-                </Button>
-              </ActionBar.Content>
-            </ActionBar.Positioner>
+            <Select.Positioner>
+              <Select.Content>
+                {table.getAllColumns().map((column) => (
+                  <Select.Item item={column.id} key={column.id}>
+                    {`${column.columnDef.header}`}
+                    <Select.ItemIndicator />
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Positioner>
           </Portal>
-        </ActionBar.Root>
-      </Table.ScrollArea>
-    </DndContext>
-  ) : (
-    <Flex
-      alignItems="center"
-      borderWidth={1}
-      flexGrow={1}
-      justifyContent="center"
-    >
-      <Text color="fg.muted">Aucune donnée</Text>
-    </Flex>
+        </Select.Root>
+      </Flex>
+      {table.getRowModel().rows.length ? (
+        <DndContext
+          collisionDetection={closestCenter}
+          modifiers={[restrictToHorizontalAxis]}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+        >
+          <Table.ScrollArea borderWidth={1}>
+            <Table.Root variant="outline">
+              <Table.Header>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <Table.Row key={headerGroup.id}>
+                    <Table.ColumnHeader w={6}>
+                      <Checkbox.Root
+                        verticalAlign="middle"
+                        size="sm"
+                        aria-label="Select all rows"
+                        checked={
+                          indeterminate ? 'indeterminate' : selection.length > 0
+                        }
+                        onCheckedChange={(changes) =>
+                          setSelection(
+                            changes.checked
+                              ? table.getRowModel().rows.map((row) => row.id)
+                              : [],
+                          )
+                        }
+                      >
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control />
+                      </Checkbox.Root>
+                    </Table.ColumnHeader>
+                    <SortableContext
+                      items={columnOrder}
+                      strategy={horizontalListSortingStrategy}
+                    >
+                      {headerGroup.headers
+                        .filter((header) =>
+                          displayedColumns.includes(header.column.id),
+                        )
+                        .map((header) => (
+                          <DraggableTableHeader
+                            header={header}
+                            key={header.id}
+                          />
+                        ))}
+                    </SortableContext>
+                  </Table.Row>
+                ))}
+              </Table.Header>
+              <Table.Body>
+                {table.getRowModel().rows.map((row) => (
+                  <Table.Row key={row.id}>
+                    <TableCell>
+                      <Checkbox.Root
+                        size="sm"
+                        aria-label="Select row"
+                        checked={selection.includes(row.id)}
+                        onCheckedChange={(changes) =>
+                          setSelection((prev) =>
+                            changes.checked
+                              ? [...prev, row.id]
+                              : selection.filter((id) => id !== row.id),
+                          )
+                        }
+                      >
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control />
+                      </Checkbox.Root>
+                    </TableCell>
+                    {row
+                      .getVisibleCells()
+                      .filter((cell) =>
+                        displayedColumns.includes(cell.column.id),
+                      )
+                      .map((cell) => (
+                        <SortableContext
+                          key={cell.id}
+                          items={columnOrder}
+                          strategy={horizontalListSortingStrategy}
+                        >
+                          <DragAlongTableCell cell={cell} />
+                        </SortableContext>
+                      ))}
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+            <ActionBar.Root open={selection.length > 0}>
+              <Portal>
+                <ActionBar.Positioner>
+                  <ActionBar.Content>
+                    <ActionBar.SelectionTrigger>
+                      {selection.length} selected
+                    </ActionBar.SelectionTrigger>
+                    <ActionBar.Separator />
+                    <Button variant="outline" size="sm">
+                      Start
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Stop
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Delete
+                    </Button>
+                  </ActionBar.Content>
+                </ActionBar.Positioner>
+              </Portal>
+            </ActionBar.Root>
+          </Table.ScrollArea>
+        </DndContext>
+      ) : (
+        <Flex
+          alignItems="center"
+          borderWidth={1}
+          flexGrow={1}
+          justifyContent="center"
+        >
+          <Text color="fg.muted">Aucune donnée</Text>
+        </Flex>
+      )}
+    </>
   );
 };
 
