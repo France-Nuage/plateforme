@@ -69,7 +69,7 @@ build:
   dependencies:
     - "sync console with plasmic"
   script:
-    - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg CARGO_BUILD_JOBS=1
     - docker compose push
 
 "code style / controlplane":
