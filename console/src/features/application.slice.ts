@@ -22,9 +22,8 @@ const initialState: ApplicationState = {
   activeOrganization: undefined,
   activeProject: undefined,
   loaded: false,
-  mode: window.location.pathname.startsWith('/plasmic-host')
-    ? ServiceMode.Mock
-    : import.meta.env.VITE_APPLICATION_DEFAULT_MODE === 'mock'
+  mode:
+    import.meta.env.VITE_APPLICATION_DEFAULT_MODE === 'mock'
       ? ServiceMode.Mock
       : ServiceMode.Rpc,
 };
