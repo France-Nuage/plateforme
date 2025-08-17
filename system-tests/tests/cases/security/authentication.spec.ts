@@ -9,7 +9,7 @@ test.describe('Security', () => {
   test('I am redirected to the home page when visiting a guest page as a user', async ({ actingAs, pages }) => {
     await actingAs('Wile E. Coyote');
     await pages.login.goto();
-    await pages.home.assertRedirectedTo();
+    await pages.compute.assertRedirectedTo();
   });
 
   test('I can authenticate with a valid user', async ({ page, pages }) => {
@@ -21,6 +21,6 @@ test.describe('Security', () => {
     await pages.oidc.locators.loginButton.click();
     await pages.oidc.locators.continueButton.waitFor();
     await pages.oidc.locators.continueButton.click();
-    await pages.home.assertRedirectedTo();
+    await pages.compute.assertRedirectedTo();
   })
 });

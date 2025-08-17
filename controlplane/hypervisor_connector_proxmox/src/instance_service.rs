@@ -1,9 +1,8 @@
-use std::net::Ipv4Addr;
-
 use crate::proxmox_api::{self, helpers, vm_clone::VMCloneOptions, vm_create::VMConfig};
 use hypervisor_connector::{
     InstanceConfig, InstanceInfo, InstanceService, InstanceStatus, Problem,
 };
+use std::net::Ipv4Addr;
 pub struct ProxmoxInstanceService {
     pub api_url: String,
     pub client: reqwest::Client,

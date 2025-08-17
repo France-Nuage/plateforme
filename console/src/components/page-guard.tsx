@@ -1,9 +1,12 @@
-import { FunctionComponent, ReactNode } from 'react';
+import { FunctionComponent, useEffect, useState } from 'react';
+import { Outlet, useNavigate } from 'react-router';
 
-import { useAuthenticationGuard } from '@/hooks';
+import { useAppSelector } from '@/hooks';
+import { DataProvider } from '@/providers';
+import { Routes } from '@/types';
 
 export type PageGuardProps = {
-  children: ReactNode;
+  authenticated?: boolean;
 };
 
 /**
@@ -14,9 +17,29 @@ export type PageGuardProps = {
  * state; this is why the logic has been positionned down in the React tree as
  * a higher-order component, rather than an actual middleware upper in the tree.
  */
-export const PageGuard: FunctionComponent<PageGuardProps> = ({ children }) => {
-  // Call general application hooks
-  useAuthenticationGuard();
+export const PageGuard: FunctionComponent<PageGuardProps> = ({
+  authenticated,
+}) => {
+  const isUserAuthenticated = useAppSelector(
+    (state) => !!state.authentication.user,
+  );
+  const navigate = useNavigate();
 
-  return children;
+  const [isLoading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (authenticated && !isUserAuthenticated) {
+      navigate(Routes.Login);
+    } else if (!authenticated && isUserAuthenticated) {
+      navigate(Routes.Home);
+    } else {
+      setLoading(false);
+    }
+  }, [authenticated, isUserAuthenticated, navigate]);
+
+  return isLoading ? null : (
+    <DataProvider>
+      <Outlet />
+    </DataProvider>
+  );
 };

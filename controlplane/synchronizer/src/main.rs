@@ -1,6 +1,5 @@
-use std::{error::Error, sync::Arc, time::Duration};
-
 use instances::InstancesService;
+use std::{error::Error, sync::Arc, time::Duration};
 use synchronizer::{heartbeat, synchronize};
 use tokio::{sync::Mutex, time};
 use tracing::{error, info, warn};
