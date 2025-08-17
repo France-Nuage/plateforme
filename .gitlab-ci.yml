@@ -45,8 +45,6 @@ gitleaks:
 
 build:
   stage: build
-  dependencies:
-    - "sync console with plasmic"
   script:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
     - docker compose push
@@ -97,8 +95,6 @@ build:
     - docker compose logs > docker-compose-logs.txt
   script:
     - docker compose run --remove-orphans system-tests npm run test:ci
-  dependencies:
-    - "sync console with plasmic"
   artifacts:
     when: always
     paths:
