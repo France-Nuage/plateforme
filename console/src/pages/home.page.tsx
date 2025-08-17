@@ -1,4 +1,4 @@
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Routes } from '@/types';
@@ -6,7 +6,9 @@ import { Routes } from '@/types';
 export const HomePage: FunctionComponent = () => {
   const navigate = useNavigate();
 
-  navigate(Routes.Instances);
+  useEffect(() => {
+    navigate(Routes.Instances);
+  }, [navigate]);
 
   return <></>;
 };
