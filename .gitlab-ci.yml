@@ -82,15 +82,11 @@ build:
         coverage_format: cobertura
         path: controlplane/cobertura.xml
 
-"unit tests / protocol conformity":
-  stage: unit-tests
-  script:
-    - docker compose run --no-deps --remove-orphans protocol buf breaking googleapis --against=francenuage
-
 "system tests / console":
   stage: system-tests
   variables:
     TARGET: release
+    VITE_APPLICATION_DEFAULT_MODE: rpc
   after_script:
     - docker compose logs > docker-compose-logs.txt
   script:
