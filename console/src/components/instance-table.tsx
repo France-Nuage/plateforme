@@ -222,7 +222,7 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
     items: table.getAllColumns().map((c) => c.id),
   });
 
-  const displayedColumns = searchParams.get('columns')?.split(',');
+  const displayedColumns = searchParams.get('columns')?.split(',') ?? [];
   const handleColumnChange = (value: string[]) => {
     setSearchParams((state) => {
       state.set('columns', value.join(','));
