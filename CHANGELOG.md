@@ -1,3 +1,23 @@
+# [1.29.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.3...v1.29.0) (2025-08-18)
+
+
+### Bug Fixes
+
+* adapt system tests to the new console ([c812fde](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/c812fdea4c2a85157b6f4d0acaa76910f2b4265b))
+* application now builds without type errors ([3c72281](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3c72281d08825d6d3216f8a3afca6eecafa6bf11))
+* missing query params ([62755da](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/62755dacc357077693ee91a7df37b1a568c2a358))
+* redirection needs to be in a useEffect ([da44ab2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/da44ab2f55fbf2ada9c3c00fe24614e70deabd11))
+* update default application mode ([a96c5ae](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a96c5ae20228a2abfb1fef4ea70add010b226c8d))
+
+
+### Features
+
+* add instances table ([3118c1d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3118c1dc743752ac2c345680fc59769f61848e65))
+* add instances table ([86fa69c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/86fa69ce316538dd17061b133c4ea461f4c9043a))
+* add layout alert ([4fc5c71](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4fc5c7105f55e36f39f2ba48a5ae47ee3e616549))
+* replace plasmic by a minimal react app ([52ceea6](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/52ceea603cf594f483ed473e640f26d449175c5c))
+* track column selection in query params ([d64f82d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d64f82d07c450b1448553e1e156df5a17dd64138))
+
 ## [1.28.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.2...v1.28.3) (2025-08-12)
 
 
