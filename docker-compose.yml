@@ -9,8 +9,8 @@ services:
         VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
         VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master-${TARGET:-development}
       context: console
       target: ${TARGET:-development}
     depends_on:
@@ -46,8 +46,8 @@ services:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:master
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:master-${TARGET:-development}
       context: controlplane
       target: ${TARGET:-development}
     depends_on:
