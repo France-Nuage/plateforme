@@ -2,7 +2,8 @@ import express from 'express';
 import { Provider } from 'oidc-provider';
 
 import config from './config';
-import { createUser } from './storage';
+import { createUser, findUserBySub } from './storage';
+import { User } from './types';
 
 const app = express();
 app.use(express.json());
@@ -26,12 +27,18 @@ const oidc = new Provider(config.issuer, {
   features: {
     devInteractions: { enabled: true } // Built-in login UI
   },
-  // Override interaction URL generation
-  interactions: {
-    url(ctx, interaction) {
-      console.log('in interactions', ctx, interaction);
-      return `https://oidc/interaction/${interaction.uid}`;
+  // Account lookup - this is where we can add user existence validation
+  findAccount: (ctx, sub) => {
+
+    const user = findUserBySub(sub);
+    if (!user) {
+      return undefined;
     }
+
+    return {
+      accountId: sub,
+      claims: async () => user
+    };
   },
   scopes: ['openid', 'profile', 'email', 'offline_access'],
 });
@@ -40,24 +47,16 @@ app.get('/health', async (req, res) => {
   res.sendStatus(200);
 });
 
-app.post('/api/users', async (req, res) => {
-  const { username = 'rstraub', email = 'robin@straub.pro', name = 'Robin Straub' } = req.body;
-
-  // Store user
-  const user = {
-    sub: username,
-    email: email || `${username}@test.com`,
-    name: name || username,
-    email_verified: true
-  };
-  createUser(username, user);
+app.post<string, {}, any, User>('/api/users', async (req, res) => {
+  const user = req.body;
+  createUser(user);
 
   // Generate tokens like a real auth flow would
   const client = (await oidc.Client.find(config.clientId))!;
 
   const AccessToken = oidc.AccessToken;
   const accessToken = new AccessToken({
-    accountId: username,
+    accountId: user.sub,
     client: client,
     grantId: `test_${Date.now()}`,
     scope: 'openid profile email',
@@ -75,7 +74,7 @@ app.post('/api/users', async (req, res) => {
 
   // Create profile object (decoded ID token payload)
   const profile = {
-    sub: username,
+    sub: user.sub,
     aud: config.clientId,
     exp: expiresAt,
     iat: now,

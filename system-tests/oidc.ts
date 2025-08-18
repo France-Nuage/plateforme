@@ -3,5 +3,10 @@ export const createUser = () => fetch(`${process.env.OIDC_PROVIDER_URL}/api/user
   headers: {
     'Content-Type': 'application/json',
   },
-  body: JSON.stringify({}),
+  body: JSON.stringify({
+    username: 'wile.coyote',
+    email: 'wile.coyote@acme.org',
+    name: 'Wile E. Coyote',
+    password: 'killbipbip',
+  }),
 }).then((response) => response.json())
