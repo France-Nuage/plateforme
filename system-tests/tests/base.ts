@@ -6,7 +6,8 @@ import { Hypervisor } from "../protocol/hypervisors";
 import { Instance } from "../protocol/instances";
 import { minBy } from "lodash";
 import { ComputePage, HomePage, LoginPage, OidcPage } from "./pages";
-import { createUser } from "../oidc";
+import { createUser } from "@/oidc";
+import { User } from '@/types';
 
 const requiredEnvVars = [
   'CONTROLPLANE_URL',
@@ -37,7 +38,7 @@ type TestFixtures = {
     login: LoginPage;
   };
 
-  actingAs: (user: any) => Promise<void>;
+  actingAs: (user: Partial<User>) => Promise<void>;
 }
 
 /**
@@ -73,7 +74,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     await use(async (user) => {
       // compute key/value pair for session storage representation of the user
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
-      const value = await createUser();
+      const value = await createUser(user);
       // define the session storage value in the context of the page
       await page.addInitScript(([key, value]) => {
         sessionStorage.setItem(key, value)
