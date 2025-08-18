@@ -8,8 +8,8 @@ export const users = new Map<string, User>();
 /**
  * Create a new user.
  */
-export const createUser = (profile: User) => {
-  users.set(profile.sub, profile);
+export const createUser = (user: User) => {
+  users.set(user.username, user);
 };
 
 /**
