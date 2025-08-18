@@ -43,10 +43,20 @@ gitleaks:
     when: always
     expire_in: 1 week
 
-build:
+"build / development":
   stage: build
+  variables:
+    TARGET: development
   script:
     - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker compose push
+
+"build / release":
+  stage: build
+  variables:
+    TARGET: release
+  script:
+    - docker compose build
     - docker compose push
 
 "code style / controlplane":

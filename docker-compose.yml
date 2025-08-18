@@ -9,8 +9,8 @@ services:
         VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
         VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master-${TARGET:-development}
       context: console
       target: ${TARGET:-development}
     depends_on:
@@ -22,7 +22,7 @@ services:
       VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
       VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
       VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
-      VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-mock}
+      VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
       VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
       PORT: 80
     expose:
@@ -46,8 +46,8 @@ services:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:master
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:master-${TARGET:-development}
       context: controlplane
       target: ${TARGET:-development}
     depends_on:
