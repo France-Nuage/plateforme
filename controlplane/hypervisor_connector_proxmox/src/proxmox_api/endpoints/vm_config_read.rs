@@ -49,9 +49,7 @@ where
 
 fn parse_ip_config(s: &str) -> Result<IpConfig, String> {
     let parts: Vec<&str> = s.split(',').collect();
-    if parts.len() != 2 {
-        return Err(format!("Expected 'ip=...,gw=...' format, got {}", s));
-    }
+
     let ip_part = parts[0].strip_prefix("ip=").ok_or("Missing 'ip=' prefix")?;
     let gw_part = parts[1].strip_prefix("gw=").ok_or("Missing 'gw=' prefix")?;
 

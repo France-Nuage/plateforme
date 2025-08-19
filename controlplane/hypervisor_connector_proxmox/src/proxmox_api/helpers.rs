@@ -49,7 +49,12 @@ pub async fn get_vm_execution_node(
         .await?
         .data
         .into_iter()
-        .filter(|resource| resource.resource_type == ResourceType::Qemu)
+        .filter(|resource| {
+            matches!(
+                resource.resource_type,
+                ResourceType::Qemu | ResourceType::Lxc
+            )
+        })
         .find(|resource| resource.vmid.expect("vmid should be defined") == vmid);
 
     resource
