@@ -1,3 +1,4 @@
+import { createUser } from "@/oidc";
 import { test } from "../../base";
 
 test.describe('Security', () => {
@@ -13,10 +14,16 @@ test.describe('Security', () => {
   });
 
   test('I can authenticate with a valid user', async ({ page, pages }) => {
+    await createUser({
+      email: 'wile.coyote@acme.org',
+      name: 'Wile E. Coyote',
+      password: 'killbipbip',
+      username: 'wile.coyote',
+    });
     await pages.login.goto();
     await pages.login.locators.loginButton.click();
     await pages.oidc.assertRedirectedTo();
-    await pages.oidc.locators.emailInput.fill('wcoyote@acme.org');
+    await pages.oidc.locators.emailInput.fill('wile.coyote');
     await pages.oidc.locators.passwordInput.fill('killbipbip');
     await pages.oidc.locators.loginButton.click();
     await pages.oidc.locators.continueButton.waitFor();

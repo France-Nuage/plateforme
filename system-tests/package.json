@@ -24,6 +24,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.9.0",
     "@types/lodash": "^4.17.16",
     "lodash": "^4.17.21"
   }

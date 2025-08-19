@@ -37,7 +37,7 @@ const oidc = new Provider(config.issuer, {
 
     return {
       accountId: sub,
-      claims: async () => user
+      claims: async () => ({ ...user, sub: user.username }),
     };
   },
   scopes: ['openid', 'profile', 'email', 'offline_access'],
@@ -56,7 +56,7 @@ app.post<string, {}, any, User>('/api/users', async (req, res) => {
 
   const AccessToken = oidc.AccessToken;
   const accessToken = new AccessToken({
-    accountId: user.sub,
+    accountId: user.username,
     client: client,
     grantId: `test_${Date.now()}`,
     scope: 'openid profile email',
@@ -74,7 +74,7 @@ app.post<string, {}, any, User>('/api/users', async (req, res) => {
 
   // Create profile object (decoded ID token payload)
   const profile = {
-    sub: user.sub,
+    sub: user.username,
     aud: config.clientId,
     exp: expiresAt,
     iat: now,
