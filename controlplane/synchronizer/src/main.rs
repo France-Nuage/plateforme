@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Setup ticker
     let tick = std::env::var("INTERVAL")
-        .unwrap_or_else(|_| String::from("5"))
+        .unwrap_or_else(|_| String::from("60"))
         .parse::<u64>()
         .unwrap_or(5);
     let sync_in_progress = Arc::new(Mutex::new(false));

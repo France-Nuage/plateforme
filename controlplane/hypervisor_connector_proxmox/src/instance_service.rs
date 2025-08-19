@@ -1,4 +1,7 @@
-use crate::proxmox_api::{self, helpers, vm_clone::VMCloneOptions, vm_create::VMConfig};
+use crate::proxmox_api::{
+    self, cluster_resources_list::ResourceType, helpers, vm_clone::VMCloneOptions,
+    vm_create::VMConfig,
+};
 use hypervisor_connector::{
     InstanceConfig, InstanceInfo, InstanceService, InstanceStatus, Problem,
 };
@@ -21,6 +24,7 @@ impl InstanceService for ProxmoxInstanceService {
         .data;
         response
             .into_iter()
+            .filter(|resource| resource.resource_type == ResourceType::Qemu)
             .map(|resource| resource.try_into().map_err(Into::into))
             .collect()
     }
