@@ -1,3 +1,10 @@
+## [1.29.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.0...v1.29.1) (2025-08-19)
+
+
+### Bug Fixes
+
+* containers are no longer tracked in synchronization ([7ea805a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7ea805a9f918746386d0b81c0eae68df9035d6fb))
+
 # [1.29.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.3...v1.29.0) (2025-08-18)
 
 
