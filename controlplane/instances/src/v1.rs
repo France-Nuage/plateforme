@@ -40,7 +40,7 @@ impl From<crate::model::Instance> for Instance {
             max_disk_bytes: value.max_disk_bytes as u64,
             max_memory_bytes: value.max_memory_bytes as u64,
             memory_usage_bytes: value.memory_usage_bytes as u64,
-            ip_v4: String::from(""),
+            ip_v4: value.ip_v4,
             name: value.name,
             hypervisor_id: value.hypervisor_id.to_string(),
             project_id: value.project_id.to_string(),
