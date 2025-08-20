@@ -1,3 +1,10 @@
+## [1.29.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.1...v1.29.2) (2025-08-20)
+
+
+### Bug Fixes
+
+* instance ip address not being returned by the controlplane ([fb9c73f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/fb9c73f38a3c0ed9924765421a93f8e318779bc8))
+
 ## [1.29.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.0...v1.29.1) (2025-08-19)
 
 
