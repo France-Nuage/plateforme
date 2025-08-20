@@ -4,6 +4,7 @@ import {
   Checkbox,
   Flex,
   Heading,
+  Input,
   Portal,
   Select,
   Span,
@@ -140,12 +141,17 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   projects,
   vpcs,
 }) => {
+  // Initialize with all columns displayed by default
+  const allColumnIds = columns.map((column) => column.id!).join(',');
   const [searchParams, setSearchParams] = useSearchParams({
-    columns: 'name,ipV4,status',
+    columns: allColumnIds,
   });
 
+  // Add search state for filtering
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
   // Compute the instances data with associated relations.
-  const data: InstanceData[] = useMemo(
+  const enrichedData: InstanceData[] = useMemo(
     () =>
       instances.map((instance) => {
         const hypervisor = hypervisors.find(
@@ -173,6 +179,39 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
       }),
     [datacenters, hypervisors, instances, organizations, projects, vpcs],
   );
+
+  // Filter data based on search query
+  const data = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return enrichedData;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return enrichedData.filter((instance) => {
+      // Check all fields for the search query
+      const searchableFields = [
+        instance.name,
+        instance.ipV4,
+        instance.status,
+        instance.datacenter?.name,
+        instance.vpc?.name,
+        instance.organization?.name,
+        instance.project?.name,
+        instance.maxCpuCores?.toString(),
+        instance.cpuUsagePercent?.toString(),
+        instance.maxMemoryBytes?.toString(),
+        instance.memoryUsageBytes?.toString(),
+        instance.maxDiskBytes?.toString(),
+        instance.diskUsageBytes?.toString(),
+        instance.createdAt,
+        instance.updatedAt,
+      ];
+
+      return searchableFields.some((field) =>
+        field?.toLowerCase().includes(query),
+      );
+    });
+  }, [enrichedData, searchQuery]);
 
   // Track the column order.
   const [columnOrder, setColumnOrder] = useState<string[]>(() =>
@@ -232,38 +271,46 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
 
   return (
     <>
-      <Flex>
-        <Heading flexGrow={1} whiteSpace="nowrap">
-          Instances de VM
-        </Heading>
-        <Select.Root
-          multiple
-          collection={collection}
-          value={displayedColumns}
-          onValueChange={(e) => handleColumnChange(e.value)}
-          maxW={60}
-        >
-          <Select.Control>
-            <Select.Trigger>
-              <Select.ValueText placeholder="Colonnes à afficher" />
-            </Select.Trigger>
-            <Select.IndicatorGroup>
-              <Select.Indicator />
-            </Select.IndicatorGroup>
-          </Select.Control>
-          <Portal>
-            <Select.Positioner>
-              <Select.Content>
-                {table.getAllColumns().map((column) => (
-                  <Select.Item item={column.id} key={column.id}>
-                    {`${column.columnDef.header}`}
-                    <Select.ItemIndicator />
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Positioner>
-          </Portal>
-        </Select.Root>
+      <Flex direction="column" gap={4}>
+        <Flex>
+          <Heading flexGrow={1} whiteSpace="nowrap">
+            Instances de VM
+          </Heading>
+          <Select.Root
+            multiple
+            collection={collection}
+            value={displayedColumns}
+            onValueChange={(e) => handleColumnChange(e.value)}
+            maxW={60}
+          >
+            <Select.Control>
+              <Select.Trigger>
+                <Select.ValueText placeholder="Colonnes à afficher" />
+              </Select.Trigger>
+              <Select.IndicatorGroup>
+                <Select.Indicator />
+              </Select.IndicatorGroup>
+            </Select.Control>
+            <Portal>
+              <Select.Positioner>
+                <Select.Content>
+                  {table.getAllColumns().map((column) => (
+                    <Select.Item item={column.id} key={column.id}>
+                      {`${column.columnDef.header}`}
+                      <Select.ItemIndicator />
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Positioner>
+            </Portal>
+          </Select.Root>
+        </Flex>
+        <Input
+          placeholder="Rechercher dans toutes les colonnes..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          maxW="400px"
+        />
       </Flex>
       {table.getRowModel().rows.length ? (
         <DndContext
@@ -272,9 +319,9 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
           onDragEnd={handleDragEnd}
           sensors={sensors}
         >
-          <Table.ScrollArea borderWidth={1}>
+          <Table.ScrollArea borderWidth={1} maxHeight="calc(100vh - 250px)">
             <Table.Root variant="outline">
-              <Table.Header>
+              <Table.Header position="sticky" top={0} zIndex={10} bg="bg">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <Table.Row key={headerGroup.id}>
                     <Table.ColumnHeader w={6}>
