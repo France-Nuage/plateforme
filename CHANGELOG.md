@@ -1,3 +1,10 @@
+## [1.29.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.2...v1.29.3) (2025-08-21)
+
+
+### Bug Fixes
+
+* specify pgpool connections ([097401d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/097401d28c493cf12ba8e137bd2fedd065ba1828))
+
 ## [1.29.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.1...v1.29.2) (2025-08-20)
 
 
