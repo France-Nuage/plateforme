@@ -1,4 +1,5 @@
 use instances::InstancesService;
+use sqlx::postgres::PgPoolOptions;
 use std::{error::Error, sync::Arc, time::Duration};
 use synchronizer::{heartbeat, synchronize};
 use tokio::{sync::Mutex, time};
@@ -15,7 +16,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Setup service
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = sqlx::PgPool::connect(&database_url).await?;
+    let pool = PgPoolOptions::new()
+        .min_connections(5)
+        .max_connections(30)
+        .max_lifetime(Some(Duration::from_secs(30 * 60)))
+        .idle_timeout(Some(Duration::from_secs(60)))
+        .connect(&database_url)
+        .await?;
+
     let instances_service = InstancesService::new(pool);
 
     // Setup ticker

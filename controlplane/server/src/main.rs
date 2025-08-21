@@ -1,4 +1,7 @@
+use std::time::Duration;
+
 use server::{Server, ServerConfig};
+use sqlx::postgres::PgPoolOptions;
 use tracing::info;
 
 #[tokio::main]
@@ -8,7 +11,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create a database connection and apply pending connections
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = sqlx::PgPool::connect(&database_url).await?;
+    let pool = PgPoolOptions::new()
+        .min_connections(5)
+        .max_connections(30)
+        .max_lifetime(Some(Duration::from_secs(30 * 60)))
+        .idle_timeout(Some(Duration::from_secs(60)))
+        .connect(&database_url)
+        .await?;
+
     sqlx::migrate!("../migrations").run(&pool).await?;
 
     // Create a configuration for the grpc server
