@@ -12,7 +12,7 @@ members = [
   "instances",
   "resources",
   "server",
-  "synchronizer",
+  "synchronizer", "auth",
 ]
 
 resolver = "3"
