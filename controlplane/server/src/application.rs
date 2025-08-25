@@ -197,7 +197,15 @@ impl<L> Application<L> {
         let pool = self.config.pool.clone();
         Self {
             config: self.config,
-            router: self.router.instances(pool),
+            router: self
+                .router
+                .health()
+                .datacenters(pool.clone())
+                .hypervisors(pool.clone())
+                .instances(pool.clone())
+                .resources(pool.clone())
+                .zero_trust_network_types(pool.clone())
+                .zero_trust_network_types(pool.clone()),
             server: self.server,
         }
     }
