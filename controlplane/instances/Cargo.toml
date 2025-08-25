@@ -13,8 +13,8 @@ hypervisor_connector = { path = "../hypervisor_connector" }
 hypervisor_connector_proxmox = { path = "../hypervisor_connector_proxmox" }
 hypervisor_connector_resolver = { path = "../hypervisor_connector_resolver" }
 infrastructure = { path = "../infrastructure" }
-prost = "0.13"
-prost-types = "0.13"
+prost = "0.14"
+prost-types = "0.14"
 reqwest = { version = "0.12", features = ["json"] }
 resources = { path = "../resources" }
 serde = { version = "1.0", features = ["derive"] }
@@ -28,9 +28,10 @@ sqlx = { version = "0.8", features = [
 ] }
 thiserror = "2.0"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
-tonic = "0.12"
+tonic = "0.14"
+tonic-prost = "0.14"
 tracing = "0.1"
 uuid = { version = "1.16", features = ["v4"] }
 
 [build-dependencies]
-tonic-build = "0.12"
+tonic-prost-build = "0.14"

@@ -1,168 +1,103 @@
-use hyper::http;
-use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
-use infrastructure::{
-    DatacenterRpcService, ZeroTrustNetworkRpcService, ZeroTrustNetworkTypeRpcService,
-    v1::{
-        datacenters_server::DatacentersServer,
-        zero_trust_network_types_server::ZeroTrustNetworkTypesServer,
-        zero_trust_networks_server::ZeroTrustNetworksServer,
-    },
-};
-use instances::InstancesRpcService;
-use instances::v1::instances_server::InstancesServer;
-use resources::{rpc::ResourcesRpcService, v1::resources_server::ResourcesServer};
-use sqlx::PgPool;
-use std::net::SocketAddr;
-use tokio::sync::oneshot;
-use tokio_stream::wrappers::TcpListenerStream;
-use tonic::transport::{Server as TonicServer, server::Router};
-use tower_http::{
-    cors::{Any, CorsLayer},
-    trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
-};
-use tower_layer::{Identity, Stack};
-use tracing::Level;
+//! gRPC server library for the control plane.
+//!
+//! This library provides a complete gRPC server implementation with batteries
+//! included for typical microservice scenarios. It orchestrates application
+//! components including configuration management, PostgreSQL database connectivity,
+//! service routing, middleware composition, and graceful shutdown handling.
+//!
+//! The library is designed around a builder pattern that allows progressive
+//! configuration of server components, making it suitable for both development
+//! and production deployments.
 
-// Type alias for the complex router type
-type ServerRouter = Router<
-    Stack<
-        CorsLayer,
-        Stack<
-            TraceLayer<
-                tower_http::classify::SharedClassifier<tower_http::classify::GrpcErrorsAsFailures>,
-                DefaultMakeSpan,
-                DefaultOnRequest,
-                DefaultOnResponse,
-            >,
-            Identity,
-        >,
-    >,
->;
+pub mod application;
+pub mod config;
+pub mod error;
+pub mod router;
+pub mod server;
 
-/// Provide a gRPC tonic server.
+pub use application::Application;
+pub use config::Config;
+use tokio::{
+    signal::unix::{SignalKind, signal},
+    sync::oneshot,
+};
+
+/// Starts and runs the complete gRPC server application.
 ///
-/// The Server struct is a wrapper around the tonic gRPC server, which allows centralizing the
-/// server configuration here in the server crate, rather than have it defined in the main binary
-/// crate.
-pub struct Server {
-    pub addr: SocketAddr,
-    pub router: ServerRouter,
+/// This function orchestrates the entire server startup process, including
+/// signal handling setup, configuration loading, database connection
+/// establishment, and application initialization. It runs the server until
+/// a shutdown signal (SIGTERM or SIGINT) is received.
+///
+/// # Environment Variables
+///
+/// * `DATABASE_URL` - PostgreSQL connection string (required)
+///
+/// # Panics
+///
+/// This function will panic if:
+/// - Signal handlers for SIGTERM or SIGINT cannot be installed
+/// - PostgreSQL connection cannot be established
+pub async fn serve() -> Result<(), crate::error::Error> {
+    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+
+    tokio::spawn(async move {
+        shutdown_signal().await;
+        // Send the shutdown signal. This will panic if it fails, as it prevents
+        // to gracefully shutdown
+        shutdown_tx
+            .send(())
+            .expect("could not send the shutdown signal");
+    });
+
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool = sqlx::PgPool::connect(&database_url)
+        .await
+        .expect("could not connect to database");
+    let config = Config::new(pool);
+
+    Application::new(config)
+        .with_middlewares()
+        .with_services()
+        .run(async {
+            shutdown_rx.await.ok();
+        })
+        .await
 }
 
-impl Server {
-    /// Create a new gRPC server for the controlplane.
-    pub async fn new(config: ServerConfig) -> Result<Self, Box<dyn std::error::Error>> {
-        // Compute the socket address
-        let addr: SocketAddr = match config.addr {
-            Some(addr) => addr.parse()?,
-            None => tokio::net::TcpListener::bind("[::1]:0")
-                .await?
-                .local_addr()?,
-        };
+pub async fn serve_with_tx(config: Config) -> Result<oneshot::Sender<()>, crate::error::Error> {
+    // Create a one-shot channel for sending a shutdown signal
+    let (sender, receiver) = oneshot::channel();
 
-        let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
-        health_reporter
-            .set_serving::<DatacentersServer<DatacenterRpcService>>()
-            .await;
-        health_reporter
-            .set_serving::<HypervisorsServer<HypervisorsRpcService>>()
-            .await;
-        health_reporter
-            .set_serving::<InstancesServer<InstancesRpcService>>()
-            .await;
-        health_reporter
-            .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>()
-            .await;
-        health_reporter
-            .set_serving::<ZeroTrustNetworksServer<ZeroTrustNetworkRpcService>>()
-            .await;
-
-        let datacenters_service =
-            DatacentersServer::new(DatacenterRpcService::new(config.pool.clone()));
-        let hypervisors_service =
-            HypervisorsServer::new(HypervisorsRpcService::new(config.pool.clone()));
-        let instances_service = InstancesServer::new(InstancesRpcService::new(config.pool.clone()));
-        let resources_service = ResourcesServer::new(ResourcesRpcService::new(config.pool.clone()));
-        let zero_trust_network_types_service = ZeroTrustNetworkTypesServer::new(
-            ZeroTrustNetworkTypeRpcService::new(config.pool.clone()),
-        );
-        let zero_trust_networks_service =
-            ZeroTrustNetworksServer::new(ZeroTrustNetworkRpcService::new(config.pool.clone()));
-
-        let cors = CorsLayer::new()
-            .allow_origin(
-                config
-                    .console_url
-                    .unwrap_or(String::from("http://localhost"))
-                    .parse::<http::HeaderValue>()
-                    .map_err(|e| format!("Invalid CORS origin header: {}", e))?,
-            )
-            .allow_methods(Any)
-            .allow_headers(Any);
-
-        let trace = TraceLayer::new_for_grpc()
-            .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
-            .on_response(DefaultOnResponse::new().level(Level::INFO));
-        // Create the tonic router
-        let server = TonicServer::builder().accept_http1(true);
-        let router = server
-            .layer(trace)
-            .layer(cors)
-            .add_service(health_service)
-            .add_service(tonic_web::enable(datacenters_service))
-            .add_service(tonic_web::enable(hypervisors_service))
-            .add_service(tonic_web::enable(instances_service))
-            .add_service(tonic_web::enable(resources_service))
-            .add_service(tonic_web::enable(zero_trust_network_types_service))
-            .add_service(tonic_web::enable(zero_trust_networks_service));
-
-        // Return a Server instance
-        Ok(Server { addr, router })
-    }
-
-    /// Serve the gRPC server on the configured address.
-    pub async fn serve(self) -> Result<(), Box<dyn std::error::Error>> {
-        self.router.serve(self.addr).await?;
-        Ok(())
-    }
-
-    /// Serve the gRPC server and accept a signal to gracefully shut it down.
-    pub async fn serve_with_shutdown(
-        self,
-    ) -> Result<oneshot::Sender<()>, Box<dyn std::error::Error>> {
-        // Create a TCP listener bound to the address
-        let listener = tokio::net::TcpListener::bind(self.addr).await?;
-
-        // Create the shutdown channel
-        let (shutdown_tx, shutdown_rx) = oneshot::channel();
-
-        // Spawn the server in a separate task
-        tokio::spawn(async move {
-            self.router
-                .serve_with_incoming_shutdown(TcpListenerStream::new(listener), async {
-                    shutdown_rx.await.ok();
-                })
-                .await
+    // Create and start the application in a separate task
+    let app = Application::new(config)
+        .with_middlewares()
+        .with_services()
+        .run(async {
+            receiver.await.ok();
         });
+    tokio::spawn(app);
 
-        Ok(shutdown_tx)
-    }
+    // Return the shutdown signal sender handle
+    Ok(sender)
 }
 
-/// Define the configuration options for the gRPC server.
-#[derive(Debug)]
-pub struct ServerConfig {
-    pub addr: Option<String>,
-    pub console_url: Option<String>,
-    pub pool: sqlx::PgPool,
-}
+/// Waits for system shutdown signals (SIGTERM or SIGINT).
+///
+/// This function sets up signal handlers for graceful shutdown and blocks
+/// until either a SIGTERM or SIGINT signal is received. It's used internally
+/// by the [`serve`] function to coordinate graceful server shutdown.
+///
+/// # Panics
+///
+/// This function will panic if signal handlers for SIGTERM or SIGINT cannot
+/// be installed on the current system.
+async fn shutdown_signal() {
+    let mut sigterm = signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
+    let mut sigint = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");
 
-impl ServerConfig {
-    pub fn new(pool: PgPool) -> Self {
-        ServerConfig {
-            addr: None,
-            console_url: None,
-            pool,
-        }
+    tokio::select! {
+        _ = sigterm.recv() => {}
+        _ = sigint.recv() => {}
     }
 }

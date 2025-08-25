@@ -1,27 +1,16 @@
-use server::{Server, ServerConfig};
-use tracing::info;
+//! Main executable for the gRPC server application.
+//!
+//! This binary serves as the entry point for the control plane gRPC server.
+//! It initializes the tokio async runtime and delegates to the server library
+//! for complete application orchestration.
 
+/// Entry point for the gRPC server application.
+///
+/// This function initializes the tokio async runtime and starts the complete
+/// server application by calling the [`server::serve`] function. It serves
+/// as the bridge between the synchronous main entry point and the async
+/// server implementation.
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize tracing
-    tracing_subscriber::fmt::init();
-
-    // Create a database connection and apply pending connections
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = sqlx::PgPool::connect(&database_url).await?;
-    sqlx::migrate!("../migrations").run(&pool).await?;
-
-    // Create a configuration for the grpc server
-    let config = ServerConfig {
-        addr: Some(
-            std::env::var("CONTROLPLANE_ADDR").unwrap_or_else(|_| (String::from("[::1]:80"))),
-        ),
-        console_url: std::env::var("CONSOLE_URL").ok(),
-        pool,
-    };
-
-    info!("gonna start server...");
-
-    // Create and server the grpc server
-    Server::new(config).await?.serve().await
+async fn main() -> Result<(), server::error::Error> {
+    server::serve().await
 }

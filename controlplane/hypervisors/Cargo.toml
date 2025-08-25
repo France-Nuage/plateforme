@@ -8,7 +8,7 @@ database = { path = "../database" }
 derive_factory = { path = "../derive_factory" }
 derive_repository = { path = "../derive_repository" }
 infrastructure = { path = "../infrastructure" }
-prost = "0.13"
+prost = "0.14"
 resources = { path = "../resources" }
 sqlx = { version = "0.8", features = [
   "chrono",
@@ -19,8 +19,9 @@ sqlx = { version = "0.8", features = [
 ] }
 thiserror = "2.0"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
-tonic = "0.12"
+tonic = "0.14"
+tonic-prost = "0.14"
 uuid = { version = "1.16", features = ["v4"] }
 
 [build-dependencies]
-tonic-build = "0.12"
+tonic-prost-build = "0.14"

@@ -12,13 +12,8 @@ members = [
   "instances",
   "resources",
   "server",
-  "synchronizer", "auth",
+  "synchronizer",
+  "auth",
 ]
 
 resolver = "3"
-
-[profile.dev]
-type-length-limit = 4194304 # 4MB (double the usual default)
-
-[profile.release]
-type-length-limit = 4194304

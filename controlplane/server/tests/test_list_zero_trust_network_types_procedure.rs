@@ -5,7 +5,7 @@ use infrastructure::{
         zero_trust_network_types_client::ZeroTrustNetworkTypesClient,
     },
 };
-use server::{Server, ServerConfig};
+use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_list_zero_trust_network_types_procedure_works(
@@ -14,11 +14,10 @@ async fn test_the_list_zero_trust_network_types_procedure_works(
     // Arrange the test
     let model = ZeroTrustNetworkType::factory().create(&pool).await.unwrap();
 
-    let config = ServerConfig::new(pool);
-    let server = Server::new(config).await?;
-    let addr = server.addr;
-    let shutdown_tx = server.serve_with_shutdown().await?;
-    let mut client = ZeroTrustNetworkTypesClient::connect(format!("http://{}", addr)).await?;
+    let config = Config::new(pool.clone());
+    let addr = format!("http://{}", config.addr);
+    let shutdown_tx = server::serve_with_tx(config).await?;
+    let mut client = ZeroTrustNetworkTypesClient::connect(addr).await?;
 
     // Act the request to the test_the_status_procedure_works
     let response = client

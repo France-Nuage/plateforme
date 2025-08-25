@@ -2,7 +2,7 @@ use infrastructure::{
     ZeroTrustNetwork,
     v1::{ListZeroTrustNetworksRequest, zero_trust_networks_client::ZeroTrustNetworksClient},
 };
-use server::{Server, ServerConfig};
+use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_list_zero_trust_networks_procedure_works(
@@ -16,11 +16,10 @@ async fn test_the_list_zero_trust_networks_procedure_works(
         .await
         .unwrap();
 
-    let config = ServerConfig::new(pool);
-    let server = Server::new(config).await?;
-    let addr = server.addr;
-    let shutdown_tx = server.serve_with_shutdown().await?;
-    let mut client = ZeroTrustNetworksClient::connect(format!("http://{}", addr)).await?;
+    let config = Config::new(pool.clone());
+    let addr = format!("http://{}", config.addr);
+    let shutdown_tx = server::serve_with_tx(config).await?;
+    let mut client = ZeroTrustNetworksClient::connect(addr).await?;
 
     // Act the request to the test_the_status_procedure_works
     let response = client.list(ListZeroTrustNetworksRequest::default()).await;
