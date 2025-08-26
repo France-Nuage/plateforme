@@ -1,3 +1,10 @@
+## [1.29.4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.3...v1.29.4) (2025-08-26)
+
+
+### Bug Fixes
+
+* **deps:** update dependency react-router to v7.8.2 ([45f0f19](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/45f0f19cbd0826b72c821bb7e98e21beb43f6687))
+
 ## [1.29.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.2...v1.29.3) (2025-08-21)
 
 
