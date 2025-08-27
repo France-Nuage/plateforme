@@ -1,3 +1,24 @@
+## [1.29.4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.3...v1.29.4) (2025-08-26)
+
+
+### Bug Fixes
+
+* **deps:** update dependency react-router to v7.8.2 ([45f0f19](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/45f0f19cbd0826b72c821bb7e98e21beb43f6687))
+
+## [1.29.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.2...v1.29.3) (2025-08-21)
+
+
+### Bug Fixes
+
+* specify pgpool connections ([097401d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/097401d28c493cf12ba8e137bd2fedd065ba1828))
+
+## [1.29.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.1...v1.29.2) (2025-08-20)
+
+
+### Bug Fixes
+
+* instance ip address not being returned by the controlplane ([fb9c73f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/fb9c73f38a3c0ed9924765421a93f8e318779bc8))
+
 ## [1.29.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.0...v1.29.1) (2025-08-19)
 
 
