@@ -18,18 +18,5 @@ pub enum Error {
     /// communication, server binding, connection handling, and other
     /// transport-related operations managed by the tonic transport layer.
     #[error("transport error: {0}")]
-    Transport(String),
-}
-
-impl From<tonic::transport::Error> for Error {
-    /// Converts a [`tonic::transport::Error`] into an application [`Error`].
-    ///
-    /// This implementation provides automatic error conversion from tonic's
-    /// transport errors into our application error type, enabling seamless
-    /// error propagation using the `?` operator throughout the application.
-    ///
-    /// [`tonic::transport::Error`]: https://docs.rs/tonic/latest/tonic/transport/struct.Error.html
-    fn from(x: tonic::transport::Error) -> Self {
-        Error::Transport(x.to_string())
-    }
+    Transport(#[from] tonic::transport::Error),
 }

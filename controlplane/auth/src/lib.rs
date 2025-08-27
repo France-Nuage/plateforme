@@ -138,7 +138,7 @@ mod authentication_layer;
 mod discovery;
 mod error;
 pub mod iam;
-mod rfc7517;
+mod rfc7519;
 pub mod validator;
 
 /// Extracts JWT token from a tonic gRPC request's Authorization header.

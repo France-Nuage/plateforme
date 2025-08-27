@@ -27,7 +27,7 @@
 
 use crate::discovery::OpenIDProviderMetadata;
 use crate::error::Error;
-use crate::rfc7517::Claim;
+use crate::rfc7519::Claim;
 use futures::{StreamExt, TryStreamExt, stream};
 use jsonwebtoken::{DecodingKey, Validation, jwk::JwkSet};
 use jsonwebtoken::{TokenData, decode};

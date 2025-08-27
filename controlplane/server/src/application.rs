@@ -215,7 +215,7 @@ impl<L> Application<L> {
                 .hypervisors(pool.clone())
                 .instances(pool.clone())
                 .resources(pool.clone())
-                .zero_trust_network_types(pool.clone())
+                .zero_trust_networks(pool.clone())
                 .zero_trust_network_types(pool.clone()),
             server: self.server,
         }

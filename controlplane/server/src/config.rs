@@ -6,10 +6,9 @@
 //! The configuration system provides sensible defaults suitable for development while
 //! remaining flexible for production deployments.
 
-use std::{env, net::SocketAddr, str::FromStr};
-
 use auth::JwkValidator;
 use sqlx::{Pool, Postgres};
+use std::{env, net::SocketAddr, str::FromStr};
 use tower_http::cors::{AllowMethods, AllowOrigin};
 
 use crate::error::Error;
@@ -114,7 +113,7 @@ impl Config {
     /// [`AllowMethods::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowMethods.html#method.any
     pub fn new(pool: Pool<Postgres>, validator: JwkValidator) -> Self {
         Config {
-            addr: SocketAddr::from_str("[::]:8080").unwrap(),
+            addr: SocketAddr::from_str("[::]:80").unwrap(),
             allow_origin: AllowOrigin::any(),
             allow_methods: AllowMethods::any(),
             pool,
@@ -146,6 +145,7 @@ impl Config {
     /// - OIDC discovery fails or provider is unreachable
     /// - OIDC provider configuration is invalid
     pub async fn from_env() -> Result<Self, Error> {
+        let controlplane_addr = env::var("CONTROLPLANE_ADDR").unwrap_or(String::from("[::1]:80"));
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
         let pool = sqlx::PgPool::connect(&database_url)
             .await
@@ -156,8 +156,13 @@ impl Config {
         let validator = JwkValidator::from_oidc_discovery(&oidc_url)
             .await
             .expect("could not fetch oidc configuration");
-        let config = Config::new(pool, validator);
 
-        Ok(config)
+        Ok(Config {
+            addr: SocketAddr::from_str(&controlplane_addr).unwrap(),
+            allow_origin: AllowOrigin::any(),
+            allow_methods: AllowMethods::any(),
+            pool,
+            validator,
+        })
     }
 }

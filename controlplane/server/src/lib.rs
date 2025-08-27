@@ -63,11 +63,8 @@ pub async fn serve() -> Result<(), crate::error::Error> {
 
     tokio::spawn(async move {
         shutdown_signal().await;
-        // Send the shutdown signal. This will panic if it fails, as it prevents
-        // to gracefully shutdown
-        shutdown_tx
-            .send(())
-            .expect("could not send the shutdown signal");
+        // Send the shutdown signal, ignoring errors if the server is already dropped.
+        let _ = shutdown_tx.send(());
     });
 
     let config = Config::from_env().await?;
