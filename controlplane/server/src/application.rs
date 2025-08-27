@@ -11,7 +11,13 @@
 
 use std::future::Future;
 
-use crate::{config::Config, error::Error, router::Router, server::Server};
+use crate::{
+    config::Config,
+    error::Error,
+    router::Router,
+    server::{Server, TraceLayer},
+};
+use auth::AuthenticationLayer;
 use tower_http::cors::CorsLayer;
 use tower_layer::{Identity, Stack};
 
@@ -113,7 +119,7 @@ impl Application<Identity> {
 ///
 /// This represents the full middleware stack that will be applied to the
 /// server, composed on top of the existing layer `L`.
-type Middleware<L> = Stack<CorsLayer, L>;
+type Middleware<L> = Stack<AuthenticationLayer, Stack<CorsLayer, Stack<TraceLayer, L>>>;
 
 impl<L> Application<L> {
     /// Adds the complete middleware stack to the application server.
@@ -125,8 +131,11 @@ impl<L> Application<L> {
     /// # Enabled Middleware
     ///
     /// The following middleware layers are applied in order:
+    /// - **Authentication**: OIDC JWT token validation middleware that validates
+    ///   Bearer tokens in request metadata and rejects unauthenticated requests
     /// - **CORS**: Cross-Origin Resource Sharing support using configuration
     ///   settings for allowed origins and methods
+    /// - **Tracing**: Request tracing and observability middleware
     ///
     /// # Type Transformation
     ///
@@ -155,7 +164,9 @@ impl<L> Application<L> {
             router: self.router,
             server: self
                 .server
-                .with_cors(self.config.allow_origin, self.config.allow_methods),
+                .with_tracing()
+                .with_cors(self.config.allow_origin, self.config.allow_methods)
+                .with_authentication(self.config.validator),
         }
     }
 

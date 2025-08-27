@@ -13,6 +13,7 @@
 //! - **Data Format Errors**: Problems parsing OIDC metadata or JWK sets
 
 use thiserror::Error;
+use tonic::Status;
 
 /// Comprehensive error type for all authentication and OIDC operations.
 ///
@@ -100,5 +101,24 @@ pub enum Error {
 impl From<jsonwebtoken::errors::Error> for Error {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
         Error::Other(value.to_string())
+    }
+}
+
+/// Converts authentication errors to tonic gRPC status responses.
+///
+/// This implementation provides automatic conversion from authentication errors
+/// to appropriate gRPC status codes, enabling seamless integration with tonic
+/// gRPC services. All authentication failures are mapped to `UNAUTHENTICATED`
+/// status code as per gRPC specifications.
+///
+/// # gRPC Status Mapping
+///
+/// All `Error` variants are consistently mapped to `UNAUTHENTICATED` status:
+/// - Missing tokens, invalid signatures, expired tokens, etc. all indicate
+///   authentication failure and should be presented uniformly to clients
+/// - Error details are preserved in the status message for debugging
+impl From<Error> for tonic::Status {
+    fn from(value: Error) -> Self {
+        Status::unauthenticated(value.to_string())
     }
 }

@@ -10,6 +10,8 @@
 //! - **JWT Token Extraction**: Extract Bearer tokens from tonic gRPC requests
 //! - **OIDC Discovery**: Automatically discover OpenID Connect provider configuration
 //! - **JWT Validation**: Validate JWT tokens using JWK (JSON Web Key) sets with caching
+//! - **Authentication Middleware**: Tower middleware layer for automatic request authentication
+//! - **IAM Context**: Per-request identity and access management context
 //! - **Standards Compliance**: Full compliance with RFC 7517 (JWK), RFC 7519 (JWT), and OIDC specifications
 //!
 //! ## Design Principles
@@ -21,6 +23,8 @@
 //! - **Error Transparency**: Comprehensive error types for debugging and monitoring
 //!
 //! ## Quick Start
+//!
+//! ### Manual Token Validation
 //!
 //! ```rust,no_run
 //! use auth::{JwkValidator, extract_authorization_token};
@@ -34,7 +38,7 @@
 //!
 //! // Extract token from tonic request (in your gRPC service)
 //! # let request: Request<()> = Request::new(());
-//! let token = extract_authorization_token(request)?;
+//! let token = extract_authorization_token(&request)?;
 //!
 //! // Validate the token
 //! let claims = validator.validate_token(&token).await?;
@@ -43,13 +47,33 @@
 //! # }
 //! ```
 //!
+//! ### Middleware Integration
+//!
+//! ```rust,no_run
+//! use auth::{AuthenticationLayer, JwkValidator};
+//! use tower::ServiceBuilder;
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! let validator = JwkValidator::from_oidc_discovery(
+//!     "https://provider.com/.well-known/openid_configuration"
+//! ).await?;
+//!
+//! let service = ServiceBuilder::new()
+//!     .layer(AuthenticationLayer::new(validator))
+//!     .service(inner_service);
+//! # Ok(())
+//! # }
+//! ```
+//!
 //! ## Modules
 //!
-//! This crate consists of several internal modules:
+//! This crate consists of several modules:
+//! - **authentication_layer** - Tower middleware for HTTP request authentication
+//! - **iam** - Identity and Access Management context for authenticated requests
+//! - **validator** - JWT token validation with JWK key management and caching
 //! - **discovery** - OIDC provider metadata and discovery functionality
-//! - **error** - Comprehensive error types for all authentication operations  
+//! - **error** - Comprehensive error types for all authentication operations
 //! - **rfc7517** - JWT claims structures following RFC 7517 specification
-//! - **validator** - JWT validation with JWK key management and caching
 //!
 //! ## Features
 //!
@@ -105,14 +129,17 @@
 //! - **TTL**: 1-hour time-to-live for each key
 //! - **Concurrent Fetching**: Efficient parallel key fetching with backpressure control
 
+pub use authentication_layer::AuthenticationLayer;
 pub use error::Error;
 use tonic::Request;
 pub use validator::JwkValidator;
 
+mod authentication_layer;
 mod discovery;
 mod error;
+pub mod iam;
 mod rfc7517;
-mod validator;
+pub mod validator;
 
 /// Extracts JWT token from a tonic gRPC request's Authorization header.
 ///
@@ -169,7 +196,7 @@ mod validator;
 ///
 /// [RFC 6750]: https://tools.ietf.org/html/rfc6750
 /// [`JwkValidator::validate_token`]: crate::JwkValidator::validate_token
-pub fn extract_authorization_token<T>(req: Request<T>) -> Result<String, Error> {
+pub fn extract_authorization_token<T>(req: &Request<T>) -> Result<String, Error> {
     req.metadata()
         .get("authorization")
         .ok_or(Error::MissingAuthorizationHeader)?
@@ -215,7 +242,7 @@ mod tests {
         );
 
         // Act the call to the extraction function
-        let result = extract_authorization_token(request);
+        let result = extract_authorization_token(&request);
 
         // Assert the result
         assert!(result.is_ok());
@@ -233,7 +260,7 @@ mod tests {
         let request = Request::new(());
 
         // Act the call to the extraction function
-        let result = extract_authorization_token(request);
+        let result = extract_authorization_token(&request);
 
         // Assert the result
         assert!(result.is_err());
@@ -254,7 +281,7 @@ mod tests {
         request.metadata_mut().insert("authorization", value);
 
         // Act the call t the extraction function
-        let result = extract_authorization_token(request);
+        let result = extract_authorization_token(&request);
         println!("result: {:?}", &result);
 
         // Assert the result

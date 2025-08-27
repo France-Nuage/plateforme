@@ -8,6 +8,20 @@
 //! The library is designed around a builder pattern that allows progressive
 //! configuration of server components, making it suitable for both development
 //! and production deployments.
+//!
+//! # Authentication
+//!
+//! This server requires authentication via OpenID Connect (OIDC) JWT tokens. All
+//! gRPC requests must include a valid JWT token in the `authorization` metadata
+//! field using the Bearer token scheme:
+//!
+//! ```text
+//! authorization: Bearer <jwt_token>
+//! ```
+//!
+//! The authentication middleware automatically validates JWT tokens using OIDC
+//! discovery and JWK (JSON Web Key) validation. Requests without valid tokens
+//! will be rejected with an authentication error.
 
 pub mod application;
 pub mod config;
@@ -32,6 +46,12 @@ use tokio::{
 /// # Environment Variables
 ///
 /// * `DATABASE_URL` - PostgreSQL connection string (required)
+/// * `OIDC_URL` - OIDC provider discovery URL (optional, defaults to GitLab)
+///
+/// # Authentication Requirements
+///
+/// All gRPC service calls require a valid OIDC JWT token in the request metadata.
+/// The server automatically validates tokens and rejects unauthenticated requests.
 ///
 /// # Panics
 ///
@@ -50,11 +70,7 @@ pub async fn serve() -> Result<(), crate::error::Error> {
             .expect("could not send the shutdown signal");
     });
 
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = sqlx::PgPool::connect(&database_url)
-        .await
-        .expect("could not connect to database");
-    let config = Config::new(pool);
+    let config = Config::from_env().await?;
 
     Application::new(config)
         .with_middlewares()

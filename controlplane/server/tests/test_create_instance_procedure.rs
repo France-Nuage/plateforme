@@ -1,3 +1,4 @@
+use auth::JwkValidator;
 use database::Persistable;
 use hypervisor_connector_proxmox::mock::{
     MockServer, WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock,
@@ -23,6 +24,7 @@ async fn test_the_create_instance_procedure_works(
         .with_task_status_read()
         .with_vm_create();
     let mock_url = mock.url();
+    let oidc_url = mock.url();
 
     let organization = Organization::factory().create(&pool).await?;
 
@@ -39,7 +41,10 @@ async fn test_the_create_instance_procedure_works(
         .create(&pool)
         .await?;
 
-    let config = Config::new(pool.clone());
+    let config = Config::new(
+        pool.clone(),
+        JwkValidator::from_oidc_discovery(&oidc_url).await?,
+    );
     let addr = format!("http://{}", config.addr);
     let shutdown_tx = server::serve_with_tx(config).await?;
     let mut client = InstancesClient::connect(addr).await?;

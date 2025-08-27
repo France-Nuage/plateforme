@@ -60,7 +60,7 @@ use serde::Deserialize;
 /// specific claims they use and when they are required or optional. All the
 /// names are short because a core goal of JWTs is for the representation to be
 /// compact.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Claim {
     /// Issuer Claim.
     ///

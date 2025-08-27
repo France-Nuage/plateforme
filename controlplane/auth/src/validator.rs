@@ -76,11 +76,12 @@ use std::time::Duration;
 /// 1. Fetch the latest JWK Set from the provider
 /// 2. Cache all keys from the set
 /// 3. Retry validation with the newly cached key
+#[derive(Clone)]
 pub struct JwkValidator {
+    /// The OIDC provider's issuer identifier
+    pub issuer: String,
     /// HTTP client for fetching OIDC metadata and JWK sets
     client: reqwest::Client,
-    /// The OIDC provider's issuer identifier
-    issuer: String,
     /// URL endpoint where the provider's JWK Set can be fetched
     jwks_uri: String,
     /// High-performance cache for JWK decoding keys, keyed by `kid` (Key ID)

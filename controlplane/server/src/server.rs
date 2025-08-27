@@ -8,6 +8,7 @@
 
 use std::net::SocketAddr;
 
+use auth::{AuthenticationLayer, JwkValidator};
 use bytes::Bytes;
 use http::{Request, Response};
 use tonic::body::Body;
@@ -22,7 +23,7 @@ use crate::error::Error;
 ///
 /// This pre-configured trace layer uses [`GrpcErrorsAsFailures`] classifier to properly
 /// categorize gRPC responses as successes or failures for tracing purposes.
-type TraceLayer = tower_http::trace::TraceLayer<SharedClassifier<GrpcErrorsAsFailures>>;
+pub type TraceLayer = tower_http::trace::TraceLayer<SharedClassifier<GrpcErrorsAsFailures>>;
 
 /// A higher-level abstraction over [`tonic::transport::Server`] with batteries included.
 ///
@@ -107,6 +108,15 @@ impl<L> Server<L> {
             .serve_with_shutdown(addr, svc, signal)
             .await
             .map_err(Into::into)
+    }
+
+    pub fn with_authentication(
+        self,
+        validator: JwkValidator,
+    ) -> Server<Stack<AuthenticationLayer, L>> {
+        Server {
+            inner: self.inner.layer(AuthenticationLayer::new(validator)),
+        }
     }
 
     /// Add distributed tracing support to the server.

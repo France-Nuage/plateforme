@@ -5,11 +5,14 @@ edition = "2024"
 
 [dependencies]
 futures = "0.3"
+http = "1"
+http-body = "1"
+hyper = "1"
 jsonwebtoken = "9"
 moka = { version = "0.12", features = ["future"] }
 reqwest = "0.12"
 serde = "1"
 thiserror = "2"
 tokio = "1"
-tonic = "0.12"
+tonic = "0.14"
 tower = "0.5"

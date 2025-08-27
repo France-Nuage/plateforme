@@ -1,3 +1,5 @@
+use auth::JwkValidator;
+use hypervisor_connector_proxmox::mock::MockServer;
 use resources::v1::{
     CreateOrganizationRequest, CreateOrganizationResponse, Organization,
     resources_client::ResourcesClient,
@@ -8,7 +10,13 @@ use server::Config;
 async fn test_the_create_organization_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let config = Config::new(pool.clone());
+    let mock = MockServer::new().await;
+    let oidc_url = mock.url();
+
+    let config = Config::new(
+        pool.clone(),
+        JwkValidator::from_oidc_discovery(&oidc_url).await?,
+    );
     let addr = format!("http://{}", config.addr);
     let shutdown_tx = server::serve_with_tx(config).await?;
     let mut client = ResourcesClient::connect(addr).await?;

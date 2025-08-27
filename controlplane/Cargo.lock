@@ -2401,6 +2401,7 @@ dependencies = [
  "reqwest",
  "resources",
  "sqlx",
+ "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
  "tonic",

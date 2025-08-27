@@ -1,3 +1,5 @@
+use auth::JwkValidator;
+use hypervisor_connector_proxmox::mock::MockServer;
 use resources::{
     projects::Project,
     v1::{ListProjectsRequest, resources_client::ResourcesClient},
@@ -9,12 +11,18 @@ async fn test_the_list_projects_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the test
+    let mock = MockServer::new().await;
+    let oidc_url = mock.url();
+
+    let config = Config::new(
+        pool.clone(),
+        JwkValidator::from_oidc_discovery(&oidc_url).await?,
+    );
     Project::factory()
         .for_organization_with(|organization| organization)
         .create(&pool)
         .await?;
 
-    let config = Config::new(pool.clone());
     let addr = format!("http://{}", config.addr);
     let shutdown_tx = server::serve_with_tx(config).await?;
     let mut client = ResourcesClient::connect(addr).await?;
