@@ -1,3 +1,10 @@
+# [1.30.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.4...v1.30.0) (2025-08-29)
+
+
+### Features
+
+* improve instance table interface ([081dacd](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/081dacd7986c650c546054ce5fc730ff40855e8b))
+
 ## [1.29.4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.3...v1.29.4) (2025-08-26)
 
 
