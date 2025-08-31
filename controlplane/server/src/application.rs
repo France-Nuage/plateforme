@@ -19,8 +19,8 @@ use crate::{
 };
 use auth::AuthenticationLayer;
 use tokio_stream::wrappers::TcpListenerStream;
+use tower::layer::util::{Identity, Stack};
 use tower_http::cors::CorsLayer;
-use tower_layer::{Identity, Stack};
 
 /// Main application structure that orchestrates the gRPC server components.
 ///

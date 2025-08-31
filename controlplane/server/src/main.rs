@@ -5,7 +5,6 @@
 //! for complete application orchestration.
 
 use server::{Config, serve, shutdown_signal};
-use tracing::info;
 
 /// Entry point for the gRPC server application.
 ///
@@ -15,14 +14,17 @@ use tracing::info;
 /// server implementation.
 #[tokio::main]
 async fn main() -> Result<(), server::error::Error> {
+    // configure and serve the application
     let config = Config::from_env().await?;
+    let sender = serve(config).await?;
+    tracing::info!("application starting, waiting for shutdown signal...");
 
-    let output = tokio::select! {
-       _ = shutdown_signal() => "shutdown signal received, exiting gracefully",
-        _ = serve(config) => "application completed successfully",
-    };
+    shutdown_signal().await;
+    tracing::info!("shutdown signal received, gracefully shutting down...");
 
-    info!(output);
+    sender
+        .send(())
+        .expect("could not send shutdown signal to the application");
 
     Ok(())
 }

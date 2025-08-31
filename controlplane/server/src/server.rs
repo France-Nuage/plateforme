@@ -11,10 +11,10 @@ use bytes::Bytes;
 use http::{Request, Response};
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic::body::Body;
+use tower::layer::util::{Identity, Stack};
 use tower::{BoxError, Layer, Service};
 use tower_http::classify::{GrpcErrorsAsFailures, SharedClassifier};
 use tower_http::cors::{AllowMethods, AllowOrigin, CorsLayer};
-use tower_layer::{Identity, Stack};
 
 use crate::error::Error;
 

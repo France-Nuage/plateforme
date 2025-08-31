@@ -14,6 +14,14 @@ use std::net::AddrParseError;
 /// error types.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// Authentication and authorization errors.
+    ///
+    /// This variant encapsulates errors from the authentication layer, including
+    /// JWT validation failures, OIDC discovery errors, and other authentication-related
+    /// issues that prevent successful request authorization.
+    #[error("authentication error: {0}")]
+    Authentication(#[from] auth::Error),
+
     /// Socket address parsing errors.
     ///
     /// This variant occurs when attempting to parse an invalid socket address
@@ -28,6 +36,7 @@ pub enum Error {
     /// operations that return standard I/O errors.
     #[error("I/O error: {0}")]
     IO(#[from] std::io::Error),
+
     /// Transport layer errors from the underlying gRPC transport.
     ///
     /// This variant encapsulates errors that occur during network

@@ -145,13 +145,9 @@ impl Config {
     /// - **Mock Authentication**: Configures JwkValidator for the mock server
     /// - **Test Isolation**: Each test gets its own port to avoid interference
     pub async fn test(pool: &Pool<Postgres>, mock_server: &MockServer) -> Result<Self, Error> {
-        let addr = Config::reserve_socket_addr(None)
-            .await
-            .expect("could not reserve a socket address");
+        let addr = Config::reserve_socket_addr(None).await?;
 
-        let validator = JwkValidator::from_mock_server(&mock_server.url())
-            .await
-            .expect("could not create a validator for the given oidc mock url");
+        let validator = JwkValidator::from_mock_server(&mock_server.url()).await?;
 
         Ok(Config {
             addr,
