@@ -136,12 +136,12 @@ The variables defaults to [pvedev-dc03](https://pvedev-dc03-internal.france-nuag
 but its authorization token is not provided for security reasons.
 
 ```sh
-docker-compose exec postgres sh -c "
+docker compose exec postgres sh -c "
 psql -U postgres -d postgres \
   -v url=\"'\$PROXMOX_DEV_URL'\" \
   -v token=\"'\$PROXMOX_DEV_AUTHORIZATION_TOKEN'\" \
   -v storage=\"'\$PROXMOX_DEV_STORAGE_NAME'\" \
-  -f /seed.sql
+  -f /home/seed.sql
 "
 ```
 
