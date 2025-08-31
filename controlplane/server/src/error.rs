@@ -37,6 +37,14 @@ pub enum Error {
     #[error("I/O error: {0}")]
     IO(#[from] std::io::Error),
 
+    /// Database migration errors.
+    ///
+    /// This variant encapsulates errors that occur during database migration
+    /// operations, including schema validation failures, migration script
+    /// execution errors, and migration state inconsistencies managed by SQLx.
+    #[error("Migration error: {0}")]
+    Migration(#[from] sqlx::migrate::MigrateError),
+
     /// Transport layer errors from the underlying gRPC transport.
     ///
     /// This variant encapsulates errors that occur during network
