@@ -4,12 +4,18 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-hyper = "1.6"
+auth = { path = "../auth", features = ["mock"] }
+bytes = "1"
+http = "1"
+http-body = "1"
+hyper = "1"
 hypervisors = { path = "../hypervisors" }
 infrastructure = { path = "../infrastructure" }
 instances = { path = "../instances" }
-prost = "0.13"
-prost-types = "0.13"
+jsonwebtoken = "9"
+mock_server = { path = "../mock_server" }
+prost = "0.14"
+prost-types = "0.14"
 resources = { path = "../resources" }
 reqwest = { version = "0.12", features = ["json"] }
 sqlx = { version = "0.8", features = [
@@ -17,12 +23,14 @@ sqlx = { version = "0.8", features = [
   "postgres",
   "runtime-tokio-rustls",
 ] }
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+thiserror = "2"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread", "signal"] }
 tokio-stream = "0.1.17"
-tonic = "0.12"
-tonic-health = "0.12"
-tonic-web = "0.12"
-tower-http = { version = "0.6", features = ["cors", "trace"] }
+tonic = "0.14"
+tonic-health = "0.14"
+tonic-web = "0.14"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["auth", "cors", "trace"] }
 tower-layer = "0.3"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

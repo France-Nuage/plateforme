@@ -22,7 +22,7 @@ pub async fn cluster_next_id(
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithClusterNextId {
         fn with_cluster_next_id(self) -> Self;
@@ -46,8 +46,9 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use super::mock::WithClusterNextId;
     use super::*;
-    use crate::mock::{MockServer, WithClusterNextId};
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_cluster_resource_list() {

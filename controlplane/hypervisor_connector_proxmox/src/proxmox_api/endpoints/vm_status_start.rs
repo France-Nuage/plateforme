@@ -21,7 +21,7 @@ pub async fn vm_status_start(
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithVMStatusStartMock {
         fn with_vm_status_start(self) -> Self;
@@ -47,8 +47,9 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use super::mock::WithVMStatusStartMock;
     use super::*;
-    use crate::mock::{MockServer, WithVMStatusStartMock};
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_vm_status_read() {

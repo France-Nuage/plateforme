@@ -67,7 +67,7 @@ pub enum IpAddressType {
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithVMNetworkInterfaces {
         fn test_vm_network_interfaces(self) -> Self;
@@ -93,8 +93,9 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use super::mock::WithVMNetworkInterfaces;
     use super::*;
-    use crate::mock::{MockServer, WithVMNetworkInterfaces};
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_vm_network_interfaces() {

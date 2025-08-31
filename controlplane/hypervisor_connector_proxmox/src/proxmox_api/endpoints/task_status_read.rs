@@ -55,7 +55,7 @@ pub enum TaskStatus {
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithTaskStatusReadMock {
         fn with_task_status_read(self) -> Self;
@@ -79,8 +79,9 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use super::mock::WithTaskStatusReadMock;
     use super::*;
-    use crate::mock::{MockServer, WithTaskStatusReadMock};
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_task_status_read() {

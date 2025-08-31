@@ -1,5 +1,5 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tonic_build::configure()
+    tonic_prost_build::configure()
         .extern_path(
             ".francenuage.fr.api.controlplane.v1.problem",
             "::problem::v1",

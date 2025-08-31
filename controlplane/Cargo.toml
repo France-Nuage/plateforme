@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+  "auth",
   "database",
   "derive_factory",
   "derive_repository",
@@ -10,15 +11,10 @@ members = [
   "hypervisor_connector_resolver",
   "infrastructure",
   "instances",
+  "mock_server",
   "resources",
   "server",
   "synchronizer",
 ]
 
 resolver = "3"
-
-[profile.dev]
-type-length-limit = 4194304 # 4MB (double the usual default)
-
-[profile.release]
-type-length-limit = 4194304

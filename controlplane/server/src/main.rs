@@ -1,37 +1,30 @@
-use std::time::Duration;
+//! Main executable for the gRPC server application.
+//!
+//! This binary serves as the entry point for the control plane gRPC server.
+//! It initializes the tokio async runtime and delegates to the server library
+//! for complete application orchestration.
 
-use server::{Server, ServerConfig};
-use sqlx::postgres::PgPoolOptions;
-use tracing::info;
+use server::{Config, serve, shutdown_signal};
 
+/// Entry point for the gRPC server application.
+///
+/// This function initializes the tokio async runtime and starts the complete
+/// server application by calling the [`server::serve`] function. It serves
+/// as the bridge between the synchronous main entry point and the async
+/// server implementation.
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize tracing
-    tracing_subscriber::fmt::init();
+async fn main() -> Result<(), server::error::Error> {
+    // configure and serve the application
+    let config = Config::from_env().await?;
+    let sender = serve(config).await?;
+    tracing::info!("application starting, waiting for shutdown signal...");
 
-    // Create a database connection and apply pending connections
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = PgPoolOptions::new()
-        .min_connections(5)
-        .max_connections(30)
-        .max_lifetime(Some(Duration::from_secs(30 * 60)))
-        .idle_timeout(Some(Duration::from_secs(60)))
-        .connect(&database_url)
-        .await?;
+    shutdown_signal().await;
+    tracing::info!("shutdown signal received, gracefully shutting down...");
 
-    sqlx::migrate!("../migrations").run(&pool).await?;
+    sender
+        .send(())
+        .expect("could not send shutdown signal to the application");
 
-    // Create a configuration for the grpc server
-    let config = ServerConfig {
-        addr: Some(
-            std::env::var("CONTROLPLANE_ADDR").unwrap_or_else(|_| (String::from("[::1]:80"))),
-        ),
-        console_url: std::env::var("CONSOLE_URL").ok(),
-        pool,
-    };
-
-    info!("gonna start server...");
-
-    // Create and server the grpc server
-    Server::new(config).await?.serve().await
+    Ok(())
 }

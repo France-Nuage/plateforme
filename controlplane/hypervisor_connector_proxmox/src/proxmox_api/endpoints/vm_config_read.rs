@@ -70,7 +70,7 @@ fn parse_ip_config(s: &str) -> Result<IpConfig, String> {
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithVMConfigMock {
         fn with_vm_config(self) -> Self;
@@ -96,8 +96,9 @@ pub mod mock {
 mod tests {
     use std::str::FromStr;
 
+    use super::mock::WithVMConfigMock;
     use super::*;
-    use crate::mock::{MockServer, WithVMConfigMock};
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_vm_config_read() {

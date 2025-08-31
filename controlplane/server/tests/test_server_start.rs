@@ -1,9 +1,13 @@
-use server::{Server, ServerConfig};
+use auth::mock::WithWellKnown;
+use mock_server::MockServer;
+use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_server_starts(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Error>> {
-    let server = Server::new(ServerConfig::new(pool)).await?;
-    let shutdown_tx = server.serve_with_shutdown().await?;
-    shutdown_tx.send(()).ok();
+    let mock = MockServer::new().await.with_well_known();
+
+    let config = Config::test(&pool, &mock).await?;
+    let shutdown_tx = server::serve(config).await?;
+    assert!(shutdown_tx.send(()).is_ok());
     Ok(())
 }

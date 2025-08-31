@@ -29,7 +29,7 @@ pub struct VMStatusResponse {
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithVMStatusReadMock {
         fn with_vm_status_read(self) -> Self;
@@ -55,9 +55,10 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use super::mock::WithVMStatusReadMock;
     use super::*;
-    use crate::mock::{MockServer, WithVMStatusReadMock};
     use crate::proxmox_api::api_response::ApiResponse;
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_vm_status_read() {

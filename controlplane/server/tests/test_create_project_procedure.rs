@@ -1,19 +1,22 @@
+use auth::mock::WithWellKnown;
+use mock_server::MockServer;
 use resources::{
     organizations::Organization,
     v1::{CreateProjectRequest, CreateProjectResponse, Project, resources_client::ResourcesClient},
 };
-use server::{Server, ServerConfig};
+use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_create_project_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the test
-    let config = ServerConfig::new(pool.clone());
-    let server = Server::new(config).await?;
-    let addr = server.addr;
-    let shutdown_tx = server.serve_with_shutdown().await?;
-    let mut client = ResourcesClient::connect(format!("http://{}", addr)).await?;
+    let mock = MockServer::new().await.with_well_known();
+
+    let config = Config::test(&pool, &mock).await?;
+    let server_url = format!("http://{}", config.addr);
+    let shutdown_tx = server::serve(config).await?;
+    let mut client = ResourcesClient::connect(server_url).await?;
 
     let organization = Organization::factory().create(&pool).await?;
 

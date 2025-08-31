@@ -119,7 +119,7 @@ impl TryFrom<Resource> for hypervisor_connector::InstanceInfo {
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithClusterResourceList {
         fn with_cluster_resource_list(self) -> Self;
@@ -143,8 +143,9 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use super::mock::WithClusterResourceList;
     use super::*;
-    use crate::mock::{MockServer, WithClusterResourceList};
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_cluster_resource_list() {
