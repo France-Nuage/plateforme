@@ -4,6 +4,9 @@
 //! It initializes the tokio async runtime and delegates to the server library
 //! for complete application orchestration.
 
+use server::{Config, serve, shutdown_signal};
+use tracing::info;
+
 /// Entry point for the gRPC server application.
 ///
 /// This function initializes the tokio async runtime and starts the complete
@@ -12,5 +15,14 @@
 /// server implementation.
 #[tokio::main]
 async fn main() -> Result<(), server::error::Error> {
-    server::serve().await
+    let config = Config::from_env().await?;
+
+    let output = tokio::select! {
+       _ = shutdown_signal() => "shutdown signal received, exiting gracefully",
+        _ = serve(config) => "application completed successfully",
+    };
+
+    info!(output);
+
+    Ok(())
 }

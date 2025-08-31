@@ -1,9 +1,9 @@
-use auth::JwkValidator;
-use hypervisor_connector_proxmox::mock::{MockServer, WithClusterResourceList};
+use hypervisor_connector_proxmox::mock::WithClusterResourceList;
 use instances::{
     Instance,
     v1::{ListInstancesRequest, instances_client::InstancesClient},
 };
+use mock_server::MockServer;
 use resources::{DEFAULT_PROJECT_NAME, organizations::Organization};
 use server::Config;
 
@@ -14,7 +14,6 @@ async fn test_the_list_instances_procedure_works(
     // Arrange the grpc server and a client
     let mock = MockServer::new().await.with_cluster_resource_list();
     let mock_url = mock.url();
-    let oidc_url = mock.url();
 
     let organization = Organization::factory().create(&pool).await?;
     Instance::factory()
@@ -32,13 +31,10 @@ async fn test_the_list_instances_procedure_works(
         .create(&pool)
         .await?;
 
-    let config = Config::new(
-        pool.clone(),
-        JwkValidator::from_oidc_discovery(&oidc_url).await?,
-    );
-    let addr = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve_with_tx(config).await?;
-    let mut client = InstancesClient::connect(addr).await?;
+    let config = Config::test(&pool, &mock).await?;
+    let server_url = format!("http://{}", config.addr);
+    let shutdown_tx = server::serve(config).await?;
+    let mut client = InstancesClient::connect(server_url).await?;
 
     // Act the request to the test_the_status_procedure_works
     let response = client.list_instances(ListInstancesRequest::default()).await;

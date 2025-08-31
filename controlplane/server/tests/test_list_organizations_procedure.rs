@@ -1,5 +1,4 @@
-use auth::JwkValidator;
-use hypervisor_connector_proxmox::mock::MockServer;
+use mock_server::MockServer;
 use resources::{
     organizations::Organization,
     v1::{ListOrganizationsRequest, resources_client::ResourcesClient},
@@ -12,17 +11,13 @@ async fn test_the_list_organizations_procedure_works(
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
     let mock = MockServer::new().await;
-    let oidc_url = mock.url();
 
-    let config = Config::new(
-        pool.clone(),
-        JwkValidator::from_oidc_discovery(&oidc_url).await?,
-    );
     Organization::factory().create(&pool).await?;
 
-    let addr = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve_with_tx(config).await?;
-    let mut client = ResourcesClient::connect(addr).await?;
+    let config = Config::test(&pool, &mock).await?;
+    let server_url = format!("http://{}", config.addr);
+    let shutdown_tx = server::serve(config).await?;
+    let mut client = ResourcesClient::connect(server_url).await?;
 
     // Act the request to the test_the_status_procedure_works
     let response = client

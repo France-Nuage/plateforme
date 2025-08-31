@@ -131,6 +131,8 @@ dependencies = [
  "http-body",
  "hyper",
  "jsonwebtoken",
+ "mock_server",
+ "mockito",
  "moka",
  "reqwest",
  "serde",
@@ -1034,6 +1036,7 @@ name = "hypervisor_connector_proxmox"
 version = "0.1.0"
 dependencies = [
  "hypervisor_connector",
+ "mock_server",
  "mockito",
  "regex",
  "reqwest",
@@ -1296,6 +1299,7 @@ dependencies = [
  "hypervisor_connector_resolver",
  "hypervisors",
  "infrastructure",
+ "mock_server",
  "prost",
  "prost-types",
  "reqwest",
@@ -1485,6 +1489,13 @@ dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "mock_server"
+version = "0.1.0"
+dependencies = [
+ "mockito",
 ]
 
 [[package]]
@@ -2396,6 +2407,7 @@ dependencies = [
  "infrastructure",
  "instances",
  "jsonwebtoken",
+ "mock_server",
  "prost",
  "prost-types",
  "reqwest",

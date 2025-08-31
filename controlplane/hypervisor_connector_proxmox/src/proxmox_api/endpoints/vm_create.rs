@@ -131,7 +131,7 @@ impl VMConfig {
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithVMCreateMock {
         fn with_vm_create(self) -> Self;
@@ -155,8 +155,9 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use super::mock::WithVMCreateMock;
     use super::*;
-    use crate::mock::{MockServer, WithVMCreateMock};
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_vm_status_read() {

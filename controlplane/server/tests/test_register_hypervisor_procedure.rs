@@ -1,7 +1,6 @@
-use auth::JwkValidator;
-use hypervisor_connector_proxmox::mock::MockServer;
 use hypervisors::v1::{RegisterHypervisorRequest, hypervisors_client::HypervisorsClient};
 use infrastructure::Datacenter;
+use mock_server::MockServer;
 use resources::organizations::Organization;
 use server::Config;
 
@@ -10,18 +9,14 @@ async fn test_the_register_hypervisor_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mock = MockServer::new().await;
-    let oidc_url = mock.url();
 
-    let config = Config::new(
-        pool.clone(),
-        JwkValidator::from_oidc_discovery(&oidc_url).await?,
-    );
     let datacenter = Datacenter::factory().create(&pool).await?;
     let organization = Organization::factory().create(&pool).await?;
 
-    let addr = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve_with_tx(config).await?;
-    let mut client = HypervisorsClient::connect(addr).await?;
+    let config = Config::test(&pool, &mock).await?;
+    let server_url = format!("http://{}", config.addr);
+    let shutdown_tx = server::serve(config).await?;
+    let mut client = HypervisorsClient::connect(server_url).await?;
 
     // Act the request to the test_the_status_procedure_works
     let result = client

@@ -1,11 +1,11 @@
-use auth::JwkValidator;
 use hypervisor_connector_proxmox::mock::{
-    MockServer, WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
+    WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
 };
 use instances::{
     Instance,
     v1::{CloneInstanceRequest, instances_client::InstancesClient},
 };
+use mock_server::MockServer;
 use resources::organizations::Organization;
 use server::Config;
 
@@ -21,7 +21,6 @@ async fn test_the_clone_instance_procedure_works(
         .with_vm_clone()
         .with_task_status_read();
     let mock_url = mock.url();
-    let oidc_url = mock_url.clone();
 
     let organization = Organization::factory().create(&pool).await?;
 
@@ -37,10 +36,10 @@ async fn test_the_clone_instance_procedure_works(
         .create(&pool)
         .await?;
 
-    let config = Config::new(pool, JwkValidator::from_oidc_discovery(&oidc_url).await?);
-    let addr = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve_with_tx(config).await?;
-    let mut client = InstancesClient::connect(addr).await?;
+    let config = Config::test(&pool, &mock).await?;
+    let server_url = format!("http://{}", config.addr);
+    let shutdown_tx = server::serve(config).await?;
+    let mut client = InstancesClient::connect(server_url).await?;
 
     // Act the request to the test_the_status_procedure_works
     let response = client

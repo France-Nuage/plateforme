@@ -18,6 +18,7 @@ use crate::{
     server::{Server, TraceLayer},
 };
 use auth::AuthenticationLayer;
+use tokio_stream::wrappers::TcpListenerStream;
 use tower_http::cors::CorsLayer;
 use tower_layer::{Identity, Stack};
 
@@ -244,23 +245,32 @@ impl Application<Middleware<Identity>> {
     /// Returns `Ok(())` if the server starts and shuts down gracefully, or an
     /// [`Error`] if there are issues with server startup or operation.
     ///
+    /// ## Parameters
+    ///
+    /// * `signal` - Future that resolves when the server should shutdown
+    /// * `stream` - TCP listener stream for accepting incoming connections
+    ///
     /// # Example
     ///
-    /// ```rust,no_run
+    /// ```
     /// use application::Application;
     /// use config::Config;
-    /// use sqlx::PgPool;
+    /// use mock_server::MockServer;
     /// use tokio::signal;
+    /// use tokio_stream::wrappers::TcpListenerStream;
     ///
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let pool = PgPool::connect("postgresql://localhost/db").await?;
-    /// # let config = Config::new(pool);
+    /// # async fn example(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::Error>> {
+    /// let mock = MockServer::new().await;
+    /// let config = Config::test(pool, &mock).await?;
+    /// let listener = tokio::net::TcpListener::bind(config.addr).await?;
+    /// let stream = TcpListenerStream::new(listener);
+    ///
     /// let app = Application::new(config)
     ///     .with_middlewares()
     ///     .with_services();
     ///
     /// // Run until Ctrl+C is pressed
-    /// app.run(signal::ctrl_c()).await?;
+    /// app.run(signal::ctrl_c(), stream).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -269,9 +279,11 @@ impl Application<Middleware<Identity>> {
     ///
     /// This method is only available on fully configured applications with
     /// the complete middleware stack (`Middleware<Identity>`) and PostgreSQL database connectivity.
-    pub async fn run<F: Future<Output = ()>>(self, signal: F) -> Result<(), Error> {
-        self.server
-            .serve(self.config.addr, self.router.routes, signal)
-            .await
+    pub async fn run<F: Future<Output = ()>>(
+        self,
+        signal: F,
+        stream: TcpListenerStream,
+    ) -> Result<(), Error> {
+        self.server.serve(stream, self.router.routes, signal).await
     }
 }

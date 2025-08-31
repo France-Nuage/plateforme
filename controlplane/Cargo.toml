@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+  "auth",
   "database",
   "derive_factory",
   "derive_repository",
@@ -10,10 +11,10 @@ members = [
   "hypervisor_connector_resolver",
   "infrastructure",
   "instances",
+  "mock_server",
   "resources",
   "server",
   "synchronizer",
-  "auth",
 ]
 
 resolver = "3"

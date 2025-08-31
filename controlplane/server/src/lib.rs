@@ -28,67 +28,82 @@ pub mod config;
 pub mod error;
 pub mod router;
 pub mod server;
-
 pub use application::Application;
 pub use config::Config;
 use tokio::{
     signal::unix::{SignalKind, signal},
     sync::oneshot,
 };
+use tokio_stream::wrappers::TcpListenerStream;
 
-/// Starts and runs the complete gRPC server application.
+/// Starts a gRPC server with the provided configuration and returns a shutdown handle.
 ///
-/// This function orchestrates the entire server startup process, including
-/// signal handling setup, configuration loading, database connection
-/// establishment, and application initialization. It runs the server until
-/// a shutdown signal (SIGTERM or SIGINT) is received.
+/// This function initializes and starts a complete gRPC server application with
+/// authentication middleware, service routing, and graceful shutdown capabilities.
+/// The server runs in a background task and can be controlled via the returned
+/// shutdown sender.
 ///
-/// # Environment Variables
+/// ## Parameters
 ///
-/// * `DATABASE_URL` - PostgreSQL connection string (required)
-/// * `OIDC_URL` - OIDC provider discovery URL (optional, defaults to GitLab)
+/// * `config` - Server configuration including network settings, CORS policies,
+///   database pool, and JWT validation settings
 ///
-/// # Authentication Requirements
+/// ## Returns
 ///
-/// All gRPC service calls require a valid OIDC JWT token in the request metadata.
-/// The server automatically validates tokens and rejects unauthenticated requests.
+/// Returns a `oneshot::Sender<()>` that can be used to trigger graceful shutdown
+/// of the server. When a signal is sent through this channel, the server will
+/// stop accepting new connections and gracefully shutdown.
 ///
-/// # Panics
+/// ## Architecture
 ///
-/// This function will panic if:
-/// - Signal handlers for SIGTERM or SIGINT cannot be installed
-/// - PostgreSQL connection cannot be established
-pub async fn serve() -> Result<(), crate::error::Error> {
-    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
-
-    tokio::spawn(async move {
-        shutdown_signal().await;
-        // Send the shutdown signal, ignoring errors if the server is already dropped.
-        let _ = shutdown_tx.send(());
-    });
-
-    let config = Config::from_env().await?;
-
-    Application::new(config)
-        .with_middlewares()
-        .with_services()
-        .run(async {
-            shutdown_rx.await.ok();
-        })
-        .await
-}
-
-pub async fn serve_with_tx(config: Config) -> Result<oneshot::Sender<()>, crate::error::Error> {
+/// The function performs these steps:
+/// 1. Creates a shutdown signal channel for coordination
+/// 2. Binds a TCP listener to the configured address
+/// 3. Builds the application with middleware stack and services
+/// 4. Spawns the server in a background task
+/// 5. Returns the shutdown trigger
+///
+/// ## Usage
+///
+/// ```
+/// # use server::{Config, serve};
+/// # use mock_server::MockServer;
+/// # async fn example(pool: &sqlx::PgPool) -> Result<(), server::error::Error> {
+/// let mock = MockServer::new().await;
+/// let config = Config::test(pool, &mock).await?;
+/// let shutdown_tx = serve(config).await?;
+///
+/// // Server is now running in background
+/// // Send shutdown signal when ready
+/// shutdown_tx.send(()).expect("server should be running");
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ## Error Conditions
+///
+/// Returns an error if:
+/// - TCP listener cannot bind to the configured address
+/// - Application initialization fails
+pub async fn serve(config: Config) -> Result<oneshot::Sender<()>, crate::error::Error> {
     // Create a one-shot channel for sending a shutdown signal
     let (sender, receiver) = oneshot::channel();
+    let listener = tokio::net::TcpListener::bind(config.addr).await?;
+    let stream = TcpListenerStream::new(listener);
 
     // Create and start the application in a separate task
     let app = Application::new(config)
         .with_middlewares()
         .with_services()
-        .run(async {
-            receiver.await.ok();
-        });
+        .run(
+            async {
+                println!("waiting for signal");
+
+                receiver.await.ok();
+                println!("signal received, shutting down...")
+            },
+            stream,
+        );
     tokio::spawn(app);
 
     // Return the shutdown signal sender handle
@@ -105,7 +120,7 @@ pub async fn serve_with_tx(config: Config) -> Result<oneshot::Sender<()>, crate:
 ///
 /// This function will panic if signal handlers for SIGTERM or SIGINT cannot
 /// be installed on the current system.
-async fn shutdown_signal() {
+pub async fn shutdown_signal() {
     let mut sigterm = signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
     let mut sigint = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");
 

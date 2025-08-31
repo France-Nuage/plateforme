@@ -6,12 +6,13 @@
 //! The configuration system provides sensible defaults suitable for development while
 //! remaining flexible for production deployments.
 
-use auth::JwkValidator;
-use sqlx::{Pool, Postgres};
-use std::{env, net::SocketAddr, str::FromStr};
-use tower_http::cors::{AllowMethods, AllowOrigin};
-
 use crate::error::Error;
+use auth::JwkValidator;
+use mock_server::MockServer;
+use sqlx::{Pool, Postgres};
+use std::{env, net::SocketAddr};
+use tokio::net::TcpListener;
+use tower_http::cors::{AllowMethods, AllowOrigin};
 
 /// Configuration for the gRPC server with CORS, authentication, networking, and PostgreSQL database settings.
 ///
@@ -111,14 +112,52 @@ impl Config {
     ///
     /// [`AllowOrigin::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowOrigin.html#method.any
     /// [`AllowMethods::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowMethods.html#method.any
-    pub fn new(pool: Pool<Postgres>, validator: JwkValidator) -> Self {
-        Config {
-            addr: SocketAddr::from_str("[::]:80").unwrap(),
+
+    /// Creates a test configuration with a dynamically allocated port and mock OIDC server.
+    ///
+    /// This constructor is specifically designed for test environments where:
+    /// - A random available port is automatically allocated to avoid conflicts
+    /// - OIDC authentication is configured to use the provided mock server
+    /// - Database connection pool is cloned from the provided reference
+    ///
+    /// ## Parameters
+    ///
+    /// * `pool` - Reference to PostgreSQL connection pool (will be cloned)
+    /// * `mock_server` - Mock server instance for OIDC authentication testing
+    ///
+    /// ## Usage in Tests
+    ///
+    /// ```
+    /// # use server::Config;
+    /// # use mock_server::MockServer;
+    /// # async fn example(pool: &sqlx::PgPool) -> Result<(), server::error::Error> {
+    /// let mock = MockServer::new().await;
+    /// let config = Config::test(pool, &mock).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// ## Features
+    ///
+    /// - **Dynamic Port**: Uses `reserve_socket_addr(None)` to allocate an available port
+    /// - **Mock Authentication**: Configures JwkValidator for the mock server
+    /// - **Test Isolation**: Each test gets its own port to avoid interference
+    pub async fn test(pool: &Pool<Postgres>, mock_server: &MockServer) -> Result<Self, Error> {
+        let addr = Config::reserve_socket_addr(None)
+            .await
+            .expect("could not reserve a socket address");
+
+        let validator = JwkValidator::from_mock_server(&mock_server.url())
+            .await
+            .expect("could not create a validator for the given oidc mock url");
+
+        Ok(Config {
+            addr,
             allow_origin: AllowOrigin::any(),
             allow_methods: AllowMethods::any(),
-            pool,
+            pool: pool.clone(),
             validator,
-        }
+        })
     }
 
     /// Creates a configuration instance from environment variables.
@@ -145,7 +184,6 @@ impl Config {
     /// - OIDC discovery fails or provider is unreachable
     /// - OIDC provider configuration is invalid
     pub async fn from_env() -> Result<Self, Error> {
-        let controlplane_addr = env::var("CONTROLPLANE_ADDR").unwrap_or(String::from("[::1]:80"));
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
         let pool = sqlx::PgPool::connect(&database_url)
             .await
@@ -158,11 +196,53 @@ impl Config {
             .expect("could not fetch oidc configuration");
 
         Ok(Config {
-            addr: SocketAddr::from_str(&controlplane_addr).unwrap(),
+            addr: Config::reserve_socket_addr(env::var("CONTROLPLANE_ADDR").ok()).await?,
             allow_origin: AllowOrigin::any(),
             allow_methods: AllowMethods::any(),
             pool,
             validator,
         })
+    }
+
+    /// Reserves a socket address, either from a preset string or by allocating dynamically.
+    ///
+    /// This method provides flexible address allocation for server binding:
+    /// - If a preset address is provided, it parses and validates the address
+    /// - If no preset is given, it allocates an available port on the loopback interface
+    ///
+    /// ## Parameters
+    ///
+    /// * `preset` - Optional address string (e.g., "127.0.0.1:8080", "[::1]:3000")
+    ///
+    /// ## Returns
+    ///
+    /// Returns a `SocketAddr` that can be used for server binding.
+    ///
+    /// ## Behavior
+    ///
+    /// - **With preset**: Parses the provided address string
+    /// - **Without preset**: Binds to `[::1]:0` to get an OS-allocated port
+    ///
+    /// ## Usage
+    ///
+    /// ```
+    /// # use server::Config;
+    /// # async fn example() -> Result<(), server::error::Error> {
+    /// // Use specific address
+    /// let addr1 = Config::reserve_socket_addr(Some("127.0.0.1:8080".to_string())).await?;
+    ///
+    /// // Allocate dynamic port
+    /// let addr2 = Config::reserve_socket_addr(None).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn reserve_socket_addr(preset: Option<String>) -> Result<SocketAddr, Error> {
+        match preset {
+            Some(preset) => preset.parse().map_err(Into::into),
+            None => TcpListener::bind("[::1]:0")
+                .await?
+                .local_addr()
+                .map_err(Into::into),
+        }
     }
 }

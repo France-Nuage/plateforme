@@ -89,6 +89,31 @@ pub struct JwkValidator {
 }
 
 impl JwkValidator {
+    /// Creates a new JWT validator from a mock server URL for testing.
+    ///
+    /// This convenience method constructs the OIDC discovery URL by appending
+    /// the standard well-known endpoint to the provided mock server URL.
+    ///
+    /// ## Parameters
+    ///
+    /// * `mock_server` - Base URL of the mock server (e.g., "http://localhost:8080")
+    ///
+    /// ## Usage in Tests
+    ///
+    /// ```
+    /// # use auth::JwkValidator;
+    /// # use mock_server::MockServer;
+    /// # async fn example() -> Result<(), auth::Error> {
+    /// let mock = MockServer::new().await;
+    /// let validator = JwkValidator::from_mock_server(&mock.url()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn from_mock_server(mock_server: &str) -> Result<Self, crate::Error> {
+        let oidc_url = format!("{}/.well-known/openid-configuration", mock_server);
+        JwkValidator::from_oidc_discovery(&oidc_url).await
+    }
+
     /// Creates a new JWT validator using OIDC provider discovery.
     ///
     /// This method performs automatic discovery of the OIDC provider's configuration

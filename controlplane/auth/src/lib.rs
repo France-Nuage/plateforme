@@ -138,6 +138,7 @@ mod authentication_layer;
 mod discovery;
 mod error;
 pub mod iam;
+pub mod mock;
 mod rfc7519;
 pub mod validator;
 

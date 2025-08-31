@@ -6,11 +6,10 @@
 //! over the underlying transport layer while maintaining full compatibility
 //! with tonic's service ecosystem.
 
-use std::net::SocketAddr;
-
 use auth::{AuthenticationLayer, JwkValidator};
 use bytes::Bytes;
 use http::{Request, Response};
+use tokio_stream::wrappers::TcpListenerStream;
 use tonic::body::Body;
 use tower::{BoxError, Layer, Service};
 use tower_http::classify::{GrpcErrorsAsFailures, SharedClassifier};
@@ -67,14 +66,14 @@ impl Server<Identity> {
 impl<L> Server<L> {
     /// Starts the gRPC server with graceful shutdown support.
     ///
-    /// This method starts the underlying tonic transport server, binding to
-    /// the specified address and serving the provided service until the
+    /// This method starts the underlying tonic transport server using an
+    /// incoming connection stream and serving the provided service until the
     /// shutdown signal completes. It enables graceful shutdown handling,
     /// allowing in-flight requests to complete before terminating.
     ///
     /// # Parameters
     ///
-    /// * `addr` - The socket address to bind the server to
+    /// * `stream` - TCP listener stream for accepting incoming connections
     /// * `svc` - The service implementation to serve
     /// * `signal` - A future that triggers graceful shutdown when it completes
     ///
@@ -90,7 +89,7 @@ impl<L> Server<L> {
     /// https://github.com/hyperium/tonic/blob/master/tonic/src/transport/server/mod.rs#L588
     pub async fn serve<S, F, ResBody>(
         self,
-        addr: SocketAddr,
+        stream: TcpListenerStream,
         svc: S,
         signal: F,
     ) -> Result<(), Error>
@@ -105,7 +104,7 @@ impl<L> Server<L> {
         ResBody::Error: Into<BoxError>,
     {
         self.inner
-            .serve_with_shutdown(addr, svc, signal)
+            .serve_with_incoming_shutdown(svc, stream, signal)
             .await
             .map_err(Into::into)
     }

@@ -30,7 +30,7 @@ pub struct VMCloneOptions {
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithVMCloneMock {
         fn with_vm_clone(self) -> Self;
@@ -54,8 +54,9 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use super::mock::WithVMCloneMock;
     use super::*;
-    use crate::mock::{MockServer, WithVMCloneMock};
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_vm_status_read() {

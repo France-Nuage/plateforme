@@ -43,6 +43,29 @@ Structure:
 - Keep authentication requirements synchronized
 - Maintain coherent error handling explanations
 
+## Code Examples Style Guide
+
+### Documentation Test Guidelines
+
+- **Default Language**: Use ``` without specifying `rust` - it's the default
+- **Test Execution**: Avoid `no_run` unless absolutely necessary for consistency
+- **Hidden Lines**: Use `# ` prefix to hide boilerplate from rendered docs while keeping tests compilable
+- **Error Handling**: Include proper error types in function signatures for realistic examples
+
+### Example Format
+
+```
+/// Example function documentation
+///
+/// ```
+/// # use my_crate::MyStruct;
+/// # async fn example() -> Result<(), my_crate::Error> {
+/// let instance = MyStruct::new().await?;
+/// # Ok(())
+/// # }
+/// ```
+```
+
 ## Quality Checklist
 
 - [ ] All new public APIs have comprehensive documentation
@@ -50,3 +73,13 @@ Structure:
 - [ ] Examples add genuine value
 - [ ] Cross-crate consistency maintained
 - [ ] Standards compliance properly referenced
+- [ ] Documentation tests use idiomatic style guide above
+
+## Session-Based Adaptation
+
+This CLAUDE.md file should be updated at the end of each significant coding session to:
+
+- Incorporate lessons learned from documentation patterns used
+- Refine style guidelines based on real implementation needs
+- Add project-specific conventions discovered during development
+- Ensure guidelines remain practical and aligned with codebase evolution

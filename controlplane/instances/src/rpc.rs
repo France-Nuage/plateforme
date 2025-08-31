@@ -117,9 +117,10 @@ mod tests {
         v1::{ListInstancesRequest, StartInstanceRequest},
     };
     use hypervisor_connector_proxmox::mock::{
-        MockServer, WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock,
-        WithVMCloneMock, WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
+        WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
+        WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
     };
+    use mock_server::MockServer;
     use resources::organizations::Organization;
 
     #[sqlx::test(migrations = "../migrations")]

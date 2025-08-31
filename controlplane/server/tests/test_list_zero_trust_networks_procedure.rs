@@ -1,9 +1,8 @@
-use auth::JwkValidator;
-use hypervisor_connector_proxmox::mock::MockServer;
 use infrastructure::{
     ZeroTrustNetwork,
     v1::{ListZeroTrustNetworksRequest, zero_trust_networks_client::ZeroTrustNetworksClient},
 };
+use mock_server::MockServer;
 use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]
@@ -12,12 +11,7 @@ async fn test_the_list_zero_trust_networks_procedure_works(
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the test
     let mock = MockServer::new().await;
-    let oidc_url = mock.url();
 
-    let config = Config::new(
-        pool.clone(),
-        JwkValidator::from_oidc_discovery(&oidc_url).await?,
-    );
     let model = ZeroTrustNetwork::factory()
         .for_default_organization()
         .for_default_zero_trust_network_type()
@@ -25,9 +19,10 @@ async fn test_the_list_zero_trust_networks_procedure_works(
         .await
         .unwrap();
 
-    let addr = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve_with_tx(config).await?;
-    let mut client = ZeroTrustNetworksClient::connect(addr).await?;
+    let config = Config::test(&pool, &mock).await?;
+    let server_url = format!("http://{}", config.addr);
+    let shutdown_tx = server::serve(config).await?;
+    let mut client = ZeroTrustNetworksClient::connect(server_url).await?;
 
     // Act the request to the test_the_status_procedure_works
     let response = client.list(ListZeroTrustNetworksRequest::default()).await;

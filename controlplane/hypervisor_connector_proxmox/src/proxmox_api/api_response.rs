@@ -98,7 +98,7 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
 
 #[cfg(feature = "mock")]
 pub mod mock {
-    use crate::mock::MockServer;
+    use mock_server::MockServer;
 
     pub trait WithApiInternalResponseError {
         fn with_vm_not_found_error(self) -> Self;
@@ -153,11 +153,11 @@ pub mod mock {
 
 #[cfg(test)]
 mod tests {
+    use crate::proxmox_api::cluster_next_id;
+
+    use super::mock::WithApiInternalResponseError;
     use super::*;
-    use crate::{
-        mock::{MockServer, WithApiInternalResponseError},
-        proxmox_api::cluster_next_id,
-    };
+    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_a_vm_not_found_error_is_properly_detected() {
