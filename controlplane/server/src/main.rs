@@ -14,11 +14,18 @@ use server::{Config, serve, shutdown_signal};
 /// server implementation.
 #[tokio::main]
 async fn main() -> Result<(), server::error::Error> {
-    // configure and serve the application
+    // create the application configuration
     let config = Config::from_env().await?;
-    let sender = serve(config).await?;
-    tracing::info!("application starting, waiting for shutdown signal...");
 
+    // run the migrations
+    tracing::info!("running the migrations...");
+    sqlx::migrate!("../migrations").run(&config.pool).await?;
+
+    // serve the application
+    tracing::info!("starting the application...");
+    let sender = serve(config).await?;
+
+    tracing::info!("waiting for shutdown signal...");
     shutdown_signal().await;
     tracing::info!("shutdown signal received, gracefully shutting down...");
 
