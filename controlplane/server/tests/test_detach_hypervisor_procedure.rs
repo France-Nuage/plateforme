@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use hypervisors::{
     Hypervisor,
     v1::{DetachHypervisorRequest, hypervisors_client::HypervisorsClient},
@@ -9,7 +10,7 @@ use server::Config;
 async fn test_the_detach_hypervisor_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mock = MockServer::new().await;
+    let mock = MockServer::new().await.with_well_known();
 
     // Arrange the grpc server and a client
     let hypervisor = Hypervisor::factory()

@@ -34,11 +34,11 @@ pub type TraceLayer = tower_http::trace::TraceLayer<SharedClassifier<GrpcErrorsA
 /// # Example
 ///
 /// ```rust,no_run
-/// use server::Server;
+/// use server::server::Server;
 ///
-/// let server = Server::builder()
+/// let server = Server::new()
 ///     .with_tracing()
-///     .with_cors();
+///     .with_cors(tower_http::cors::AllowOrigin::any(), tower_http::cors::AllowMethods::any());
 /// ```
 ///
 /// [`tonic::transport::Server`]: https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html
@@ -128,9 +128,9 @@ impl<L> Server<L> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use server::Server;
+    /// use server::server::Server;
     ///
-    /// let server = Server::builder()
+    /// let server = Server::new()
     ///     .with_tracing();
     /// ```
     ///
@@ -163,10 +163,10 @@ impl<L> Server<L> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use server::Server;
+    /// use server::server::Server;
     /// use tower_http::cors::{AllowOrigin, AllowMethods};
     ///
-    /// let server = Server::builder()
+    /// let server = Server::new()
     ///     .with_cors(AllowOrigin::any(), AllowMethods::any());
     /// ```
     ///

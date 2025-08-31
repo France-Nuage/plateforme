@@ -26,7 +26,7 @@
 //!
 //! ### Manual Token Validation
 //!
-//! ```rust,no_run
+//! ```
 //! use auth::{JwkValidator, extract_authorization_token};
 //! use tonic::Request;
 //!
@@ -49,7 +49,7 @@
 //!
 //! ### Middleware Integration
 //!
-//! ```rust,no_run
+//! ```rust
 //! use auth::{AuthenticationLayer, JwkValidator};
 //! use tower::ServiceBuilder;
 //!
@@ -58,9 +58,7 @@
 //!     "https://provider.com/.well-known/openid_configuration"
 //! ).await?;
 //!
-//! let service = ServiceBuilder::new()
-//!     .layer(AuthenticationLayer::new(validator))
-//!     .service(inner_service);
+//! let service = ServiceBuilder::new().layer(AuthenticationLayer::new(validator));
 //! # Ok(())
 //! # }
 //! ```
@@ -79,12 +77,12 @@
 //!
 //! ### Token Extraction
 //! Extract JWT tokens from HTTP Authorization headers in tonic gRPC requests:
-//! ```rust,no_run
+//! ```
 //! use auth::extract_authorization_token;
 //! use tonic::Request;
 //!
 //! # fn example(request: Request<()>) -> Result<(), auth::Error> {
-//! let token = extract_authorization_token(request)?;
+//! let token = extract_authorization_token(&request)?;
 //! // Use token for validation...
 //! # Ok(())
 //! # }
@@ -183,7 +181,7 @@ pub mod validator;
 ///     "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...".parse().unwrap()
 /// );
 ///
-/// let token = extract_authorization_token(request)?;
+/// let token = extract_authorization_token(&request)?;
 /// println!("Extracted token: {}", token);
 /// # Ok(())
 /// # }

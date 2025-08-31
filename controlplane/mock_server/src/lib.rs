@@ -21,12 +21,11 @@
 //! ```
 //! use mock_server::MockServer;
 //!
-//! #[tokio::test]
-//! async fn test_with_mock() {
-//!     let mock = MockServer::new().await;
-//!     // Use mock.url() to get the base URL for your tests
-//!     // Configure specific endpoints using mockito traits
-//! }
+//! # async fn test_with_mock() {
+//! let mock = MockServer::new().await;
+//! // Use mock.url() to get the base URL for your tests
+//! // Configure specific endpoints using mockito traits
+//! # }
 //! ```
 
 pub struct MockServer {

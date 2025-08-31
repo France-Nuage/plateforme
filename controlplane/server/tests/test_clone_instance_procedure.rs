@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use hypervisor_connector_proxmox::mock::{
     WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
 };
@@ -19,7 +20,8 @@ async fn test_the_clone_instance_procedure_works(
         .with_cluster_next_id()
         .with_cluster_resource_list()
         .with_vm_clone()
-        .with_task_status_read();
+        .with_task_status_read()
+        .with_well_known();
     let mock_url = mock.url();
 
     let organization = Organization::factory().create(&pool).await?;

@@ -24,7 +24,7 @@
 //!
 //! The authentication layer is typically applied as middleware in a Tower service stack:
 //!
-//! ```rust,no_run
+//! ```
 //! use auth::{AuthenticationLayer, JwkValidator};
 //! use tower::ServiceBuilder;
 //!
@@ -32,9 +32,7 @@
 //! let validator = JwkValidator::from_oidc_discovery("https://provider.com/.well-known/openid_configuration").await?;
 //! let auth_layer = AuthenticationLayer::new(validator);
 //!
-//! let service = ServiceBuilder::new()
-//!     .layer(auth_layer)
-//!     .service(inner_service);
+//! let service = ServiceBuilder::new().layer(auth_layer);
 //! # Ok(())
 //! # }
 //! ```

@@ -38,13 +38,14 @@ use tower_layer::{Identity, Stack};
 /// # Example
 ///
 /// ```rust,no_run
-/// use application::Application;
-/// use config::Config;
+/// use server::application::Application;
+/// use server::config::Config;
 /// use sqlx::PgPool;
 ///
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let pool = PgPool::connect("postgresql://localhost/db").await?;
-/// let config = Config::new(pool);
+/// # let mock = mock_server::MockServer::new().await;
+/// let config = Config::test(&pool, &mock).await?;
 ///
 /// let app = Application::new(config)
 ///     .with_middlewares()
@@ -79,13 +80,14 @@ impl Application<Identity> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use application::Application;
-    /// use config::Config;
+    /// use server::application::Application;
+    /// use server::config::Config;
     /// use sqlx::PgPool;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let pool = PgPool::connect("postgresql://localhost/db").await?;
-    /// let config = Config::new(pool);
+    /// # let mock = mock_server::MockServer::new().await;
+    /// let config = Config::test(&pool, &mock).await?;
     ///
     /// let app = Application::new(config);
     /// # Ok(())
@@ -98,8 +100,8 @@ impl Application<Identity> {
     /// and services:
     ///
     /// ```rust,no_run
-    /// # use application::Application;
-    /// # use config::Config;
+    /// # use server::application::Application;
+    /// # use server::config::Config;
     /// # use sqlx::PgPool;
     /// # async fn example(config: Config) {
     /// let app = Application::new(config)
@@ -147,13 +149,14 @@ impl<L> Application<L> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use application::Application;
-    /// use config::Config;
+    /// use server::application::Application;
+    /// use server::config::Config;
     /// use sqlx::PgPool;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let pool = PgPool::connect("postgresql://localhost/db").await?;
-    /// # let config = Config::new(pool);
+    /// # let mock = mock_server::MockServer::new().await;
+    /// # let config = Config::test(&pool, &mock).await?;
     /// let app = Application::new(config)
     ///     .with_middlewares(); // Applies all middleware layers
     /// # Ok(())
@@ -187,13 +190,14 @@ impl<L> Application<L> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use application::Application;
-    /// use config::Config;
+    /// use server::application::Application;
+    /// use server::config::Config;
     /// use sqlx::PgPool;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let pool = PgPool::connect("postgresql://localhost/db").await?;
-    /// # let config = Config::new(pool);
+    /// # let mock = mock_server::MockServer::new().await;
+    /// # let config = Config::test(&pool, &mock).await?;
     /// let app = Application::new(config)
     ///     .with_middlewares()
     ///     .with_services(); // Registers all gRPC services
@@ -253,8 +257,8 @@ impl Application<Middleware<Identity>> {
     /// # Example
     ///
     /// ```
-    /// use application::Application;
-    /// use config::Config;
+    /// use server::application::Application;
+    /// use server::config::Config;
     /// use mock_server::MockServer;
     /// use tokio::signal;
     /// use tokio_stream::wrappers::TcpListenerStream;
@@ -270,7 +274,7 @@ impl Application<Middleware<Identity>> {
     ///     .with_services();
     ///
     /// // Run until Ctrl+C is pressed
-    /// app.run(signal::ctrl_c(), stream).await?;
+    /// app.run(async { signal::ctrl_c().await.ok(); }, stream).await?;
     /// # Ok(())
     /// # }
     /// ```

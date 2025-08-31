@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use hypervisor_connector_proxmox::mock::{
     WithClusterResourceList, WithTaskStatusReadMock, WithVMDeleteMock,
 };
@@ -18,7 +19,8 @@ async fn test_the_delete_instance_procedure_works(
         .await
         .with_cluster_resource_list()
         .with_task_status_read()
-        .with_vm_delete();
+        .with_vm_delete()
+        .with_well_known();
     let mock_url = mock.url();
 
     let organization = Organization::factory().create(&pool).await?;

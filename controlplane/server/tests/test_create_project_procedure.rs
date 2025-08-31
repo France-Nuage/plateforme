@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use mock_server::MockServer;
 use resources::{
     organizations::Organization,
@@ -10,7 +11,7 @@ async fn test_the_create_project_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the test
-    let mock = MockServer::new().await;
+    let mock = MockServer::new().await.with_well_known();
 
     let config = Config::test(&pool, &mock).await?;
     let server_url = format!("http://{}", config.addr);

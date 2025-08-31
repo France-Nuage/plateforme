@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use mock_server::MockServer;
 use resources::{
     organizations::Organization,
@@ -10,7 +11,7 @@ async fn test_the_list_organizations_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
-    let mock = MockServer::new().await;
+    let mock = MockServer::new().await.with_well_known();
 
     Organization::factory().create(&pool).await?;
 

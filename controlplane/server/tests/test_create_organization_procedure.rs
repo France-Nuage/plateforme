@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use mock_server::MockServer;
 use resources::v1::{
     CreateOrganizationRequest, CreateOrganizationResponse, Organization,
@@ -9,7 +10,7 @@ use server::Config;
 async fn test_the_create_organization_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mock = MockServer::new().await;
+    let mock = MockServer::new().await.with_well_known();
 
     let config = Config::test(&pool, &mock).await?;
     let server_url = format!("http://{}", config.addr);

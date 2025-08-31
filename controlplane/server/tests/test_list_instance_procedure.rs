@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use hypervisor_connector_proxmox::mock::WithClusterResourceList;
 use instances::{
     Instance,
@@ -12,7 +13,10 @@ async fn test_the_list_instances_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the grpc server and a client
-    let mock = MockServer::new().await.with_cluster_resource_list();
+    let mock = MockServer::new()
+        .await
+        .with_cluster_resource_list()
+        .with_well_known();
     let mock_url = mock.url();
 
     let organization = Organization::factory().create(&pool).await?;

@@ -24,12 +24,13 @@ use tower_http::cors::{AllowMethods, AllowOrigin};
 /// # Example
 ///
 /// ```rust,no_run
-/// use config::Config;
+/// use server::config::Config;
 /// use sqlx::PgPool;
 ///
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let pool = PgPool::connect("postgresql://localhost/db").await?;
-/// let config = Config::new(pool);
+/// # let mock = mock_server::MockServer::new().await;
+/// let config = Config::test(&pool, &mock).await?;
 /// # Ok(())
 /// # }
 /// ```
@@ -94,12 +95,13 @@ impl Config {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use config::Config;
+    /// use server::config::Config;
     /// use sqlx::PgPool;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let pool = PgPool::connect("postgresql://localhost/db").await?;
-    /// let config = Config::new(pool);
+    /// # let mock = mock_server::MockServer::new().await;
+    /// let config = Config::test(&pool, &mock).await?;
     /// # Ok(())
     /// # }
     /// ```

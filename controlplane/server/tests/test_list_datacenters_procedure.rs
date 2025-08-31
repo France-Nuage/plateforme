@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use infrastructure::{
     Datacenter,
     v1::{ListDatacentersRequest, datacenters_client::DatacentersClient},
@@ -10,7 +11,7 @@ async fn test_the_list_datacenters_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Arrange the test
-    let mock = MockServer::new().await;
+    let mock = MockServer::new().await.with_well_known();
 
     let model = Datacenter::factory().create(&pool).await.unwrap();
 

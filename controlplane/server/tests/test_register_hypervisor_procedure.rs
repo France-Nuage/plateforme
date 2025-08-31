@@ -1,3 +1,4 @@
+use auth::mock::WithWellKnown;
 use hypervisors::v1::{RegisterHypervisorRequest, hypervisors_client::HypervisorsClient};
 use infrastructure::Datacenter;
 use mock_server::MockServer;
@@ -8,7 +9,7 @@ use server::Config;
 async fn test_the_register_hypervisor_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mock = MockServer::new().await;
+    let mock = MockServer::new().await.with_well_known();
 
     let datacenter = Datacenter::factory().create(&pool).await?;
     let organization = Organization::factory().create(&pool).await?;
