@@ -1,3 +1,17 @@
+# [1.31.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.30.0...v1.31.0) (2025-08-31)
+
+
+### Bug Fixes
+
+* address coderabbit review ([e274c30](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/e274c30bdbe0ec2bf5353bc2ee647be12d7f0342))
+* address review ([5320515](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/5320515d8742b17c31bdd0a9a33f70519769733c))
+
+
+### Features
+
+* add a first iteration of authentication ([025e29d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/025e29dbcb8eff2123cd79d700bda6316d0fa2bf))
+* add auth crate ([68c74dd](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/68c74ddc5cc8b7174dad914a8acf83887f1c72f3))
+
 # [1.30.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.4...v1.30.0) (2025-08-29)
 
 
