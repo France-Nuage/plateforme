@@ -125,6 +125,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
+      PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
+      PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
+      PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev-dc03-internal.france-nuage.fr}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -134,6 +137,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./seed.sql:/home/seed.sql:ro
 
   protocol:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}protocol:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
