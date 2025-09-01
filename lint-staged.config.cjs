@@ -1,6 +1,5 @@
 module.exports = {
   "controlplane/migrations/*.sql": [
-    () => "docker compose run -T controlplane sqlx migrate run",
     () => "docker compose run -T controlplane cargo sqlx prepare --workspace -- --tests"
   ],
   "controlplane/**/*.rs": [

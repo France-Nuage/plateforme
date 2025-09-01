@@ -73,6 +73,12 @@ gitleaks:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
+"unit tests / migration linting":
+  stage: "unit-tests"
+  script:
+    - docker compose run atlas login --token=$ATLAS_TOKEN
+    - docker compose run atlas migrate lint --dev-url="postgres://postgres:postgres@atlas-dev-database:5432?sslmode=disable" --dir="file://controlplane/migrations" --git-base=master
+
 "unit tests / controlplane":
   stage: unit-tests
   variables:

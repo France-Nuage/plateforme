@@ -1,4 +1,35 @@
 services:
+  atlas:
+    image: arigaio/atlas:latest-alpine
+    depends_on:
+      atlas-dev-database:
+        condition: service_healthy
+    # The entrypoint is patched to include git in the image.
+    #
+    # The current official atlas docker image does not include git, which
+    # prevents the tool to run command against git paths, namely the lint
+    # command, which we want to run against master.
+    # Once the corresponding issue <https://github.com/ariga/atlas/issues/3589>
+    # is fixed this patch can be removed.
+    entrypoint: ["sh", "-c", 'apk add git && exec /atlas "$$@"', "--"]
+    working_dir: "/home"
+    profiles:
+      - donotstart
+    volumes:
+      - ./.atlas:/root/.atlas
+      - ./.git:/home/.git
+      - ./controlplane/migrations:/home/controlplane/migrations
+      - ./controlplane/schema.sql:/home/controlplane/schema.sql
+
+  atlas-dev-database:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+    profiles:
+      - donotstart
+
   console:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
