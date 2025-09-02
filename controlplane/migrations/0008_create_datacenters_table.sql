@@ -1,9 +1,0 @@
-CREATE TABLE datacenters (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-ALTER TABLE hypervisors ADD COLUMN datacenter_id UUID DEFAULT NULL REFERENCES datacenters (id) ON DELETE CASCADE;
-

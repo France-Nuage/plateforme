@@ -17,10 +17,6 @@ async fn main() -> Result<(), server::error::Error> {
     // create the application configuration
     let config = Config::from_env().await?;
 
-    // run the migrations
-    tracing::info!("running the migrations...");
-    sqlx::migrate!("../migrations").run(&config.pool).await?;
-
     // serve the application
     tracing::info!("starting the application...");
     let sender = serve(config).await?;
