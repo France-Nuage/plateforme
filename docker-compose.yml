@@ -20,7 +20,7 @@ services:
       - ./.atlas:/root/.atlas
       - ./.git:/home/.git
       - ./controlplane/migrations:/home/controlplane/migrations
-      - ./controlplane/schema.sql:/home/controlplane/schema.sql
+      - ./controlplane/schema.hcl:/home/controlplane/schema.hcl
 
   atlas-dev-database:
     image: postgres:16
