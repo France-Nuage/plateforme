@@ -114,6 +114,15 @@ gitleaks:
       - docker-compose-logs.txt
     expire_in: 1 week
 
+"deploy / apply migrations":
+  stage: deploy
+  script:
+    - docker compose run atlas migrate apply --url="$PRODUCTION_DATABASE_URL" --dir="file://controlplane/migrations"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
+
 "deploy / controlplane":
   stage: deploy
   script:
