@@ -117,6 +117,7 @@ gitleaks:
 "deploy / apply migrations":
   stage: deploy
   script:
+    - docker compose run atlas login --token=$ATLAS_TOKEN
     - docker compose run atlas migrate apply --url="$PRODUCTION_DATABASE_URL" --dir="file://controlplane/migrations"
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
