@@ -1,3 +1,16 @@
+# [1.32.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.31.0...v1.32.0) (2025-09-02)
+
+
+### Bug Fixes
+
+* remove _sqlx_migrations table from migrations so sqlx tests can apply them ([84ad3e8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/84ad3e88a5c4994d7ade3eaa074dfe05960ea066))
+* remove sqlx migration autorun from the controlplane ([30c4cb2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/30c4cb266def917e12784392503caba8b952a6a1))
+
+
+### Features
+
+* add atlas ([11eb963](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/11eb963ed53eb19f390e7a626478410c0dcbf884))
+
 # [1.31.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.30.0...v1.31.0) (2025-08-31)
 
 
