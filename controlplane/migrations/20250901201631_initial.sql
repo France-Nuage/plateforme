@@ -1,13 +1,3 @@
--- Create "_sqlx_migrations" table
-CREATE TABLE "public"."_sqlx_migrations" (
-  "version" bigint NOT NULL,
-  "description" text NOT NULL,
-  "installed_on" timestamptz NOT NULL DEFAULT now(),
-  "success" boolean NOT NULL,
-  "checksum" bytea NOT NULL,
-  "execution_time" bigint NOT NULL,
-  PRIMARY KEY ("version")
-);
 -- Create "datacenters" table
 CREATE TABLE "public"."datacenters" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
