@@ -39,7 +39,11 @@ pub type TraceLayer = tower_http::trace::TraceLayer<SharedClassifier<GrpcErrorsA
 ///
 /// let server = Server::new()
 ///     .with_tracing()
-///     .with_cors(tower_http::cors::AllowOrigin::any(), tower_http::cors::AllowMethods::any());
+///     .with_cors(
+///         tower_http::cors::AllowHeaders::any(),
+///         tower_http::cors::AllowMethods::any(),
+///         tower_http::cors::AllowOrigin::any()
+///         );
 /// ```
 ///
 /// [`tonic::transport::Server`]: https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html
@@ -173,8 +177,11 @@ impl<L> Server<L> {
     /// use server::server::Server;
     /// use tower_http::cors::{AllowOrigin, AllowMethods};
     ///
-    /// let server = Server::new()
-    ///     .with_cors(AllowOrigin::any(), AllowMethods::any());
+    /// let server = Server::new().with_cors(
+    ///     tower_http::cors::AllowHeaders::any(),
+    ///     tower_http::cors::AllowMethods::any(),
+    ///     tower_http::cors::AllowOrigin::any()
+    /// );
     /// ```
     ///
     /// This is equivalent to calling [`tonic::transport::Server::layer`] with a
