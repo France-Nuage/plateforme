@@ -12,7 +12,7 @@ use mock_server::MockServer;
 use sqlx::{Pool, Postgres};
 use std::{env, net::SocketAddr};
 use tokio::net::TcpListener;
-use tower_http::cors::{AllowMethods, AllowOrigin};
+use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin};
 
 /// Configuration for the gRPC server with CORS, authentication, networking, and PostgreSQL database settings.
 ///
@@ -45,13 +45,7 @@ pub struct Config {
     /// will use. The default value binds to all available interfaces (`[::]`) on port 8080.
     pub addr: SocketAddr,
 
-    /// CORS configuration specifying which origins are allowed to make cross-origin requests.
-    ///
-    /// This field controls the `Access-Control-Allow-Origin` header in HTTP responses.
-    /// The default configuration allows requests from any origin using [`AllowOrigin::any()`].
-    ///
-    /// [`AllowOrigin::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowOrigin.html#method.any
-    pub allow_origin: AllowOrigin,
+    pub allow_headers: AllowHeaders,
 
     /// CORS configuration specifying which HTTP methods are allowed for cross-origin requests.
     ///
@@ -60,6 +54,14 @@ pub struct Config {
     ///
     /// [`AllowMethods::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowMethods.html#method.any
     pub allow_methods: AllowMethods,
+
+    /// CORS configuration specifying which origins are allowed to make cross-origin requests.
+    ///
+    /// This field controls the `Access-Control-Allow-Origin` header in HTTP responses.
+    /// The default configuration allows requests from any origin using [`AllowOrigin::any()`].
+    ///
+    /// [`AllowOrigin::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowOrigin.html#method.any
+    pub allow_origin: AllowOrigin,
 
     /// PostgreSQL database connection pool for persistent storage operations.
     ///
@@ -151,8 +153,9 @@ impl Config {
 
         Ok(Config {
             addr,
-            allow_origin: AllowOrigin::any(),
+            allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
+            allow_origin: AllowOrigin::any(),
             pool: pool.clone(),
             validator,
         })
@@ -195,8 +198,9 @@ impl Config {
 
         Ok(Config {
             addr: Config::reserve_socket_addr(env::var("CONTROLPLANE_ADDR").ok()).await?,
-            allow_origin: AllowOrigin::any(),
+            allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
+            allow_origin: AllowOrigin::any(),
             pool,
             validator,
         })

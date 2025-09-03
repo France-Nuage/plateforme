@@ -11,10 +11,11 @@ use bytes::Bytes;
 use http::{Request, Response};
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic::body::Body;
+use tonic_web::GrpcWebLayer;
 use tower::layer::util::{Identity, Stack};
 use tower::{BoxError, Layer, Service};
 use tower_http::classify::{GrpcErrorsAsFailures, SharedClassifier};
-use tower_http::cors::{AllowMethods, AllowOrigin, CorsLayer};
+use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
 
 use crate::error::Error;
 
@@ -58,7 +59,7 @@ impl Default for Server<Identity> {
 impl Server<Identity> {
     pub fn new() -> Self {
         Server {
-            inner: tonic::transport::Server::default(),
+            inner: tonic::transport::Server::default().accept_http1(true),
         }
     }
 }
@@ -148,6 +149,12 @@ impl<L> Server<L> {
         }
     }
 
+    pub fn with_web(self) -> Server<Stack<GrpcWebLayer, L>> {
+        Server {
+            inner: self.inner.layer(GrpcWebLayer::new()),
+        }
+    }
+
     /// Add Cross-Origin Resource Sharing (CORS) support to the server.
     ///
     /// This applies a [`tower_http::cors::CorsLayer`] configured with the specified
@@ -183,14 +190,16 @@ impl<L> Server<L> {
     /// [`tonic::transport::Server::layer`]: https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html#method.layer
     pub fn with_cors(
         self,
-        allow_origin: AllowOrigin,
+        allow_headers: AllowHeaders,
         allow_methods: AllowMethods,
+        allow_origin: AllowOrigin,
     ) -> Server<Stack<CorsLayer, L>> {
         Server {
             inner: self.inner.layer(
                 CorsLayer::new()
-                    .allow_origin(allow_origin)
-                    .allow_methods(allow_methods),
+                    .allow_headers(allow_headers)
+                    .allow_methods(allow_methods)
+                    .allow_origin(allow_origin),
             ),
         }
     }

@@ -14,6 +14,9 @@ use server::{Config, serve, shutdown_signal};
 /// server implementation.
 #[tokio::main]
 async fn main() -> Result<(), server::error::Error> {
+    // Setup tracing
+    tracing_subscriber::fmt::init();
+
     // create the application configuration
     let config = Config::from_env().await?;
 
