@@ -1,3 +1,10 @@
+## [1.32.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.32.0...v1.32.1) (2025-09-04)
+
+
+### Bug Fixes
+
+* cors requests are properly handled ([7b1f6e6](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7b1f6e64c141dd8e7556bba6d4d6f658163d5e0e))
+
 # [1.32.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.31.0...v1.32.0) (2025-09-02)
 
 
