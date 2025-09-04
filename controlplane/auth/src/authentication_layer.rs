@@ -126,6 +126,12 @@ impl<S> Layer<S> for AuthenticationLayer {
 /// 4. Injects the IAM context into request extensions
 /// 5. Forwards the request to the inner service
 ///
+/// ## Security Isolation
+///
+/// This service creates a new IAM instance for every incoming request, ensuring
+/// complete token isolation between concurrent requests. Each request's authentication
+/// context is independent and cannot access tokens from other requests.
+///
 /// ## Error Handling
 ///
 /// This service does not fail requests that lack authentication headers.

@@ -14,6 +14,14 @@
 //! - **Error Transparency**: Provides clear error information for authentication failures
 //! - **Optional Authentication**: Gracefully handles requests without authentication tokens
 //!
+//! ## Per-Request Security Model
+//!
+//! Each HTTP request receives its own distinct IAM instance created by the authentication
+//! middleware. This design ensures complete token isolation between concurrent requests:
+//! - **No Token Sharing**: Each IAM instance holds exactly one request's token
+//! - **Request Isolation**: Token validation results cannot leak between requests
+//! - **Concurrent Safety**: Multiple requests are processed with independent IAM contexts
+//!
 //! ## Usage Pattern
 //!
 //! IAM contexts are typically created by authentication middleware and accessed
@@ -42,18 +50,29 @@ use crate::{Error, JwkValidator, model::User, rfc7519::Claim};
 /// 3. **Validation**: Token validation occurs on-demand when `is_authenticated()` is called
 /// 4. **Caching**: Validation results could be cached within the request scope (future enhancement)
 ///
+/// ## Security Model
+///
+/// Each IAM instance is created per-request by authentication middleware and contains
+/// exactly one request's JWT token. This design prevents token leakage between
+/// concurrent requests while allowing safe concurrent access within a request's
+/// processing pipeline.
+///
 /// ## Thread Safety
 ///
-/// IAM is thread-safe and can be cloned across async tasks. The internal validator
-/// handles concurrent token validation efficiently with its own caching mechanisms.
+/// IAM instances are thread-safe and designed for concurrent access within a single
+/// request's processing pipeline. Each request receives its own IAM instance from
+/// authentication middleware, preventing token sharing between different requests.
+/// The internal validator handles concurrent token validation efficiently across
+/// all requests with shared caching for JWK keys (not tokens or claims).
 #[derive(Clone)]
 pub struct IAM {
-    /// Lazily-loaded JWT claims cache with concurrent access protection.
+    /// Lazily-loaded JWT claims cache with request-scoped concurrent access protection.
     ///
     /// Claims are fetched on-demand rather than eagerly during IAM creation to avoid
     /// unnecessary network requests to the OIDC provider. The RwLock guards against
-    /// concurrent validation requests, ensuring that multiple simultaneous calls to
-    /// claim-dependent methods don't trigger redundant external API calls.
+    /// concurrent validation requests within the same request's processing, ensuring
+    /// that multiple simultaneous calls to claim-dependent methods within one request
+    /// don't trigger redundant external API calls.
     claim: Arc<RwLock<Option<Claim>>>,
 
     /// Optional JWT token extracted from the Authorization header
