@@ -29,10 +29,8 @@
 //! `is_authenticated()` to verify the request's authentication status before
 //! processing protected operations.
 
-use std::sync::Arc;
-
 use sqlx::Postgres;
-use tokio::sync::RwLock;
+use tokio::sync::OnceCell;
 
 use crate::{Error, JwkValidator, model::User, rfc7519::Claim};
 
@@ -66,14 +64,13 @@ use crate::{Error, JwkValidator, model::User, rfc7519::Claim};
 /// all requests with shared caching for JWK keys (not tokens or claims).
 #[derive(Clone)]
 pub struct IAM {
-    /// Lazily-loaded JWT claims cache with request-scoped concurrent access protection.
+    /// Lazily-loaded JWT claims cache with request-scoped initialization protection.
     ///
     /// Claims are fetched on-demand rather than eagerly during IAM creation to avoid
-    /// unnecessary network requests to the OIDC provider. The RwLock guards against
-    /// concurrent validation requests within the same request's processing, ensuring
-    /// that multiple simultaneous calls to claim-dependent methods within one request
-    /// don't trigger redundant external API calls.
-    claim: Arc<RwLock<Option<Claim>>>,
+    /// unnecessary network requests to the OIDC provider. The OnceCell ensures that
+    /// token validation occurs only once per request, even when multiple concurrent
+    /// calls to claim-dependent methods are made within the same request's processing.
+    claim: OnceCell<Claim>,
 
     /// Optional JWT token extracted from the Authorization header
     token: Option<String>,
@@ -93,7 +90,7 @@ impl IAM {
     ///   for token validation
     pub fn new(token: Option<String>, validator: JwkValidator) -> Self {
         IAM {
-            claim: Arc::new(RwLock::new(None)),
+            claim: OnceCell::new(),
             token,
             validator,
         }
@@ -205,19 +202,18 @@ impl IAM {
             .map(|data| data.claims)
     }
 
-    /// Retrieves JWT claims with lazy loading and concurrent access protection.
+    /// Retrieves JWT claims with lazy loading and concurrent initialization protection.
     ///
     /// This method implements a lazy loading pattern for JWT claims validation.
     /// On first access, it validates the token and caches the claims. Subsequent
     /// calls return the cached claims without re-validation. The implementation
-    /// uses a read-write lock to prevent multiple concurrent validation requests
-    /// for the same token.
+    /// uses OnceCell to ensure token validation occurs exactly once per request.
     ///
     /// # Concurrency Behavior
     ///
-    /// - **First Call**: Acquires write lock, validates token, caches result
-    /// - **Subsequent Calls**: Uses read lock to access cached claims
-    /// - **Concurrent Calls**: Only one validation occurs, others wait for result
+    /// - **First Call**: Initializes OnceCell with validated token claims
+    /// - **Subsequent Calls**: Returns cached claims from OnceCell immediately  
+    /// - **Concurrent Calls**: OnceCell ensures only one validation occurs, others wait for result
     ///
     /// # Returns
     ///
@@ -229,19 +225,9 @@ impl IAM {
     /// Returns the same errors as `fetch_claim()` during initial validation.
     /// Cached claims will not produce validation errors on subsequent calls.
     async fn get_claim(&self) -> Result<Claim, Error> {
-        let claim = match self.claim.read().await.clone() {
-            Some(claim) => claim,
-            None => {
-                // Acquire the write lock before calling the fetch_claim method
-                let mut lock = self.claim.write().await;
-                let value = self.fetch_claim().await?;
-
-                // Write the new value and return it, dropping the lock
-                *lock = Some(value.clone());
-                value
-            }
-        };
-
-        Ok(claim)
+        self.claim
+            .get_or_try_init(|| async { self.fetch_claim().await })
+            .await
+            .cloned()
     }
 }

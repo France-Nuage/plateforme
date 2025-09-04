@@ -21,7 +21,7 @@ mock_server = { path = "../mock_server", optional = true }
 resources = { path = "../resources" }
 reqwest = { version = "0.12", features = ["json"] }
 serde = "1"
-serde_json = { version = "*", optional = true }
+serde_json = { version = "1", optional = true }
 sqlx = { version = "0.8", features = [
   "chrono",
   "migrate",
