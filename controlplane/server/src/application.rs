@@ -9,16 +9,14 @@
 //! production-ready gRPC server: configuration management, PostgreSQL database
 //! connectivity, request routing, and server middleware stack.
 
-use std::future::Future;
-
-use crate::{
-    config::Config,
-    error::Error,
-    router::Router,
-    server::{Server, TraceLayer},
-};
+use crate::config::Config;
+use crate::error::Error;
+use crate::router::Router;
+use crate::server::{Server, TraceLayer};
 use auth::AuthenticationLayer;
+use std::future::Future;
 use tokio_stream::wrappers::TcpListenerStream;
+use tonic_web::GrpcWebLayer;
 use tower::layer::util::{Identity, Stack};
 use tower_http::cors::CorsLayer;
 
@@ -122,7 +120,8 @@ impl Application<Identity> {
 ///
 /// This represents the full middleware stack that will be applied to the
 /// server, composed on top of the existing layer `L`.
-type Middleware<L> = Stack<AuthenticationLayer, Stack<CorsLayer, Stack<TraceLayer, L>>>;
+type Middleware<L> =
+    Stack<AuthenticationLayer, Stack<GrpcWebLayer, Stack<CorsLayer, Stack<TraceLayer, L>>>>;
 
 impl<L> Application<L> {
     /// Adds the complete middleware stack to the application server.
@@ -169,7 +168,12 @@ impl<L> Application<L> {
             server: self
                 .server
                 .with_tracing()
-                .with_cors(self.config.allow_origin, self.config.allow_methods)
+                .with_cors(
+                    self.config.allow_headers,
+                    self.config.allow_methods,
+                    self.config.allow_origin,
+                )
+                .with_web()
                 .with_authentication(self.config.validator),
         }
     }
