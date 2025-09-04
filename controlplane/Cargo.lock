@@ -126,6 +126,9 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 name = "auth"
 version = "0.1.0"
 dependencies = [
+ "database",
+ "derive_factory",
+ "derive_repository",
  "futures",
  "http",
  "http-body",
@@ -135,12 +138,15 @@ dependencies = [
  "mockito",
  "moka",
  "reqwest",
+ "resources",
  "serde",
  "serde_json",
+ "sqlx",
  "thiserror 2.0.12",
  "tokio",
  "tonic",
  "tower",
+ "uuid",
 ]
 
 [[package]]

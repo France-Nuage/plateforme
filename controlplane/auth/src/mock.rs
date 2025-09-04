@@ -13,6 +13,8 @@
 //! ## Usage Pattern
 //!
 //! ```
+//! # #[cfg(feature = "mock")]
+//! # mod wrapper_module {
 //! use auth::mock::WithWellKnown;
 //! use mock_server::MockServer;
 //!
@@ -21,6 +23,7 @@
 //!     let mock = MockServer::new().await.with_well_known();
 //!     // Mock server now responds to /.well-known/openid-configuration
 //! }
+//! # }
 //! ```
 
 #[cfg(feature = "mock")]

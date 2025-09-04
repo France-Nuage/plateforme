@@ -68,6 +68,7 @@
 //! This crate consists of several modules:
 //! - **authentication_layer** - Tower middleware for HTTP request authentication
 //! - **iam** - Identity and Access Management context for authenticated requests
+//! - **model** - Temporary database models for user authorization (will be replaced by SpiceDB)
 //! - **validator** - JWT token validation with JWK key management and caching
 //! - **discovery** - OIDC provider metadata and discovery functionality
 //! - **error** - Comprehensive error types for all authentication operations
@@ -129,6 +130,7 @@
 
 pub use authentication_layer::AuthenticationLayer;
 pub use error::Error;
+pub use iam::IAM;
 use tonic::Request;
 pub use validator::JwkValidator;
 
@@ -137,6 +139,7 @@ mod discovery;
 mod error;
 pub mod iam;
 pub mod mock;
+pub mod model;
 mod rfc7519;
 pub mod validator;
 
@@ -263,7 +266,10 @@ mod tests {
 
         // Assert the result
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), Error::MissingAuthorizationHeader);
+        assert!(matches!(
+            result.unwrap_err(),
+            Error::MissingAuthorizationHeader
+        ));
     }
 
     /// Tests that malformed Authorization header with invalid UTF-8 returns appropriate error.
@@ -281,10 +287,12 @@ mod tests {
 
         // Act the call t the extraction function
         let result = extract_authorization_token(&request);
-        println!("result: {:?}", &result);
 
         // Assert the result
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), Error::MalformedAuthorizationHeader);
+        assert!(matches!(
+            result.unwrap_err(),
+            Error::MalformedAuthorizationHeader
+        ));
     }
 }

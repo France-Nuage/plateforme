@@ -101,12 +101,15 @@ impl JwkValidator {
     /// ## Usage in Tests
     ///
     /// ```
+    /// # #[cfg(feature = "mock")]
+    /// # mod wrapper_module {
     /// # use auth::JwkValidator;
     /// # use mock_server::MockServer;
     /// # async fn example() -> Result<(), auth::Error> {
     /// let mock = MockServer::new().await;
     /// let validator = JwkValidator::from_mock_server(&mock.url()).await?;
     /// # Ok(())
+    /// # }
     /// # }
     /// ```
     pub async fn from_mock_server(mock_server: &str) -> Result<Self, crate::Error> {

@@ -12,6 +12,11 @@
 //! - **Public Claims**: Claims defined in the IANA "JSON Web Token Claims" registry
 //! - **Private Claims**: Custom claims agreed upon by parties using the JWT
 //!
+//! ## Non-standard Claims
+//!
+//! This implementation includes commonly-used claims that extend beyond RFC 7519:
+//! - **email**: User email address (widely used by OIDC providers for user identification)
+//!
 //! ## Registered Claims
 //!
 //! This module implements the standard registered claims defined in [Section 4.1] of RFC 7519.
@@ -62,26 +67,6 @@ use serde::Deserialize;
 /// compact.
 #[derive(Clone, Debug, Deserialize)]
 pub struct Claim {
-    /// Issuer Claim.
-    ///
-    /// The [iss](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1)
-    /// (issuer) claim identifies the principal that issued the JWT.
-    /// The processing of this claim is generally application specific. The
-    /// "iss" value is a case-sensitive string containing a StringOrURI value.
-    /// Use of this claim is OPTIONAL.
-    pub iss: Option<String>,
-
-    /// Subject Claim.
-    ///
-    /// The "sub" (subject) claim identifies the principal that is the subject
-    /// of the JWT. The claims in a JWT are normally statements about the
-    /// subject. The subject value MUST either be scoped to be locally unique in
-    /// the context of the issuer or be globally unique. The processing of this
-    /// claim is generally application specific. The "sub" value is a
-    /// case-sensitive string containing a StringOrURI value.  Use of this claim
-    /// is OPTIONAL.
-    pub sub: Option<String>,
-
     /// Audience Claim.
     ///
     /// The "aud" (audience) claim identifies the recipients that the JWT is
@@ -96,6 +81,17 @@ pub struct Claim {
     /// generally application specific. Use of this claim is OPTIONAL.
     pub aud: Option<String>,
 
+    /// Email Claim (Non-standard but commonly used).
+    ///
+    /// The "email" claim provides the email address associated with the JWT subject.
+    /// While not part of the RFC 7519 standard, this claim is commonly included
+    /// by OIDC providers and is widely used for user identification and authorization.
+    ///
+    /// **Note**: This field is used for temporary database-backed user authorization
+    /// and will be replaced by standard `sub` claim processing when migrating to
+    /// SpiceDB for stateless authorization.
+    pub email: Option<String>,
+
     /// Expiration Time Claim.
     ///
     /// The "exp" (expiration time) claim identifies the expiration time on or
@@ -107,17 +103,6 @@ pub struct Claim {
     /// NumericDate value. Use of this claim is OPTIONAL.
     pub exp: Option<u64>,
 
-    /// Not Before Claim.
-    ///
-    /// The "nbf" (not before) claim identifies the time before which the JWT
-    /// MUST NOT be accepted for processing. The processing of the "nbf" claim
-    /// requires that the current date/time MUST be after or equal to the
-    /// not-before date/time listed in the "nbf" claim.  Implementers MAY provide
-    /// for some small leeway, usually no more than a few minutes, to account
-    /// for clock skew. Its value MUST be a number containing a NumericDate
-    /// value. Use of this claim is OPTIONAL.
-    pub nbf: Option<u64>,
-
     /// Issued At Claim.
     ///
     /// The "iat" (issued at) claim identifies the time at which the JWT was
@@ -125,6 +110,15 @@ pub struct Claim {
     /// value MUST be a number containing a NumericDate value. Use of this claim
     /// is OPTIONAL.
     pub iat: Option<u64>,
+
+    /// Issuer Claim.
+    ///
+    /// The [iss](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1)
+    /// (issuer) claim identifies the principal that issued the JWT.
+    /// The processing of this claim is generally application specific. The
+    /// "iss" value is a case-sensitive string containing a StringOrURI value.
+    /// Use of this claim is OPTIONAL.
+    pub iss: Option<String>,
 
     /// JWT ID Claim.
     ///
@@ -137,4 +131,26 @@ pub struct Claim {
     /// being replayed. The "jti" value is a case-sensitive string. Use of this
     /// claim is OPTIONAL.
     pub jti: Option<String>,
+
+    /// Not Before Claim.
+    ///
+    /// The "nbf" (not before) claim identifies the time before which the JWT
+    /// MUST NOT be accepted for processing. The processing of the "nbf" claim
+    /// requires that the current date/time MUST be after or equal to the
+    /// not-before date/time listed in the "nbf" claim.  Implementers MAY provide
+    /// for some small leeway, usually no more than a few minutes, to account
+    /// for clock skew. Its value MUST be a number containing a NumericDate
+    /// value. Use of this claim is OPTIONAL.
+    pub nbf: Option<u64>,
+
+    /// Subject Claim.
+    ///
+    /// The "sub" (subject) claim identifies the principal that is the subject
+    /// of the JWT. The claims in a JWT are normally statements about the
+    /// subject. The subject value MUST either be scoped to be locally unique in
+    /// the context of the issuer or be globally unique. The processing of this
+    /// claim is generally application specific. The "sub" value is a
+    /// case-sensitive string containing a StringOrURI value.  Use of this claim
+    /// is OPTIONAL.
+    pub sub: Option<String>,
 }
