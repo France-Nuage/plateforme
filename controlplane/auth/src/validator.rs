@@ -517,6 +517,7 @@ mod tests {
         assert!(result.is_ok());
     }
 
+    #[cfg(feature = "mock")]
     #[tokio::test]
     async fn test_validate_token() {
         // Arrange a mock oidc server

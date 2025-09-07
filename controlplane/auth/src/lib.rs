@@ -138,10 +138,12 @@ mod authentication_layer;
 mod discovery;
 mod error;
 pub mod iam;
-pub mod mock;
 pub mod model;
 mod rfc7519;
 pub mod validator;
+
+#[cfg(feature = "mock")]
+pub mod mock;
 
 /// Extracts JWT token from a tonic gRPC request's Authorization header.
 ///

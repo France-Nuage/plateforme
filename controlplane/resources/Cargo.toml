@@ -3,8 +3,11 @@ name = "resources"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+mock = ["auth/mock"]
+
 [dependencies]
-auth = { path = "../auth", features = ["mock"] }
+auth = { path = "../auth" }
 database = { path = "../database" }
 derive_factory = { path = "../derive_factory" }
 derive_repository = { path = "../derive_repository" }

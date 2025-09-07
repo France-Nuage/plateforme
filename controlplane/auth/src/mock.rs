@@ -25,7 +25,6 @@
 //! }
 //! # }
 //! ```
-#[cfg(feature = "mock")]
 use crate::JwkValidator;
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use mock_server::MockServer;
@@ -108,7 +107,6 @@ impl WithJwks for MockServer {
 ///
 /// This trait extends mock servers with the ability to respond to OIDC
 /// discovery requests, enabling authentication testing workflows.
-#[cfg(feature = "mock")]
 pub trait WithWellKnown {
     /// Configures the mock server to respond to OIDC discovery requests.
     ///
@@ -117,7 +115,6 @@ pub trait WithWellKnown {
     fn with_well_known(self) -> Self;
 }
 
-#[cfg(feature = "mock")]
 impl WithWellKnown for MockServer {
     fn with_well_known(mut self) -> Self {
         let base = self.url();
