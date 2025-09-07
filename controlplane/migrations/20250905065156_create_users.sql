@@ -3,6 +3,7 @@ CREATE TABLE "public"."users" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
   "organization_id" uuid NOT NULL,
   "email" text NOT NULL,
+  "is_admin" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY ("id"),

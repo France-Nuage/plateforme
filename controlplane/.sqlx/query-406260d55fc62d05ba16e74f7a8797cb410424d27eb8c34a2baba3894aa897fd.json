@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO users (id, organization_id, email, created_at, updated_at) VALUES ($1, $2, $3, $4, $5) RETURNING id, organization_id, email, created_at, updated_at",
+  "query": "UPDATE users SET organization_id = $2, email = $3, is_admin = $4, created_at = $5, updated_at = $6 WHERE id = $1 RETURNING id, organization_id, email, is_admin, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -20,11 +20,16 @@
       },
       {
         "ordinal": 3,
+        "name": "is_admin",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -34,6 +39,7 @@
         "Uuid",
         "Uuid",
         "Text",
+        "Bool",
         "Timestamptz",
         "Timestamptz"
       ]
@@ -43,8 +49,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "55ca5c62d33dc6fe9ab744d8beccf9a788abff03f4527e312266e7a6a165220c"
+  "hash": "406260d55fc62d05ba16e74f7a8797cb410424d27eb8c34a2baba3894aa897fd"
 }

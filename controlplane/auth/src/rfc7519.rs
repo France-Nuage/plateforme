@@ -34,7 +34,7 @@
 //! [RFC 7519]: https://tools.ietf.org/html/rfc7519
 //! [Section 4.1]: https://tools.ietf.org/html/rfc7519#section-4.1
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// [JWT Claims](https://datatracker.ietf.org/doc/html/rfc7519#section-4)
 ///
@@ -65,7 +65,7 @@ use serde::Deserialize;
 /// specific claims they use and when they are required or optional. All the
 /// names are short because a core goal of JWTs is for the representation to be
 /// compact.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Claim {
     /// Audience Claim.
     ///

@@ -54,8 +54,8 @@
 use database::Persistable;
 use derive_factory::Factory;
 use derive_repository::Repository;
-use resources::organizations::OrganizationFactory;
-use sqlx::{Postgres, types::chrono};
+use serde::Serialize;
+use sqlx::Postgres;
 use uuid::Uuid;
 
 /// Temporary user authorization model for organization access control.
@@ -78,19 +78,33 @@ use uuid::Uuid;
 /// - `Factory`: Enables test data generation
 /// - `Repository`: Provides CRUD operations
 /// - `FromRow`: SQLx automatic row mapping
-#[derive(Debug, Default, Factory, PartialEq, Repository, sqlx::FromRow)]
+#[derive(Debug, Default, Factory, PartialEq, Repository, Serialize, sqlx::FromRow)]
 pub struct User {
     /// Unique identifier for the user
     #[repository(primary)]
     pub id: Uuid,
+
     /// The organization this user is attached to
-    #[factory(relation = "OrganizationFactory")]
     pub organization_id: Uuid,
+
     /// The user email
     pub email: String,
-    // Creation time of the instance
+
+    /// Administrative privileges flag.
+    ///
+    /// Indicates whether this user has administrative permissions within their
+    /// organization. This field is part of the transitional authorization model
+    /// and will be replaced by fine-grained SpiceDB permissions in the future.
+    ///
+    /// **Note**: This flag provides organization-scoped admin rights during the
+    /// interim period before SpiceDB migration. Admin users may have elevated
+    /// access to organization management functions.
+    pub is_admin: bool,
+
+    /// Creation time of the instance
     pub created_at: chrono::DateTime<chrono::Utc>,
-    // Time of the instance last update
+
+    /// Time of the instance last update
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -134,7 +148,7 @@ impl User {
         sqlx::query_as!(
             User,
             r#"
-            SELECT id, organization_id, email, created_at, updated_at 
+            SELECT id, organization_id, email, is_admin, created_at, updated_at 
             FROM users
             WHERE email = $1
             "#,
@@ -154,9 +168,16 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_find_one_by_email(pool: PgPool) {
         // Arrange a test user
+
+        let organization_id =
+            sqlx::query_scalar!("INSERT INTO organizations (name) VALUES ('ACME') RETURNING id")
+                .fetch_one(&pool)
+                .await
+                .unwrap(); // no factory as using the resources crate would induce a cyclic dependency
+
         let user = User::factory()
-            .for_default_organization()
             .email("wile.coyote@acme.org".to_owned())
+            .organization_id(organization_id)
             .create(&pool)
             .await
             .unwrap();

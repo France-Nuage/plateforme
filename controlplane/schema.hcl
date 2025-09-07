@@ -244,6 +244,11 @@ table "users" {
     null = false
     type = text
   }
+  column "is_admin" {
+    null = false
+    type = bool
+    default = false
+  }
   column "created_at" {
     null    = false
     type    = timestamptz
