@@ -157,6 +157,7 @@ async fn test_the_list_organizations_procedure_returns_all_organizations_for_an_
     let user = User::factory()
         .email("wile.coyote@acme.org".to_owned())
         .organization_id(organization.id)
+        .is_admin(true)
         .create(&pool)
         .await
         .unwrap();
@@ -175,7 +176,7 @@ async fn test_the_list_organizations_procedure_returns_all_organizations_for_an_
 
     // Assert the result
     assert!(response.is_ok());
-    assert_eq!(response.unwrap().into_inner().organizations.len(), 1);
+    assert_eq!(response.unwrap().into_inner().organizations.len(), 2);
 
     // Shutdown the server
     shutdown_tx.send(()).ok();
