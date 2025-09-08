@@ -1,34 +1,27 @@
-<!-- PROJECT LOGO -->
-<p align="center">
-  <a href="https://gitlab.com/groups/getbunker-france-nuage/france-nuage">
-   <img src="./mediakit/logo/animated-logo.gif" alt="France nuage Logo">
-  </a>
+# France Nuage
 
-<h3 align="center">France Nuage</h3>
+![France nuage Logo](./mediakit/logo/animated-logo.gif)
 
-  <p align="center">
-    The French cloud platform for modern applications and services.
-    <br />
-    <a href="https://france-nuage.fr"><strong>Learn more »</strong></a>
-    <br />
-    <br />
-    <a href="https://france-nuage.fr">Website</a>
-    ·
-    <a href="https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/issues">Issues</a>
-    ·
-    <a href="https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/milestones">Roadmap</a>
-  </p>
-</p>
+**The French cloud platform for modern applications and services.**
 
-<p align="center">
-   <a href="https://status.france-nuage.fr/"><img height="20px" src="https://uptime.betterstack.com/status-badges/v1/monitor/es5i.svg" alt="Uptime"></a>
-   <a href="https://github.com/France-Nuage/plateforme"><img src="https://img.shields.io/github/stars/France-Nuage/plateforme" alt="Github Stars"></a>
-   <a href="https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/blob/master/LICENCE"><img src="https://img.shields.io/badge/license-SSPL-purple" alt="License"></a>
-   <a href="https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/graphs/master"><img src="https://img.shields.io/github/commit-activity/m/France-Nuage/plateforme" alt="Commits-per-month"></a>
-   <a href="https://france-nuage.fr/"><img src="https://img.shields.io/badge/Pricing-Free-brightgreen" alt="Pricing"></a>
-   <a href="https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/issues/?sort=milestone_due_desc&state=opened&first_page_size=100"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
-   <a href="https://contributor-covenant.org/version/1/4/code-of-conduct/"><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
-</p>
+[**Learn more**](https://france-nuage.fr) • [Website](https://france-nuage.fr) •
+[Issues](https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/issues)
+• [Roadmap](https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/milestones)
+
+## Status & Metrics
+
+[![pipeline status](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/badges/master/pipeline.svg)](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/commits/master)
+[![coverage report](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/badges/master/coverage.svg)](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/commits/master)
+[![Latest Release](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/badges/release.svg)](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/releases)
+[![Uptime](https://uptime.betterstack.com/status-badges/v1/monitor/es5i.svg)](https://status.france-nuage.fr/)
+[![Github Stars](https://img.shields.io/github/stars/France-Nuage/plateforme)](https://github.com/France-Nuage/plateforme)
+[![License](https://img.shields.io/badge/license-SSPL-purple)](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/blob/master/LICENCE)
+[![Commits per month](https://img.shields.io/github/commit-activity/m/France-Nuage/plateforme)](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/-/graphs/master)
+[![Pricing](https://img.shields.io/badge/Pricing-Free-brightgreen)](https://france-nuage.fr/)
+[![Help Wanted](https://img.shields.io/badge/Help%20Wanted-Contribute-blue)](https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/issues/?sort=milestone_due_desc&state=opened&first_page_size=100)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-1.4-purple)](https://contributor-covenant.org/version/1/4/code-of-conduct/)
+
+---
 
 Welcome to France nuage! Sign up to [france-nuage.fr](https://france-nuage.fr/)
 and start deploying your applications in our French cloud platform!
@@ -36,7 +29,7 @@ and start deploying your applications in our French cloud platform!
 You should check our documentation website to know what France nuage is and what
 is our vision: <https://france-nuage.fr/solutions/perspectives>
 
-# 🐓 About France nuage
+## 🐓 About France nuage
 
 France nuage is a comprehensive cloud platform designed for modern applications
 with French sovereignty in mind.
@@ -57,7 +50,7 @@ the best French cloud platform
 
 [Learn more about France nuage](https://france-nuage.fr/entreprise/a-propos)
 
-# 🚀 France nuage Cloud
+## 🚀 France nuage Cloud
 
 France nuage Cloud allows you to create free cloud projects in minutes.
 
@@ -69,10 +62,10 @@ France nuage Cloud allows you to create free cloud projects in minutes.
 - **Quick Provisioning**: Select your desired region in France and provision new
 resources in minutes
 
-[Create your Project](https://plateforme.france-nuage.fr/auth/login) -
+[Create your Project](https://plateforme.france-nuage.fr/auth/login) •
 [Contact a human](mailto:contact@france-nuage.fr)
 
-# 🤔 Community Help
+## 🤔 Community Help
 
 The [France nuage Documentation](https://france-nuage.fr/support/documentation)
 is a great place to start, or explore these other channels:
@@ -84,24 +77,19 @@ is a great place to start, or explore these other channels:
 - [Website](https://france-nuage.fr/) (Infos)
 - [Platform](https://plateforme.france-nuage.fr/auth/login) (Login, sign up)
 
-# 📌 Requirements
+## 📌 Requirements
 
 France Nuage is built on modern technologies and supports most operating systems.
 
 - **Proxmox**: Open source type 2 hypervisor based on Debian and KVM
-- **Supported Databases**:
-  - PostgreSQL 15+
-- **Supported OS**:
-  - Ubuntu LTS
-  - CentOS / RHEL 8
-  - macOS Catalina or newer
-  - Windows 10/11
-  - Docker (DockerHub + Dockerfile)
-  - Other operating systems may also work, in the futur
+- **Supported Databases**: PostgreSQL 15+
+- **Supported OS**: Ubuntu LTS, CentOS / RHEL 8, macOS Catalina or newer, Windows
+10/11, Docker (DockerHub + Dockerfile)
+- Other operating systems may also work, in the future
 
-# 🚧 Development Setup
+## 🚧 Development Setup
 
-## Prerequisites
+### Prerequisites
 
 Ensure you have the following installed:
 
@@ -109,7 +97,7 @@ Ensure you have the following installed:
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [GitLeaks](https://github.com/gitleaks/gitleaks)
 
-## Running France nuage with Docker
+### Running France nuage with Docker
 
 To start the project using Docker, run:
 
@@ -117,7 +105,7 @@ To start the project using Docker, run:
 docker compose up -d
 ```
 
-## Stopping the services
+### Stopping the services
 
 To stop the services, run:
 
@@ -125,7 +113,7 @@ To stop the services, run:
 docker compose down
 ```
 
-## Seeding the database
+### Seeding the database
 
 Note: you need to supply valid proxmox data through environment variables. You
 can setup a local virtualized proxmox instance or provision one on an external
@@ -145,22 +133,22 @@ psql -U postgres -d postgres \
 "
 ```
 
-# 📁 Architecture
+## 📁 Architecture
 
 For developers working on the platform:
 
 - [`protocol/`](./protocol/README.md) - Protocol Buffer definitions and Google
 Cloud API compliance validation
 
-# Related
+## Related
 
 [France nuage Cloud Status Page](https://status.france-nuage.fr/)
 
-# ❤️ Contributing & Sponsoring
+## ❤️ Contributing & Sponsoring
 
 All security vulnerabilities should be reported in accordance with our Security Policy.
 
-# License
+## License
 
 France nuage is a premium open-source [Server Side Public License (SSPL) v1](./LICENCE)
 project made possible with support from our passionate core team, talented

@@ -73,6 +73,11 @@ gitleaks:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
+"code style / markdown":
+  stage: code-style
+  script:
+    - docker compose run --remove-orphans markdown-lint
+
 "unit tests / migration linting":
   stage: "unit-tests"
   script:
