@@ -1,12 +1,14 @@
 # Claude Code Documentation Guidelines
 
-This document contains instructions for maintaining high-quality documentation across the controlplane cargo workspace.
+This document contains instructions for maintaining high-quality documentation
+across the controlplane cargo workspace.
 
 ## Documentation Style Standards
 
 ### Module-Level Documentation (`//!`)
 
 Structure:
+
 1. **Title**: Clear, descriptive header
 2. **Overview**: Brief description of what the module provides  
 3. **Key Features**: Bulleted list of main capabilities
@@ -30,15 +32,18 @@ Structure:
 ## Project-Specific Guidelines
 
 ### Authentication Documentation
+
 - Mention OIDC JWT token requirements
 - Document Bearer token format
 - Reference RFC 6750, RFC 7517, RFC 7519 as appropriate
 
 ### Environment Variables
+
 - Document in bin crates only (server, synchronizer, etc.)
 - Keep isolated from library crates (auth, etc.)
 
 ### Cross-Crate Consistency
+
 - Use consistent terminology
 - Keep authentication requirements synchronized
 - Maintain coherent error handling explanations
@@ -49,12 +54,14 @@ Structure:
 
 - **Default Language**: Use ``` without specifying `rust` - it's the default
 - **Test Execution**: Avoid `no_run` unless absolutely necessary for consistency
-- **Hidden Lines**: Use `# ` prefix to hide boilerplate from rendered docs while keeping tests compilable
-- **Error Handling**: Include proper error types in function signatures for realistic examples
+- **Hidden Lines**: Use `#` prefix to hide boilerplate from rendered docs while
+keeping tests compilable
+- **Error Handling**: Include proper error types in function signatures for
+realistic examples
 
 ### Example Format
 
-```
+```rust
 /// Example function documentation
 ///
 /// ```
@@ -77,7 +84,8 @@ Structure:
 
 ## Session-Based Adaptation
 
-This CLAUDE.md file should be updated at the end of each significant coding session to:
+This CLAUDE.md file should be updated at the end of each significant coding
+session to:
 
 - Incorporate lessons learned from documentation patterns used
 - Refine style guidelines based on real implementation needs

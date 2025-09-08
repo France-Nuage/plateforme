@@ -1,18 +1,15 @@
 ## [1.32.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.32.0...v1.32.1) (2025-09-04)
 
-
 ### Bug Fixes
 
 * cors requests are properly handled ([7b1f6e6](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7b1f6e64c141dd8e7556bba6d4d6f658163d5e0e))
 
 # [1.32.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.31.0...v1.32.0) (2025-09-02)
 
-
 ### Bug Fixes
 
 * remove _sqlx_migrations table from migrations so sqlx tests can apply them ([84ad3e8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/84ad3e88a5c4994d7ade3eaa074dfe05960ea066))
 * remove sqlx migration autorun from the controlplane ([30c4cb2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/30c4cb266def917e12784392503caba8b952a6a1))
-
 
 ### Features
 
@@ -20,12 +17,10 @@
 
 # [1.31.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.30.0...v1.31.0) (2025-08-31)
 
-
 ### Bug Fixes
 
 * address coderabbit review ([e274c30](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/e274c30bdbe0ec2bf5353bc2ee647be12d7f0342))
 * address review ([5320515](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/5320515d8742b17c31bdd0a9a33f70519769733c))
-
 
 ### Features
 
@@ -34,13 +29,11 @@
 
 # [1.30.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.4...v1.30.0) (2025-08-29)
 
-
 ### Features
 
 * improve instance table interface ([081dacd](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/081dacd7986c650c546054ce5fc730ff40855e8b))
 
 ## [1.29.4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.3...v1.29.4) (2025-08-26)
-
 
 ### Bug Fixes
 
@@ -48,13 +41,11 @@
 
 ## [1.29.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.2...v1.29.3) (2025-08-21)
 
-
 ### Bug Fixes
 
 * specify pgpool connections ([097401d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/097401d28c493cf12ba8e137bd2fedd065ba1828))
 
 ## [1.29.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.1...v1.29.2) (2025-08-20)
-
 
 ### Bug Fixes
 
@@ -62,13 +53,11 @@
 
 ## [1.29.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.29.0...v1.29.1) (2025-08-19)
 
-
 ### Bug Fixes
 
 * containers are no longer tracked in synchronization ([7ea805a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7ea805a9f918746386d0b81c0eae68df9035d6fb))
 
 # [1.29.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.3...v1.29.0) (2025-08-18)
-
 
 ### Bug Fixes
 
@@ -77,7 +66,6 @@
 * missing query params ([62755da](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/62755dacc357077693ee91a7df37b1a568c2a358))
 * redirection needs to be in a useEffect ([da44ab2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/da44ab2f55fbf2ada9c3c00fe24614e70deabd11))
 * update default application mode ([a96c5ae](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a96c5ae20228a2abfb1fef4ea70add010b226c8d))
-
 
 ### Features
 
@@ -89,20 +77,17 @@
 
 ## [1.28.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.2...v1.28.3) (2025-08-12)
 
-
 ### Bug Fixes
 
 * **deps:** update dependency @plasmicpkgs/plasmic-cms to ^0.0.289 ([3a704c3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3a704c370ebc05be3a3f71391c712f6a18e959b6))
 
 ## [1.28.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.1...v1.28.2) (2025-08-07)
 
-
 ### Bug Fixes
 
 * add missing file descriptors ([bf422e0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/bf422e0769dce870b8de02a1d64bdaca4b300862))
 
 ## [1.28.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.28.0...v1.28.1) (2025-08-05)
-
 
 ### Bug Fixes
 
@@ -112,20 +97,17 @@
 
 # [1.28.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.4...v1.28.0) (2025-07-31)
 
-
 ### Features
 
 * synchronize ip address from vm config ([69744a6](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/69744a60c0dbcb3ecfa73f82e50bc905f615d731))
 
 ## [1.27.4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.3...v1.27.4) (2025-07-29)
 
-
 ### Bug Fixes
 
 * **deps:** update dependency @types/lodash to v4.17.20 ([1ca8057](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1ca80573e857ef4ce71a2fffd88168005314ce7b))
 
 ## [1.27.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.2...v1.27.3) (2025-07-29)
-
 
 ### Bug Fixes
 
@@ -134,13 +116,11 @@
 
 ## [1.27.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.1...v1.27.2) (2025-07-21)
 
-
 ### Bug Fixes
 
 * **deps:** update dependency @plasmicpkgs/antd5 to ^0.0.295 ([006e8d2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/006e8d2e4ee44da49d9ae7b927c6ec953b571f80))
 
 ## [1.27.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.27.0...v1.27.1) (2025-07-15)
-
 
 ### Bug Fixes
 
@@ -148,18 +128,15 @@
 
 # [1.27.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.26.0...v1.27.0) (2025-07-13)
 
-
 ### Features
 
 * wire datacenter mocks ([57300f1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/57300f1cbeca3d6ab38be233f978fa530af516db))
 
 # [1.26.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.25.1...v1.26.0) (2025-07-13)
 
-
 ### Bug Fixes
 
 * address review ([69a022d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/69a022de5cce5079901e09a6d0a53616e1e118b9))
-
 
 ### Features
 
@@ -167,13 +144,11 @@
 
 ## [1.25.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.25.0...v1.25.1) (2025-07-08)
 
-
 ### Bug Fixes
 
 * **deps:** update dependency @plasmicapp/loader-react to v1.0.392 ([7e5a372](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7e5a372b98c9c817c8eba9973263dbbf64b3569a))
 
 # [1.25.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.24.0...v1.25.0) (2025-07-01)
-
 
 ### Features
 
@@ -182,20 +157,17 @@
 
 # [1.24.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.23.0...v1.24.0) (2025-07-01)
 
-
 ### Features
 
 * add datacenters to controlplane ([588cc6b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/588cc6b9a33fd9594bf1a49e80d98f5dd2fa851d))
 
 # [1.23.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.22.0...v1.23.0) (2025-07-01)
 
-
 ### Features
 
 * add sourcemaps to console ([0b37999](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/0b3799999319d4eed69bd509c487b8f06febcb77))
 
 # [1.22.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.21.0...v1.22.0) (2025-06-29)
-
 
 ### Features
 
@@ -204,13 +176,11 @@
 
 # [1.21.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.20.0...v1.21.0) (2025-06-28)
 
-
 ### Features
 
 * add zero trust networks to the headless console ([b5fccd7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b5fccd794e6dd742499ec335042daeb61c4a4d43))
 
 # [1.20.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.19.0...v1.20.0) (2025-06-28)
-
 
 ### Features
 
@@ -218,13 +188,11 @@
 
 # [1.19.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.18.0...v1.19.0) (2025-06-27)
 
-
 ### Features
 
 * track disk metrics in controlplane ([b344944](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b344944bef313440d9c23af3aa5f1511756a86ab))
 
 # [1.18.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.17.0...v1.18.0) (2025-06-26)
-
 
 ### Features
 
@@ -234,13 +202,11 @@
 
 # [1.17.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.16.0...v1.17.0) (2025-06-17)
 
-
 ### Features
 
 * add plasmic changes [ci skip] ([3b9158c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3b9158cc579c010516d8294d0b8a530d28d1dcd5))
 
 # [1.16.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.15.0...v1.16.0) (2025-06-15)
-
 
 ### Features
 
@@ -248,13 +214,11 @@
 
 # [1.15.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.14.1...v1.15.0) (2025-06-15)
 
-
 ### Features
 
 * expose setActiveOrganization and setActiveProject as actions ([8eeb81b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/8eeb81b2dccb1272ad85fd36b0c5a760fc1251ac))
 
 ## [1.14.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.14.0...v1.14.1) (2025-06-14)
-
 
 ### Bug Fixes
 
@@ -262,11 +226,9 @@
 
 # [1.14.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.13.0...v1.14.0) (2025-06-14)
 
-
 ### Bug Fixes
 
 * compare organization ids ([ff50325](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ff5032536cea0bc79df6dbd7c14ae95a416a7568))
-
 
 ### Features
 
@@ -274,11 +236,9 @@
 
 # [1.13.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.12.0...v1.13.0) (2025-06-13)
 
-
 ### Bug Fixes
 
 * link hypervisor with organization on the console app ([fafdbf9](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/fafdbf9ea5821f5a07f779d4f8f240effc451408))
-
 
 ### Features
 
@@ -287,13 +247,11 @@
 
 # [1.12.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.11.0...v1.12.0) (2025-06-12)
 
-
 ### Features
 
 * add synchronizer ([8102435](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/810243573d1b6c3fb7d86d9d5bb02f3486a729fa))
 
 # [1.11.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.10.1...v1.11.0) (2025-06-11)
-
 
 ### Features
 
@@ -301,20 +259,17 @@
 
 ## [1.10.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.10.0...v1.10.1) (2025-06-10)
 
-
 ### Bug Fixes
 
 * **deps:** update dependency @plasmicpkgs/plasmic-basic-components to ^0.0.246 ([d5047b8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d5047b8b8001609d0b80b2abe393acda96057b17))
 
 # [1.10.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.9.0...v1.10.0) (2025-06-06)
 
-
 ### Features
 
 * expose resources to plasmic ([25661d0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/25661d034dc38082abb6785d1320f91951a7cea7))
 
 # [1.9.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.8.0...v1.9.0) (2025-06-05)
-
 
 ### Features
 
@@ -324,11 +279,9 @@
 
 # [1.8.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.7.0...v1.8.0) (2025-06-01)
 
-
 ### Bug Fixes
 
 * remove unexisting property on instance ([2040d6b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2040d6bb8723bae08da3d8ac855dad45f0e4f7cd))
-
 
 ### Features
 
@@ -338,7 +291,6 @@
 
 # [1.7.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.6.0...v1.7.0) (2025-05-30)
 
-
 ### Features
 
 * add plasmic codegen ([9b4118f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9b4118f14bf30d7a8fcfcbd0ff7203130fe8681c))
@@ -347,11 +299,9 @@
 
 # [1.6.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.5.0...v1.6.0) (2025-05-29)
 
-
 ### Bug Fixes
 
 * nginx config no longer shadows pages ([f443cd7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f443cd75087feba238028e3efaea31c4643fa1dd))
-
 
 ### Features
 
@@ -361,7 +311,6 @@
 * setup devserver with https ([e39b7eb](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/e39b7eb9101288767db43ee3113198b419a30693))
 
 # [1.5.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.4.0...v1.5.0) (2025-05-28)
-
 
 ### Bug Fixes
 
@@ -399,7 +348,6 @@
 * try with overloaded docker compose files ([cb04924](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/cb04924bfe9306b7704bb96a18ca10e110c1c2ee))
 * try without a working dir ([6ab9874](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/6ab9874b8af26302dc78ed4895cfb4a1c976b648))
 * typo ([b4147b9](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b4147b9001f0cf5a84fb7886e714da13ef62c3f4))
-
 
 ### Features
 
@@ -455,11 +403,9 @@
 
 # [1.4.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.3.0...v1.4.0) (2025-05-10)
 
-
 ### Bug Fixes
 
 * add only on trigger for sync and commit ([50c1259](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/50c12592ac6e350e8baa951e18a1408e928d7b0f))
-
 
 ### Features
 
@@ -467,7 +413,6 @@
 * add plasmic changes [ci skip] ([8ee1fe1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/8ee1fe191c68e6409e67a66c6e03f31c87aae8f5))
 
 # [1.3.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.2.0...v1.3.0) (2025-05-05)
-
 
 ### Bug Fixes
 
@@ -485,18 +430,15 @@
 * try another way of substitution ([f703fd4](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f703fd4900a177e0b7ea566918ab14882f7a7a41))
 * wrong install type ([ced2a5b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ced2a5be306a0dd138c103abbe6c1ab6fe36824a))
 
-
 ### Features
 
 * try the first step ([0d9b065](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/0d9b065dc7a2c4064d6d78db528033874963460d))
 
 # [1.2.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.1.0...v1.2.0) (2025-05-04)
 
-
 ### Bug Fixes
 
 * use the instance associated hypervisor id ([9398f79](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9398f796afc7e179ffb3e9cc6a669d58d1bae0e6))
-
 
 ### Features
 
@@ -504,20 +446,17 @@
 
 # [1.1.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.8...v1.1.0) (2025-05-04)
 
-
 ### Bug Fixes
 
 * codestyle ([3537f49](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3537f49febbee0d278649131e3abb8b154df0e33))
 * codestyle ([5240aab](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/5240aab5cf14a07700c4cdc67ab2119deecf59ba))
 * remove extra useEffect ([79e6d02](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/79e6d029522307caf225778d252e7eedc6fac38f))
 
-
 ### Features
 
 * display rpc errors with react-toastify ([bd82dad](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/bd82dad3b7b01fabc702d3f5990661d172f2964d))
 
 ## [1.0.8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.7...v1.0.8) (2025-05-03)
-
 
 ### Bug Fixes
 
@@ -526,13 +465,11 @@
 
 ## [1.0.7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.0.6...v1.0.7) (2025-05-03)
 
-
 ### Bug Fixes
 
 * remove outdated pnpm-lock.yaml file ([a805682](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a805682f4b0d71859a6c9c08fb03a780eb769fc3))
 
 # 1.0.0 (2025-05-03)
-
 
 ### Bug Fixes
 
@@ -721,7 +658,6 @@
 * typo in localhost ([d5b993f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d5b993f265316a79a5b550ca2a9c6df472c7a144))
 * version update ([90c1bb8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/90c1bb8e293356e88e384809692cbb25e74e4819))
 
-
 ### Features
 
 * add a create instance form ([4c17f28](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4c17f2837c9a8aa2f5047ef7ccde770819cd66c9))
@@ -923,13 +859,11 @@
 * update .envrc ([2fabf3c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2fabf3c2903a520e1f78534bd16356afaa677a72))
 * use proxmox lib ([dca905c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/dca905c5e8d66982c06afc9de8e728c80aa289a3))
 
-
 ### Reverts
 
 * revert last 2 commits ([08cdcce](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/08cdcce310943d71725bd8c2e637a781daba4c3c))
 
 # 1.0.0 (2025-05-03)
-
 
 ### Bug Fixes
 
@@ -1117,7 +1051,6 @@
 * typo in localhost ([d5b993f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d5b993f265316a79a5b550ca2a9c6df472c7a144))
 * version update ([90c1bb8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/90c1bb8e293356e88e384809692cbb25e74e4819))
 
-
 ### Features
 
 * add a create instance form ([4c17f28](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4c17f2837c9a8aa2f5047ef7ccde770819cd66c9))
@@ -1319,13 +1252,11 @@
 * update .envrc ([2fabf3c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2fabf3c2903a520e1f78534bd16356afaa677a72))
 * use proxmox lib ([dca905c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/dca905c5e8d66982c06afc9de8e728c80aa289a3))
 
-
 ### Reverts
 
 * revert last 2 commits ([08cdcce](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/08cdcce310943d71725bd8c2e637a781daba4c3c))
 
 # 1.0.0 (2025-05-03)
-
 
 ### Bug Fixes
 
@@ -1512,7 +1443,6 @@
 * typo in localhost ([d5b993f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d5b993f265316a79a5b550ca2a9c6df472c7a144))
 * version update ([90c1bb8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/90c1bb8e293356e88e384809692cbb25e74e4819))
 
-
 ### Features
 
 * add a create instance form ([4c17f28](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4c17f2837c9a8aa2f5047ef7ccde770819cd66c9))
@@ -1714,13 +1644,11 @@
 * update .envrc ([2fabf3c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2fabf3c2903a520e1f78534bd16356afaa677a72))
 * use proxmox lib ([dca905c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/dca905c5e8d66982c06afc9de8e728c80aa289a3))
 
-
 ### Reverts
 
 * revert last 2 commits ([08cdcce](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/08cdcce310943d71725bd8c2e637a781daba4c3c))
 
 # 1.0.0 (2025-05-03)
-
 
 ### Bug Fixes
 
@@ -1907,7 +1835,6 @@
 * typo in localhost ([d5b993f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d5b993f265316a79a5b550ca2a9c6df472c7a144))
 * version update ([90c1bb8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/90c1bb8e293356e88e384809692cbb25e74e4819))
 
-
 ### Features
 
 * add a create instance form ([4c17f28](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4c17f2837c9a8aa2f5047ef7ccde770819cd66c9))
@@ -2109,13 +2036,11 @@
 * update .envrc ([2fabf3c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2fabf3c2903a520e1f78534bd16356afaa677a72))
 * use proxmox lib ([dca905c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/dca905c5e8d66982c06afc9de8e728c80aa289a3))
 
-
 ### Reverts
 
 * revert last 2 commits ([08cdcce](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/08cdcce310943d71725bd8c2e637a781daba4c3c))
 
 # 1.0.0 (2025-05-03)
-
 
 ### Bug Fixes
 
@@ -2302,7 +2227,6 @@
 * typo in localhost ([d5b993f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d5b993f265316a79a5b550ca2a9c6df472c7a144))
 * version update ([90c1bb8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/90c1bb8e293356e88e384809692cbb25e74e4819))
 
-
 ### Features
 
 * add a create instance form ([4c17f28](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4c17f2837c9a8aa2f5047ef7ccde770819cd66c9))
@@ -2503,7 +2427,6 @@
 * ui billing dashboard ([2f956a5](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2f956a58efdffe29cf6cc216267704c70dc6d0be))
 * update .envrc ([2fabf3c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2fabf3c2903a520e1f78534bd16356afaa677a72))
 * use proxmox lib ([dca905c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/dca905c5e8d66982c06afc9de8e728c80aa289a3))
-
 
 ### Reverts
 

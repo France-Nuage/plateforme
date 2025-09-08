@@ -1,0 +1,10 @@
+globs:
+  - "**/*.md"
+
+ignores:
+  - .gitlab/issue_templates/service_desk_actions.md
+  - console/node_modules
+  - CHANGELOG.md
+  - node_modules
+  - oidc-server/node_modules
+  - system-tests/node_modules

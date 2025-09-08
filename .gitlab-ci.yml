@@ -73,6 +73,11 @@ gitleaks:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
+"code style / markdown":
+  stage: code-style
+  script:
+    - docker compose run --remove-orphans markdown-lint
+
 "unit tests / migration linting":
   stage: "unit-tests"
   script:
@@ -88,9 +93,9 @@ gitleaks:
     SQLX_OFFLINE: true
   script:
     - docker compose run --remove-orphans controlplane cargo test --workspace
-    - docker compose run --remove-orphans controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
+    - docker compose run --remove-orphans --no-deps controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
     - >
-      docker compose run --remove-orphans --build --no-deps controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
+      docker compose run --remove-orphans --no-deps controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"
   coverage: '/Coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:

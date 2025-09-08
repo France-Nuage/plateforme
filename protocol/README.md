@@ -1,11 +1,15 @@
 # Protocol Buffer Definitions
 
-This directory contains Protocol Buffer (protobuf) definitions that trace and validate compliance with Google Cloud APIs. It serves as the foundation for generating SDKs and ensuring API compatibility.
+This directory contains Protocol Buffer (protobuf) definitions that trace and
+validate compliance with Google Cloud APIs. It serves as the foundation for
+generating SDKs and ensuring API compatibility.
 
 ## Overview
 
 The `protocol` directory uses [buf](https://buf.build/) to:
-- **Validate compliance**: Ensures our implementation is a valid subset of Google Cloud APIs
+
+- **Validate compliance**: Ensures our implementation is a valid subset of Google
+Cloud APIs
 - **Breaking change detection**: Prevents backward-incompatible changes
 - **SDK generation**: Provides the foundation for generating client SDKs
 
@@ -20,6 +24,7 @@ docker compose up protocol
 ```
 
 This command:
+
 1. Builds the protocol container
 2. Clones the latest Google Cloud API definitions from googleapis
 3. Runs `buf breaking` to compare our definitions against Google's official APIs
@@ -28,6 +33,7 @@ This command:
 ### Configuration
 
 The protocol validation is configured in `buf.yaml`:
+
 - **Linting**: Uses `STANDARD` rules for consistent protobuf style
 - **Breaking changes**: Uses `FILE` level detection to catch incompatible changes
 
@@ -41,13 +47,15 @@ The protocol validation is configured in `buf.yaml`:
 ## Integration
 
 The protocol service is integrated into the docker-compose setup with:
+
 - Build caching for faster subsequent runs
 - Profile `donotstart` to prevent automatic startup
 - Multi-stage build support for different environments
 
 ## Future Plans
 
-This directory will be extended to generate client SDKs for multiple languages while maintaining Google Cloud compatibility.
+This directory will be extended to generate client SDKs for multiple languages
+while maintaining Google Cloud compatibility.
 
 ## Dependencies
 

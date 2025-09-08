@@ -91,12 +91,11 @@ server serving the different RPC services defined in the project packages.
 
 ## Generate sqlx query metadata
 
-The project rely on sqlx query metadata to support offline compile-time 
+The project rely on sqlx query metadata to support offline compile-time
 verification. This is used in CI in particular to avoid having to bootstrap the
 database for compiling the project. Use the following command to generate query
 metadata for the workspace, including queries in tests:
 
-```
+```bash
 cargo sqlx prepare --workspace -- --tests
 ```
-
