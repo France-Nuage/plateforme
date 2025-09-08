@@ -73,6 +73,18 @@ gitleaks:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
+"code style / markdown":
+  stage: code-style
+  image: davidanson/markdownlint-cli2:v0.13.0
+  before_script: []
+  script:
+    - markdownlint-cli2 "**/*.md"
+  rules:
+    - changes:
+        - "**/*.md"
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: always
+
 "unit tests / migration linting":
   stage: "unit-tests"
   script:
