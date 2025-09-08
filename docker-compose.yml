@@ -110,7 +110,6 @@ services:
       - "traefik.http.services.controlplane.loadbalancer.server.port=80"
     volumes:
       - ./controlplane:/app
-      - /app/target
       - type: volume
         source: nfs-snippets
         target: /mnt/pve/nfs-snippets
