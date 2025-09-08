@@ -2,7 +2,7 @@
 
 ## Etapes de déploiement
 
-- [ ] Oganisation Cloudflare du client éffectuée
+- [ ] Organisation Cloudflare du client effectuée
 - [ ] Template de déploiement prêt
 - [ ] SDN créé dans le DC concerné
 - [ ] VM déployée
@@ -10,7 +10,7 @@
 - [ ] Application fonctionnelle
 - [ ] Accès SSH à la VM depuis la zone zero trust
 - [ ] Application accessible via zone zero trust
-- [ ] Transmission des information d'accès au client
+- [ ] Transmission des informations d'accès au client
 
 ## Informations générales
 

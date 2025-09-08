@@ -92,37 +92,32 @@ basée sur OpenID Connect**, avec les caractéristiques suivantes :
 
 - **Gestion d'état avec Redux Toolkit** pour centraliser l'état d'authentification
 dans le store global de l'application
-- **Flux d'authentification OIDC implicite** : redirection vers le provider (Google,
-GitHub, etc.) avec `response_type=id_token token`
-- **Stockage des tokens en sessionStorage** pour la persistance entre rechargements
-de page (plus sécurisé que localStorage contre XSS)
-- **Validation initiale côté frontend** avec envoi de l'ID token au backend pour
-confirmation
+- **Flux OIDC Authorization Code + PKCE** : redirection avec `response_type=code`
+et échange de code côté frontend (PKCE) ou via un BFF.
+- **Stockage des tokens en mémoire** (ou cookies HttpOnly SameSite via BFF) pour
+réduire l'impact XSS.
+- **Validation côté backend** à partir de l'Access Token obtenu via l'échange de code.
 - **Gestion automatique des redirections** après authentification via une route
 de callback dynamique `/auth/callback/[provider]`
-
 ### Backend Rust (Services gRPC)
 
-- **Validation de tokens JWT côté service** : chaque service Rust valide
-indépendamment les ID tokens reçus
-- **Utilisation de la crate `openidconnect-rs`** pour la validation des tokens selon
-les standards OIDC
+- **Validation des Access Tokens** par chaque service (JWT signés ou introspection si opaque).
+- **Utilisation de la crate `openidconnect`** pour découverte/configuration OIDC et JWKS,
+  ou `jsonwebtoken` pour la vérification locale des JWT.
 - **Cache des clés publiques JWKS** avec TTL (24h) pour éviter les appels répétés
-aux providers
+  aux providers
 - **Support multi-providers** : architecture agnostique permettant Google, GitHub,
-Facebook, etc.
+  Facebook, etc.
 - **Extraction automatique des informations utilisateur** depuis les claims JWT
-(sub, email, name, etc.)
-
+  (sub, email, name, etc.)
 ### Intégration gRPC avec Authentification
 
-- **Transmission via metadata gRPC** : le frontend envoie l'ID token dans les
-métadonnées de chaque appel gRPC
+- **Transmission via metadata gRPC** : envoi de `authorization: Bearer <access_token>`
+  dans les métadonnées de chaque appel gRPC
 - **Intercepteur d'authentification** : middleware Rust validant automatiquement
-les tokens sur tous les appels protégés
+  les tokens sur tous les appels protégés
 - **Injection des informations utilisateur** dans le contexte de la requête pour
-utilisation par les handlers
-
+  utilisation par les handlers
 ### Configuration des Providers OIDC
 
 - **Google OAuth** : configuration avec `authorized_javascript_origins` pour le
