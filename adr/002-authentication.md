@@ -96,20 +96,24 @@ dans le store global de l'application
 et échange de code côté frontend (PKCE) ou via un BFF.
 - **Stockage des tokens en mémoire** (ou cookies HttpOnly SameSite via BFF) pour
 réduire l'impact XSS.
-- **Validation côté backend** à partir de l'Access Token obtenu via l'échange de code.
+- **Validation côté backend** à partir de l'Access Token obtenu via l'échange de
+code.
 - **Gestion automatique des redirections** après authentification via une route
 de callback dynamique `/auth/callback/[provider]`
+
 ### Backend Rust (Services gRPC)
 
-- **Validation des Access Tokens** par chaque service (JWT signés ou introspection si opaque).
-- **Utilisation de la crate `openidconnect`** pour découverte/configuration OIDC et JWKS,
-  ou `jsonwebtoken` pour la vérification locale des JWT.
+- **Validation des Access Tokens** par chaque service (JWT signés ou introspection
+si opaque).
+- **Utilisation de la crate `openidconnect`** pour découverte/configuration OIDC
+et JWKS, ou `jsonwebtoken` pour la vérification locale des JWT.
 - **Cache des clés publiques JWKS** avec TTL (24h) pour éviter les appels répétés
   aux providers
 - **Support multi-providers** : architecture agnostique permettant Google, GitHub,
   Facebook, etc.
 - **Extraction automatique des informations utilisateur** depuis les claims JWT
   (sub, email, name, etc.)
+
 ### Intégration gRPC avec Authentification
 
 - **Transmission via metadata gRPC** : envoi de `authorization: Bearer <access_token>`
@@ -118,6 +122,7 @@ de callback dynamique `/auth/callback/[provider]`
   les tokens sur tous les appels protégés
 - **Injection des informations utilisateur** dans le contexte de la requête pour
   utilisation par les handlers
+
 ### Configuration des Providers OIDC
 
 - **Google OAuth** : configuration avec `authorized_javascript_origins` pour le
