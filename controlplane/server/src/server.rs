@@ -6,7 +6,7 @@
 //! over the underlying transport layer while maintaining full compatibility
 //! with tonic's service ecosystem.
 
-use auth::{AuthenticationLayer, JwkValidator};
+use auth::{AuthenticationLayer, OpenID};
 use bytes::Bytes;
 use http::{Request, Response};
 use tokio_stream::wrappers::TcpListenerStream;
@@ -138,32 +138,29 @@ impl<L> Server<L> {
     ///
     /// # Parameters
     ///
-    /// * `validator` - JWK validator configured with OIDC provider information
+    /// * `openid` - OpenID provider configured with OIDC information
     ///
     /// # Example
     ///
     /// ```
     /// # use server::server::Server;
-    /// # use auth::JwkValidator;
+    /// # use auth::OpenID;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let mock = mock_server::MockServer::new().await;
-    /// let validator = JwkValidator::from_mock_server(&mock.url()).await?;
+    /// let openid = OpenID::discover(reqwest::Client::new(), &format!("{}/.well-known/openid-configuration", &mock.url())).await?;
     /// let server = Server::new()
-    ///     .with_authentication(validator);
+    ///     .with_authentication(openid);
     /// # Ok(())
     /// # }
     /// ```
     ///
     /// This is equivalent to calling [`tonic::transport::Server::layer`] with
-    /// an [`AuthenticationLayer`] configured with the provided validator.
+    /// an [`AuthenticationLayer`] configured with the provided OpenID provider.
     ///
     /// [`tonic::transport::Server::layer`]: https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html#method.layer
-    pub fn with_authentication(
-        self,
-        validator: JwkValidator,
-    ) -> Server<Stack<AuthenticationLayer, L>> {
+    pub fn with_authentication(self, openid: OpenID) -> Server<Stack<AuthenticationLayer, L>> {
         Server {
-            inner: self.inner.layer(AuthenticationLayer::new(validator)),
+            inner: self.inner.layer(AuthenticationLayer::new(openid)),
         }
     }
 

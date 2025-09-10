@@ -25,11 +25,12 @@
 //! }
 //! # }
 //! ```
-use crate::JwkValidator;
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use mock_server::MockServer;
 use rsa::PublicKeyParts;
 use serde_json::json;
+
+use crate::OpenID;
 
 /// Standard key identifier used for mock JWT signatures.
 ///
@@ -80,7 +81,7 @@ pub trait WithJwks {
 
 impl WithJwks for MockServer {
     fn with_jwks(mut self) -> Self {
-        let (_, public_key) = JwkValidator::rsa();
+        let (_, public_key) = OpenID::rsa();
         let key = json!({
             "kty": "RSA",
             "use": "sig",

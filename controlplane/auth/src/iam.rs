@@ -32,7 +32,7 @@
 use sqlx::Postgres;
 use tokio::sync::OnceCell;
 
-use crate::{Error, JwkValidator, model::User, rfc7519::Claim};
+use crate::{Error, OpenID, model::User, rfc7519::Claim};
 
 /// Identity and Access Management context for HTTP request authentication.
 ///
@@ -60,7 +60,7 @@ use crate::{Error, JwkValidator, model::User, rfc7519::Claim};
 /// IAM instances are thread-safe and designed for concurrent access within a single
 /// request's processing pipeline. Each request receives its own IAM instance from
 /// authentication middleware, preventing token sharing between different requests.
-/// The internal validator handles concurrent token validation efficiently across
+/// The internal OpenID provider handles concurrent token validation efficiently across
 /// all requests with shared caching for JWK keys (not tokens or claims).
 #[derive(Clone)]
 pub struct IAM {
@@ -72,27 +72,26 @@ pub struct IAM {
     /// calls to claim-dependent methods are made within the same request's processing.
     claim: OnceCell<Claim>,
 
+    openid: OpenID,
+
     /// Optional JWT token extracted from the Authorization header
     token: Option<String>,
-
-    /// JWK validator for performing JWT token validation
-    validator: JwkValidator,
 }
 
 impl IAM {
-    /// Creates a new IAM context with the provided token and validator.
+    /// Creates a new IAM context with the provided token and OpenID provider.
     ///
     /// # Arguments
     ///
     /// * `token` - Optional JWT token string extracted from request headers.
     ///   `None` indicates no authentication token was present in the request.
-    /// * `validator` - JWK validator configured with OIDC provider information
+    /// * `openid` - OpenID provider configured with OIDC information
     ///   for token validation
-    pub fn new(token: Option<String>, validator: JwkValidator) -> Self {
+    pub fn new(token: Option<String>, openid: OpenID) -> Self {
         IAM {
             claim: OnceCell::new(),
+            openid,
             token,
-            validator,
         }
     }
 
@@ -122,13 +121,13 @@ impl IAM {
     /// * `Error::MissingEmailClaim` - JWT token lacks required email claim
     /// * `Error::UserNotRegistered` - Email found in JWT but user not in database
     /// * `Error::Database` - Database query failure during user lookup
-    /// * Other JWT validation errors from the underlying validator
+    /// * Other JWT validation errors from the underlying OpenID provider
     ///
     /// # Examples
     ///
     /// ```
     /// # use sqlx::PgPool;
-    /// # use auth::{IAM, JwkValidator};
+    /// # use auth::{IAM, OpenID};
     /// # use auth::model::User;
     /// # async fn example(pool: &PgPool, iam: &IAM) -> Result<(), auth::Error> {
     /// // Get user authorization context for authenticated request
@@ -172,12 +171,12 @@ impl IAM {
             .token
             .clone()
             .ok_or(Error::MissingAuthorizationHeader)?;
-        self.validator.validate_token(&token).await.map(|_| true)
+        self.openid.validate_token(&token).await.map(|_| true)
     }
 
     /// Fetches and validates JWT claims from the OIDC provider.
     ///
-    /// This method performs the actual token validation by calling the JWK validator,
+    /// This method performs the actual token validation by calling the OpenID provider,
     /// which may involve external network requests to fetch JWK keys from the OIDC
     /// provider. This operation is potentially expensive and should be called sparingly.
     ///
@@ -196,7 +195,7 @@ impl IAM {
             .as_ref()
             .ok_or(Error::MissingAuthorizationHeader)?;
 
-        self.validator
+        self.openid
             .validate_token(token)
             .await
             .map(|data| data.claims)

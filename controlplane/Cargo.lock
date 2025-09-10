@@ -2181,6 +2181,7 @@ dependencies = [
  "mock_server",
  "prost",
  "prost-types",
+ "reqwest",
  "sqlx",
  "thiserror 2.0.12",
  "tokio",

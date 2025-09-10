@@ -185,7 +185,7 @@ mod tests {
         ListProjectsRequest,
     };
     use auth::{
-        JwkValidator,
+        OpenID,
         mock::{WithJwks, WithWellKnown},
         model::User,
     };
@@ -208,8 +208,13 @@ mod tests {
             .await
             .expect("could not create user");
         let mock = MockServer::new().await.with_well_known().with_jwks();
-        let token = JwkValidator::token(&user.email);
-        let jwk = JwkValidator::from_mock_server(&mock.url()).await.unwrap();
+        let token = OpenID::token(&user.email);
+        let jwk = OpenID::discover(
+            reqwest::Client::new(),
+            &format!("{}/.well-known/openid-configuration", &mock.url()),
+        )
+        .await
+        .unwrap();
         let iam = IAM::new(Some(token), jwk);
         let service = ResourcesRpcService::new(pool);
 

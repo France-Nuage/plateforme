@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use auth::{
-    JwkValidator,
+    OpenID,
     mock::{WithJwks, WithWellKnown},
     model::User,
 };
@@ -26,7 +26,7 @@ async fn test_the_list_organizations_procedure_works(
         .create(&pool)
         .await
         .unwrap();
-    let token = JwkValidator::token(&user.email);
+    let token = OpenID::token(&user.email);
     let config = Config::test(&pool, &mock).await?;
     let server_url = format!("http://{}", config.addr);
     let shutdown_tx = server::serve(config).await?;
@@ -117,7 +117,7 @@ async fn test_the_list_organizations_procedure_only_returns_the_user_organizatio
         .create(&pool)
         .await
         .unwrap();
-    let token = JwkValidator::token(&user.email);
+    let token = OpenID::token(&user.email);
     let config = Config::test(&pool, &mock).await.unwrap();
     let server_url = format!("http://{}", config.addr);
     let shutdown_tx = server::serve(config).await.unwrap();
@@ -161,7 +161,7 @@ async fn test_the_list_organizations_procedure_returns_all_organizations_for_an_
         .create(&pool)
         .await
         .unwrap();
-    let token = JwkValidator::token(&user.email);
+    let token = OpenID::token(&user.email);
     let config = Config::test(&pool, &mock).await.unwrap();
     let server_url = format!("http://{}", config.addr);
     let shutdown_tx = server::serve(config).await.unwrap();

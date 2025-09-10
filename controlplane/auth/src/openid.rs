@@ -1,178 +1,147 @@
-//! JWT token validation with JWK key management and caching.
-//!
-//! This module provides the core JWT validation functionality, including automatic
-//! discovery of OIDC provider configuration, fetching and caching of JWK keys,
-//! and high-performance token validation.
-//!
-//! ## Key Features
-//!
-//! - **Automatic OIDC Discovery**: Fetches provider metadata from well-known endpoints
-//! - **JWK Key Caching**: Intelligent caching of cryptographic keys with TTL expiration  
-//! - **Concurrent Key Fetching**: Parallel fetching of multiple keys with backpressure control
-//! - **Standards Compliant**: Full RFC 7519 (JWT) and RFC 7517 (JWK) compliance
-//!
-//! ## Caching Strategy
-//!
-//! The validator uses a high-performance cache for JWK keys:
-//! - **Capacity**: 200 keys maximum
-//! - **TTL**: 1 hour time-to-live per key
-//! - **Lazy Loading**: Keys are fetched on-demand when first needed
-//! - **Automatic Refresh**: Keys are re-fetched when cache expires
-//!
-//! ## Performance Characteristics
-//!
-//! - **First Token**: Requires OIDC discovery + JWK fetch (~2 network requests)
-//! - **Cached Keys**: Sub-millisecond validation using cached cryptographic keys
-//! - **Concurrent Validation**: Thread-safe and optimized for high-throughput scenarios
-
-use crate::discovery::OpenIDProviderMetadata;
-use crate::error::Error;
-use crate::rfc7519::Claim;
+use crate::{Error, rfc7519::Claim};
 use futures::{StreamExt, TryStreamExt, stream};
-use jsonwebtoken::{DecodingKey, Validation, jwk::JwkSet};
-use jsonwebtoken::{TokenData, decode};
+use jsonwebtoken::{DecodingKey, TokenData, Validation, decode, jwk::JwkSet};
 use moka::future::Cache;
-use std::fmt::Debug;
-use std::time::Duration;
+use serde::Deserialize;
+use std::{fmt::Debug, time::Duration};
 
-/// High-performance JWT validator with automatic JWK key management.
-///
-/// `JwkValidator` provides a complete JWT validation solution that handles:
-/// - OIDC provider discovery and metadata parsing
-/// - JWK Set fetching and parsing  
-/// - Cryptographic key caching for performance
-/// - JWT signature validation and claims extraction
-///
-/// ## Initialization
-///
-/// The validator is typically initialized once per application using OIDC discovery:
-///
-/// ```rust,no_run
-/// # use auth::JwkValidator;
-/// # async fn example() -> Result<(), auth::Error> {
-/// let validator = JwkValidator::from_oidc_discovery(
-///     "https://accounts.google.com/.well-known/openid_configuration"
-/// ).await?;
-/// # Ok(())
-/// # }
-/// ```
-///
-/// ## Thread Safety
-///
-/// `JwkValidator` is thread-safe and designed to be shared across multiple async tasks.
-/// The internal cache is concurrent and lock-free, making it suitable for high-throughput
-/// applications.
-///
-/// ## Error Handling
-///
-/// The validator provides detailed error information for debugging and monitoring:
-/// - Network errors when contacting OIDC providers
-/// - Parsing errors for malformed metadata or JWK sets
-/// - JWT validation errors (signature, expiration, etc.)
-///
-/// ## Cache Behavior
-///
-/// Keys are cached using the JWT header's `kid` (Key ID) field as the cache key.
-/// If a token references an unknown `kid`, the validator will:
-/// 1. Fetch the latest JWK Set from the provider
-/// 2. Cache all keys from the set
-/// 3. Retry validation with the newly cached key
+const JWK_CACHE_MAX_CAPACITY: u64 = 200;
+const JWK_CACHE_TTL: u64 = 3600;
+
 #[derive(Clone)]
-pub struct JwkValidator {
-    /// The OIDC provider's issuer identifier
-    pub issuer: String,
-    /// HTTP client for fetching OIDC metadata and JWK sets
+pub struct OpenID {
     client: reqwest::Client,
-    /// URL endpoint where the provider's JWK Set can be fetched
-    jwks_uri: String,
+    config: OpenIDProviderConfiguration,
+
     /// High-performance cache for JWK decoding keys, keyed by `kid` (Key ID)
     keys: Cache<String, DecodingKey>,
 }
 
-impl JwkValidator {
-    /// Creates a new JWT validator from a mock server URL for testing.
-    ///
-    /// This convenience method constructs the OIDC discovery URL by appending
-    /// the standard well-known endpoint to the provided mock server URL.
-    ///
-    /// ## Parameters
-    ///
-    /// * `mock_server` - Base URL of the mock server (e.g., "http://localhost:8080")
-    ///
-    /// ## Usage in Tests
-    ///
-    /// ```
-    /// # #[cfg(feature = "mock")]
-    /// # mod wrapper_module {
-    /// # use auth::JwkValidator;
-    /// # use mock_server::MockServer;
-    /// # async fn example() -> Result<(), auth::Error> {
-    /// let mock = MockServer::new().await;
-    /// let validator = JwkValidator::from_mock_server(&mock.url()).await?;
-    /// # Ok(())
-    /// # }
-    /// # }
-    /// ```
-    pub async fn from_mock_server(mock_server: &str) -> Result<Self, crate::Error> {
-        let oidc_url = format!("{}/.well-known/openid-configuration", mock_server);
-        JwkValidator::from_oidc_discovery(&oidc_url).await
-    }
-
-    /// Creates a new JWT validator using OIDC provider discovery.
-    ///
-    /// This method performs automatic discovery of the OIDC provider's configuration
-    /// by fetching the provider metadata from the standard well-known endpoint.
-    /// The discovery process retrieves essential information needed for JWT validation,
-    /// including the issuer identifier and JWK Set URI.
-    ///
-    /// ## Arguments
-    ///
-    /// * `discovery_url` - The OIDC provider's discovery endpoint URL, typically in the format:
-    ///   `https://provider.domain/.well-known/openid_configuration`
-    ///
-    /// ## Returns
-    ///
-    /// * `Ok(JwkValidator)` - A configured validator ready for token validation
-    /// * `Err(Error)` - If discovery fails due to network issues or malformed metadata
-    ///
-    /// ## Errors
-    ///
-    /// This method can fail with:
-    /// * [`Error::UnreachableOidcProvider`] - Cannot connect to the discovery endpoint
-    /// * [`Error::UnparsableOidcMetadata`] - Provider metadata is malformed or incomplete
-    ///
-    /// ## Network Behavior
-    ///
-    /// The method makes a single HTTP GET request to fetch the provider metadata.
-    /// Ensure the discovery URL is accessible and returns valid JSON conforming to
-    /// the OpenID Connect Discovery specification.
-    ///
-    /// ## Security Considerations
-    ///
-    /// - Always use HTTPS URLs for discovery endpoints in production
-    /// - Verify that the returned `issuer` field matches your expected provider
-    /// - Consider caching the validator instance rather than recreating it frequently
-    pub async fn from_oidc_discovery(discovery_url: &str) -> Result<Self, crate::Error> {
-        let client = reqwest::Client::new();
-
-        let config: OpenIDProviderMetadata = client
-            .get(discovery_url)
+impl OpenID {
+    pub async fn discover(client: reqwest::Client, url: &str) -> Result<Self, Error> {
+        let config: OpenIDProviderConfiguration = client
+            .get(url)
             .send()
             .await
-            .map_err(|_| crate::Error::UnreachableOidcProvider(discovery_url.to_string()))?
+            .map_err(|_| Error::UnreachableOidcProvider(url.to_owned()))?
             .json()
             .await
-            .map_err(|_| crate::Error::UnparsableOidcMetadata(discovery_url.to_string()))?;
+            .map_err(|_| Error::UnparsableOidcMetadata(url.to_owned()))?;
 
         Ok(Self {
             client,
-            issuer: config.issuer,
-            jwks_uri: config.jwks_uri,
+            config,
             keys: Cache::builder()
-                .max_capacity(200)
-                .time_to_live(Duration::from_secs(3600))
+                .max_capacity(JWK_CACHE_MAX_CAPACITY)
+                .time_to_live(Duration::from_secs(JWK_CACHE_TTL))
                 .build(),
+            // issuer: config.issuer,
+            // jwks_uri: config.jwks_uri,
+            // keys: Cache::builder()
+            //     .max_capacity(200)
+            //     .time_to_live(Duration::from_secs(3600))
+            //     .build(),
         })
+    }
+
+    /// Retrieves a JWK decoding key from cache or fetches it from the provider.
+    ///
+    /// This method implements the key retrieval strategy with automatic fallback:
+    /// 1. First, check the local cache for the requested key ID
+    /// 2. If not found, fetch the latest JWK Set from the provider
+    /// 3. Cache all keys from the fetched set
+    /// 4. Return the requested key if now available
+    ///
+    /// ## Arguments
+    ///
+    /// * `kid` - The Key ID from the JWT header
+    ///
+    /// ## Returns
+    ///
+    /// * `Ok(DecodingKey)` - The cryptographic key for signature verification
+    /// * `Err(Error)` - If the key cannot be retrieved or provider is unreachable
+    ///
+    /// ## Caching Behavior
+    ///
+    /// Keys are cached with a 1-hour TTL. If a key expires or is not found in cache,
+    /// this method will automatically refresh the entire JWK Set from the provider.
+    /// This ensures that key rotations by the provider are handled transparently.
+    ///
+    /// ## Error Conditions
+    ///
+    /// - [`Error::MissingKid`] - The requested key ID is not available from the provider
+    /// - [`Error::UnreachableOidcProvider`] - Network failure contacting JWK endpoint  
+    /// - [`Error::UnparsableJwks`] - JWK Set response is malformed
+    async fn get_or_fetch_key(&self, kid: &str) -> Result<DecodingKey, Error> {
+        // attempt to get the key from cache
+        let mut key = self.keys.get(kid).await;
+
+        // if there is a cache miss, fetch keys from the provider and update the cache
+        if key.is_none() {
+            let keys = self.fetch_keys().await?;
+            for (kid, decoding_key) in keys {
+                self.keys.insert(kid, decoding_key).await;
+            }
+            key = self.keys.get(kid).await;
+        }
+
+        key.ok_or(Error::MissingKid)
+    }
+
+    /// Fetches the complete JWK Set from the provider and caches all keys.
+    ///
+    /// This method retrieves the provider's current JWK Set and caches all contained
+    /// keys for future use. It uses concurrent processing to efficiently handle
+    /// multiple keys with backpressure control.
+    ///
+    /// ## Network Behavior
+    ///
+    /// Makes a single HTTP GET request to the provider's `jwks_uri` endpoint.
+    /// The response is expected to be a valid JWK Set containing one or more
+    /// cryptographic keys.
+    ///
+    /// ## Processing Strategy
+    ///
+    /// - **Parallel Processing**: Keys are processed concurrently with a maximum
+    ///   concurrency of 4 to avoid overwhelming the system
+    /// - **Atomic Operation**: Either all keys are successfully cached, or the
+    ///   entire operation fails
+    /// - **Key Validation**: Each key must have a valid `kid` and be convertible
+    ///   to a `DecodingKey`
+    ///
+    /// ## Error Handling
+    ///
+    /// This method fails fast - if any individual key cannot be processed, the
+    /// entire operation is aborted. This ensures cache consistency and prevents
+    /// partial updates that could lead to unpredictable validation behavior.
+    ///
+    /// ## Cache Updates
+    ///
+    /// All successfully processed keys are inserted into the cache with the
+    /// configured TTL (1 hour). Existing cached keys are not removed, allowing
+    /// for overlapping key validity periods during key rotation.
+    async fn fetch_keys(&self) -> Result<Vec<(String, DecodingKey)>, Error> {
+        let jwks = self
+            .client
+            .get(&self.config.jwks_uri)
+            .send()
+            .await
+            .map_err(|_| Error::UnreachableOidcProvider(self.config.jwks_uri.clone()))?
+            .json::<JwkSet>()
+            .await
+            .map_err(|_| Error::UnparsableJwks(self.config.jwks_uri.clone()))?
+            .keys;
+
+        stream::iter(jwks)
+            .map(|jwk| async move {
+                let kid = jwk.common.key_id.clone().ok_or(Error::MissingKid)?;
+                let decoding_key = DecodingKey::from_jwk(&jwk)?;
+                // self.keys.insert(kid, decoding_key).await;
+                Ok::<(String, DecodingKey), Error>((kid, decoding_key))
+            })
+            .buffer_unordered(4)
+            .try_collect()
+            .await
     }
 
     /// Validates a JWT token and extracts its claims.
@@ -225,100 +194,15 @@ impl JwkValidator {
 
         decode(token, &decoding_key, &validation).map_err(Into::into)
     }
+}
 
-    /// Retrieves a JWK decoding key from cache or fetches it from the provider.
-    ///
-    /// This method implements the key retrieval strategy with automatic fallback:
-    /// 1. First, check the local cache for the requested key ID
-    /// 2. If not found, fetch the latest JWK Set from the provider
-    /// 3. Cache all keys from the fetched set
-    /// 4. Return the requested key if now available
-    ///
-    /// ## Arguments
-    ///
-    /// * `kid` - The Key ID from the JWT header
-    ///
-    /// ## Returns
-    ///
-    /// * `Ok(DecodingKey)` - The cryptographic key for signature verification
-    /// * `Err(Error)` - If the key cannot be retrieved or provider is unreachable
-    ///
-    /// ## Caching Behavior
-    ///
-    /// Keys are cached with a 1-hour TTL. If a key expires or is not found in cache,
-    /// this method will automatically refresh the entire JWK Set from the provider.
-    /// This ensures that key rotations by the provider are handled transparently.
-    ///
-    /// ## Error Conditions
-    ///
-    /// - [`Error::MissingKid`] - The requested key ID is not available from the provider
-    /// - [`Error::UnreachableOidcProvider`] - Network failure contacting JWK endpoint  
-    /// - [`Error::UnparsableJwks`] - JWK Set response is malformed
-    async fn get_or_fetch_key(&self, kid: &str) -> Result<DecodingKey, Error> {
-        let mut key = self.keys.get(kid).await;
-
-        if key.is_none() {
-            self.fetch_keys().await?;
-            key = self.keys.get(kid).await;
-        }
-
-        key.ok_or(Error::MissingKid)
-    }
-
-    /// Fetches the complete JWK Set from the provider and caches all keys.
-    ///
-    /// This method retrieves the provider's current JWK Set and caches all contained
-    /// keys for future use. It uses concurrent processing to efficiently handle
-    /// multiple keys with backpressure control.
-    ///
-    /// ## Network Behavior
-    ///
-    /// Makes a single HTTP GET request to the provider's `jwks_uri` endpoint.
-    /// The response is expected to be a valid JWK Set containing one or more
-    /// cryptographic keys.
-    ///
-    /// ## Processing Strategy
-    ///
-    /// - **Parallel Processing**: Keys are processed concurrently with a maximum
-    ///   concurrency of 4 to avoid overwhelming the system
-    /// - **Atomic Operation**: Either all keys are successfully cached, or the
-    ///   entire operation fails
-    /// - **Key Validation**: Each key must have a valid `kid` and be convertible
-    ///   to a `DecodingKey`
-    ///
-    /// ## Error Handling
-    ///
-    /// This method fails fast - if any individual key cannot be processed, the
-    /// entire operation is aborted. This ensures cache consistency and prevents
-    /// partial updates that could lead to unpredictable validation behavior.
-    ///
-    /// ## Cache Updates
-    ///
-    /// All successfully processed keys are inserted into the cache with the
-    /// configured TTL (1 hour). Existing cached keys are not removed, allowing
-    /// for overlapping key validity periods during key rotation.
-    async fn fetch_keys(&self) -> Result<(), Error> {
-        let jwks = self
-            .client
-            .get(&self.jwks_uri)
-            .send()
-            .await
-            .map_err(|_| Error::UnreachableOidcProvider(self.jwks_uri.clone()))?
-            .json::<JwkSet>()
-            .await
-            .map_err(|_| Error::UnparsableJwks(self.jwks_uri.clone()))?
-            .keys;
-
-        stream::iter(jwks)
-            .map(|jwk| async move {
-                let kid = jwk.common.key_id.clone().ok_or(Error::MissingKid)?;
-                let decoding_key = DecodingKey::from_jwk(&jwk)?;
-                self.keys.insert(kid, decoding_key).await;
-                Ok(())
-            })
-            .buffer_unordered(4)
-            .try_collect()
-            .await
+impl Debug for OpenID {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OpenID")
+            .field("client", &self.client)
+            .field("config", &self.config)
+            .field("keys", &"[obfuscated]")
+            .finish()
     }
 }
 
@@ -338,16 +222,15 @@ impl JwkValidator {
 /// ## Token Generation  
 ///
 /// Mock JWT tokens are created with standard claims structure and proper RSA signatures.
-/// Generated tokens are valid JWTs that can be validated by the same `JwkValidator`
+/// Generated tokens are valid JWTs that can be validated by the same `OpenID`
 /// instance when configured with the corresponding mock server endpoints.
 pub mod mock {
     use std::sync::OnceLock;
     use std::time::{SystemTime, UNIX_EPOCH};
 
+    use super::*;
     use crate::mock::MOCK_JWK_KID;
     use crate::rfc7519::Claim;
-
-    use super::JwkValidator;
     use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
     use rand::{SeedableRng, rngs::StdRng};
     use rsa::pkcs8::{EncodePrivateKey, LineEnding};
@@ -360,7 +243,7 @@ pub mod mock {
     /// token generation and JWK Set creation.
     static RSA_KEYS: OnceLock<(RsaPrivateKey, RsaPublicKey)> = OnceLock::new();
 
-    impl JwkValidator {
+    impl OpenID {
         /// Retrieves or generates the RSA key pair for JWT testing.
         ///
         /// This method provides access to a static RSA key pair that is generated once
@@ -391,7 +274,7 @@ pub mod mock {
         /// Generates a mock JWT token for testing purposes.
         ///
         /// Creates a properly signed JWT token with standard claims structure that can
-        /// be validated by `JwkValidator` instances configured with mock server endpoints.
+        /// be validated by `OpenID` instances configured with mock server endpoints.
         /// The token is signed using the RSA private key from `rsa()` method.
         ///
         /// # Arguments
@@ -411,9 +294,9 @@ pub mod mock {
         /// ```
         /// # #[cfg(feature = "mock")]
         /// # mod wrapper_module {
-        /// # use auth::JwkValidator;
+        /// # use auth::OpenID;
         /// # fn example() {
-        /// let token = JwkValidator::token("user@example.com");
+        /// let token = OpenID::token("user@example.com");
         /// // Token can now be used with mock server validation
         /// # }
         /// # }
@@ -425,7 +308,7 @@ pub mod mock {
         /// production code. The private key is deterministically generated and not
         /// cryptographically secure for production use.
         pub fn token(email: &str) -> String {
-            let (private_key, _) = JwkValidator::rsa();
+            let (private_key, _) = Self::rsa();
             let now = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("could not get system time")
@@ -454,15 +337,60 @@ pub mod mock {
     }
 }
 
-impl Debug for JwkValidator {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("JwkValidator")
-            .field("issuer", &self.issuer)
-            .field("client", &self.client)
-            .field("jwks_uri", &self.jwks_uri)
-            .field("keys", &"obfuscated")
-            .finish()
-    }
+/// OpenID Connect Provider Metadata structure.
+///
+/// Represents the metadata document returned by an OpenID Connect provider's
+/// discovery endpoint. This structure contains essential configuration information
+/// needed to interact with the provider, particularly for JWT token validation.
+///
+/// ## Specification Compliance
+///
+/// This struct implements the Provider Metadata format defined in the
+/// [OpenID Connect Discovery 1.0 specification](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+/// While the full specification includes many optional fields, this implementation focuses on
+/// the core fields required for JWT validation workflows.
+///
+/// ## Required Fields
+///
+/// According to the specification, the following fields are **REQUIRED**:
+/// - [`issuer`] - The provider's issuer identifier
+/// - [`jwks_uri`] - Location of the provider's JWK Set
+///
+/// Additional optional fields can be added to this struct as needed without
+/// breaking compatibility, since serde will ignore unknown fields during
+/// deserialization.
+///
+/// ## Security Considerations
+///
+/// - Always verify that the [`issuer`] field matches the expected provider
+/// - Ensure [`jwks_uri`] uses HTTPS to prevent man-in-the-middle attacks
+/// - Cache metadata appropriately but respect provider's cache directives
+///
+/// [`issuer`]: OpenIDProviderMetadata::issuer
+/// [`jwks_uri`]: OpenIDProviderMetadata::jwks_uri
+#[derive(Clone, Debug, Deserialize)]
+pub struct OpenIDProviderConfiguration {
+    /// REQUIRED. URL using the https scheme with no query or fragment
+    /// components that the OP asserts as its Issuer Identifier. If Issuer
+    /// discovery is supported (see Section 2), this value MUST be identical
+    /// to the issuer value returned by WebFinger. This also MUST be identical
+    /// to the iss Claim value in ID Tokens issued from this Issuer.
+    pub issuer: String,
+
+    /// REQUIRED. URL of the OP's JWK Set [JWK] document, which MUST use the
+    /// https scheme. This contains the signing key(s) the RP uses to validate
+    /// signatures from the OP. The JWK Set MAY also contain the Server's
+    /// encryption key(s), which are used by RPs to encrypt requests to the
+    /// Server. When both signing and encryption keys are made available, a use
+    /// (public key use) parameter value is REQUIRED for all keys in the
+    /// referenced JWK Set to indicate each key's intended usage. Although some
+    /// algorithms allow the same key to be used for both signatures and
+    /// encryption, doing so is NOT RECOMMENDED, as it is less secure. The JWK
+    /// x5c parameter MAY be used to provide X.509 representations of keys
+    /// provided. When used, the bare key values MUST still be present and MUST
+    /// match those in the certificate. The JWK Set MUST NOT contain private or
+    /// symmetric key values.
+    pub jwks_uri: String,
 }
 
 #[cfg(test)]
@@ -472,12 +400,12 @@ mod tests {
     use mock_server::MockServer;
 
     #[tokio::test]
-    async fn test_from_oidc_discovery_fails_when_server_is_unreachable() {
+    async fn test_discovery_fails_when_server_is_unreachable() {
         // Arrange an unreachable url
         let oidc_url = "https://anvil.acme/.well-known/openid-configuration".to_owned();
 
-        // Act the call to the JwkValidator from_oidc_discovery method
-        let result = JwkValidator::from_oidc_discovery(&oidc_url).await;
+        // Act the call to the OpenID discover method
+        let result = OpenID::discover(reqwest::Client::new(), &oidc_url).await;
 
         // Assert the result
         assert!(result.is_err());
@@ -488,13 +416,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_from_oidc_discovery_fails_when_the_metadata_is_unparsable() {
+    async fn test_discovery_fails_when_the_metadata_is_unparsable() {
         // Arrange a mock server that ooesnt serve valid well-known configuration
         let server = MockServer::new().await;
         let url = format!("{}/.well-known/openid-configuration", &server.url());
 
-        // Act the call to the JwkValidator from_oidc_discovery method
-        let result = JwkValidator::from_oidc_discovery(&url).await;
+        // Act the call to the OpenID discover method
+        let result = OpenID::discover(reqwest::Client::new(), &url).await;
 
         // Assert the result
         assert!(result.is_err());
@@ -505,13 +433,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_from_oidc_discovery_works_with_a_valid_server() {
+    async fn test_discovery_works_with_a_valid_server() {
         // Arrange a mock oidc server that expose valid metadata
         let server = MockServer::new().await.with_well_known();
         let url = format!("{}/.well-known/openid-configuration", &server.url());
 
-        // Act the call to the JwkValidator from_oidc_discovery method
-        let result = JwkValidator::from_oidc_discovery(&url).await;
+        // Act the call to the OpenID discover method
+        let result = OpenID::discover(reqwest::Client::new(), &url).await;
 
         // Assert the result
         assert!(result.is_ok());
@@ -522,11 +450,16 @@ mod tests {
     async fn test_validate_token() {
         // Arrange a mock oidc server
         let server = MockServer::new().await.with_well_known().with_jwks();
-        let validator = JwkValidator::from_mock_server(&server.url()).await.unwrap();
-        let token = JwkValidator::token("wile.coyote@acme.org");
+        let openid = OpenID::discover(
+            reqwest::Client::new(),
+            &format!("{}/.well-known/openid-configuration", &server.url()),
+        )
+        .await
+        .unwrap();
+        let token = OpenID::token("wile.coyote@acme.org");
 
         // Act the call to the validate_token method
-        let result = validator.validate_token(&token).await;
+        let result = openid.validate_token(&token).await;
 
         // Assert the result
         assert!(result.is_ok());

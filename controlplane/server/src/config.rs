@@ -7,7 +7,7 @@
 //! remaining flexible for production deployments.
 
 use crate::error::Error;
-use auth::JwkValidator;
+use auth::OpenID;
 use mock_server::MockServer;
 use sqlx::{Pool, Postgres};
 use std::{env, net::SocketAddr};
@@ -83,12 +83,7 @@ pub struct Config {
     /// all services for performing persistent storage operations.
     pub pool: Pool<Postgres>,
 
-    /// JWT validator for OIDC authentication middleware.
-    ///
-    /// This field provides the JWK validator that will be used by the authentication
-    /// middleware to validate JWT tokens from incoming requests. The validator is
-    /// configured with OIDC provider information and handles key caching automatically.
-    pub validator: JwkValidator,
+    pub openid: OpenID,
 }
 
 impl Config {
@@ -101,12 +96,12 @@ impl Config {
     /// - **Allow Origin**: [`AllowOrigin::any()`] - Accepts requests from any origin
     /// - **Allow Methods**: [`AllowMethods::any()`] - Permits all HTTP methods
     /// - **PostgreSQL Pool**: Uses the provided connection pool for database operations
-    /// - **JWT Validator**: Uses the provided validator for OIDC authentication
+    /// - **OpenID Provider**: Uses the provided OpenID provider for OIDC authentication
     ///
     /// # Parameters
     ///
     /// * `pool` - PostgreSQL connection pool that will be shared across all services
-    /// * `validator` - JWK validator configured with OIDC provider for JWT authentication
+    /// * `openid` - OpenID provider configured with OIDC information for JWT authentication
     ///
     /// # Example
     ///
@@ -158,12 +153,17 @@ impl Config {
     /// ## Features
     ///
     /// - **Dynamic Port**: Uses `reserve_socket_addr(None)` to allocate an available port
-    /// - **Mock Authentication**: Configures JwkValidator for the mock server
+    /// - **Mock Authentication**: Configures OpenID for the mock server
     /// - **Test Isolation**: Each test gets its own port to avoid interference
     pub async fn test(pool: &Pool<Postgres>, mock_server: &MockServer) -> Result<Self, Error> {
         let addr = Config::reserve_socket_addr(None).await?;
 
-        let validator = JwkValidator::from_mock_server(&mock_server.url()).await?;
+        let client = reqwest::Client::new();
+        let openid = OpenID::discover(
+            client,
+            &format!("{}/.well-known/openid-configuration", &mock_server.url()),
+        )
+        .await?;
 
         Ok(Config {
             addr,
@@ -172,7 +172,7 @@ impl Config {
             allow_origin: AllowOrigin::any(),
             expose_headers: ExposeHeaders::any(),
             pool: pool.clone(),
-            validator,
+            openid,
         })
     }
 
@@ -207,7 +207,9 @@ impl Config {
         let oidc_url = env::var("OIDC_URL").unwrap_or(String::from(
             "https://gitlab.com/.well-known/openid-configuration",
         ));
-        let validator = JwkValidator::from_oidc_discovery(&oidc_url)
+
+        let client = reqwest::Client::new();
+        let openid = OpenID::discover(client, &oidc_url)
             .await
             .expect("could not fetch oidc configuration");
 
@@ -218,7 +220,7 @@ impl Config {
             allow_origin: AllowOrigin::any(),
             expose_headers: ExposeHeaders::any(),
             pool,
-            validator,
+            openid,
         })
     }
 
