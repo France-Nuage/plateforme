@@ -110,6 +110,7 @@ services:
       - "traefik.http.services.controlplane.loadbalancer.server.port=80"
     volumes:
       - ./controlplane:/app
+      - target:/app/target
       - type: volume
         source: nfs-snippets
         target: /mnt/pve/nfs-snippets
@@ -274,3 +275,4 @@ volumes:
       o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
       device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
   postgres_data:
+  target:

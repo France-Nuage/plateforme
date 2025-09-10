@@ -1,9 +1,9 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
 
 import { clearAuthenticationState, setOIDCUser } from '@/features';
 import { useAppDispatch } from '@/hooks';
 import { userManager } from '@/services';
+import { toaster } from '@/toaster';
 
 export type UserProviderProps = {
   children: ReactNode;
@@ -36,7 +36,7 @@ export const UserProvider: FunctionComponent<UserProviderProps> = ({
         }
         setUserRetrieved(true);
       })
-      .catch(toast.error);
+      .catch((error) => toaster.create({ title: error }));
   }, [dispatch]);
 
   // Render the remaining tree only after user retrieval

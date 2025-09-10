@@ -118,4 +118,4 @@ export const applicationSlice = createSlice({
 
 export const { setApplicationLoaded, setMode } = applicationSlice.actions;
 
-export default applicationSlice.reducer;
+export default applicationSlice;

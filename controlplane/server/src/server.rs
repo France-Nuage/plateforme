@@ -15,7 +15,7 @@ use tonic_web::GrpcWebLayer;
 use tower::layer::util::{Identity, Stack};
 use tower::{BoxError, Layer, Service};
 use tower_http::classify::{GrpcErrorsAsFailures, SharedClassifier};
-use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
+use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer, ExposeHeaders};
 
 use crate::error::Error;
 
@@ -34,15 +34,15 @@ pub type TraceLayer = tower_http::trace::TraceLayer<SharedClassifier<GrpcErrorsA
 ///
 /// # Example
 ///
-/// ```rust,no_run
-/// use server::server::Server;
-///
+/// ```
+/// # use server::server::Server;
 /// let server = Server::new()
 ///     .with_tracing()
 ///     .with_cors(
 ///         tower_http::cors::AllowHeaders::any(),
 ///         tower_http::cors::AllowMethods::any(),
-///         tower_http::cors::AllowOrigin::any()
+///         tower_http::cors::AllowOrigin::any(),
+///         tower_http::cors::ExposeHeaders::any()
 ///         );
 /// ```
 ///
@@ -61,6 +61,21 @@ impl Default for Server<Identity> {
 }
 
 impl Server<Identity> {
+    /// Creates a new [`Server`] instance with default configuration.
+    ///
+    /// This constructor initializes a new server with sensible defaults:
+    /// - **HTTP/1.1 Support**: Enables HTTP/1.1 compatibility alongside HTTP/2
+    /// - **Identity Layer**: Starts with no middleware layers applied
+    ///
+    /// The server can then be configured with additional middleware layers
+    /// using the builder pattern methods.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use server::server::Server;
+    /// let server = Server::new();
+    /// ```
     pub fn new() -> Self {
         Server {
             inner: tonic::transport::Server::default().accept_http1(true),
@@ -114,6 +129,35 @@ impl<L> Server<L> {
             .map_err(Into::into)
     }
 
+    /// Adds JWT authentication middleware to the server.
+    ///
+    /// This method applies an [`AuthenticationLayer`] that validates JWT tokens
+    /// on all incoming requests and injects IAM context for downstream services.
+    /// The authentication middleware uses OIDC provider configuration to validate
+    /// JWT signatures and extract claims.
+    ///
+    /// # Parameters
+    ///
+    /// * `validator` - JWK validator configured with OIDC provider information
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use server::server::Server;
+    /// # use auth::JwkValidator;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let mock = mock_server::MockServer::new().await;
+    /// let validator = JwkValidator::from_mock_server(&mock.url()).await?;
+    /// let server = Server::new()
+    ///     .with_authentication(validator);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// This is equivalent to calling [`tonic::transport::Server::layer`] with
+    /// an [`AuthenticationLayer`] configured with the provided validator.
+    ///
+    /// [`tonic::transport::Server::layer`]: https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html#method.layer
     pub fn with_authentication(
         self,
         validator: JwkValidator,
@@ -153,6 +197,25 @@ impl<L> Server<L> {
         }
     }
 
+    /// Adds gRPC-Web support to the server.
+    ///
+    /// This method applies a [`GrpcWebLayer`] that enables gRPC-Web protocol support,
+    /// allowing browser-based clients to connect to the gRPC server. This is essential
+    /// for web applications that need to make gRPC calls directly from JavaScript.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use server::server::Server;
+    /// let server = Server::new()
+    ///     .with_web();
+    /// ```
+    ///
+    /// This is equivalent to calling [`tonic::transport::Server::layer`] with
+    /// a [`GrpcWebLayer`] configured with default settings.
+    ///
+    /// [`tonic::transport::Server::layer`]: https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html#method.layer
+    /// [`GrpcWebLayer`]: https://docs.rs/tonic-web/latest/tonic_web/struct.GrpcWebLayer.html
     pub fn with_web(self) -> Server<Stack<GrpcWebLayer, L>> {
         Server {
             inner: self.inner.layer(GrpcWebLayer::new()),
@@ -173,14 +236,14 @@ impl<L> Server<L> {
     ///
     /// # Example
     ///
-    /// ```rust,no_run
-    /// use server::server::Server;
-    /// use tower_http::cors::{AllowOrigin, AllowMethods};
-    ///
+    /// ```
+    /// # use server::server::Server;
+    /// # use tower_http::cors::{AllowOrigin, AllowMethods};
     /// let server = Server::new().with_cors(
     ///     tower_http::cors::AllowHeaders::any(),
     ///     tower_http::cors::AllowMethods::any(),
-    ///     tower_http::cors::AllowOrigin::any()
+    ///     tower_http::cors::AllowOrigin::any(),
+    ///     tower_http::cors::ExposeHeaders::any()
     /// );
     /// ```
     ///
@@ -200,13 +263,15 @@ impl<L> Server<L> {
         allow_headers: AllowHeaders,
         allow_methods: AllowMethods,
         allow_origin: AllowOrigin,
+        expose_headers: ExposeHeaders,
     ) -> Server<Stack<CorsLayer, L>> {
         Server {
             inner: self.inner.layer(
                 CorsLayer::new()
                     .allow_headers(allow_headers)
                     .allow_methods(allow_methods)
-                    .allow_origin(allow_origin),
+                    .allow_origin(allow_origin)
+                    .expose_headers(expose_headers),
             ),
         }
     }

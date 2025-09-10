@@ -1,6 +1,4 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
-import { RpcError } from '@protobuf-ts/runtime-rpc';
-import { toast } from 'react-toastify';
 
 import {
   Instance as RpcInstance,
@@ -43,11 +41,7 @@ export class InstanceRpcService implements InstanceService {
   public list(): Promise<Instance[]> {
     return this.client
       .listInstances({})
-      .response.then(({ instances }) => instances.map(fromRpcInstance))
-      .catch((error: RpcError) => {
-        toast.error(error.toString());
-        return [];
-      });
+      .response.then(({ instances }) => instances.map(fromRpcInstance));
   }
 }
 

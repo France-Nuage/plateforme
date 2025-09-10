@@ -12,7 +12,7 @@ use mock_server::MockServer;
 use sqlx::{Pool, Postgres};
 use std::{env, net::SocketAddr};
 use tokio::net::TcpListener;
-use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin};
+use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, ExposeHeaders};
 
 /// Configuration for the gRPC server with CORS, authentication, networking, and PostgreSQL database settings.
 ///
@@ -45,6 +45,12 @@ pub struct Config {
     /// will use. The default value binds to all available interfaces (`[::]`) on port 8080.
     pub addr: SocketAddr,
 
+    /// CORS configuration specifying which headers are allowed in cross-origin requests.
+    ///
+    /// This field controls the `Access-Control-Allow-Headers` header in HTTP responses.
+    /// The default configuration allows all headers using [`AllowHeaders::any()`].
+    ///
+    /// [`AllowHeaders::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowHeaders.html#method.any
     pub allow_headers: AllowHeaders,
 
     /// CORS configuration specifying which HTTP methods are allowed for cross-origin requests.
@@ -62,6 +68,14 @@ pub struct Config {
     ///
     /// [`AllowOrigin::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowOrigin.html#method.any
     pub allow_origin: AllowOrigin,
+
+    /// CORS configuration specifying which response headers are exposed to client scripts.
+    ///
+    /// This field controls the `Access-Control-Expose-Headers` header in HTTP responses.
+    /// The default configuration exposes all headers using [`ExposeHeaders::any()`].
+    ///
+    /// [`ExposeHeaders::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.ExposeHeaders.html#method.any
+    pub expose_headers: ExposeHeaders,
 
     /// PostgreSQL database connection pool for persistent storage operations.
     ///
@@ -156,6 +170,7 @@ impl Config {
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
             allow_origin: AllowOrigin::any(),
+            expose_headers: ExposeHeaders::any(),
             pool: pool.clone(),
             validator,
         })
@@ -201,6 +216,7 @@ impl Config {
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
             allow_origin: AllowOrigin::any(),
+            expose_headers: ExposeHeaders::any(),
             pool,
             validator,
         })
