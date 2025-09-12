@@ -43,6 +43,9 @@ const oidc = new Provider(config.issuer, {
   scopes: ['openid', 'profile', 'email', 'offline_access'],
 });
 
+app.set('trust proxy', true);
+oidc.proxy = true;
+
 app.get('/health', async (req, res) => {
   res.sendStatus(200);
 });
@@ -91,6 +94,13 @@ app.post<string, {}, any, User>('/api/users', async (req, res) => {
     expires_at: expiresAt
   });
 });
+
+createUser(({
+  email: 'wile.coyote@acme.org',
+  name: 'Wile E. Coyote',
+  password: 'anvil',
+  username: 'wile.coyote',
+}));
 
 app.use('/', oidc.callback());
 

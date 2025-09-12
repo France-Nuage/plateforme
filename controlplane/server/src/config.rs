@@ -201,12 +201,10 @@ impl Config {
     /// - OIDC provider configuration is invalid
     pub async fn from_env() -> Result<Self, Error> {
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+        let oidc_url = env::var("OIDC_URL").expect("OIDC_URL must be set");
         let pool = sqlx::PgPool::connect(&database_url)
             .await
             .expect("could not connect to database");
-        let oidc_url = env::var("OIDC_URL").unwrap_or(String::from(
-            "https://gitlab.com/.well-known/openid-configuration",
-        ));
 
         let client = reqwest::Client::new();
         let openid = OpenID::discover(client, &oidc_url)

@@ -41,6 +41,7 @@ sqlx = { version = "0.8", features = [
   "uuid",
 ] }
 thiserror = "2"
+tracing = "0.1"
 tokio = "1"
 tonic = "0.14"
 tower = "0.5"

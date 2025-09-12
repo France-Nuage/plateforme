@@ -21,12 +21,9 @@ async fn main() -> Result<(), server::error::Error> {
     let config = Config::from_env().await?;
 
     // serve the application
-    tracing::info!("starting the application...");
     let sender = serve(config).await?;
 
-    tracing::info!("waiting for shutdown signal...");
     shutdown_signal().await;
-    tracing::info!("shutdown signal received, gracefully shutting down...");
 
     sender
         .send(())

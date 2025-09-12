@@ -86,6 +86,7 @@ use tokio_stream::wrappers::TcpListenerStream;
 /// - TCP listener cannot bind to the configured address
 /// - Application initialization fails
 pub async fn serve(config: Config) -> Result<oneshot::Sender<()>, crate::error::Error> {
+    tracing::info!("starting the application...");
     // Create a one-shot channel for sending a shutdown signal
     let (sender, receiver) = oneshot::channel();
     let listener = tokio::net::TcpListener::bind(config.addr).await?;
@@ -97,10 +98,9 @@ pub async fn serve(config: Config) -> Result<oneshot::Sender<()>, crate::error::
         .with_services()
         .run(
             async {
-                println!("waiting for signal");
-
+                tracing::info!("waiting for shutdown signal...");
                 receiver.await.ok();
-                println!("signal received, shutting down...")
+                tracing::info!("signal received, shutting down...")
             },
             stream,
         );

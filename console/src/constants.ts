@@ -13,4 +13,4 @@ export const ERROR_DEBOUNCE_WAIT = 500;
  * The key follows the `frn.oidc.*` naming convention for France Nuage OIDC
  * related storage keys.
  */
-export const ACCESS_TOKEN_SESSION_STORAGE_KEY = 'frn.oidc.accesstoken';
+export const ACCESS_TOKEN_SESSION_STORAGE_KEY = 'frn.oidc.token';

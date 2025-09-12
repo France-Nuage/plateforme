@@ -31,6 +31,7 @@
 
 use sqlx::Postgres;
 use tokio::sync::OnceCell;
+use tracing::info;
 
 use crate::{Error, OpenID, model::User, rfc7519::Claim};
 
@@ -190,10 +191,13 @@ impl IAM {
     /// Returns errors for missing tokens, invalid signatures, expired tokens,
     /// or network failures when fetching JWK keys.
     async fn fetch_claim(&self) -> Result<Claim, Error> {
+        info!("in fetch_claim, token: {:?}", &self.token);
         let token = self
             .token
             .as_ref()
-            .ok_or(Error::MissingAuthorizationHeader)?;
+            .ok_or(Error::MissingAuthorizationHeader)?
+            .strip_prefix("Bearer ")
+            .ok_or(Error::MalformedBearerToken)?;
 
         self.openid
             .validate_token(token)

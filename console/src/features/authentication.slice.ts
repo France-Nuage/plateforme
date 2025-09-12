@@ -1,7 +1,7 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { User as OIDCUser } from 'oidc-client-ts';
 
-import { ACCESS_TOKEN_SESSION_STORAGE_KEY } from '@/constants';
+import { ACCESS_TOKEN_SESSION_STORAGE_KEY as TOKEN_SESSION_STORAGE_KEY } from '@/constants';
 import { User } from '@/types';
 
 /**
@@ -38,8 +38,8 @@ export const authenticationSlice = createSlice({
       state.token = action.payload.id_token;
       if (action.payload.id_token) {
         sessionStorage.setItem(
-          ACCESS_TOKEN_SESSION_STORAGE_KEY,
-          action.payload.access_token,
+          TOKEN_SESSION_STORAGE_KEY,
+          action.payload.id_token,
         );
       }
       state.user = {
