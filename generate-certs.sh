@@ -176,12 +176,12 @@ DNS.2 = oidc
 DNS.3 = console
 DNS.4 = controlplane
 DNS.5 = traefik
-DNS.6 = *.localhost
+DNS.6 = *.test
 DNS.7 = host.docker.internal
-DNS.8 = oidc.localhost
-DNS.9 = console.localhost
-DNS.10 = controlplane.localhost
-DNS.11 = traefik.localhost
+DNS.8 = oidc.test
+DNS.9 = console.test
+DNS.10 = controlplane.test
+DNS.11 = traefik.test
 IP.1 = 127.0.0.1
 IP.2 = ::1
 EOF
@@ -327,11 +327,10 @@ main() {
   echo "🚀 Next steps:"
   echo "  1. Trust the CA certificate using the instructions above"
   echo "  2. Start your Docker Compose stack: docker-compose up -d"
-  echo "  3. Test HTTPS access: curl https://oidc/.well-known/openid-configuration"
+  echo "  3. Test HTTPS access: curl https://oidc.test/.well-known/openid-configuration"
   echo ""
   echo "💡 Tip: Certificates are valid for 1 year. Run this script again to regenerate them."
 }
 
 # Run main function
 main "$@"
-

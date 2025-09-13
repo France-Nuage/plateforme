@@ -28,6 +28,7 @@ export default defineConfig({
     },
   },
   server: {
+    allowedHosts: ['console.test'],
     host: '0.0.0.0',
     port: process.env.PORT ? Number(process.env.PORT) : 5173,
   },
