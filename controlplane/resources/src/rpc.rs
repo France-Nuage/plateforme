@@ -215,7 +215,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let iam = IAM::new(Some(token), jwk);
+        let iam = IAM::new(Some(format!("Bearer {}", token)), jwk);
         let service = ResourcesRpcService::new(pool);
 
         // Act the call to the list_organizations procedure
@@ -225,6 +225,7 @@ mod tests {
         let result = service.list_organizations(request).await;
 
         // Assert the procedure result
+        println!("result: {:#?}", &result);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().into_inner().organizations.len(), 1);
     }
