@@ -4,13 +4,12 @@
 
 ### Overview
 
-The controlplane implements a **transitional authentication and authorization architecture** that intentionally separates concerns between JWT authentication and resource authorization. This design provides time to implement SpiceDB properly while maintaining a clean, future-proof API.
+The controlplane implements a **transitional authentication and authorization
+architecture** that intentionally separates concerns between JWT authentication
+and resource authorization. This design provides time to implement SpiceDB
+properly while maintaining a clean, future-proof API.
 
 ### Architecture
-
-```
-JWT Token → Authentication (OIDC) → IAM Context → user() → Manual Authorization
-```
 
 1. **JWT Authentication**: OIDC-compliant token validation using JWK keys
 2. **IAM Context**: Per-request identity management with lazy claim validation  
@@ -20,12 +19,15 @@ JWT Token → Authentication (OIDC) → IAM Context → user() → Manual Author
 ### Current Implementation
 
 #### Authentication Flow
+
 - **Token Extraction**: Bearer tokens extracted from `Authorization` headers
 - **OIDC Validation**: JWT tokens validated against provider JWK keys with caching
-- **IAM Injection**: Authentication context injected into all requests via Tower middleware
+- **IAM Injection**: Authentication context injected into all requests via Tower
+middleware
 - **Claim Access**: Validated JWT claims accessible through IAM context
 
 #### Authorization Pattern
+
 ```rust
 // In API handlers - manual organization scoping
 let user = iam.user(&pool).await?;
@@ -45,11 +47,13 @@ This approach is **intentionally interim** to avoid premature optimization:
 ### Migration Timeline
 
 **Current State** (Transitional):
+
 - JWT authentication via `auth` crate
 - Database-backed user-organization mapping
 - Manual authorization in API handlers using `iam.user()`
 
 **Future State** (SpiceDB Integration):
+
 - Same JWT authentication (no changes)
 - SpiceDB relationship-based authorization  
 - Declarative permission checks replacing manual scoping
@@ -59,13 +63,17 @@ This approach is **intentionally interim** to avoid premature optimization:
 
 This transitional approach provides several benefits:
 
-1. **Time Investment**: Allows proper SpiceDB research and implementation rather than hasty adoption
-2. **API Stability**: Auth crate provides stable interface that won't require refactoring  
+1. **Time Investment**: Allows proper SpiceDB research and implementation rather
+than hasty adoption
+2. **API Stability**: Auth crate provides stable interface that won't require
+refactoring  
 3. **Incremental Migration**: Authorization logic can be migrated gradually to SpiceDB
 4. **Risk Mitigation**: Proven database approach while learning SpiceDB best practices
 5. **Organization Boundaries**: Ensures proper resource isolation during transition
 
-The database authorization model will be **completely removed** once SpiceDB integration is mature, making this a true transitional architecture rather than technical debt.
+The database authorization model will be **completely removed** once SpiceDB
+integration is mature, making this a true transitional architecture rather than
+technical debt.
 
 ## Packages description
 
