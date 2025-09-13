@@ -133,6 +133,26 @@ psql -U postgres -d postgres \
 "
 ```
 
+### SSL Certificates
+
+For HTTPS communication between services, this project uses a self-signed certificate authority (CA) and server certificates. The certificate generation is handled by the included script.
+
+**Automatic Certificate Generation:**
+```bash
+./generate-certs.sh
+```
+
+**Manual Certificate Trust (if needed):**
+- **macOS:** `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain certs/ca.pem`
+- **Linux:** Copy `certs/ca.pem` to `/usr/local/share/ca-certificates/` and run `sudo update-ca-certificates`
+- **Windows:** Use `certutil -addstore -f "ROOT" certs/ca.pem` (as Administrator)
+
+**Certificate Details:**
+- **Validity:** 1 year for server certificates, 10 years for CA
+- **Domains:** Supports `*.localhost`, `host.docker.internal`, and service names
+- **Location:** Certificates are stored in `certs/` directory
+- **Traefik:** Configured via `traefik/dynamic.yml` for automatic HTTPS
+
 ## 📁 Architecture
 
 For developers working on the platform:
