@@ -34,7 +34,7 @@ export const UserProvider: FunctionComponent<UserProviderProps> = ({
       .getUser()
       .then((user) => {
         if (user) {
-          dispatch(setOIDCUser({ ...user }));
+          dispatch(setOIDCUser(user));
         } else {
           dispatch(clearAuthenticationState());
         }
