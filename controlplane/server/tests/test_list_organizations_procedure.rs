@@ -34,12 +34,14 @@ async fn test_the_list_organizations_procedure_works(
 
     // Act the request to the test_the_status_procedure_works
     let mut request = Request::new(ListOrganizationsRequest::default());
-    request
-        .metadata_mut()
-        .insert("authorization", MetadataValue::from_str(&token).unwrap());
+    request.metadata_mut().insert(
+        "authorization",
+        MetadataValue::from_str(&format!("Bearer {}", &token)).unwrap(),
+    );
     let response = client.list_organizations(request).await;
 
     // Assert the result
+    println!("response: {:#?}", &response);
     assert!(response.is_ok());
     assert_eq!(response.unwrap().into_inner().organizations.len(), 1);
 
@@ -82,9 +84,10 @@ async fn test_the_list_organizations_procedure_rejects_calls_with_an_invalid_tok
 
     // Act the request to the test_the_status_procedure_works
     let mut request = Request::new(ListOrganizationsRequest::default());
-    request
-        .metadata_mut()
-        .insert("authorization", MetadataValue::from_str("foobar").unwrap());
+    request.metadata_mut().insert(
+        "authorization",
+        MetadataValue::from_str("Bearer foobar").unwrap(),
+    );
     let response = client.list_organizations(request).await;
 
     // Assert the result
@@ -125,9 +128,10 @@ async fn test_the_list_organizations_procedure_only_returns_the_user_organizatio
 
     // Act the request to the test_the_status_procedure_works
     let mut request = Request::new(ListOrganizationsRequest::default());
-    request
-        .metadata_mut()
-        .insert("authorization", MetadataValue::from_str(&token).unwrap());
+    request.metadata_mut().insert(
+        "authorization",
+        MetadataValue::from_str(&format!("Bearer {}", &token)).unwrap(),
+    );
     let response = client.list_organizations(request).await;
 
     // Assert the result
@@ -169,9 +173,10 @@ async fn test_the_list_organizations_procedure_returns_all_organizations_for_an_
 
     // Act the request to the test_the_status_procedure_works
     let mut request = Request::new(ListOrganizationsRequest::default());
-    request
-        .metadata_mut()
-        .insert("authorization", MetadataValue::from_str(&token).unwrap());
+    request.metadata_mut().insert(
+        "authorization",
+        MetadataValue::from_str(&format!("Bearer {}", &token)).unwrap(),
+    );
     let response = client.list_organizations(request).await;
 
     // Assert the result
