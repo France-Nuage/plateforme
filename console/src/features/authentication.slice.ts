@@ -1,7 +1,7 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 import { User as OIDCUser } from 'oidc-client-ts';
 
-import { ACCESS_TOKEN_SESSION_STORAGE_KEY as TOKEN_SESSION_STORAGE_KEY } from '@/constants';
 import { User } from '@/types';
 
 /**
@@ -17,10 +17,21 @@ type AuthenticationState = {
  */
 const initialState: AuthenticationState = {};
 
+export const logout = createAsyncThunk<void, void>(
+  'authentication/logout',
+  async () => {},
+);
+
 /**
  * The authentication slice.
  */
 export const authenticationSlice = createSlice({
+  extraReducers: (builder) => {
+    builder.addCase(logout.fulfilled, (state) => {
+      state.token = undefined;
+      state.user = undefined;
+    });
+  },
   initialState,
   name: 'authentication',
   reducers: {
@@ -36,12 +47,7 @@ export const authenticationSlice = createSlice({
      */
     setOIDCUser: (state, action: PayloadAction<OIDCUser>) => {
       state.token = action.payload.id_token;
-      if (action.payload.id_token) {
-        sessionStorage.setItem(
-          TOKEN_SESSION_STORAGE_KEY,
-          action.payload.id_token,
-        );
-      }
+
       state.user = {
         email: action.payload.profile.email!,
         name: action.payload.profile.name,

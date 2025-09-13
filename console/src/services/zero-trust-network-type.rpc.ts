@@ -4,7 +4,6 @@ import { ZeroTrustNetworkType as RpcZeroTrustNetworkType } from '@/generated/rpc
 import { ZeroTrustNetworkTypesClient } from '@/generated/rpc/infrastructure.client';
 import { ZeroTrustNetworkType } from '@/types';
 
-import { transport } from './transport.rpc';
 import { ZeroTrustNetworkTypeService } from './zero-trust-network-type.interface';
 
 export class ZeroTrustNetworkTypeRpcService
@@ -31,9 +30,6 @@ export class ZeroTrustNetworkTypeRpcService
       );
   }
 }
-
-export const zeroTrustNetworkTypeRpcService =
-  new ZeroTrustNetworkTypeRpcService(transport);
 
 /**
  * Convert a protocol organization into a concrete Organization.

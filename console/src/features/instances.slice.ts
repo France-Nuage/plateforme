@@ -1,24 +1,22 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { services } from '@/services';
-import { RootState } from '@/store';
+import { ExtraArgument } from '@/store';
 import { Instance, InstanceFormValue } from '@/types';
 
 export const fetchAllInstances = createAsyncThunk<
   Instance[],
   void,
-  { state: RootState }
->('instances/fetchAll', async (_, { getState }) => {
-  const mode = getState().application.mode;
-  return await services[mode].instance.list();
+  { extra: ExtraArgument }
+>('instances/fetchAll', async (_, { extra }) => {
+  return await extra.services.instance.list();
 });
 
 export const createInstance = createAsyncThunk<
   Instance,
   InstanceFormValue,
-  { state: RootState }
->('instances/create', (data, { getState }) =>
-  services[getState().application.mode].instance.create(data),
+  { extra: ExtraArgument }
+>('instances/create', (data, { extra }) =>
+  extra.services.instance.create(data),
 );
 
 export type InstancesState = {

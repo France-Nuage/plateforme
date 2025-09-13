@@ -2,7 +2,7 @@ import { FunctionComponent, ReactNode, useEffect, useState } from 'react';
 
 import { clearAuthenticationState, setOIDCUser } from '@/features';
 import { useAppDispatch } from '@/hooks';
-import { userManager } from '@/services';
+import { registerUserEvents, userManager } from '@/services';
 import { toaster } from '@/toaster';
 
 export type UserProviderProps = {
@@ -23,6 +23,10 @@ export const UserProvider: FunctionComponent<UserProviderProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const [isUserStateRetrieved, setUserRetrieved] = useState<boolean>(false);
+
+  useEffect(() => {
+    registerUserEvents(dispatch);
+  }, [dispatch]);
 
   // Attempt to retrieve the persisted user, then mark the app as loaded
   useEffect(() => {

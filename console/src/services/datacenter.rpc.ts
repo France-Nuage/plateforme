@@ -5,7 +5,6 @@ import { DatacentersClient } from '@/generated/rpc/infrastructure.client';
 import { Datacenter } from '@/types';
 
 import { DatacenterService } from './datacenter.interface';
-import { transport } from './transport.rpc';
 
 export class DatacenterRpcService implements DatacenterService {
   /**
@@ -27,8 +26,6 @@ export class DatacenterRpcService implements DatacenterService {
       .response.then(({ datacenters }) => datacenters.map(fromRpcDatacenter));
   }
 }
-
-export const datacenterRpcService = new DatacenterRpcService(transport);
 
 /**
  * Convert a protocol datacenter into a concrete Datacenter.

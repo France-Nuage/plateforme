@@ -8,7 +8,6 @@ import { InstancesClient } from '@/generated/rpc/instances.client';
 import { Instance, InstanceFormValue, InstanceStatus } from '@/types';
 
 import { InstanceService } from './instance.interface';
-import { transport } from './transport.rpc';
 
 export class InstanceRpcService implements InstanceService {
   /**
@@ -44,8 +43,6 @@ export class InstanceRpcService implements InstanceService {
       .response.then(({ instances }) => instances.map(fromRpcInstance));
   }
 }
-
-export const instanceRpcService = new InstanceRpcService(transport);
 
 // Converts a protocol Instance into a concrete Instance.
 function fromRpcInstance(instance: RpcInstance): Instance {

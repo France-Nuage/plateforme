@@ -1,10 +1,9 @@
 import { RpcError, RpcOptions } from '@protobuf-ts/runtime-rpc';
 import { debounce } from 'lodash';
 
-import {
-  ACCESS_TOKEN_SESSION_STORAGE_KEY,
-  ERROR_DEBOUNCE_WAIT,
-} from '@/constants';
+import { ERROR_DEBOUNCE_WAIT } from '@/constants';
+import { logout } from '@/features';
+import { AppStore } from '@/store';
 import { toaster } from '@/toaster';
 
 /**
@@ -37,21 +36,17 @@ import { toaster } from '@/toaster';
  * });
  * ```
  */
-export function applyAuthenticationHeader(options: RpcOptions) {
-  // get the token from the store
-  const token = sessionStorage.getItem(ACCESS_TOKEN_SESSION_STORAGE_KEY);
-
-  // return the options as-is if token is not defined
-  if (!token) {
-    return options;
-  }
-
-  // return the options with the authorization meta
+export function applyAuthenticationHeader(
+  options: RpcOptions,
+  store: AppStore,
+) {
   return {
     ...options,
     meta: {
       ...options.meta,
-      Authorization: `Bearer ${token}`,
+      ...(store.state.authentication.token && {
+        Authorization: `Bearer ${store.state.authentication.token}`,
+      }),
     },
   };
 }
@@ -64,9 +59,22 @@ export function applyAuthenticationHeader(options: RpcOptions) {
  * errors by:
  * - notifying the user through the UI using [toasts](https://www.chakra-ui.com/docs/components/toast)
  */
-export function handleRpcError(error: RpcError) {
-  notify(error.code, decodeURIComponent(error.message));
-  throw error;
+export function handleRpcError(error: RpcError, store: AppStore) {
+  error.message = decodeURIComponent(error.message);
+  console.log(error.message);
+  notify(error.code, error.message);
+  switch (error.code) {
+    case 'UNAUTHENTICATED':
+      store.dispatch(logout());
+      break;
+    default:
+      console.log(
+        `unhandled error code: "${error.code}"`,
+        JSON.stringify(error),
+      );
+      throw error;
+      break;
+  }
 }
 
 /**

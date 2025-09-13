@@ -5,7 +5,6 @@ import { ResourcesClient } from '@/generated/rpc/resources.client';
 import { Project, ProjectFormValue } from '@/types';
 
 import { ProjectService } from './project.interface';
-import { transport } from './transport.rpc';
 
 export class ProjectRpcService implements ProjectService {
   /**
@@ -37,8 +36,6 @@ export class ProjectRpcService implements ProjectService {
       .response.then(({ projects }) => projects.map(fromRpcProject));
   }
 }
-
-export const projectRpcService = new ProjectRpcService(transport);
 
 /**
  * Convert a protocol project into a concrete Project.

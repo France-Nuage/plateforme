@@ -15,7 +15,7 @@ const Router = () => (
     <BrowserRouter>
       <Routes>
         {/* Authentication routes */}
-        <Route element={<PageGuard authenticated={false} />}>
+        <Route element={<PageGuard />}>
           <Route path={RoutePath.Login} element={<LoginPage />} />
           <Route
             path="/auth/redirect/:provider"
