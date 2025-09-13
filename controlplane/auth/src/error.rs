@@ -11,6 +11,7 @@
 //! - **JWT Processing Errors**: Problems during token validation and decoding  
 //! - **Network Errors**: Issues communicating with OIDC providers
 //! - **Data Format Errors**: Problems parsing OIDC metadata or JWK sets
+//! - **Database Errors**: Temporary category for user authorization lookup failures (will be removed with SpiceDB)
 
 use thiserror::Error;
 use tonic::Status;
@@ -20,8 +21,20 @@ use tonic::Status;
 /// This enum covers all possible failure modes in the authentication library,
 /// from token extraction to JWT validation to OIDC provider communication.
 /// Each variant provides specific context about what went wrong.
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, Error)]
 pub enum Error {
+    /// Database query error during user authorization lookup.
+    ///
+    /// This error occurs when database operations fail during the user authorization
+    /// process, such as connection failures, query execution errors, or constraint
+    /// violations. This is a temporary error type that will be removed once SpiceDB
+    /// integration replaces database-backed authorization with stateless lookups.
+    ///
+    /// **Note**: This error variant is temporary and will be removed when migrating
+    /// from database-backed user authorization to SpiceDB.
+    #[error("database error: {0}")]
+    Database(#[from] sqlx::Error),
+
     /// The Authorization header contains invalid UTF-8 characters or malformed data.
     ///
     /// This occurs when the header value cannot be parsed as a valid UTF-8 string,
@@ -36,6 +49,18 @@ pub enum Error {
     /// a header with the format: `Authorization: Bearer <token>`
     #[error("missing authorization header")]
     MissingAuthorizationHeader,
+
+    /// JWT token is missing the required "email" claim for user authorization.
+    ///
+    /// This error occurs when a JWT token is successfully validated but lacks
+    /// the "email" claim needed to identify the user in the authorization system.
+    /// The email claim is used to look up user records in the database to determine
+    /// organizational membership and access permissions.
+    ///
+    /// **Note**: This error is specific to the current database-backed authorization
+    /// model and will be replaced by SpiceDB subject-based authorization.
+    #[error("missing email claim")]
+    MissingEmailClaim,
 
     /// JWT header is missing the required "kid" (Key ID) claim.
     ///
@@ -90,6 +115,21 @@ pub enum Error {
     /// which provider endpoint was unreachable.
     #[error("unreachable oidc provider {0}")]
     UnreachableOidcProvider(String),
+
+    /// Authenticated user is not registered in the authorization system.
+    ///
+    /// This error occurs when a JWT token is successfully validated and contains
+    /// a valid email claim, but no corresponding user record exists in the database.
+    /// This typically indicates that the user exists in the identity provider (GitLab)
+    /// but hasn't been provisioned in the controlplane authorization system.
+    ///
+    /// The contained string value is the email address from the JWT token that
+    /// couldn't be found in the user registry.
+    ///
+    /// **Note**: This error is specific to the current database-backed authorization
+    /// and will be replaced by SpiceDB relationship-based access control.
+    #[error("user {0} is not registered")]
+    UserNotRegistered(String),
 }
 
 /// Converts JWT library errors into our unified error type.

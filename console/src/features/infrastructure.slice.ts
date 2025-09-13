@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { services } from '@/services';
-import { RootState } from '@/store';
+import { ExtraArgument } from '@/store';
 import { Datacenter, ZeroTrustNetwork, ZeroTrustNetworkType } from '@/types';
 
 /**
@@ -10,9 +9,9 @@ import { Datacenter, ZeroTrustNetwork, ZeroTrustNetworkType } from '@/types';
 export const fetchAllDatacenters = createAsyncThunk<
   Datacenter[],
   void,
-  { state: RootState }
->('resources/fetchAllDatacenters', async (_, { getState }) =>
-  services[getState().application.mode].datacenter.list(),
+  { extra: ExtraArgument }
+>('resources/fetchAllDatacenters', async (_, { extra }) =>
+  extra.services.datacenter.list(),
 );
 
 /**
@@ -21,9 +20,9 @@ export const fetchAllDatacenters = createAsyncThunk<
 export const fetchAllZeroTrustNetworkTypes = createAsyncThunk<
   ZeroTrustNetworkType[],
   void,
-  { state: RootState }
->('resources/fetchAllZeroTrustNetworkTypes', async (_, { getState }) =>
-  services[getState().application.mode].zeroTrustNetworkType.list(),
+  { extra: ExtraArgument }
+>('resources/fetchAllZeroTrustNetworkTypes', async (_, { extra }) =>
+  extra.services.zeroTrustNetworkType.list(),
 );
 
 /**
@@ -32,9 +31,9 @@ export const fetchAllZeroTrustNetworkTypes = createAsyncThunk<
 export const fetchAllZeroTrustNetworks = createAsyncThunk<
   ZeroTrustNetwork[],
   void,
-  { state: RootState }
->('resources/fetchAllZeroTrustNetworks', async (_, { getState }) =>
-  services[getState().application.mode].zeroTrustNetwork.list(),
+  { extra: ExtraArgument }
+>('resources/fetchAllZeroTrustNetworks', async (_, { extra }) =>
+  extra.services.zeroTrustNetwork.list(),
 );
 
 /**

@@ -7,12 +7,12 @@
 //! remaining flexible for production deployments.
 
 use crate::error::Error;
-use auth::JwkValidator;
+use auth::OpenID;
 use mock_server::MockServer;
 use sqlx::{Pool, Postgres};
 use std::{env, net::SocketAddr};
 use tokio::net::TcpListener;
-use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin};
+use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, ExposeHeaders};
 
 /// Configuration for the gRPC server with CORS, authentication, networking, and PostgreSQL database settings.
 ///
@@ -45,6 +45,12 @@ pub struct Config {
     /// will use. The default value binds to all available interfaces (`[::]`) on port 8080.
     pub addr: SocketAddr,
 
+    /// CORS configuration specifying which headers are allowed in cross-origin requests.
+    ///
+    /// This field controls the `Access-Control-Allow-Headers` header in HTTP responses.
+    /// The default configuration allows all headers using [`AllowHeaders::any()`].
+    ///
+    /// [`AllowHeaders::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowHeaders.html#method.any
     pub allow_headers: AllowHeaders,
 
     /// CORS configuration specifying which HTTP methods are allowed for cross-origin requests.
@@ -63,18 +69,21 @@ pub struct Config {
     /// [`AllowOrigin::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowOrigin.html#method.any
     pub allow_origin: AllowOrigin,
 
+    /// CORS configuration specifying which response headers are exposed to client scripts.
+    ///
+    /// This field controls the `Access-Control-Expose-Headers` header in HTTP responses.
+    /// The default configuration exposes all headers using [`ExposeHeaders::any()`].
+    ///
+    /// [`ExposeHeaders::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.ExposeHeaders.html#method.any
+    pub expose_headers: ExposeHeaders,
+
     /// PostgreSQL database connection pool for persistent storage operations.
     ///
     /// This field provides the PostgreSQL connection pool that will be shared across
     /// all services for performing persistent storage operations.
     pub pool: Pool<Postgres>,
 
-    /// JWT validator for OIDC authentication middleware.
-    ///
-    /// This field provides the JWK validator that will be used by the authentication
-    /// middleware to validate JWT tokens from incoming requests. The validator is
-    /// configured with OIDC provider information and handles key caching automatically.
-    pub validator: JwkValidator,
+    pub openid: OpenID,
 }
 
 impl Config {
@@ -87,12 +96,12 @@ impl Config {
     /// - **Allow Origin**: [`AllowOrigin::any()`] - Accepts requests from any origin
     /// - **Allow Methods**: [`AllowMethods::any()`] - Permits all HTTP methods
     /// - **PostgreSQL Pool**: Uses the provided connection pool for database operations
-    /// - **JWT Validator**: Uses the provided validator for OIDC authentication
+    /// - **OpenID Provider**: Uses the provided OpenID provider for OIDC authentication
     ///
     /// # Parameters
     ///
     /// * `pool` - PostgreSQL connection pool that will be shared across all services
-    /// * `validator` - JWK validator configured with OIDC provider for JWT authentication
+    /// * `openid` - OpenID provider configured with OIDC information for JWT authentication
     ///
     /// # Example
     ///
@@ -144,20 +153,26 @@ impl Config {
     /// ## Features
     ///
     /// - **Dynamic Port**: Uses `reserve_socket_addr(None)` to allocate an available port
-    /// - **Mock Authentication**: Configures JwkValidator for the mock server
+    /// - **Mock Authentication**: Configures OpenID for the mock server
     /// - **Test Isolation**: Each test gets its own port to avoid interference
     pub async fn test(pool: &Pool<Postgres>, mock_server: &MockServer) -> Result<Self, Error> {
         let addr = Config::reserve_socket_addr(None).await?;
 
-        let validator = JwkValidator::from_mock_server(&mock_server.url()).await?;
+        let client = reqwest::Client::new();
+        let openid = OpenID::discover(
+            client,
+            &format!("{}/.well-known/openid-configuration", &mock_server.url()),
+        )
+        .await?;
 
         Ok(Config {
             addr,
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
             allow_origin: AllowOrigin::any(),
+            expose_headers: ExposeHeaders::any(),
             pool: pool.clone(),
-            validator,
+            openid,
         })
     }
 
@@ -186,13 +201,13 @@ impl Config {
     /// - OIDC provider configuration is invalid
     pub async fn from_env() -> Result<Self, Error> {
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+        let oidc_url = env::var("OIDC_URL").expect("OIDC_URL must be set");
         let pool = sqlx::PgPool::connect(&database_url)
             .await
             .expect("could not connect to database");
-        let oidc_url = env::var("OIDC_URL").unwrap_or(String::from(
-            "https://gitlab.com/.well-known/openid-configuration",
-        ));
-        let validator = JwkValidator::from_oidc_discovery(&oidc_url)
+
+        let client = reqwest::Client::new();
+        let openid = OpenID::discover(client, &oidc_url)
             .await
             .expect("could not fetch oidc configuration");
 
@@ -201,8 +216,9 @@ impl Config {
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
             allow_origin: AllowOrigin::any(),
+            expose_headers: ExposeHeaders::any(),
             pool,
-            validator,
+            openid,
         })
     }
 

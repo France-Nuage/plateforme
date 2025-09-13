@@ -1,8 +1,7 @@
 import { FunctionComponent, useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router';
 
-import { useAppSelector } from '@/hooks';
-import { DataProvider } from '@/providers';
+import { useAppSelector, useControlplaneData } from '@/hooks';
 import { Routes } from '@/types';
 
 export type PageGuardProps = {
@@ -24,10 +23,12 @@ export const PageGuard: FunctionComponent<PageGuardProps> = ({
     (state) => !!state.authentication.user,
   );
   const navigate = useNavigate();
+  useControlplaneData();
 
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     if (authenticated && !isUserAuthenticated) {
       navigate(Routes.Login);
     } else if (!authenticated && isUserAuthenticated) {
@@ -37,9 +38,5 @@ export const PageGuard: FunctionComponent<PageGuardProps> = ({
     }
   }, [authenticated, isUserAuthenticated, navigate]);
 
-  return isLoading ? null : (
-    <DataProvider>
-      <Outlet />
-    </DataProvider>
-  );
+  return isLoading ? null : <Outlet />;
 };

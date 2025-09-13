@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { services } from '@/services';
-import { RootState } from '@/store';
+import { ExtraArgument } from '@/store';
 import { Hypervisor, HypervisorFormValue } from '@/types';
 
 /**
@@ -10,9 +9,9 @@ import { Hypervisor, HypervisorFormValue } from '@/types';
 export const fetchAllHypervisors = createAsyncThunk<
   Hypervisor[],
   void,
-  { state: RootState }
->('hypervisors/fetchAll', async (_, { getState }) =>
-  services[getState().application.mode].hypervisor.list(),
+  { extra: ExtraArgument }
+>('hypervisors/fetchAll', async (_, { extra }) =>
+  extra.services.hypervisor.list(),
 );
 
 /**
@@ -21,9 +20,9 @@ export const fetchAllHypervisors = createAsyncThunk<
 export const registerHypervisor = createAsyncThunk<
   Hypervisor,
   HypervisorFormValue,
-  { state: RootState }
->('hypervisors/register', (data, { getState }) =>
-  services[getState().application.mode].hypervisor.register(data),
+  { extra: ExtraArgument }
+>('hypervisors/register', (data, { extra }) =>
+  extra.services.hypervisor.register(data),
 );
 
 /**

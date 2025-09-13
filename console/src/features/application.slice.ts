@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { PayloadAction } from '@reduxjs/toolkit';
 
 import { Project } from '@/generated/rpc/resources';
-import { RootState } from '@/store';
+import { AppState } from '@/store';
 import { Organization, ServiceMode } from '@/types';
 
 /**
@@ -21,7 +21,7 @@ export type ApplicationState = {
 const initialState: ApplicationState = {
   activeOrganization: undefined,
   activeProject: undefined,
-  loaded: false,
+  loaded: true,
   mode:
     import.meta.env.VITE_APPLICATION_DEFAULT_MODE === 'mock'
       ? ServiceMode.Mock
@@ -34,7 +34,7 @@ const initialState: ApplicationState = {
 export const setActiveOrganization = createAsyncThunk<
   { organization: Organization; project: Project },
   Organization,
-  { state: RootState }
+  { state: AppState }
 >('application/setActiveOrganization', (organization, { getState }) => {
   // Retrieve a default project for the new active organization
   const state = getState();
@@ -61,7 +61,7 @@ export const setActiveOrganization = createAsyncThunk<
 export const setActiveProject = createAsyncThunk<
   { organization: Organization; project: Project },
   Project,
-  { state: RootState }
+  { state: AppState }
 >('application/setActiveProject', (project, { getState }) => {
   // Retrieve a default project for the new active organization
   const state = getState();
@@ -118,4 +118,4 @@ export const applicationSlice = createSlice({
 
 export const { setApplicationLoaded, setMode } = applicationSlice.actions;
 
-export default applicationSlice.reducer;
+export default applicationSlice;

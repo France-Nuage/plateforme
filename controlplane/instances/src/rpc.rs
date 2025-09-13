@@ -65,11 +65,7 @@ impl Instances for InstancesRpcService {
         &self,
         _: Request<ListInstancesRequest>,
     ) -> Result<Response<ListInstancesResponse>, Status> {
-        let instances = self
-            .service
-            .list()
-            .await
-            .inspect_err(|err| println!("error: {:?}", &err))?;
+        let instances = self.service.list().await?;
 
         Ok(Response::new(ListInstancesResponse {
             instances: instances.into_iter().map(Into::into).collect(),
@@ -318,7 +314,6 @@ mod tests {
             id: instance.id.to_string(),
         });
         let result = service.stop_instance(request).await;
-        println!("result: {:?}", &result);
 
         // Assert the procedure result
         assert!(result.is_ok());

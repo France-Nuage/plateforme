@@ -5,7 +5,6 @@ import { ResourcesClient } from '@/generated/rpc/resources.client';
 import { Organization, OrganizationFormValue } from '@/types';
 
 import { OrganizationService } from './organization.interface';
-import { transport } from './transport.rpc';
 
 export class OrganizationRpcService implements OrganizationService {
   /**
@@ -37,8 +36,6 @@ export class OrganizationRpcService implements OrganizationService {
       );
   }
 }
-
-export const organizationRpcService = new OrganizationRpcService(transport);
 
 /**
  * Convert a protocol organization into a concrete Organization.

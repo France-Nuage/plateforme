@@ -1,9 +1,9 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
 
 import { clearAuthenticationState, setOIDCUser } from '@/features';
 import { useAppDispatch } from '@/hooks';
-import { userManager } from '@/services';
+import { registerUserEvents, userManager } from '@/services';
+import { toaster } from '@/toaster';
 
 export type UserProviderProps = {
   children: ReactNode;
@@ -24,19 +24,23 @@ export const UserProvider: FunctionComponent<UserProviderProps> = ({
   const dispatch = useAppDispatch();
   const [isUserStateRetrieved, setUserRetrieved] = useState<boolean>(false);
 
+  useEffect(() => {
+    registerUserEvents(dispatch);
+  }, [dispatch]);
+
   // Attempt to retrieve the persisted user, then mark the app as loaded
   useEffect(() => {
     userManager
       .getUser()
       .then((user) => {
         if (user) {
-          dispatch(setOIDCUser({ ...user }));
+          dispatch(setOIDCUser(user));
         } else {
           dispatch(clearAuthenticationState());
         }
         setUserRetrieved(true);
       })
-      .catch(toast.error);
+      .catch((error) => toaster.create({ title: error }));
   }, [dispatch]);
 
   // Render the remaining tree only after user retrieval

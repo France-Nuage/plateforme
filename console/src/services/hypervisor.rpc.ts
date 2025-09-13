@@ -5,7 +5,6 @@ import { HypervisorsClient } from '@/generated/rpc/hypervisors.client';
 import { Hypervisor, HypervisorFormValue } from '@/types';
 
 import { HypervisorService } from './hypervisor.interface';
-import { transport } from './transport.rpc';
 
 export class HypervisorRpcService implements HypervisorService {
   /**
@@ -50,9 +49,6 @@ export class HypervisorRpcService implements HypervisorService {
       .response.then(({ hypervisor }) => fromRpcHypervisor(hypervisor!));
   }
 }
-
-// Exports an instance of the service.
-export const hypervisorsRpcService = new HypervisorRpcService(transport);
 
 // Converts a protocol Hypervisor into a concrete Hypervisor.
 function fromRpcHypervisor(hypervisor: RpcHypervisor): Hypervisor {

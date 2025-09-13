@@ -1,34 +1,3 @@
-table "_sqlx_migrations" {
-  schema = schema.public
-  column "version" {
-    null = false
-    type = bigint
-  }
-  column "description" {
-    null = false
-    type = text
-  }
-  column "installed_on" {
-    null    = false
-    type    = timestamptz
-    default = sql("now()")
-  }
-  column "success" {
-    null = false
-    type = boolean
-  }
-  column "checksum" {
-    null = false
-    type = bytea
-  }
-  column "execution_time" {
-    null = false
-    type = bigint
-  }
-  primary_key {
-    columns = [column.version]
-  }
-}
 table "datacenters" {
   schema = schema.public
   column "id" {
@@ -258,6 +227,50 @@ table "projects" {
     ref_columns = [table.organizations.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
+  }
+}
+table "users" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "organization_id" {
+    null = false
+    type = uuid
+  }
+  column "email" {
+    null = false
+    type = text
+  }
+  column "is_admin" {
+    null = false
+    type = bool
+    default = false
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "users_organization_id_fkey" {
+    columns = [column.organization_id]
+    ref_columns = [table.organizations.column.id]
+    on_update = NO_ACTION
+    on_delete = CASCADE
+  }
+  index "users_email_idx" {
+    unique = true
+    columns = [column.email]
   }
 }
 table "zero_trust_network_types" {

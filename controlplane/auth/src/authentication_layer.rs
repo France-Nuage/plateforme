@@ -16,7 +16,7 @@
 //!
 //! 1. **Header Extraction**: Extract `authorization` header value from incoming request
 //! 2. **Token Parsing**: Parse Bearer token from header (if present)  
-//! 3. **IAM Creation**: Create IAM context with extracted token and validator
+//! 3. **IAM Creation**: Create IAM context with extracted token and OpenID provider
 //! 4. **Context Injection**: Insert IAM into request extensions for downstream access
 //! 5. **Request Forwarding**: Forward request to inner service with injected context
 //!
@@ -25,29 +25,27 @@
 //! The authentication layer is typically applied as middleware in a Tower service stack:
 //!
 //! ```
-//! use auth::{AuthenticationLayer, JwkValidator};
+//! use auth::{AuthenticationLayer, OpenID};
 //! use tower::ServiceBuilder;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let validator = JwkValidator::from_oidc_discovery("https://provider.com/.well-known/openid_configuration").await?;
-//! let auth_layer = AuthenticationLayer::new(validator);
+//! let openid = OpenID::discover(reqwest::Client::new(), "https://provider.com/.well-known/openid_configuration").await?;
+//! let auth_layer = AuthenticationLayer::new(openid);
 //!
 //! let service = ServiceBuilder::new().layer(auth_layer);
 //! # Ok(())
 //! # }
 //! ```
 
-use std::task::{Context, Poll};
-
+use crate::{iam::IAM, openid::OpenID};
 use http::Request;
+use std::task::{Context, Poll};
 use tower::{Layer, Service};
-
-use crate::{JwkValidator, iam::IAM};
 
 /// Tower middleware layer for JWT authentication with OIDC validation.
 ///
 /// `AuthenticationLayer` implements the Tower `Layer` trait to provide HTTP request
-/// authentication middleware. It uses a JWK validator to handle JWT token validation
+/// authentication middleware. It uses an OpenID provider to handle JWT token validation
 /// and injects IAM context into each request for downstream services.
 ///
 /// ## Design
@@ -60,37 +58,37 @@ use crate::{JwkValidator, iam::IAM};
 /// ## Thread Safety
 ///
 /// This layer is thread-safe and can be safely cloned across multiple tokio tasks.
-/// The internal `JwkValidator` handles concurrent JWT validation efficiently.
+/// The internal `OpenID` handles concurrent JWT validation efficiently.
 #[derive(Clone)]
 pub struct AuthenticationLayer {
-    /// JWK validator for JWT token validation using OIDC provider keys
-    validator: JwkValidator,
+    openid: OpenID,
 }
 
 impl AuthenticationLayer {
-    /// Creates a new authentication layer with the provided JWK validator.
+    /// Creates a new authentication layer with the provided OpenID provider.
     ///
     /// # Arguments
     ///
-    /// * `validator` - A configured JWK validator that will be used to validate
+    /// * `openid` - A configured OpenID provider that will be used to validate
     ///   JWT tokens extracted from request headers
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
-    /// use auth::{AuthenticationLayer, JwkValidator};
+    /// ```
+    /// use auth::{AuthenticationLayer, OpenID};
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let validator = JwkValidator::from_oidc_discovery(
+    /// let openid = OpenID::discover(
+    ///     reqwest::Client::new(),
     ///     "https://accounts.google.com/.well-known/openid_configuration"
     /// ).await?;
     ///
-    /// let auth_layer = AuthenticationLayer::new(validator);
+    /// let auth_layer = AuthenticationLayer::new(openid);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new(validator: JwkValidator) -> Self {
-        Self { validator }
+    pub fn new(openid: OpenID) -> Self {
+        Self { openid }
     }
 }
 
@@ -105,7 +103,7 @@ impl<S> Layer<S> for AuthenticationLayer {
     fn layer(&self, inner: S) -> Self::Service {
         AuthenticationService {
             inner,
-            validator: self.validator.clone(),
+            openid: self.openid.clone(),
         }
     }
 }
@@ -122,9 +120,15 @@ impl<S> Layer<S> for AuthenticationLayer {
 /// For each incoming request, this service:
 /// 1. Extracts the `authorization` header value
 /// 2. Parses any Bearer token present in the header
-/// 3. Creates an IAM context with the token and validator
+/// 3. Creates an IAM context with the token and OpenID provider
 /// 4. Injects the IAM context into request extensions
 /// 5. Forwards the request to the inner service
+///
+/// ## Security Isolation
+///
+/// This service creates a new IAM instance for every incoming request, ensuring
+/// complete token isolation between concurrent requests. Each request's authentication
+/// context is independent and cannot access tokens from other requests.
 ///
 /// ## Error Handling
 ///
@@ -135,8 +139,8 @@ impl<S> Layer<S> for AuthenticationLayer {
 pub struct AuthenticationService<S> {
     /// The inner service that will receive authenticated requests
     inner: S,
-    /// JWK validator for JWT token validation
-    validator: JwkValidator,
+
+    openid: OpenID,
 }
 
 impl<S, ReqBody> Service<Request<ReqBody>> for AuthenticationService<S>
@@ -175,7 +179,7 @@ where
             .and_then(|value| value.to_str().ok())
             .map(|value| value.to_owned());
 
-        let iam = IAM::new(token, self.validator.clone());
+        let iam = IAM::new(token, self.openid.clone());
         req.extensions_mut().insert(iam);
 
         self.inner.call(req)

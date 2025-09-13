@@ -1,6 +1,4 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
-import { RpcError } from '@protobuf-ts/runtime-rpc';
-import { toast } from 'react-toastify';
 
 import {
   Instance as RpcInstance,
@@ -10,7 +8,6 @@ import { InstancesClient } from '@/generated/rpc/instances.client';
 import { Instance, InstanceFormValue, InstanceStatus } from '@/types';
 
 import { InstanceService } from './instance.interface';
-import { transport } from './transport.rpc';
 
 export class InstanceRpcService implements InstanceService {
   /**
@@ -43,15 +40,9 @@ export class InstanceRpcService implements InstanceService {
   public list(): Promise<Instance[]> {
     return this.client
       .listInstances({})
-      .response.then(({ instances }) => instances.map(fromRpcInstance))
-      .catch((error: RpcError) => {
-        toast.error(error.toString());
-        return [];
-      });
+      .response.then(({ instances }) => instances.map(fromRpcInstance));
   }
 }
-
-export const instanceRpcService = new InstanceRpcService(transport);
 
 // Converts a protocol Instance into a concrete Instance.
 function fromRpcInstance(instance: RpcInstance): Instance {

@@ -13,11 +13,10 @@ RUN apk add --no-cache wget && \
 
 WORKDIR /app
 COPY . .
-RUN SQLX_OFFLINE=true cargo build
 
 # Development Stage
 FROM base AS development
-CMD ["target/debug/server"]
+CMD ["cargo", "run", "--bin=server"]
 
 # Build Stage
 FROM base AS builder

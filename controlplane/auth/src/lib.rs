@@ -27,12 +27,13 @@
 //! ### Manual Token Validation
 //!
 //! ```
-//! use auth::{JwkValidator, extract_authorization_token};
+//! use auth::{OpenID, extract_authorization_token};
 //! use tonic::Request;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! // Initialize validator with OIDC discovery
-//! let validator = JwkValidator::from_oidc_discovery(
+//! // Initialize OpenID with OIDC discovery
+//! let openid = OpenID::discover(
+//!     reqwest::Client::new(),
 //!     "https://accounts.google.com/.well-known/openid_configuration"
 //! ).await?;
 //!
@@ -41,7 +42,7 @@
 //! let token = extract_authorization_token(&request)?;
 //!
 //! // Validate the token
-//! let claims = validator.validate_token(&token).await?;
+//! let claims = openid.validate_token(&token).await?;
 //! println!("Token valid for subject: {:?}", claims.claims.sub);
 //! # Ok(())
 //! # }
@@ -50,15 +51,16 @@
 //! ### Middleware Integration
 //!
 //! ```rust
-//! use auth::{AuthenticationLayer, JwkValidator};
+//! use auth::{AuthenticationLayer, OpenID};
 //! use tower::ServiceBuilder;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let validator = JwkValidator::from_oidc_discovery(
+//! let openid = OpenID::discover(
+//!     reqwest::Client::new(),
 //!     "https://provider.com/.well-known/openid_configuration"
 //! ).await?;
 //!
-//! let service = ServiceBuilder::new().layer(AuthenticationLayer::new(validator));
+//! let service = ServiceBuilder::new().layer(AuthenticationLayer::new(openid));
 //! # Ok(())
 //! # }
 //! ```
@@ -68,7 +70,8 @@
 //! This crate consists of several modules:
 //! - **authentication_layer** - Tower middleware for HTTP request authentication
 //! - **iam** - Identity and Access Management context for authenticated requests
-//! - **validator** - JWT token validation with JWK key management and caching
+//! - **model** - Temporary database models for user authorization (will be replaced by SpiceDB)
+//! - **openid** - JWT token validation with JWK key management and caching
 //! - **discovery** - OIDC provider metadata and discovery functionality
 //! - **error** - Comprehensive error types for all authentication operations
 //! - **rfc7517** - JWT claims structures following RFC 7517 specification
@@ -92,7 +95,8 @@
 //! Automatically discover provider configuration from well-known endpoints:
 //! ```rust,no_run
 //! # async fn example() -> Result<(), auth::Error> {
-//! let validator = auth::JwkValidator::from_oidc_discovery(
+//! let openid = auth::OpenID::discover(
+//!     reqwest::Client::new(),
 //!     "https://login.microsoftonline.com/common/.well-known/openid_configuration"
 //! ).await?;
 //! # Ok(())
@@ -102,8 +106,8 @@
 //! ### JWT Validation
 //! Validate tokens with automatic key fetching and caching:
 //! ```rust,no_run
-//! # async fn example(validator: auth::JwkValidator, token: String) -> Result<(), auth::Error> {
-//! let token_data = validator.validate_token(&token).await?;
+//! # async fn example(openid: auth::OpenID, token: String) -> Result<(), auth::Error> {
+//! let token_data = openid.validate_token(&token).await?;
 //!
 //! // Access standard claims
 //! if let Some(expiry) = token_data.claims.exp {
@@ -129,16 +133,19 @@
 
 pub use authentication_layer::AuthenticationLayer;
 pub use error::Error;
+pub use iam::IAM;
+pub use openid::OpenID;
 use tonic::Request;
-pub use validator::JwkValidator;
 
 mod authentication_layer;
-mod discovery;
 mod error;
 pub mod iam;
-pub mod mock;
+pub mod model;
+mod openid;
 mod rfc7519;
-pub mod validator;
+
+#[cfg(feature = "mock")]
+pub mod mock;
 
 /// Extracts JWT token from a tonic gRPC request's Authorization header.
 ///
@@ -190,11 +197,11 @@ pub mod validator;
 /// ## Security Considerations
 ///
 /// This function only extracts the token - it does not validate its signature or claims.
-/// Always validate extracted tokens using [`JwkValidator::validate_token`] before trusting
+/// Always validate extracted tokens using [`OpenID::validate_token`] before trusting
 /// their contents.
 ///
 /// [RFC 6750]: https://tools.ietf.org/html/rfc6750
-/// [`JwkValidator::validate_token`]: crate::JwkValidator::validate_token
+/// [`OpenID::validate_token`]: crate::OpenID::validate_token
 pub fn extract_authorization_token<T>(req: &Request<T>) -> Result<String, Error> {
     req.metadata()
         .get("authorization")
@@ -263,7 +270,10 @@ mod tests {
 
         // Assert the result
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), Error::MissingAuthorizationHeader);
+        assert!(matches!(
+            result.unwrap_err(),
+            Error::MissingAuthorizationHeader
+        ));
     }
 
     /// Tests that malformed Authorization header with invalid UTF-8 returns appropriate error.
@@ -281,10 +291,12 @@ mod tests {
 
         // Act the call t the extraction function
         let result = extract_authorization_token(&request);
-        println!("result: {:?}", &result);
 
         // Assert the result
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), Error::MalformedAuthorizationHeader);
+        assert!(matches!(
+            result.unwrap_err(),
+            Error::MalformedAuthorizationHeader
+        ));
     }
 }

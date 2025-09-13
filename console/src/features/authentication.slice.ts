@@ -1,4 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 import { User as OIDCUser } from 'oidc-client-ts';
 
 import { User } from '@/types';
@@ -16,10 +17,21 @@ type AuthenticationState = {
  */
 const initialState: AuthenticationState = {};
 
+export const logout = createAsyncThunk<void, void>(
+  'authentication/logout',
+  async () => {},
+);
+
 /**
  * The authentication slice.
  */
 export const authenticationSlice = createSlice({
+  extraReducers: (builder) => {
+    builder.addCase(logout.fulfilled, (state) => {
+      state.token = undefined;
+      state.user = undefined;
+    });
+  },
   initialState,
   name: 'authentication',
   reducers: {
@@ -33,11 +45,9 @@ export const authenticationSlice = createSlice({
     /**
      * Set the authenthentication state to represent a logged in user.
      */
-    setOIDCUser: (
-      state,
-      action: PayloadAction<Pick<OIDCUser, 'id_token' | 'profile'>>,
-    ) => {
+    setOIDCUser: (state, action: PayloadAction<OIDCUser>) => {
       state.token = action.payload.id_token;
+
       state.user = {
         email: action.payload.profile.email!,
         name: action.payload.profile.name,

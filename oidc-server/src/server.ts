@@ -15,6 +15,11 @@ app.use((req, res, next) => {
 });
 
 const oidc = new Provider(config.issuer, {
+  claims: {
+    openid: ['sub'],
+    email: ['email'],
+    profile: ['name'],
+  },
   clientBasedCORS: () => true,
   clients: [{
     client_id: config.clientId,
@@ -27,7 +32,8 @@ const oidc = new Provider(config.issuer, {
   features: {
     devInteractions: { enabled: true } // Built-in login UI
   },
-  // Account lookup - this is where we can add user existence validation
+  // Allow flexible ID token claims structure for compatibility
+  conformIdTokenClaims: false,
   findAccount: (ctx, sub) => {
 
     const user = findUserBySub(sub);
@@ -37,11 +43,16 @@ const oidc = new Provider(config.issuer, {
 
     return {
       accountId: sub,
-      claims: async () => ({ ...user, sub: user.username }),
+      claims: async () => {
+        return ({ ...user, sub: user.username });
+      }
     };
   },
   scopes: ['openid', 'profile', 'email', 'offline_access'],
 });
+
+app.set('trust proxy', true);
+oidc.proxy = true;
 
 app.get('/health', async (req, res) => {
   res.sendStatus(200);
@@ -91,6 +102,13 @@ app.post<string, {}, any, User>('/api/users', async (req, res) => {
     expires_at: expiresAt
   });
 });
+
+createUser(({
+  email: 'wile.coyote@acme.org',
+  name: 'Wile E. Coyote',
+  password: 'anvil',
+  username: 'wile.coyote',
+}));
 
 app.use('/', oidc.callback());
 

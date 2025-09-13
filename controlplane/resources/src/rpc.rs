@@ -12,7 +12,8 @@ use crate::{
         ListProjectsRequest, ListProjectsResponse, resources_server::Resources,
     },
 };
-use sqlx::PgPool;
+use auth::IAM;
+use sqlx::{PgPool, Pool, Postgres};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
@@ -22,6 +23,9 @@ use uuid::Uuid;
 /// including listing and creating organizations and projects. It uses a database
 /// connection to persist and retrieve resource information.
 pub struct ResourcesRpcService {
+    /// The database pool
+    pool: Pool<Postgres>,
+
     /// The project service.
     project_service: ProjectService,
 
@@ -46,9 +50,16 @@ impl Resources for ResourcesRpcService {
     /// * `Err(Status)` - If retrieval fails, with appropriate status code
     async fn list_organizations(
         &self,
-        _: Request<ListOrganizationsRequest>,
+        request: Request<ListOrganizationsRequest>,
     ) -> Result<Response<ListOrganizationsResponse>, Status> {
-        let organizations = self.organization_service.list().await?;
+        let user = request
+            .extensions()
+            .get::<IAM>()
+            .ok_or(Status::internal("iam not found"))?
+            .user(&self.pool)
+            .await?;
+
+        let organizations = Organization::find_by_user(&self.pool, user).await?;
 
         Ok(Response::new(ListOrganizationsResponse {
             organizations: organizations.into_iter().map(Into::into).collect(),
@@ -159,8 +170,9 @@ impl ResourcesRpcService {
     /// A new `ResourcesRpcService` instance
     pub fn new(pool: PgPool) -> Self {
         Self {
-            organization_service: OrganizationService::new(pool.clone()),
+            pool: pool.clone(),
             project_service: ProjectService::new(pool.clone()),
+            organization_service: OrganizationService::new(pool.clone()),
         }
     }
 }
@@ -172,23 +184,50 @@ mod tests {
         CreateOrganizationRequest, CreateProjectRequest, ListOrganizationsRequest,
         ListProjectsRequest,
     };
+    use auth::{
+        OpenID,
+        mock::{WithJwks, WithWellKnown},
+        model::User,
+    };
+    use mock_server::MockServer;
     use sqlx::PgPool;
     use tonic::Request;
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_organizations_works(pool: PgPool) {
-        // Arrange a service
+        // Arrange a service with necessary dependencies
+        let organization = Organization::factory()
+            .create(&pool)
+            .await
+            .expect("could not create organization");
+        let user = User::factory()
+            .organization_id(organization.id)
+            .email("wile.coyote@acme.org".to_owned())
+            .is_admin(true)
+            .create(&pool)
+            .await
+            .expect("could not create user");
+        let mock = MockServer::new().await.with_well_known().with_jwks();
+        let token = OpenID::token(&user.email);
+        let jwk = OpenID::discover(
+            reqwest::Client::new(),
+            &format!("{}/.well-known/openid-configuration", &mock.url()),
+        )
+        .await
+        .unwrap();
+        let iam = IAM::new(Some(format!("Bearer {}", token)), jwk);
         let service = ResourcesRpcService::new(pool);
 
         // Act the call to the list_organizations procedure
-        let result = service
-            .list_organizations(Request::new(ListOrganizationsRequest::default()))
-            .await;
+        let mut request = Request::new(ListOrganizationsRequest::default());
+        request.extensions_mut().insert(iam);
+
+        let result = service.list_organizations(request).await;
 
         // Assert the procedure result
+        println!("result: {:#?}", &result);
         assert!(result.is_ok());
-        let response = result.unwrap().into_inner();
-        assert_eq!(response.organizations.len(), 0);
+        assert_eq!(result.unwrap().into_inner().organizations.len(), 1);
     }
 
     #[sqlx::test(migrations = "../migrations")]

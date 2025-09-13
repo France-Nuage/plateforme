@@ -37,9 +37,9 @@ services:
       args:
         VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
         VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
-        VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
+        VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc.test}
         VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
-        VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
+        VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master-${TARGET:-development}
@@ -51,14 +51,18 @@ services:
       oidc:
         condition: service_healthy
     environment:
+      NODE_EXTRA_CA_CERTS: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
       VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
-      VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
+      VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc.test}
       VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
-      VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
+      VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
       PORT: 80
     expose:
       - "80"
+    extra_hosts:
+      - "oidc.test:host-gateway"
+      - "console.test:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 5s
@@ -66,13 +70,14 @@ services:
       retries: 24
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.console.rule=Host(`console`)"
+      - "traefik.http.routers.console.rule=Host(`console.test`)"
       - "traefik.http.routers.console.entrypoints=websecure"
       - "traefik.http.routers.console.tls=true"
       - "traefik.http.services.console.loadbalancer.server.port=80"
     volumes:
       - ./console:/app
       - /app/node_modules
+      - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
 
   controlplane:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
@@ -83,6 +88,8 @@ services:
       context: controlplane
       target: ${TARGET:-development}
     depends_on:
+      oidc:
+        condition: service_healthy
       postgres:
         condition: service_healthy
     healthcheck:
@@ -92,24 +99,31 @@ services:
       retries: 24
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
-      CONSOLE_URL: ${CONSOLE_URL:-https://console}
+      CONSOLE_URL: ${CONSOLE_URL:-https://console.test}
       CONTROLPLANE_ADDR: 0.0.0.0:80
+      CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
+      OIDC_URL: ${OIDC_URL:-https://oidc.test/.well-known/openid-configuration}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       RUST_LOG: ${RUST_LOG:-info}
       RUSTFLAGS: ${RUSTFLAGS:-}
       SQLX_OFFLINE: ${SQLX_OFFLINE:-true}
+      SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
     expose:
       - 80
+    extra_hosts:
+      - "oidc.test:host-gateway"
+      - "console.test:host-gateway"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.controlplane.rule=Host(`controlplane`)"
+      - "traefik.http.routers.controlplane.rule=Host(`controlplane.test`)"
       - "traefik.http.routers.controlplane.entrypoints=websecure"
       - "traefik.http.routers.controlplane.tls=true"
       - "traefik.http.services.controlplane.loadbalancer.server.port=80"
     volumes:
       - ./controlplane:/app
+      - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
       - type: volume
         source: nfs-snippets
         target: /mnt/pve/nfs-snippets
@@ -130,7 +144,7 @@ services:
     build:
       context: oidc-server
     environment:
-      CONSOLE_URL: ${CONSOLE_URL:-https://console}
+      CONSOLE_URL: ${CONSOLE_URL:-https://console.test}
       PORT: 80
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
     expose:
@@ -142,7 +156,7 @@ services:
       retries: 24
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.oidc.rule=Host(`oidc`)"
+      - "traefik.http.routers.oidc.rule=Host(`oidc.test`)"
       - "traefik.http.routers.oidc.entrypoints=websecure"
       - "traefik.http.routers.oidc.tls=true"
       - "traefik.http.services.oidc.loadbalancer.server.port=80"
@@ -150,14 +164,18 @@ services:
   playwright:
     image: mcr.microsoft.com/playwright:v1.51.1-noble
     command: /bin/sh -c "npx -y playwright@1.51.1 run-server --port 4444 --host 0.0.0.0"
+    environment:
+      - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/docker-compose-dev-ca.crt
     extra_hosts:
-      - "console:host-gateway"
-      - "oidc:host-gateway"
-      - "controlplane:host-gateway"
+      - "console.test:host-gateway"
+      - "oidc.test:host-gateway"
+      - "controlplane.test:host-gateway"
     ports:
       - "4444:4444"
     profiles:
       - donotstart
+    volumes:
+      - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
 
   postgres:
     image: postgres:16-alpine
@@ -226,11 +244,11 @@ services:
       traefik:
         condition: service_started
     environment:
-      CONSOLE_URL: ${CONSOLE_URL:-https://console}
-      CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane}
-      NODE_TLS_REJECT_UNAUTHORIZED: 0
+      CONSOLE_URL: ${CONSOLE_URL:-https://console.test}
+      CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
+      NODE_EXTRA_CA_CERTS: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-      OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc}
+      OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc.test}
       PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
       PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
       PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev-dc03-internal.france-nuage.fr}
@@ -239,15 +257,17 @@ services:
       PROXMOX_TEST_URL: ${PROXMOX_TEST_URL:-https://pve01-test01.france-nuage.fr}
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
       PW_TEST_HTML_REPORT_OPEN: never
+      SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
     extra_hosts:
-      - "console:host-gateway"
-      - "oidc:host-gateway"
-      - "controlplane:host-gateway"
+      - "console.test:host-gateway"
+      - "controlplane.test:host-gateway"
+      - "oidc.test:host-gateway"
     ports:
       - "9000:9000"
     profiles:
       - donotstart
     volumes:
+      - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
       - ./system-tests:/app
       - /app/node_modules
 
@@ -260,11 +280,15 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/traefik/certs:ro
+      - ./traefik:/etc/traefik/dynamic:ro
 
 volumes:
   nfs-snippets:
@@ -274,3 +298,4 @@ volumes:
       o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
       device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
   postgres_data:
+  target:

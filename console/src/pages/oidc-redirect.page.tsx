@@ -1,6 +1,5 @@
 import { FunctionComponent, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { toast } from 'react-toastify';
 
 import { setOIDCUser } from '@/features';
 import { useAppDispatch } from '@/hooks';
@@ -26,18 +25,13 @@ export const OidcRedirectPage: FunctionComponent = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    userManager
-      .signinCallback()
-      .then((user) => {
-        if (!user) {
-          throw new Error('Error: user could not be retrieved.');
-        }
-        dispatch(setOIDCUser(user));
-        navigate('/', { replace: true });
-      })
-      .catch((error: Error) => {
-        toast.error(error.toString());
-      });
+    userManager.signinCallback().then((user) => {
+      if (!user) {
+        throw new Error('Error: user could not be retrieved.');
+      }
+      dispatch(setOIDCUser(user));
+      navigate('/', { replace: true });
+    });
   }, [dispatch, navigate]);
 
   return <div>loading</div>;

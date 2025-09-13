@@ -13,6 +13,8 @@
 //! ## Usage Pattern
 //!
 //! ```
+//! # #[cfg(feature = "mock")]
+//! # mod wrapper_module {
 //! use auth::mock::WithWellKnown;
 //! use mock_server::MockServer;
 //!
@@ -21,19 +23,91 @@
 //!     let mock = MockServer::new().await.with_well_known();
 //!     // Mock server now responds to /.well-known/openid-configuration
 //! }
+//! # }
 //! ```
-
-#[cfg(feature = "mock")]
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use mock_server::MockServer;
-
-#[cfg(feature = "mock")]
+use rsa::PublicKeyParts;
 use serde_json::json;
+
+use crate::OpenID;
+
+/// Standard key identifier used for mock JWT signatures.
+///
+/// This constant provides a consistent key ID for RSA keys generated during testing.
+/// All mock JWTs created by the `JwkValidator::token()` method will use this key ID,
+/// and the corresponding JWK exposed by `WithJwks::with_jwks()` will have the same ID.
+pub const MOCK_JWK_KID: &str = "mock-key-01";
+
+/// Trait for configuring JWK Set endpoints on mock servers.
+///
+/// This trait extends mock servers with the ability to respond to JWK Set requests
+/// at the standard OAuth discovery endpoint (`/oauth/discovery/keys`). The exposed
+/// JWK Set contains the public key corresponding to the private key used for
+/// signing mock JWT tokens.
+///
+/// ## Key Management
+///
+/// The JWK Set uses the same RSA key pair as `JwkValidator::rsa()`, ensuring that
+/// tokens created with `JwkValidator::token()` can be validated against the
+/// JWK Set exposed by this mock endpoint.
+pub trait WithJwks {
+    /// Configures the mock server to respond to JWK Set requests.
+    ///
+    /// Adds a mock endpoint at `/oauth/discovery/keys` that returns a JWK Set
+    /// containing the public RSA key used for JWT signature validation in tests.
+    ///
+    /// # Returns
+    ///
+    /// The configured mock server with JWK Set endpoint enabled.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "mock")]
+    /// # mod wrapper_module {
+    /// use auth::mock::WithJwks;
+    /// use mock_server::MockServer;
+    ///
+    /// #[tokio::test]
+    /// async fn test_jwt_validation() {
+    ///     let mock = MockServer::new().await.with_jwks();
+    ///     // Mock server now responds to /oauth/discovery/keys with JWK Set
+    /// }
+    /// # }
+    /// ```
+    fn with_jwks(self) -> Self;
+}
+
+impl WithJwks for MockServer {
+    fn with_jwks(mut self) -> Self {
+        let (_, public_key) = OpenID::rsa();
+        let key = json!({
+            "kty": "RSA",
+            "use": "sig",
+            "kid": MOCK_JWK_KID,
+            "alg": "RS256",
+            "n": URL_SAFE_NO_PAD.encode(public_key.n().to_bytes_be()),
+            "e": URL_SAFE_NO_PAD.encode(public_key.e().to_bytes_be()),
+        });
+        let body = json!({ "keys": [key] }).to_string();
+        let mock = self
+            .server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(r"^/oauth/discovery/keys$".to_string()),
+            )
+            .with_body(body)
+            .create();
+        self.mocks.push(mock);
+        self
+    }
+}
 
 /// Trait for configuring OIDC well-known discovery endpoint on mock servers.
 ///
 /// This trait extends mock servers with the ability to respond to OIDC
 /// discovery requests, enabling authentication testing workflows.
-#[cfg(feature = "mock")]
 pub trait WithWellKnown {
     /// Configures the mock server to respond to OIDC discovery requests.
     ///
@@ -42,7 +116,6 @@ pub trait WithWellKnown {
     fn with_well_known(self) -> Self;
 }
 
-#[cfg(feature = "mock")]
 impl WithWellKnown for MockServer {
     fn with_well_known(mut self) -> Self {
         let base = self.url();

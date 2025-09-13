@@ -172,9 +172,10 @@ impl<L> Application<L> {
                     self.config.allow_headers,
                     self.config.allow_methods,
                     self.config.allow_origin,
+                    self.config.expose_headers,
                 )
                 .with_web()
-                .with_authentication(self.config.validator),
+                .with_authentication(self.config.openid),
         }
     }
 

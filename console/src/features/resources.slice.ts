@@ -1,8 +1,9 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { services } from '@/services';
-import { RootState } from '@/store';
+import { ExtraArgument } from '@/store';
 import { Organization, Project } from '@/types';
+
+import { logout } from './authentication.slice';
 
 /**
  * Fetch all organizations
@@ -10,9 +11,9 @@ import { Organization, Project } from '@/types';
 export const fetchAllOrganizations = createAsyncThunk<
   Organization[],
   void,
-  { state: RootState }
->('resources/fetchAllOrganizations', async (_, { getState }) =>
-  services[getState().application.mode].organization.list(),
+  { extra: ExtraArgument }
+>('resources/fetchAllOrganizations', async (_, { extra }) =>
+  extra.services.organization.list(),
 );
 
 /**
@@ -21,9 +22,9 @@ export const fetchAllOrganizations = createAsyncThunk<
 export const fetchAllProjects = createAsyncThunk<
   Project[],
   void,
-  { state: RootState }
->('resources/fetchAllProjects', async (_, { getState }) =>
-  services[getState().application.mode].project.list(),
+  { extra: ExtraArgument }
+>('resources/fetchAllProjects', async (_, { extra }) =>
+  extra.services.project.list(),
 );
 
 /**
@@ -53,6 +54,10 @@ export const resourcesSlice = createSlice({
       })
       .addCase(fetchAllProjects.fulfilled, (state, action) => {
         state.projects = action.payload;
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.organizations = [];
+        state.projects = [];
       });
   },
   initialState,
