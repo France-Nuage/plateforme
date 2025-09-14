@@ -1,3 +1,15 @@
+# [1.34.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.33.0...v1.34.0) (2025-09-14)
+
+
+### Bug Fixes
+
+* repair store url params ([4dbbdec](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4dbbdec90e8dff8406a1505ef3a49ce3b07de24f))
+
+
+### Features
+
+* refresh user when token expires ([09b0fad](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/09b0fad52d777a5ef6966676b13bcbfab809823c))
+
 # [1.33.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.32.1...v1.33.0) (2025-09-14)
 
 
