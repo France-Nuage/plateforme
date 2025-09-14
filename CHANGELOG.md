@@ -1,3 +1,17 @@
+# [1.33.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.32.1...v1.33.0) (2025-09-14)
+
+
+### Bug Fixes
+
+* use id_tokens ([9a73239](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9a73239aa84087b7524e2fe1ebaf9c3c9c24b27e))
+
+
+### Features
+
+* add authorization for the ListOrganizations endpoint ([969672c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/969672c0923cc6fc1dba16db13440bf3c3e6c4e5))
+* add authorization metadata when calling rpc from console ([882496f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/882496fbfdfb28dda8eb209ecc2cb7a264c74621))
+* add authorization support ([45aa7a7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/45aa7a77221a160c715c5e3c651f979772ae7c07))
+
 ## [1.32.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.32.0...v1.32.1) (2025-09-04)
 
 ### Bug Fixes
