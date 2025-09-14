@@ -5,6 +5,15 @@ import { LuChevronsUpDown } from 'react-icons/lu';
 import { setActiveOrganization, setActiveProject } from '@/features';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 
+/**
+ * Global project and organization switcher component.
+ *
+ * Displays dropdown menus for switching between organizations and projects.
+ * Automatically filters projects based on the selected organization and updates
+ * the application state when selections change.
+ *
+ * @returns The rendered project switcher component
+ */
 export const ProjectGlobalSwitcher: FunctionComponent = () => {
   const dispatch = useAppDispatch();
   const activeOrganization = useAppSelector(
@@ -16,7 +25,13 @@ export const ProjectGlobalSwitcher: FunctionComponent = () => {
   const organizations = useAppSelector(
     (state) => state.resources.organizations,
   );
-  const projects = useAppSelector((state) => state.resources.projects);
+
+  const organizationProjects = useAppSelector((state) =>
+    state.resources.projects.filter(
+      (project) =>
+        project.organizationId === state.application.activeOrganization?.id,
+    ),
+  );
 
   return (
     <Flex alignItems="center" flexDir={{ base: 'column', sm: 'row' }} gap={2}>
@@ -34,20 +49,40 @@ export const ProjectGlobalSwitcher: FunctionComponent = () => {
       <SwitcherMenu
         format={(project) => project?.name || 'Aucun projet'}
         onChange={(project) => dispatch(setActiveProject(project))}
-        options={projects}
+        options={organizationProjects}
         value={activeProject}
       />
     </Flex>
   );
 };
 
+/**
+ * Props for the generic SwitcherMenu component.
+ *
+ * @template T - The type of options in the menu
+ */
 type ProjectSwitcherMenuProps<T> = {
+  /** Function to format an option for display */
   format: (option: T) => string;
+  /** Array of available options */
   options: T[];
+  /** Callback fired when selection changes */
   onChange: (id: T) => void;
+  /** Currently selected value */
   value: T;
 };
 
+/**
+ * Generic dropdown menu component for switching between options.
+ *
+ * @template T - The type of options in the menu
+ * @param props - Component props
+ * @param props.format - Function to format an option for display
+ * @param props.options - Array of available options
+ * @param props.onChange - Callback fired when selection changes
+ * @param props.value - Currently selected value
+ * @returns The rendered switcher menu
+ */
 export const SwitcherMenu = <T,>({
   format,
   options,
