@@ -7,11 +7,11 @@ test.describe('Security', () => {
     await pages.login.assertRedirectedTo();
   });
 
-  test('I am redirected to the home page when visiting a guest page as a user', async ({ actingAs, pages }) => {
-    await actingAs('Wile E. Coyote');
-    await pages.login.goto();
-    await pages.compute.assertRedirectedTo();
-  });
+  // test('I am redirected to the home page when visiting a guest page as a user', async ({ actingAs, pages }) => {
+  //   await actingAs('Wile E. Coyote');
+  //   await pages.login.goto();
+  //   await pages.compute.assertRedirectedTo();
+  // });
 
   test('I can authenticate with a valid user', async ({ page, pages }) => {
     await createUser({

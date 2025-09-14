@@ -1,7 +1,11 @@
 import { FunctionComponent, useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router';
 
-import { useAppSelector, useControlplaneData } from '@/hooks';
+import {
+  useAppSelector,
+  useControlplaneData,
+  useStoreUrlParams,
+} from '@/hooks';
 import { Routes } from '@/types';
 
 export type PageGuardProps = {
@@ -24,6 +28,7 @@ export const PageGuard: FunctionComponent<PageGuardProps> = ({
   );
   const navigate = useNavigate();
   useControlplaneData();
+  useStoreUrlParams();
 
   const [isLoading, setLoading] = useState(true);
 

@@ -101,6 +101,22 @@ export const applicationSlice = createSlice({
   name: 'application',
   reducers: {
     /**
+     * Set both active organization and project synchronously.
+     *
+     * Used when both values need to be updated atomically,
+     * typically during initialization or URL parameter reconciliation.
+     */
+    setActiveState: (
+      state,
+      action: PayloadAction<{
+        activeOrganization: Organization;
+        activeProject: Project;
+      }>,
+    ) => {
+      state.activeOrganization = action.payload.activeOrganization;
+      state.activeProject = action.payload.activeProject;
+    },
+    /**
      * Set the application loading state.
      */
     setApplicationLoaded: (state, action: PayloadAction<boolean>) => {
@@ -116,6 +132,7 @@ export const applicationSlice = createSlice({
   },
 });
 
-export const { setApplicationLoaded, setMode } = applicationSlice.actions;
+export const { setApplicationLoaded, setMode, setActiveState } =
+  applicationSlice.actions;
 
 export default applicationSlice;

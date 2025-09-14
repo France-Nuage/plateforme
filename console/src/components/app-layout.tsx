@@ -10,14 +10,27 @@ import { FunctionComponent } from 'react';
 import { Link, Outlet } from 'react-router';
 
 import { AppHeader, AppSidebar, AppSidebarProps } from '@/components';
-import { useActiveParamsReconciliation } from '@/hooks';
 
+/**
+ * Props for the AppLayout component.
+ */
 export type AppLayoutProps = {
+  /** Navigation links to display in the sidebar */
   links: AppSidebarProps['links'];
 };
 
+/**
+ * Main application layout component.
+ *
+ * Provides the core application structure including header, sidebar navigation,
+ * and main content area. Features responsive design with drawer-based navigation
+ * on mobile devices and fixed sidebar on larger screens.
+ *
+ * @param props - Component props
+ * @param props.links - Navigation links to display in the sidebar
+ * @returns The rendered application layout
+ */
 export const AppLayout: FunctionComponent<AppLayoutProps> = ({ links }) => {
-  useActiveParamsReconciliation();
   return (
     <Box colorPalette={'blue'}>
       <Drawer.Root placement="start">
