@@ -208,6 +208,50 @@ services:
     profiles:
       - donotstart
 
+  spicedb:
+    image: "authzed/spicedb:latest"
+    command: serve
+    depends_on:
+      spicedb_datastore:
+        condition: service_healthy
+    environment:
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD:-spicedb}@spicedb_datastore:5432/spicedb?sslmode=disable
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=localhost:50051"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    ports:
+      - "50051:50051"
+      - "8443:8443"
+
+  spicedb_datastore:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: spicedb
+      POSTGRES_USER: spicedb
+      POSTGRES_PASSWORD: ${POSTGRES_SPICEDB_PASSWORD:-spicedb}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spicedb -d spicedb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_spicedb_data:/var/lib/postgresql/data
+
+  spicedb-playground:
+    image: "ghcr.io/authzed/spicedb-playground:latest"
+    ports:
+      - "3000:3000"
+    depends_on:
+      spicedb:
+        condition: service_healthy
+
   synchronizer:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
@@ -290,6 +334,15 @@ services:
       - ./certs:/etc/traefik/certs:ro
       - ./traefik:/etc/traefik/dynamic:ro
 
+  zed:
+    image: authzed/zed:latest
+    environment:
+      - ZED_ENDPOINT=spicedb:50051
+      - ZED_INSECURE=true
+      - ZED_TOKEN=${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
+    volumes:
+      - ./authz:/authz
+
 volumes:
   nfs-snippets:
     driver: local
@@ -298,4 +351,5 @@ volumes:
       o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
       device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
   postgres_data:
+  postgres_spicedb_data:
   target:

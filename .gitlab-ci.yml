@@ -78,6 +78,11 @@ gitleaks:
   script:
     - docker compose run --remove-orphans markdown-lint
 
+"unit tests / authz":
+  stage: "unit-tests"
+  script:
+    - docker compose run zed validate authz/tests.yaml
+
 "unit tests / migration linting":
   stage: "unit-tests"
   script:

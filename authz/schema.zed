@@ -1,0 +1,23 @@
+definition organization {
+	relation member: user
+	relation owner: user
+	permission view = member + owner
+}
+
+definition folder {
+	relation parent: folder | organization
+	permission view = parent->view
+}
+
+definition project {
+	relation owner: folder | organization
+	permission view = owner->view
+}
+
+definition instance {
+	relation owner: project
+	relation reader: user
+	permission view = reader + owner->view
+}
+
+definition user {}

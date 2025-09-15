@@ -1,0 +1,13 @@
+schemaFile: "./schema.zed"
+relationships: |-
+  folder:locomotion#parent@folder:innovation
+  folder:innovation#parent@organization:acme
+  instance:anvil01#owner@project:rocket-shoes
+  instance:anvil01#reader@user:wile_coyote
+  organization:acme#owner@user:marvin_acme
+  project:rocket-shoes#owner@folder:locomotion
+assertTrue: |-
+  instance:anvil01#view@user:marvin_acme
+  instance:anvil01#view@user:wile_coyote
+assertFalse: |-
+  instance:anvil01#view@user:road_runner
