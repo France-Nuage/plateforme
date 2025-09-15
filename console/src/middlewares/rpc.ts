@@ -52,15 +52,17 @@ export function applyAuthenticationHeader(
 }
 
 /**
- * The handleRpcError middleware.
+ * Handles RPC errors from gRPC service calls.
  *
- * This middleware is a function used as an interceptor in the
- * `services/transport.rpc.ts` grpc transport instance. It allows handling rpc
- * errors by:
- * - notifying the user through the UI using [toasts](https://www.chakra-ui.com/docs/components/toast)
+ * Processes errors, maps unregistered user messages, notifies users
+ * via toasts, and handles authentication failures by logging out users.
+ *
+ * @param error - The RPC error from gRPC service
+ * @param store - Redux store for dispatching actions
  */
 export function handleRpcError(error: RpcError, store: AppStore) {
   error.message = decodeURIComponent(error.message);
+  error = mapUnregisteredErrorToAlphaVersionContextualError(error);
   console.log(error.message);
   notify(error.code, error.message);
   switch (error.code) {
@@ -68,12 +70,12 @@ export function handleRpcError(error: RpcError, store: AppStore) {
       store.dispatch(logout());
       break;
     default:
+      store.dispatch(logout());
       console.log(
         `unhandled error code: "${error.code}"`,
         JSON.stringify(error),
       );
       throw error;
-      break;
   }
 }
 
@@ -92,3 +94,25 @@ export function handleRpcError(error: RpcError, store: AppStore) {
 const notify = debounce((title: string, description: string) => {
   toaster.create({ description, title });
 }, ERROR_DEBOUNCE_WAIT);
+
+/**
+ * Maps unregistered user errors to e contextual error with support contact.
+ *
+ * Temporary workaround for alpha version - users must be manually created in database.
+ * Will be removed once SpiceDB and proper user onboarding are implemented.
+ *
+ * @param error - RPC error to transform
+ * @returns Modified error with contextual message or original error
+ */
+function mapUnregisteredErrorToAlphaVersionContextualError(error: RpcError) {
+  const regex = /^user\s+(\S+@\S+\.\S+)\s+is\s+not\s+registered$/;
+  const match = error.message.match(regex);
+  if (match) {
+    const email = match[1];
+    error.code = 'ACCESS DENIED';
+    error.message = `Email "${email}" is not registered. Contact support@france-nuage.fr for alpha access.`;
+    console.log(`found email: ${email}`);
+  }
+
+  return error;
+}
