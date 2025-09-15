@@ -1,3 +1,10 @@
+# [1.35.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.34.0...v1.35.0) (2025-09-15)
+
+
+### Features
+
+* provide contextual error for unregistered users ([2c7ce20](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2c7ce20451d730c1ebf87d35d0fdbcb683c12ddc))
+
 # [1.34.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.33.0...v1.34.0) (2025-09-14)
 
 
