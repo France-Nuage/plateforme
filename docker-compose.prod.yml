@@ -1,0 +1,79 @@
+services:
+  controlplane:
+    container_name: france-nuage-control-plane
+    environment:
+      CONSOLE_URL: https://console.france-nuage.fr
+      CONTROLPLANE_ADDR: 0.0.0.0:80
+      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
+      OIDC_URL: https://gitlab.com/.well-known/openid-configuration
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:80"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/controlplane:release
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    ports:
+      - "80:80"
+    restart: always
+    pull_policy: always
+    volumes:
+      - type: volume
+        source: nfs-snippets
+        target: /mnt/pve/nfs-snippets
+        volume:
+          nocopy: true
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: controlplane
+      POSTGRES_PASSWORD: ${POSTGRES_CONTROLPLANE_PASSWORD}
+      POSTGRES_DB: controlplane
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  spicedb:
+    image: "authzed/spicedb:latest"
+    command: serve
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD}@postgres:5432/spicedb?sslmode=disable
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=localhost:50051"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    ports:
+      - "50051:50051"
+      - "8443:8443"
+
+  watchtower:
+    command: "--interval 300 --label-enable --cleanup"
+    container_name: watchtower
+    environment:
+      - WATCHTOWER_WATCHDOG=true
+    image: containrrr/watchtower:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  nfs-snippets:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nfs-snippets.france-nuage.fr,rw,nfsvers=4
+      device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox"
+  postgres_data:
