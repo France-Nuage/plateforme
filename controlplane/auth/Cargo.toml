@@ -11,6 +11,7 @@ mock = [
   "dep:rand",
   "dep:rsa",
   "dep:serde_json",
+  "spicedb/mock",
 ]
 
 [dependencies]
@@ -32,6 +33,7 @@ reqwest = { version = "0.12", features = ["json"] }
 rsa = { version = "0.8", optional = true }
 serde = { version = "1" }
 serde_json = { version = "1", optional = true }
+spicedb = { path = "../spicedb" }
 sqlx = { version = "0.8", features = [
   "chrono",
   "macros",
@@ -40,6 +42,8 @@ sqlx = { version = "0.8", features = [
   "runtime-tokio-rustls",
   "uuid",
 ] }
+strum = "0.27"
+strum_macros = "0.27"
 thiserror = "2"
 tracing = "0.1"
 tokio = "1"

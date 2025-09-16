@@ -14,6 +14,7 @@ members = [
   "mock_server",
   "resources",
   "server",
+  "spicedb",
   "synchronizer",
 ]
 

@@ -37,7 +37,7 @@
 //! # }
 //! ```
 
-use crate::{iam::IAM, openid::OpenID};
+use crate::{authz::Authz, iam::IAM, openid::OpenID};
 use http::Request;
 use std::task::{Context, Poll};
 use tower::{Layer, Service};
@@ -61,6 +61,7 @@ use tower::{Layer, Service};
 /// The internal `OpenID` handles concurrent JWT validation efficiently.
 #[derive(Clone)]
 pub struct AuthenticationLayer {
+    authz: Authz,
     openid: OpenID,
 }
 
@@ -87,8 +88,8 @@ impl AuthenticationLayer {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new(openid: OpenID) -> Self {
-        Self { openid }
+    pub fn new(authz: Authz, openid: OpenID) -> Self {
+        Self { authz, openid }
     }
 }
 
@@ -103,6 +104,7 @@ impl<S> Layer<S> for AuthenticationLayer {
     fn layer(&self, inner: S) -> Self::Service {
         AuthenticationService {
             inner,
+            authz: self.authz.clone(),
             openid: self.openid.clone(),
         }
     }
@@ -139,6 +141,8 @@ impl<S> Layer<S> for AuthenticationLayer {
 pub struct AuthenticationService<S> {
     /// The inner service that will receive authenticated requests
     inner: S,
+
+    authz: Authz,
 
     openid: OpenID,
 }
@@ -179,7 +183,7 @@ where
             .and_then(|value| value.to_str().ok())
             .map(|value| value.to_owned());
 
-        let iam = IAM::new(token, self.openid.clone());
+        let iam = IAM::new(token, self.authz.clone(), self.openid.clone());
         req.extensions_mut().insert(iam);
 
         self.inner.call(req)

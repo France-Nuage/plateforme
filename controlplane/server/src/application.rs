@@ -175,7 +175,7 @@ impl<L> Application<L> {
                     self.config.expose_headers,
                 )
                 .with_web()
-                .with_authentication(self.config.openid),
+                .with_authentication(self.config.authz, self.config.openid),
         }
     }
 

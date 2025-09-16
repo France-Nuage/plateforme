@@ -1,0 +1,166 @@
+syntax = "proto3";
+package authzed.api.materialize.v0;
+
+import "authzed/api/v1/core.proto";
+
+option go_package = "github.com/authzed/authzed-go/proto/authzed/api/materialize/v0";
+option java_package = "com.authzed.api.materialize.v0";
+option java_multiple_files = true;
+
+service WatchPermissionSetsService {
+  // WatchPermissionSets returns a stream of changes to the sets which can be used to compute the watched permissions.
+  //
+  // WatchPermissionSets lets consumers achieve the same thing as WatchPermissions, but trades off a simpler usage model with
+  // significantly lower computational requirements. Unlike WatchPermissions, this method returns changes to the sets of permissions,
+  // rather than the individual permissions. Permission sets are a normalized form of the computed permissions, which
+  // means that the consumer must perform an extra computation over this representation to obtain the final computed
+  // permissions, typically by intersecting the provided sets.
+  //
+  // For example, this would look like a JOIN between the
+  // materialize permission sets table in a target relation database, the table with the resources to authorize access
+  // to, and the table with the subject (e.g. a user).
+  //
+  // In exchange, the number of changes issued by WatchPermissionSets will be several orders of magnitude less than those
+  // emitted by WatchPermissions, which has several implications:
+  // - significantly less resources to compute the sets
+  // - significantly less messages to stream over the network
+  // - significantly less events to ingest on the consumer side
+  // - less ingestion lag from the origin SpiceDB mutation
+  //
+  // The type of scenarios WatchPermissionSets is particularly well suited is when a single change
+  // in the origin SpiceDB can yield millions of changes. For example, in the GitHub authorization model, assigning a role
+  // to a top-level team of an organization with hundreds of thousands of employees can lead to an explosion of
+  // permission change events that would require a lot of computational resources to process, both on Materialize and
+  // the consumer side.
+  //
+  // WatchPermissionSets is thus recommended for any larger scale use case where the fan-out in permission changes that
+  // emerges from a specific schema and data shape is too large to handle effectively.
+  //
+  // The API does not offer a sharding mechanism and thus there should only be one consumer per target system.
+  // Implementing an active-active HA consumer setup over the same target system will require coordinating which
+  // revisions have been consumed in order to prevent transitioning to an inconsistent state.
+  rpc WatchPermissionSets(WatchPermissionSetsRequest) returns (stream WatchPermissionSetsResponse) {}
+
+  // LookupPermissionSets returns the current state of the permission sets which can be used to derive the computed permissions.
+  // It's typically used to backfill the state of the permission sets in the consumer side.
+  //
+  // It's a cursored API and the consumer is responsible to keep track of the cursor and use it on each subsequent call.
+  // Each stream will return <N> permission sets defined by the specified request limit. The server will keep streaming until
+  // the sets per stream is hit, or the current state of the sets is reached,
+  // whatever happens first, and then close the stream. The server will indicate there are no more changes to stream
+  // through the `completed_members` in the cursor.
+  //
+  // There may be many elements to stream, and so the consumer should be prepared to resume the stream from the last
+  // cursor received. Once completed, the consumer may start streaming permission set changes using WatchPermissionSets
+  // and the revision token from the last LookupPermissionSets response.
+  rpc LookupPermissionSets(LookupPermissionSetsRequest) returns (stream LookupPermissionSetsResponse) {}
+}
+  
+message WatchPermissionSetsRequest {
+  // optional_starting_after is used to specify the SpiceDB revision to start watching from.
+  // If not specified, the watch will start from the current SpiceDB revision time of the request ("head revision").
+  authzed.api.v1.ZedToken optional_starting_after = 1;
+}
+
+message WatchPermissionSetsResponse {
+  oneof response {
+    // change is the permission set delta that has occurred as result of a mutation in origin SpiceDB.
+    // The consumer should apply this change to the current state of the permission sets in their target system.
+    // Once an event arrives with completed_revision instead, the consumer shall consider the set of
+    // changes originating from that revision completed.
+    //
+    // The consumer should keep track of the revision in order to resume streaming in the event of consumer restarts.
+    PermissionSetChange change = 1;
+
+    // completed_revision is the revision token that indicates the completion of a set of changes. It may also be
+    // received without accompanying set of changes, indicating that a mutation in the origin SpiceDB cluster did
+    // not yield any effective changes in the permission sets
+    authzed.api.v1.ZedToken completed_revision = 2;
+
+    // lookup_permission_sets_required is a signal that the consumer should perform a LookupPermissionSets call because
+    // the permission set snapshot needs to be rebuilt from scratch. This typically happens when the origin SpiceDB
+    // cluster has seen its schema changed.
+    LookupPermissionSetsRequired lookup_permission_sets_required = 3;
+  }
+}
+
+message Cursor {
+  // limit is the number of permission sets to stream over a single LookupPermissionSets call that was requested.
+  uint32 limit = 1;
+  // token is the snapshot revision at which the cursor was computed.
+  authzed.api.v1.ZedToken token = 4;
+  // starting_index is an offset of the permission set represented by this cursor
+  uint32 starting_index = 5;
+  // completed_members is a boolean flag that indicates that the cursor has reached the end of the permission sets
+  bool completed_members = 6;
+}
+
+message LookupPermissionSetsRequest {
+  // limit is the number of permission sets to stream over a single LookupPermissionSets. Once the limit is reached,
+  // the server will close the stream. If more permission sets are available, the consume should open a new stream
+  // providing optional_starting_after_cursor, using the cursor from the last response.
+  uint32 limit = 1;
+  // optional_starting_after_cursor is used to specify the offset to start streaming permission sets from.
+  Cursor optional_starting_after_cursor = 4;
+}
+
+message LookupPermissionSetsResponse {
+  // change represents the permission set delta necessary to transition an uninitialized target system to
+  // a specific snapshot revision. In practice it's not different from the WatchPermissionSetsResponse.change, except
+  // all changes will be of time SET_OPERATION_ADDED because it's assumed there is no known previous state.
+  //
+  // Applying the deltas to a previously initialized target system would yield incorrect results.
+  PermissionSetChange change = 1;
+  // cursor points to a specific permission set in a revision.
+  // The consumer should keep track of the cursor in order to resume streaming in the event of consumer restarts. This
+  // is particularly important in backfill scenarios that may take hours or event days to complete.
+  Cursor cursor = 2;
+}
+
+message PermissionSetChange {
+  enum SetOperation {
+    SET_OPERATION_UNSPECIFIED = 0;
+    SET_OPERATION_ADDED = 1;
+    SET_OPERATION_REMOVED = 2;
+  }
+
+  // revision represents the revision at which the permission set change occurred.
+  authzed.api.v1.ZedToken at_revision = 1;
+  // operation represents the type of set operation that took place as part of the change
+  SetOperation operation = 2;
+  // parent_set represents the permission set parent of either another set or a member
+  SetReference parent_set = 3;
+
+  oneof child {
+    // child_set represents the scenario where another set is considered member of the parent set
+    SetReference child_set = 4;
+    // child_member represents the scenario where an specific object is considered member of the parent set
+    MemberReference child_member = 5;
+  }
+}
+
+message SetReference {
+    // object_type is the type of object in a permission set
+    string object_type = 1;
+    // object_id is the ID of a permission set
+    string object_id = 2;
+    // permission_or_relation is the permission or relation referenced by this permission set
+    string permission_or_relation = 3;
+}
+
+message MemberReference {
+    // object_type is the type of object of a permission set member
+    string object_type = 1;
+    // object_id is the ID of a permission set member
+    string object_id = 2;
+    // optional_permission_or_relation is the permission or relation referenced by this permission set member
+    string optional_permission_or_relation = 3;
+}
+
+// LookupPermissionSetsRequired is a signal that the consumer should perform a LookupPermissionSets call because
+// the permission set snapshot needs to be rebuilt from scratch. This typically happens when the origin SpiceDB
+// cluster has seen its schema changed.
+message LookupPermissionSetsRequired {
+  // required_lookup_at is the snapshot revision at which the permission set needs to be rebuilt to.
+  authzed.api.v1.ZedToken required_lookup_at = 1;
+}

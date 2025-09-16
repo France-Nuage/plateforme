@@ -7,7 +7,7 @@
 //! remaining flexible for production deployments.
 
 use crate::error::Error;
-use auth::OpenID;
+use auth::{Authz, OpenID};
 use mock_server::MockServer;
 use sqlx::{Pool, Postgres};
 use std::{env, net::SocketAddr};
@@ -68,6 +68,8 @@ pub struct Config {
     ///
     /// [`AllowOrigin::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowOrigin.html#method.any
     pub allow_origin: AllowOrigin,
+
+    pub authz: Authz,
 
     /// CORS configuration specifying which response headers are exposed to client scripts.
     ///
@@ -159,6 +161,7 @@ impl Config {
         let addr = Config::reserve_socket_addr(None).await?;
 
         let client = reqwest::Client::new();
+        let authz = Authz::mock().await;
         let openid = OpenID::discover(
             client,
             &format!("{}/.well-known/openid-configuration", &mock_server.url()),
@@ -170,6 +173,7 @@ impl Config {
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
             allow_origin: AllowOrigin::any(),
+            authz,
             expose_headers: ExposeHeaders::any(),
             pool: pool.clone(),
             openid,
@@ -211,11 +215,17 @@ impl Config {
             .await
             .expect("could not fetch oidc configuration");
 
+        let spicedb_addr = env::var("SPICEDB_URL").expect("SPICEDB_URL must be set");
+        let authz = Authz::connect(spicedb_addr)
+            .await
+            .expect("could not connect to authz server");
+
         Ok(Config {
             addr: Config::reserve_socket_addr(env::var("CONTROLPLANE_ADDR").ok()).await?,
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
             allow_origin: AllowOrigin::any(),
+            authz,
             expose_headers: ExposeHeaders::any(),
             pool,
             openid,
