@@ -25,7 +25,7 @@
 //! # let user = User::default();
 //! let authorized = authz
 //!     .can(&user)
-//!     .perform(Permission::ListInstances)
+//!     .perform(Permission::Get)
 //!     .on("instance", "instance-123")
 //!     .check()
 //!     .await;
@@ -80,7 +80,7 @@ use tonic::transport::Channel;
 ///
 /// authz
 ///     .can(&user)
-///     .perform(Permission::ListInstances)
+///     .perform(Permission::Get)
 ///     .on("instance", "my-instance")
 ///     .check()
 ///     .await?;
@@ -101,7 +101,7 @@ use tonic::transport::Channel;
 /// // Mock server allows all permissions by default
 /// let result = authz
 ///     .can(&user)
-///     .perform(Permission::ListInstances)
+///     .perform(Permission::Get)
 ///     .on("instance", "test-instance")
 ///     .check()
 ///     .await;
@@ -193,7 +193,7 @@ impl Authz {
     ///
     /// # Arguments
     ///
-    /// * `permission` - The permission to validate (e.g., `Permission::ListInstances`)
+    /// * `permission` - The permission to validate (e.g., `Permission::Get`)
     ///
     /// # Returns
     ///
@@ -205,7 +205,7 @@ impl Authz {
     /// # use auth::{Authz, Permission};
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
-    /// let authz = authz.perform(Permission::ListInstances);
+    /// let authz = authz.perform(Permission::Get);
     /// # Ok(())
     /// # }
     /// ```
@@ -269,7 +269,7 @@ impl Authz {
     ///
     /// match authz
     ///     .can(&user)
-    ///     .perform(Permission::ListInstances)
+    ///     .perform(Permission::Get)
     ///     .on("instance", "my-instance")
     ///     .check()
     ///     .await
@@ -371,7 +371,7 @@ impl Authz {
     /// // Mock server allows all permissions
     /// let result = authz
     ///     .can(&user)
-    ///     .perform(Permission::ListInstances)
+    ///     .perform(Permission::Get)
     ///     .on("instance", "test-instance")
     ///     .check()
     ///     .await;
@@ -426,7 +426,7 @@ mod tests {
 
         let result = authz
             .can(&user)
-            .perform(Permission::ListInstances)
+            .perform(Permission::Get)
             .on("instance", &Uuid::new_v4().to_string())
             .check()
             .await;

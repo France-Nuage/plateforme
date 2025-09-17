@@ -129,15 +129,15 @@
 //! let authz = Authz::connect("http://spicedb:50051".to_string()).await?;
 //! let user = User::default();
 //!
-//! // Check if user can list instances
+//! // Check if user can read an instance
 //! authz
 //!     .can(&user)
-//!     .perform(Permission::ListInstances)
+//!     .perform(Permission::Get)
 //!     .on("instance", "my-instance")
 //!     .check()
 //!     .await?;
 //!
-//! println!("User authorized to list instances");
+//! println!("User authorized to read instance");
 //! # Ok(())
 //! # }
 //! ```

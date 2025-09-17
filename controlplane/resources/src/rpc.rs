@@ -67,7 +67,7 @@ impl Resources for ResourcesRpcService {
         iam.authz
             .clone()
             .can(&user)
-            .perform(auth::Permission::ListInstances)
+            .perform(auth::Permission::Get)
             .on("organization", "*")
             .check()
             .await?;

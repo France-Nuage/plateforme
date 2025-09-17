@@ -16,9 +16,9 @@
 //! Permissions use dot notation: `domain.resource.action`
 //!
 //! Examples:
-//! - `compute.instances.list` - List compute instances
-//! - `compute.instances.create` - Create new compute instances
-//! - `storage.buckets.read` - Read from storage buckets
+//! - `get` - Read a specific resource
+//! - `create` - Create new resources
+//! - `delete` - Delete existing resources
 //!
 //! ## SpiceDB Integration
 //!
@@ -39,16 +39,16 @@ use strum_macros::{Display, EnumString};
 /// ```
 /// use auth::Permission;
 ///
-/// let permission = Permission::ListInstances;
-/// assert_eq!(permission.to_string(), "compute.instances.list");
+/// let permission = Permission::Get;
+/// assert_eq!(permission.to_string(), "get");
 /// ```
 #[derive(Display, EnumString)]
 pub enum Permission {
-    /// Permission to list compute instances.
+    /// Permission to read a given resource.
     ///
-    /// This permission allows users to retrieve a list of compute instances
+    /// This permission allows users to read a specific resource
     /// within their authorized scope. The scope is determined by the resource
     /// relationships defined in SpiceDB.
-    #[strum(serialize = "compute.instances.list")]
-    ListInstances,
+    #[strum(serialize = "get")]
+    Get,
 }
