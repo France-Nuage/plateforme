@@ -3,10 +3,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_server(true)
         .compile_protos(
             &[
-                // google protos
-                // "proto/google/api/annotations.proto",
-                // "proto/google/api/http.proto",
-                // authzed protos
                 "proto/authzed/api/v1/core.proto",
                 "proto/authzed/api/v1/permission_service.proto",
                 "proto/authzed/api/v1/schema_service.proto",
