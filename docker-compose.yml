@@ -212,12 +212,14 @@ services:
     image: "authzed/spicedb:latest"
     command: serve
     depends_on:
-      spicedb_datastore:
+      spicedb-datastore:
         condition: service_healthy
+      spicedb-migrate:
+        condition: service_completed_successfully
     environment:
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
       SPICEDB_DATASTORE_ENGINE: postgres
-      SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD:-spicedb}@spicedb_datastore:5432/spicedb?sslmode=disable
+      SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD:-spicedb}@spicedb-datastore:5432/spicedb?sslmode=disable
     healthcheck:
       test: ["CMD", "grpc_health_probe", "-addr=localhost:50051"]
       interval: 5s
@@ -227,7 +229,7 @@ services:
       - "50051:50051"
       - "8443:8443"
 
-  spicedb_datastore:
+  spicedb-datastore:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: spicedb
@@ -243,6 +245,17 @@ services:
       - "5433:5432"
     volumes:
       - postgres_spicedb_data:/var/lib/postgresql/data
+
+  spicedb-migrate:
+    image: "authzed/spicedb:latest"
+    command: migrate head
+    depends_on:
+      spicedb-datastore:
+        condition: service_healthy
+    environment:
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD:-spicedb}@spicedb-datastore:5432/spicedb?sslmode=disable
 
   spicedb-playground:
     image: "ghcr.io/authzed/spicedb-playground:latest"
