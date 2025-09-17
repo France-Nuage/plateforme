@@ -52,11 +52,24 @@ impl Resources for ResourcesRpcService {
         &self,
         request: Request<ListOrganizationsRequest>,
     ) -> Result<Response<ListOrganizationsResponse>, Status> {
+        let iam = request
+            .extensions()
+            .get::<IAM>()
+            .ok_or(Status::internal("iam not found"))?;
+
         let user = request
             .extensions()
             .get::<IAM>()
             .ok_or(Status::internal("iam not found"))?
             .user(&self.pool)
+            .await?;
+
+        iam.authz
+            .clone()
+            .can(&user)
+            .perform(auth::Permission::Get)
+            .on("organization", "*")
+            .check()
             .await?;
 
         let organizations = Organization::find_by_user(&self.pool, user).await?;
@@ -185,7 +198,7 @@ mod tests {
         ListProjectsRequest,
     };
     use auth::{
-        OpenID,
+        Authz, OpenID,
         mock::{WithJwks, WithWellKnown},
         model::User,
     };
@@ -209,13 +222,14 @@ mod tests {
             .expect("could not create user");
         let mock = MockServer::new().await.with_well_known().with_jwks();
         let token = OpenID::token(&user.email);
+        let authz = Authz::mock().await;
         let jwk = OpenID::discover(
             reqwest::Client::new(),
             &format!("{}/.well-known/openid-configuration", &mock.url()),
         )
         .await
         .unwrap();
-        let iam = IAM::new(Some(format!("Bearer {}", token)), jwk);
+        let iam = IAM::new(Some(format!("Bearer {}", token)), authz, jwk);
         let service = ResourcesRpcService::new(pool);
 
         // Act the call to the list_organizations procedure

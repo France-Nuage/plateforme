@@ -1,0 +1,86 @@
+syntax = "proto3";
+package authzed.api.materialize.v0;
+
+import "authzed/api/v1/core.proto";
+
+option go_package = "github.com/authzed/authzed-go/proto/authzed/api/materialize/v0";
+option java_package = "com.authzed.api.materialize.v0";
+option java_multiple_files = true;
+
+service WatchPermissionsService {
+  // WatchPermissions returns a stream of PermissionChange events for the given permissions.
+  //
+  // WatchPermissions is a long-running RPC, and will stream events until the client
+  // closes the connection or the server terminates the stream. The consumer is responsible of
+  // keeping track of the last seen revision and resuming the stream from that point in the event
+  // of disconnection or client-side restarts.
+  //
+  // The API does not offer a sharding mechanism and thus there should only be one consumer per target system.
+  // Implementing an active-active HA consumer setup over the same target system will require coordinating which
+  // revisions have been consumed in order to prevent transitioning to an inconsistent state.
+  //
+  // Usage of WatchPermissions requires to be explicitly enabled on the service, including the permissions to be
+  // watched. It requires more resources and is less performant than WatchPermissionsSets. It's usage
+  // is only recommended when performing the set intersections of WatchPermissionSets in the client side is not viable
+  // or there is a strict application requirement to use consume the computed permissions.
+  rpc WatchPermissions(WatchPermissionsRequest) returns (stream WatchPermissionsResponse) {}
+}
+
+message WatchPermissionsRequest {
+  // permissions is a list of permissions to watch for changes. At least one permission must be specified, and it must
+  // be a subset or equal to the permissions that were enabled for the service.
+  repeated WatchedPermission permissions = 1;
+  // optional_starting_after is the revision token to start watching from. If not provided, the stream
+  // will start from the current revision at the moment of the request.
+  authzed.api.v1.ZedToken optional_starting_after = 2;
+}
+
+message WatchedPermission {
+  // resource_type is the type of the resource to watch for changes.
+  string resource_type = 1;
+  // permission is the permission to watch for changes.
+  string permission = 2;
+  // subject_type is the type of the subject to watch for changes.
+  string subject_type = 3;
+  // optional_subject_relation is the relation on the subject to watch for changes.
+  string optional_subject_relation = 4;
+}
+
+message WatchPermissionsResponse {
+  oneof response {
+    // change is the computed permission delta that has occurred as result of a mutation in origin SpiceDB.
+    // The consumer should apply this change to the current state of the computed permissions in their target system.
+    // Once an event arrives with completed_revision instead, the consumer shall consider there are not more changes
+    // originating from that revision.
+    //
+    // The consumer should keep track of the revision in order to resume streaming in the event of consumer restarts.
+    PermissionChange change = 1;
+
+    // completed_revision is the revision token that indicates all changes originating from a revision have been
+    // streamed and thus the revision should be considered completed. It may also be
+    // received without accompanying set of changes, indicating that a mutation in the origin SpiceDB cluster did
+    // not yield any effective changes in the computed permissions
+    authzed.api.v1.ZedToken completed_revision = 2;
+  }
+}
+
+message PermissionChange {
+  enum Permissionship {
+    PERMISSIONSHIP_UNSPECIFIED = 0;
+    PERMISSIONSHIP_NO_PERMISSION = 1;
+    PERMISSIONSHIP_HAS_PERMISSION = 2;
+    PERMISSIONSHIP_CONDITIONAL_PERMISSION = 3;
+  }
+
+  // revision represents the revision at which the change occurred.
+  authzed.api.v1.ZedToken revision = 1;
+
+  // resource is the resource that the permission change is related to.
+  authzed.api.v1.ObjectReference resource = 2;
+  // permission is the permission that has changed.
+  string permission = 3;
+  // subject is the subject that the permission change is related to.
+  authzed.api.v1.SubjectReference subject = 4;
+  // permissionship is the new permissionship of the subject over the resource after the change.
+  Permissionship permissionship = 5;
+}

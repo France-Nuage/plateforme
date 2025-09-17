@@ -33,7 +33,7 @@ use sqlx::Postgres;
 use tokio::sync::OnceCell;
 use tracing::info;
 
-use crate::{Error, OpenID, model::User, rfc7519::Claim};
+use crate::{Error, OpenID, authz::Authz, model::User, rfc7519::Claim};
 
 /// Identity and Access Management context for HTTP request authentication.
 ///
@@ -65,6 +65,8 @@ use crate::{Error, OpenID, model::User, rfc7519::Claim};
 /// all requests with shared caching for JWK keys (not tokens or claims).
 #[derive(Clone)]
 pub struct IAM {
+    pub authz: Authz,
+
     /// Lazily-loaded JWT claims cache with request-scoped initialization protection.
     ///
     /// Claims are fetched on-demand rather than eagerly during IAM creation to avoid
@@ -88,8 +90,9 @@ impl IAM {
     ///   `None` indicates no authentication token was present in the request.
     /// * `openid` - OpenID provider configured with OIDC information
     ///   for token validation
-    pub fn new(token: Option<String>, openid: OpenID) -> Self {
+    pub fn new(token: Option<String>, authz: Authz, openid: OpenID) -> Self {
         IAM {
+            authz,
             claim: OnceCell::new(),
             openid,
             token,

@@ -1,0 +1,25 @@
+definition organization {
+	relation member: user
+  relation parent: organization
+
+  permission get = member + parent->member
+}
+
+definition folder {
+	relation parent: folder | organization
+	permission get = parent->get
+}
+
+definition project {
+	relation parent: folder | organization
+
+	permission get = parent->get
+}
+
+definition instance {
+	relation project: project
+
+	permission get = project->get
+}
+
+definition user {}

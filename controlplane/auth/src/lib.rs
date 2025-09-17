@@ -12,6 +12,8 @@
 //! - **JWT Validation**: Validate JWT tokens using JWK (JSON Web Key) sets with caching
 //! - **Authentication Middleware**: Tower middleware layer for automatic request authentication
 //! - **IAM Context**: Per-request identity and access management context
+//! - **SpiceDB Authorization**: Fine-grained access control with Google Zanzibar-style permissions
+//! - **Permission System**: Type-safe permission definitions with fluent authorization API
 //! - **Standards Compliance**: Full compliance with RFC 7517 (JWK), RFC 7519 (JWT), and OIDC specifications
 //!
 //! ## Design Principles
@@ -51,7 +53,7 @@
 //! ### Middleware Integration
 //!
 //! ```rust
-//! use auth::{AuthenticationLayer, OpenID};
+//! use auth::{AuthenticationLayer, Authz, OpenID};
 //! use tower::ServiceBuilder;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -59,8 +61,9 @@
 //!     reqwest::Client::new(),
 //!     "https://provider.com/.well-known/openid_configuration"
 //! ).await?;
+//! let authz = Authz::mock().await;
 //!
-//! let service = ServiceBuilder::new().layer(AuthenticationLayer::new(openid));
+//! let service = ServiceBuilder::new().layer(AuthenticationLayer::new(authz, openid));
 //! # Ok(())
 //! # }
 //! ```
@@ -70,10 +73,12 @@
 //! This crate consists of several modules:
 //! - **authentication_layer** - Tower middleware for HTTP request authentication
 //! - **iam** - Identity and Access Management context for authenticated requests
+//! - **authz** - SpiceDB authorization client with fluent API for permission checking
+//! - **permission** - Type-safe permission definitions for fine-grained access control
 //! - **model** - Temporary database models for user authorization (will be replaced by SpiceDB)
 //! - **openid** - JWT token validation with JWK key management and caching
 //! - **discovery** - OIDC provider metadata and discovery functionality
-//! - **error** - Comprehensive error types for all authentication operations
+//! - **error** - Comprehensive error types for all authentication and authorization operations
 //! - **rfc7517** - JWT claims structures following RFC 7517 specification
 //!
 //! ## Features
@@ -117,6 +122,27 @@
 //! # }
 //! ```
 //!
+//! ### Authorization with SpiceDB
+//! Perform fine-grained access control checks using SpiceDB:
+//! ```
+//! # use auth::{Authz, Permission, model::User};
+//! # async fn example() -> Result<(), auth::Error> {
+//! let authz = Authz::connect("http://spicedb:50051".to_string()).await?;
+//! let user = User::default();
+//!
+//! // Check if user can read an instance
+//! authz
+//!     .can(&user)
+//!     .perform(Permission::Get)
+//!     .on("instance", "my-instance")
+//!     .check()
+//!     .await?;
+//!
+//! println!("User authorized to read instance");
+//! # Ok(())
+//! # }
+//! ```
+//!
 //! ## Standards Compliance
 //!
 //! This library implements the following specifications:
@@ -132,16 +158,20 @@
 //! - **Concurrent Fetching**: Efficient parallel key fetching with backpressure control
 
 pub use authentication_layer::AuthenticationLayer;
+pub use authz::Authz;
 pub use error::Error;
 pub use iam::IAM;
 pub use openid::OpenID;
+pub use permission::Permission;
 use tonic::Request;
 
 mod authentication_layer;
+mod authz;
 mod error;
 pub mod iam;
 pub mod model;
 mod openid;
+mod permission;
 mod rfc7519;
 
 #[cfg(feature = "mock")]

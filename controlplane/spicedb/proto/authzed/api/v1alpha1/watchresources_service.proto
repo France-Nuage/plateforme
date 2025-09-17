@@ -1,0 +1,83 @@
+syntax = "proto3";
+package authzed.api.v1alpha1;
+
+option go_package = "github.com/authzed/authzed-go/proto/authzed/api/v1alpha1";
+option java_package = "com.authzed.api.v1alpha1";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+import "authzed/api/v1/core.proto";
+
+// WatchResourcesService is used to receive a stream of updates for resources of a
+// specific (resource type, permission, subject) combination.
+service WatchResourcesService {
+
+  // WatchResources initiates a watch for permission changes for the provided
+  // (resource type, permission, subject) pair.
+  rpc WatchResources(WatchResourcesRequest)
+    returns (stream WatchResourcesResponse) {
+      option (google.api.http) = {
+        post: "/v1alpha1/lookupwatch"
+        body: "*"
+      }; 
+    }
+}
+
+// WatchResourcesRequest starts a watch for specific permission updates
+// for the given resource and subject types.
+message WatchResourcesRequest {
+
+  // resource_object_type is the type of resource object for which we will
+  // watch for changes.
+  string resource_object_type = 1 [ (validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)*[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 128,
+  } ];
+
+  // permission is the name of the permission or relation for which we will
+  // watch for changes.
+  string permission = 2 [ (validate.rules).string = {
+    pattern : "^[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 64,
+  } ];
+
+  // subject_object_type is the type of the subject resource for which we will
+  // watch for changes.
+  string subject_object_type = 3;
+
+  // optional_subject_relation allows you to specify a group of subjects to watch
+  // for a given subject type.
+  string optional_subject_relation = 4;
+
+  authzed.api.v1.ZedToken optional_start_cursor = 5;
+}
+
+// PermissionUpdate represents a single permission update for a specific
+// subject's permissions.
+message PermissionUpdate {
+  
+  // todo: work this into the v1 core API at some point since it's used
+  // across services.
+  enum Permissionship {
+    PERMISSIONSHIP_UNSPECIFIED = 0;
+    PERMISSIONSHIP_NO_PERMISSION = 1;
+    PERMISSIONSHIP_HAS_PERMISSION = 2;
+  }
+
+  // subject defines the subject resource whose permissions have changed.
+  authzed.api.v1.SubjectReference subject = 1;
+
+  // resource defines the specific object in the system.
+  authzed.api.v1.ObjectReference resource = 2;
+
+  string relation = 3;
+  Permissionship updated_permission = 4;
+}
+
+// WatchResourcesResponse enumerates the list of permission updates that have
+// occurred as a result of one or more relationship updates.
+message WatchResourcesResponse {
+  repeated PermissionUpdate updates = 1;
+  authzed.api.v1.ZedToken changes_through = 2;
+}

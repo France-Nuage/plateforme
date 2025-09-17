@@ -1,0 +1,58 @@
+syntax = "proto3";
+package authzed.api.v0;
+
+option go_package = "github.com/authzed/authzed-go/proto/authzed/api/v0";
+option java_package = "com.authzed.api.v0";
+
+import "validate/validate.proto";
+
+message RelationTuple {
+  // Each tupleset specifies keys of a set of relation tuples. The set can
+  // include a single tuple key, or all tuples with a given object ID or
+  // userset in a namespace, optionally constrained by a relation name.
+  //
+  // examples:
+  // doc:readme#viewer@group:eng#member (fully specified)
+  // doc:*#*#group:eng#member (all tuples that this userset relates to)
+  // doc:12345#*#* (all tuples with a direct relationship to a document)
+  // doc:12345#writer#* (all tuples with direct write relationship with the
+  // document) doc:#writer#group:eng#member (all tuples that eng group has write
+  // relationship)
+  ObjectAndRelation object_and_relation = 1
+      [ (validate.rules).message.required = true ];
+  User user = 2 [ (validate.rules).message.required = true ];
+}
+
+message ObjectAndRelation {
+  string namespace = 1 [ (validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 128,
+  } ];
+  string object_id = 2 [ (validate.rules).string = {
+    pattern : "^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$",
+    max_bytes : 128,
+  } ];
+  string relation = 3 [ (validate.rules).string = {
+    pattern : "^(\\.\\.\\.|[a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+  } ];
+}
+
+message RelationReference {
+  string namespace = 1 [ (validate.rules).string = {
+    pattern : "^([a-z][a-z0-9_]{1,61}[a-z0-9]/)?[a-z][a-z0-9_]{1,62}[a-z0-9]$",
+    max_bytes : 128,
+  } ];
+  string relation = 3 [ (validate.rules).string = {
+    pattern : "^(\\.\\.\\.|[a-z][a-z0-9_]{1,62}[a-z0-9])$",
+    max_bytes : 64,
+  } ];
+}
+
+message User {
+  oneof user_oneof {
+    option (validate.required) = true;
+
+    ObjectAndRelation userset = 2 [ (validate.rules).message.required = true ];
+  }
+}

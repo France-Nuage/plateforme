@@ -25,19 +25,20 @@
 //! The authentication layer is typically applied as middleware in a Tower service stack:
 //!
 //! ```
-//! use auth::{AuthenticationLayer, OpenID};
+//! use auth::{AuthenticationLayer, Authz, OpenID};
 //! use tower::ServiceBuilder;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let openid = OpenID::discover(reqwest::Client::new(), "https://provider.com/.well-known/openid_configuration").await?;
-//! let auth_layer = AuthenticationLayer::new(openid);
+//! let authz = Authz::mock().await;
+//! let auth_layer = AuthenticationLayer::new(authz, openid);
 //!
 //! let service = ServiceBuilder::new().layer(auth_layer);
 //! # Ok(())
 //! # }
 //! ```
 
-use crate::{iam::IAM, openid::OpenID};
+use crate::{authz::Authz, iam::IAM, openid::OpenID};
 use http::Request;
 use std::task::{Context, Poll};
 use tower::{Layer, Service};
@@ -61,6 +62,7 @@ use tower::{Layer, Service};
 /// The internal `OpenID` handles concurrent JWT validation efficiently.
 #[derive(Clone)]
 pub struct AuthenticationLayer {
+    authz: Authz,
     openid: OpenID,
 }
 
@@ -75,20 +77,21 @@ impl AuthenticationLayer {
     /// # Examples
     ///
     /// ```
-    /// use auth::{AuthenticationLayer, OpenID};
+    /// use auth::{AuthenticationLayer, Authz, OpenID};
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let openid = OpenID::discover(
     ///     reqwest::Client::new(),
     ///     "https://accounts.google.com/.well-known/openid_configuration"
     /// ).await?;
+    /// let authz = Authz::mock().await;
     ///
-    /// let auth_layer = AuthenticationLayer::new(openid);
+    /// let auth_layer = AuthenticationLayer::new(authz, openid);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new(openid: OpenID) -> Self {
-        Self { openid }
+    pub fn new(authz: Authz, openid: OpenID) -> Self {
+        Self { authz, openid }
     }
 }
 
@@ -103,6 +106,7 @@ impl<S> Layer<S> for AuthenticationLayer {
     fn layer(&self, inner: S) -> Self::Service {
         AuthenticationService {
             inner,
+            authz: self.authz.clone(),
             openid: self.openid.clone(),
         }
     }
@@ -139,6 +143,8 @@ impl<S> Layer<S> for AuthenticationLayer {
 pub struct AuthenticationService<S> {
     /// The inner service that will receive authenticated requests
     inner: S,
+
+    authz: Authz,
 
     openid: OpenID,
 }
@@ -179,7 +185,7 @@ where
             .and_then(|value| value.to_str().ok())
             .map(|value| value.to_owned());
 
-        let iam = IAM::new(token, self.openid.clone());
+        let iam = IAM::new(token, self.authz.clone(), self.openid.clone());
         req.extensions_mut().insert(iam);
 
         self.inner.call(req)

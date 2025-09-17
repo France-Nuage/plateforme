@@ -1,18 +1,20 @@
-//! Error types for authentication operations.
+//! Error types for authentication and authorization operations.
 //!
-//! This module provides comprehensive error handling for JWT authentication and OIDC operations.
-//! All errors implement the standard library's [`Error`] trait and provide detailed context for
-//! debugging and monitoring.
+//! This module provides comprehensive error handling for JWT authentication, OIDC operations,
+//! and SpiceDB authorization checks. All errors implement the standard library's [`Error`] trait
+//! and provide detailed context for debugging and monitoring.
 //!
 //! ## Error Categories
 //!
 //! The errors are organized into several categories:
 //! - **Token Extraction Errors**: Issues with parsing Authorization headers
-//! - **JWT Processing Errors**: Problems during token validation and decoding  
-//! - **Network Errors**: Issues communicating with OIDC providers
+//! - **JWT Processing Errors**: Problems during token validation and decoding
+//! - **Network Errors**: Issues communicating with OIDC providers or SpiceDB
 //! - **Data Format Errors**: Problems parsing OIDC metadata or JWK sets
+//! - **Authorization Errors**: SpiceDB permission check failures and configuration errors
 //! - **Database Errors**: Temporary category for user authorization lookup failures (will be removed with SpiceDB)
 
+use http::uri::InvalidUri;
 use thiserror::Error;
 use tonic::Status;
 
@@ -23,6 +25,20 @@ use tonic::Status;
 /// Each variant provides specific context about what went wrong.
 #[derive(Debug, Error)]
 pub enum Error {
+    /// Error communicating with the SpiceDB authorization server.
+    ///
+    /// This error occurs when gRPC requests to the SpiceDB server fail due to
+    /// network issues, server unavailability, or protocol errors. The contained
+    /// message provides details from the underlying gRPC error.
+    ///
+    /// Common causes include:
+    /// - SpiceDB server is not running or unreachable
+    /// - Network connectivity issues
+    /// - gRPC protocol errors or version mismatches
+    /// - Server-side processing failures
+    #[error("authorization server error: {0}")]
+    AuthorizationServerError(String),
+
     /// Database query error during user authorization lookup.
     ///
     /// This error occurs when database operations fail during the user authorization
@@ -34,6 +50,12 @@ pub enum Error {
     /// from database-backed user authorization to SpiceDB.
     #[error("database error: {0}")]
     Database(#[from] sqlx::Error),
+
+    #[error("forbidden")]
+    Forbidden,
+
+    #[error("internal: {0}")]
+    Internal(String),
 
     /// The Authorization header contains invalid UTF-8 characters or malformed data.
     ///
@@ -97,6 +119,103 @@ pub enum Error {
     /// The URL parameter indicates which provider's metadata failed to parse.
     #[error("unparsable metadata for oidc provider {0}")]
     UnparsableOidcMetadata(String),
+
+    /// The provided SpiceDB server URL cannot be parsed as a valid URI.
+    ///
+    /// This error occurs during client initialization when the SpiceDB server
+    /// URL string cannot be parsed into a valid URI format. This typically
+    /// indicates malformed URLs missing schemes, invalid characters, or
+    /// incorrect formatting.
+    ///
+    /// # Examples of Invalid URLs
+    /// - Missing scheme: `spicedb:50051` (should be `http://spicedb:50051`)
+    /// - Invalid characters: `http://spice db:50051` (spaces not allowed)
+    /// - Malformed port: `http://spicedb:abc` (port must be numeric)
+    #[error("unparsable authz server url: {0}")]
+    UnparsableAuthzServerUrl(#[from] InvalidUri),
+
+    /// Cannot establish connection to the SpiceDB authorization server.
+    ///
+    /// This error occurs when attempting to connect to the SpiceDB server
+    /// fails due to network issues, server unavailability, or connection
+    /// timeouts. The contained URL shows which server was unreachable.
+    ///
+    /// Common causes include:
+    /// - SpiceDB server is not running
+    /// - Network connectivity issues
+    /// - Incorrect server URL or port
+    /// - Firewall or security group blocking connections
+    #[error("unreachable authz server ({0})")]
+    UnreachableAuthzServer(String),
+
+    /// Authorization check attempted without specifying a permission.
+    ///
+    /// This error occurs when `Authz::check()` is called without first
+    /// calling `perform()` to specify which permission should be checked.
+    /// All authorization requests must specify exactly one permission.
+    ///
+    /// # Example Fix
+    /// ```
+    /// # use auth::{Authz, Permission, model::User};
+    /// # async fn example() -> Result<(), auth::Error> {
+    /// # let authz = Authz::mock().await;
+    /// # let user = User::default();
+    /// // Wrong: missing permission
+    /// // authz.can(&user).on("instance", "id").check().await; // Returns UnspecifiedPermission
+    ///
+    /// // Correct: specify permission
+    /// authz.can(&user).perform(Permission::Get).on("instance", "id").check().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[error("no permission was specified for this authorization request")]
+    UnspecifiedPermission,
+
+    /// Authorization check attempted without specifying a target resource.
+    ///
+    /// This error occurs when `Authz::check()` is called without first
+    /// calling `on()` to specify which resource the permission check should
+    /// be performed against. All authorization requests must specify a target resource.
+    ///
+    /// # Example Fix
+    /// ```
+    /// # use auth::{Authz, Permission, model::User};
+    /// # async fn example() -> Result<(), auth::Error> {
+    /// # let authz = Authz::mock().await;
+    /// # let user = User::default();
+    /// // Wrong: missing resource
+    /// // authz.can(&user).perform(Permission::Get).check().await; // Returns UnspecifiedResource
+    ///
+    /// // Correct: specify resource
+    /// authz.can(&user).perform(Permission::Get).on("instance", "my-instance").check().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[error("no resource was specified for this authorization request")]
+    UnspecifiedResource,
+
+    /// Authorization check attempted without specifying a subject (user).
+    ///
+    /// This error occurs when `Authz::check()` is called without first
+    /// calling `can()` to specify which subject (user) the permission check
+    /// should be performed for. All authorization requests must specify a subject.
+    ///
+    /// # Example Fix
+    /// ```
+    /// # use auth::{Authz, Permission, model::User};
+    /// # async fn example() -> Result<(), auth::Error> {
+    /// # let authz = Authz::mock().await;
+    /// # let user = User::default();
+    /// // Wrong: missing subject
+    /// // authz.perform(Permission::Get).on("instance", "id").check().await; // Returns UnspecifiedSubject
+    ///
+    /// // Correct: specify subject
+    /// authz.can(&user).perform(Permission::Get).on("instance", "id").check().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[error("no subject was specified for this authorization request")]
+    UnspecifiedSubject,
 
     /// Failed to parse the JWK Set from the provider's JWKS endpoint.
     ///

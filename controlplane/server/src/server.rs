@@ -6,7 +6,7 @@
 //! over the underlying transport layer while maintaining full compatibility
 //! with tonic's service ecosystem.
 
-use auth::{AuthenticationLayer, OpenID};
+use auth::{AuthenticationLayer, Authz, OpenID};
 use bytes::Bytes;
 use http::{Request, Response};
 use tokio_stream::wrappers::TcpListenerStream;
@@ -144,12 +144,13 @@ impl<L> Server<L> {
     ///
     /// ```
     /// # use server::server::Server;
-    /// # use auth::OpenID;
+    /// # use auth::{Authz, OpenID};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let mock = mock_server::MockServer::new().await;
     /// let openid = OpenID::discover(reqwest::Client::new(), &format!("{}/.well-known/openid-configuration", &mock.url())).await?;
+    /// let authz = Authz::mock().await;
     /// let server = Server::new()
-    ///     .with_authentication(openid);
+    ///     .with_authentication(authz, openid);
     /// # Ok(())
     /// # }
     /// ```
@@ -158,9 +159,13 @@ impl<L> Server<L> {
     /// an [`AuthenticationLayer`] configured with the provided OpenID provider.
     ///
     /// [`tonic::transport::Server::layer`]: https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html#method.layer
-    pub fn with_authentication(self, openid: OpenID) -> Server<Stack<AuthenticationLayer, L>> {
+    pub fn with_authentication(
+        self,
+        authz: Authz,
+        openid: OpenID,
+    ) -> Server<Stack<AuthenticationLayer, L>> {
         Server {
-            inner: self.inner.layer(AuthenticationLayer::new(openid)),
+            inner: self.inner.layer(AuthenticationLayer::new(authz, openid)),
         }
     }
 
