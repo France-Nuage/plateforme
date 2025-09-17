@@ -134,6 +134,11 @@ gitleaks:
       when: on_success
     - when: never
 
+"deploy / apply authz schema":
+  stage: deploy
+  script:
+    - docker compose run zed schema write --endpoint 100.96.0.50:50051 --insecure --token $SPICEDB_TOKEN authz/schema.zed
+
 "deploy / controlplane":
   stage: deploy
   script:
