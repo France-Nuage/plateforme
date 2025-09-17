@@ -4,9 +4,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .compile_protos(
             &[
                 // google protos
-                "proto/validate/validate.proto",
-                "proto/google/api/annotations.proto",
-                "proto/google/api/http.proto",
+                // "proto/google/api/annotations.proto",
+                // "proto/google/api/http.proto",
                 // authzed protos
                 "proto/authzed/api/v1/core.proto",
                 "proto/authzed/api/v1/permission_service.proto",

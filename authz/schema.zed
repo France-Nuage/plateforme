@@ -1,23 +1,25 @@
 definition organization {
 	relation member: user
-	relation owner: user
-	permission view = member + owner
+  relation parent: organization
+
+  permission get = member + parent->member
 }
 
 definition folder {
 	relation parent: folder | organization
-	permission view = parent->view
+	permission get = parent->get
 }
 
 definition project {
-	relation owner: folder | organization
-	permission view = owner->view
+	relation parent: folder | organization
+
+	permission get = parent->get
 }
 
 definition instance {
-	relation owner: project
-	relation reader: user
-	permission view = reader + owner->view
+	relation project: project
+
+	permission get = project->get
 }
 
 definition user {}
