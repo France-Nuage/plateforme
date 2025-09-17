@@ -92,6 +92,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      spicedb:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:80"]
       interval: 5s
@@ -108,6 +110,7 @@ services:
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       RUST_LOG: ${RUST_LOG:-info}
       RUSTFLAGS: ${RUSTFLAGS:-}
+      SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
       SQLX_OFFLINE: ${SQLX_OFFLINE:-true}
       SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
     expose:
