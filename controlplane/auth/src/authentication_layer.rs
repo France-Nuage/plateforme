@@ -25,12 +25,13 @@
 //! The authentication layer is typically applied as middleware in a Tower service stack:
 //!
 //! ```
-//! use auth::{AuthenticationLayer, OpenID};
+//! use auth::{AuthenticationLayer, Authz, OpenID};
 //! use tower::ServiceBuilder;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let openid = OpenID::discover(reqwest::Client::new(), "https://provider.com/.well-known/openid_configuration").await?;
-//! let auth_layer = AuthenticationLayer::new(openid);
+//! let authz = Authz::mock().await;
+//! let auth_layer = AuthenticationLayer::new(authz, openid);
 //!
 //! let service = ServiceBuilder::new().layer(auth_layer);
 //! # Ok(())
@@ -76,15 +77,16 @@ impl AuthenticationLayer {
     /// # Examples
     ///
     /// ```
-    /// use auth::{AuthenticationLayer, OpenID};
+    /// use auth::{AuthenticationLayer, Authz, OpenID};
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let openid = OpenID::discover(
     ///     reqwest::Client::new(),
     ///     "https://accounts.google.com/.well-known/openid_configuration"
     /// ).await?;
+    /// let authz = Authz::mock().await;
     ///
-    /// let auth_layer = AuthenticationLayer::new(openid);
+    /// let auth_layer = AuthenticationLayer::new(authz, openid);
     /// # Ok(())
     /// # }
     /// ```

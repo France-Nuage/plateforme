@@ -144,12 +144,13 @@ impl<L> Server<L> {
     ///
     /// ```
     /// # use server::server::Server;
-    /// # use auth::OpenID;
+    /// # use auth::{Authz, OpenID};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let mock = mock_server::MockServer::new().await;
     /// let openid = OpenID::discover(reqwest::Client::new(), &format!("{}/.well-known/openid-configuration", &mock.url())).await?;
+    /// let authz = Authz::mock().await;
     /// let server = Server::new()
-    ///     .with_authentication(openid);
+    ///     .with_authentication(authz, openid);
     /// # Ok(())
     /// # }
     /// ```

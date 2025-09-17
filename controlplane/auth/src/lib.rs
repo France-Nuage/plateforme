@@ -53,7 +53,7 @@
 //! ### Middleware Integration
 //!
 //! ```rust
-//! use auth::{AuthenticationLayer, OpenID};
+//! use auth::{AuthenticationLayer, Authz, OpenID};
 //! use tower::ServiceBuilder;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -61,8 +61,9 @@
 //!     reqwest::Client::new(),
 //!     "https://provider.com/.well-known/openid_configuration"
 //! ).await?;
+//! let authz = Authz::mock().await;
 //!
-//! let service = ServiceBuilder::new().layer(AuthenticationLayer::new(openid));
+//! let service = ServiceBuilder::new().layer(AuthenticationLayer::new(authz, openid));
 //! # Ok(())
 //! # }
 //! ```

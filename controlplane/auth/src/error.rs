@@ -164,7 +164,7 @@ pub enum Error {
     /// // authz.can(&user).on("instance", "id").check().await; // Returns UnspecifiedPermission
     ///
     /// // Correct: specify permission
-    /// authz.can(&user).perform(Permission::ListInstances).on("instance", "id").check().await?;
+    /// authz.can(&user).perform(Permission::Get).on("instance", "id").check().await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -184,10 +184,10 @@ pub enum Error {
     /// # let authz = Authz::mock().await;
     /// # let user = User::default();
     /// // Wrong: missing resource
-    /// // authz.can(&user).perform(Permission::ListInstances).check().await; // Returns UnspecifiedResource
+    /// // authz.can(&user).perform(Permission::Get).check().await; // Returns UnspecifiedResource
     ///
     /// // Correct: specify resource
-    /// authz.can(&user).perform(Permission::ListInstances).on("instance", "my-instance").check().await?;
+    /// authz.can(&user).perform(Permission::Get).on("instance", "my-instance").check().await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -207,10 +207,10 @@ pub enum Error {
     /// # let authz = Authz::mock().await;
     /// # let user = User::default();
     /// // Wrong: missing subject
-    /// // authz.perform(Permission::ListInstances).on("instance", "id").check().await; // Returns UnspecifiedSubject
+    /// // authz.perform(Permission::Get).on("instance", "id").check().await; // Returns UnspecifiedSubject
     ///
     /// // Correct: specify subject
-    /// authz.can(&user).perform(Permission::ListInstances).on("instance", "id").check().await?;
+    /// authz.can(&user).perform(Permission::Get).on("instance", "id").check().await?;
     /// # Ok(())
     /// # }
     /// ```
