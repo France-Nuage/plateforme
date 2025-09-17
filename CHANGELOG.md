@@ -1,3 +1,11 @@
+# [1.36.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.35.0...v1.36.0) (2025-09-17)
+
+
+### Features
+
+* add authz service ([b1bc14f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b1bc14f2aff78c1d07ae3141fe499e8ee9ac14c5))
+* add spicedb ([d364e92](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d364e9243b202b13298f1e6613326720dde12717))
+
 # [1.35.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.34.0...v1.35.0) (2025-09-15)
 
 
