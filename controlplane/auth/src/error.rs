@@ -134,6 +134,9 @@ pub enum Error {
     #[error("unparsable authz server url: {0}")]
     UnparsableAuthzServerUrl(#[from] InvalidUri),
 
+    #[error("the authz token could not be parsed to a grpc metadata")]
+    UnparsableAuthzToken,
+
     /// Cannot establish connection to the SpiceDB authorization server.
     ///
     /// This error occurs when attempting to connect to the SpiceDB server

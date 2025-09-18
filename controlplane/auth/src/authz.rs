@@ -38,6 +38,8 @@
 //! # }
 //! ```
 
+use std::str::FromStr;
+
 use crate::{Error, Permission, model::User};
 use spicedb::{
     api::v1::{
@@ -47,7 +49,7 @@ use spicedb::{
     },
     mock::SpiceDBServer,
 };
-use tonic::transport::Channel;
+use tonic::{Request, metadata::MetadataValue, transport::Channel};
 
 /// SpiceDB authorization client with fluent API for permission checking.
 ///
@@ -75,7 +77,7 @@ use tonic::transport::Channel;
 /// ```
 /// # use auth::{Authz, Permission, model::User};
 /// # async fn example() -> Result<(), auth::Error> {
-/// let authz = Authz::connect("http://spicedb:50051".to_string()).await?;
+/// let authz = Authz::connect("http://spicedb:50051".to_owned(), "Bearer f00ba3".to_string()).await?;
 /// let user = User::default();
 ///
 /// authz
@@ -117,6 +119,7 @@ pub struct Authz {
     permission: Option<String>,
     resource: Option<ObjectReference>,
     subject: Option<SubjectReference>,
+    token: Option<String>,
 }
 
 impl Authz {
@@ -140,11 +143,11 @@ impl Authz {
     ///     .connect()
     ///     .await?;
     ///
-    /// let authz = Authz::new(channel);
+    /// let authz = Authz::new(channel, None);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new(channel: Channel) -> Self {
+    pub fn new(channel: Channel, token: Option<String>) -> Self {
         let client = PermissionsServiceClient::new(channel);
         Self {
             client,
@@ -152,6 +155,7 @@ impl Authz {
             permission: None,
             resource: None,
             subject: None,
+            token,
         }
     }
 
@@ -283,14 +287,21 @@ impl Authz {
     /// ```
     pub async fn check(mut self) -> Result<(), Error> {
         // prepare the request
-        let request = CheckPermissionRequest {
+        let mut request = Request::new(CheckPermissionRequest {
             consistency: self.consistency,
             context: None,
             permission: self.permission.ok_or(Error::UnspecifiedPermission)?,
             resource: Some(self.resource.ok_or(Error::UnspecifiedResource)?),
             subject: Some(self.subject.ok_or(Error::UnspecifiedSubject)?),
             with_tracing: false,
-        };
+        });
+
+        // inject the authorization token if present
+        if let Some(token) = &self.token {
+            let value = MetadataValue::from_str(&format!("Bearer {}", token))
+                .map_err(|_| Error::UnparsableAuthzToken)?;
+            request.metadata_mut().insert("Authorization", value);
+        }
 
         // Perform the request and extract the permissionship in the response
         let permissionship = self
@@ -335,18 +346,18 @@ impl Authz {
     /// ```rust,no_run
     /// # use auth::Authz;
     /// # async fn example() -> Result<(), auth::Error> {
-    /// let authz = Authz::connect("http://spicedb.example.com:50051".to_string()).await?;
+    /// let authz = Authz::connect("http://spicedb.example.com:50051".to_owned(), "Bearer f00ba3".to_owned()).await?;
     /// println!("Connected to SpiceDB server");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn connect(url: String) -> Result<Self, Error> {
+    pub async fn connect(url: String, preshared_key: String) -> Result<Self, Error> {
         let channel = Channel::from_shared(url.clone())?
             .connect()
             .await
             .map_err(|_| Error::UnreachableAuthzServer(url))?;
 
-        Ok(Authz::new(channel))
+        Ok(Authz::new(channel, Some(preshared_key)))
     }
 
     /// Creates a mock SpiceDB server for testing and returns a connected client.
@@ -382,7 +393,7 @@ impl Authz {
     pub async fn mock() -> Self {
         let channel = SpiceDBServer::new().serve().await;
 
-        Authz::new(channel)
+        Authz::new(channel, None)
     }
 
     fn with_resource(mut self, resource_type: &str, resource_id: &str) -> Self {
