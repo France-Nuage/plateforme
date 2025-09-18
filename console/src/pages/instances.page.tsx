@@ -1,4 +1,4 @@
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useMemo } from 'react';
 
 import { InstanceTable } from '@/components';
 import { useAppSelector } from '@/hooks';
@@ -24,19 +24,21 @@ export const InstancesPage: FunctionComponent = () => {
   const vpcs = useAppSelector(
     (state) => state.infrastructure.zeroTrustNetworks,
   );
-
-  // Filter instances to show only those belonging to the active project
-  const instances = useAppSelector((state) =>
-    state.instances.instances.filter(
-      (instance) => instance.projectId === state.application.activeProject?.id,
-    ),
+  const activeProject = useAppSelector(
+    (state) => state.application.activeProject,
+  );
+  const instances = useAppSelector((state) => state.instances.instances);
+  const scopedInstances = useMemo(
+    () =>
+      instances.filter((instance) => instance.projectId === activeProject?.id),
+    [activeProject, instances],
   );
 
   return (
     <InstanceTable
       datacenters={datacenters}
       hypervisors={hypervisors}
-      instances={instances}
+      instances={scopedInstances}
       organizations={organizations}
       projects={projects}
       vpcs={vpcs}

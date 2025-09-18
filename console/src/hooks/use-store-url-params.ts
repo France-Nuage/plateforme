@@ -64,10 +64,20 @@ export function useStoreUrlParams() {
       organizations.length > 0 &&
       projects.length > 0
     ) {
-      const activeOrganization = organizations[0];
-      const activeProject = projects.find(
-        (project) => project.organizationId === organizations[0].id,
+      const activeOrganizationId =
+        searchParams.get('organization') ?? organizations[0].id;
+      const activeProjectId = searchParams.get('project') ?? projects[0].id;
+
+      const activeOrganization = organizations.find(
+        (organization) => organization.id === activeOrganizationId,
       );
+      const activeProject = projects.find(
+        (project) => project.id === activeProjectId,
+      );
+
+      if (!activeOrganization) {
+        throw new Error(`no organization for id ${activeOrganizationId}`);
+      }
 
       if (!activeProject) {
         throw new Error(

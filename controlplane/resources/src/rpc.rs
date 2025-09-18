@@ -57,20 +57,7 @@ impl Resources for ResourcesRpcService {
             .get::<IAM>()
             .ok_or(Status::internal("iam not found"))?;
 
-        let user = request
-            .extensions()
-            .get::<IAM>()
-            .ok_or(Status::internal("iam not found"))?
-            .user(&self.pool)
-            .await?;
-
-        iam.authz
-            .clone()
-            .can(&user)
-            .perform(auth::Permission::Get)
-            .on("organization", "*")
-            .check()
-            .await?;
+        let user = iam.user(&self.pool).await?;
 
         let organizations = Organization::find_by_user(&self.pool, user).await?;
 

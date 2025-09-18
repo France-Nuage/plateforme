@@ -1,5 +1,5 @@
 import { Flex, Icon, Menu, Portal, Text } from '@chakra-ui/react';
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useMemo } from 'react';
 import { LuChevronsUpDown } from 'react-icons/lu';
 
 import { setActiveOrganization, setActiveProject } from '@/features';
@@ -26,11 +26,13 @@ export const ProjectGlobalSwitcher: FunctionComponent = () => {
     (state) => state.resources.organizations,
   );
 
-  const organizationProjects = useAppSelector((state) =>
-    state.resources.projects.filter(
-      (project) =>
-        project.organizationId === state.application.activeOrganization?.id,
-    ),
+  const projects = useAppSelector((state) => state.resources.projects);
+  const organizationProjects = useMemo(
+    () =>
+      projects.filter(
+        (project) => project.organizationId === activeOrganization?.id,
+      ),
+    [projects, activeOrganization],
   );
 
   return (

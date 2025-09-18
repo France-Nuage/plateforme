@@ -216,7 +216,9 @@ impl Config {
             .expect("could not fetch oidc configuration");
 
         let spicedb_addr = env::var("SPICEDB_URL").expect("SPICEDB_URL must be set");
-        let authz = Authz::connect(spicedb_addr)
+        let spicedb_preshared_key =
+            env::var("SPICEDB_GRPC_PRESHARED_KEY").expect("SPICEDB_GRPC_PRESHARED_KEY must be set");
+        let authz = Authz::connect(spicedb_addr, spicedb_preshared_key)
             .await
             .expect("could not connect to authz server");
 
