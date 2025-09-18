@@ -1,3 +1,10 @@
+## [1.36.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.36.0...v1.36.1) (2025-09-18)
+
+
+### Bug Fixes
+
+* link organization selector with url params ([e60ce38](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/e60ce38a447e6d9df15427f9159f401c8510a1b0))
+
 # [1.36.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.35.0...v1.36.0) (2025-09-17)
 
 
