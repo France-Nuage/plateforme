@@ -77,7 +77,7 @@ use tonic::{Request, metadata::MetadataValue, transport::Channel};
 /// ```
 /// # use auth::{Authz, Permission, model::User};
 /// # async fn example() -> Result<(), auth::Error> {
-/// let authz = Authz::connect("http://spicedb:50051".to_string()).await?;
+/// let authz = Authz::connect("http://spicedb:50051".to_owned(), "Bearer f00ba3".to_string()).await?;
 /// let user = User::default();
 ///
 /// authz
@@ -143,7 +143,7 @@ impl Authz {
     ///     .connect()
     ///     .await?;
     ///
-    /// let authz = Authz::new(channel);
+    /// let authz = Authz::new(channel, None);
     /// # Ok(())
     /// # }
     /// ```
@@ -346,7 +346,7 @@ impl Authz {
     /// ```rust,no_run
     /// # use auth::Authz;
     /// # async fn example() -> Result<(), auth::Error> {
-    /// let authz = Authz::connect("http://spicedb.example.com:50051".to_string()).await?;
+    /// let authz = Authz::connect("http://spicedb.example.com:50051".to_owned(), "Bearer f00ba3".to_owned()).await?;
     /// println!("Connected to SpiceDB server");
     /// # Ok(())
     /// # }
