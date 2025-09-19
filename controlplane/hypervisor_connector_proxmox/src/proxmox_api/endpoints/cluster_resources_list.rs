@@ -34,7 +34,7 @@ pub struct Resource {
     pub disk: Option<u64>,
 
     /// Number of available CPUs (for types 'node', 'qemu' and 'lxc').
-    pub maxcpu: Option<u8>,
+    pub maxcpu: Option<u32>,
 
     /// Storage size in bytes (for type 'storage'), root image size for VMs (for types 'qemu' and 'lxc').
     pub maxdisk: Option<u64>,
@@ -56,10 +56,10 @@ pub struct Resource {
     pub resource_type: ResourceType,
 
     /// Resource type dependent status.
-    pub status: Option<VMStatus>,
+    pub status: VMStatus,
 
     /// The numerical vmid (for types 'qemu' and 'lxc').
-    pub vmid: Option<u32>,
+    pub vmid: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -93,24 +93,16 @@ impl TryFrom<Resource> for hypervisor_connector::InstanceInfo {
     type Error = Problem;
 
     fn try_from(value: Resource) -> Result<Self, Self::Error> {
-        let required_field = |field: &str| Problem::ResourceMissingField {
-            id: value
-                .vmid
-                .map(|id| id.to_string())
-                .unwrap_or("unknown".to_owned()),
-            resource_type: value.resource_type.clone(),
-            field: field.to_owned(),
-        };
         let info = hypervisor_connector::InstanceInfo {
-            cpu_usage_percent: value.cpu.ok_or(required_field("cpu_usage_percent"))?,
-            disk_usage_bytes: value.disk.ok_or(required_field("disk_usage_bytes"))?,
-            id: value.vmid.ok_or(required_field("id"))?.to_string(),
-            max_cpu_cores: value.maxcpu.ok_or(required_field("max_cpu_cores"))? as u32,
-            max_disk_bytes: value.maxdisk.ok_or(required_field("max_disk_bytes"))?,
-            max_memory_bytes: value.maxmem.ok_or(required_field("max_memory_bytes"))?,
-            memory_usage_bytes: value.mem.ok_or(required_field("memory_usage_bytes"))?,
-            name: value.name.unwrap_or_else(|| String::from("unnamed")),
-            status: value.status.expect("no status in response").into(),
+            cpu_usage_percent: value.cpu.unwrap_or_default(),
+            disk_usage_bytes: value.disk.unwrap_or_default(),
+            id: value.vmid.to_string(),
+            max_cpu_cores: value.maxcpu.unwrap_or_default(),
+            max_disk_bytes: value.maxdisk.unwrap_or_default(),
+            max_memory_bytes: value.maxmem.unwrap_or_default(),
+            memory_usage_bytes: value.mem.unwrap_or_default(),
+            name: value.name.unwrap_or_default(),
+            status: value.status.into(),
         };
 
         Ok(info)
@@ -167,8 +159,8 @@ mod tests {
                 name: Some(String::from("proxmox-dev")),
                 node: Some(String::from("pve-node1")),
                 resource_type: ResourceType::Qemu,
-                status: Some(VMStatus::Running),
-                vmid: Some(100),
+                status: VMStatus::Running,
+                vmid: 100,
             }]
         );
     }

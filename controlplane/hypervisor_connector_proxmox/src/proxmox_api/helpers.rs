@@ -55,7 +55,7 @@ pub async fn get_vm_execution_node(
                 ResourceType::Qemu | ResourceType::Lxc
             )
         })
-        .find(|resource| resource.vmid.expect("vmid should be defined") == vmid);
+        .find(|resource| resource.vmid == vmid);
 
     resource
         .map(|resource| resource.node.expect("node should be defined"))
