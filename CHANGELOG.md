@@ -1,3 +1,10 @@
+## [1.36.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.36.1...v1.36.2) (2025-09-20)
+
+
+### Bug Fixes
+
+* allow optional values in cluster resource list ([214aba7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/214aba7036116e46ed88d913f1e1ce53594bd456))
+
 ## [1.36.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.36.0...v1.36.1) (2025-09-18)
 
 
