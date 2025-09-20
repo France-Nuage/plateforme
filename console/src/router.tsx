@@ -7,7 +7,11 @@ import { HomePage, InstancesPage, LoginPage, OidcRedirectPage } from '@/pages';
 import { Routes as RoutePath } from '@/types';
 
 const links = [
-  { Icon: HiDesktopComputer, label: 'Instances', to: RoutePath.Instances },
+  {
+    Icon: HiDesktopComputer,
+    label: 'Instances de VM',
+    to: RoutePath.Instances,
+  },
 ];
 
 const Router = () => (
