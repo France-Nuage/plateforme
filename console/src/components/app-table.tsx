@@ -62,6 +62,9 @@ export const AppTable = <T, U>({
   const [urlcolumns, setColumns] = useUrlState('columns', allColumnIds);
   const activeColumns = urlcolumns.split(',');
 
+  // Define the bulk edit state
+  const [bulkEdit, setBulkEdit] = useState(false);
+
   // Add search state for filtering
   const [globalFilter, setGlobalFilter] = useUrlState('globalFilter', '');
 
@@ -119,37 +122,48 @@ export const AppTable = <T, U>({
             onChange={(e) => setGlobalFilter(e.target.value)}
             maxW="400px"
           />
-          <Select.Root
-            multiple
-            collection={collection}
-            value={activeColumns}
-            onValueChange={(e) => setColumns(e.value.join(','))}
-            maxW={60}
-          >
-            <Select.Control>
-              <Select.Trigger>
-                <Select.ValueText placeholder="Colonnes à afficher" />
-              </Select.Trigger>
-              <Select.IndicatorGroup>
-                <Select.Indicator />
-              </Select.IndicatorGroup>
-            </Select.Control>
-            <Portal>
-              <Select.Positioner>
-                <Select.Content>
-                  {table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => (
-                      <Select.Item item={column.id} key={column.id}>
-                        {`${column.columnDef.header}`}
-                        <Select.ItemIndicator />
-                      </Select.Item>
-                    ))}
-                </Select.Content>
-              </Select.Positioner>
-            </Portal>
-          </Select.Root>
+          <Flex gap={2}>
+            <Button
+              colorPalette="gray"
+              onClick={() => setBulkEdit(!bulkEdit)}
+              variant="outline"
+            >
+              {bulkEdit
+                ? "Désactiver l'édition multiple"
+                : "Activer l'édition multiple"}
+            </Button>
+            <Select.Root
+              multiple
+              collection={collection}
+              value={activeColumns}
+              onValueChange={(e) => setColumns(e.value.join(','))}
+              maxW={60}
+            >
+              <Select.Control>
+                <Select.Trigger>
+                  <Select.ValueText placeholder="Colonnes à afficher" />
+                </Select.Trigger>
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+              <Portal>
+                <Select.Positioner>
+                  <Select.Content>
+                    {table
+                      .getAllColumns()
+                      .filter((column) => column.getCanHide())
+                      .map((column) => (
+                        <Select.Item item={column.id} key={column.id}>
+                          {`${column.columnDef.header}`}
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+          </Flex>
         </Flex>
       </Flex>
       {table.getRowModel().rows.length ? (
@@ -164,20 +178,22 @@ export const AppTable = <T, U>({
               <Table.Header position="sticky" top={0} zIndex={10} bg="bg">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <Table.Row key={headerGroup.id}>
-                    <Table.ColumnHeader w={6}>
-                      <Checkbox.Root
-                        verticalAlign="middle"
-                        size="sm"
-                        aria-label="Select all rows"
-                        checked={table.getIsAllRowsSelected()}
-                        onCheckedChange={(checked) =>
-                          table.toggleAllRowsSelected(!!checked)
-                        }
-                      >
-                        <Checkbox.HiddenInput />
-                        <Checkbox.Control />
-                      </Checkbox.Root>
-                    </Table.ColumnHeader>
+                    {bulkEdit && (
+                      <Table.ColumnHeader w={6}>
+                        <Checkbox.Root
+                          verticalAlign="middle"
+                          size="sm"
+                          aria-label="Select all rows"
+                          checked={table.getIsAllRowsSelected()}
+                          onCheckedChange={({ checked }) =>
+                            table.toggleAllRowsSelected(!!checked)
+                          }
+                        >
+                          <Checkbox.HiddenInput />
+                          <Checkbox.Control />
+                        </Checkbox.Root>
+                      </Table.ColumnHeader>
+                    )}
                     <SortableContext
                       items={table.getAllColumns().map((col) => col.id)}
                       strategy={horizontalListSortingStrategy}
@@ -199,19 +215,21 @@ export const AppTable = <T, U>({
               <Table.Body>
                 {table.getRowModel().rows.map((row) => (
                   <Table.Row key={row.id}>
-                    <TableCell>
-                      <Checkbox.Root
-                        size="sm"
-                        aria-label="Select row"
-                        checked={row.getIsSelected()}
-                        onCheckedChange={(checked) =>
-                          row.toggleSelected(!!checked)
-                        }
-                      >
-                        <Checkbox.HiddenInput />
-                        <Checkbox.Control />
-                      </Checkbox.Root>
-                    </TableCell>
+                    {bulkEdit && (
+                      <TableCell>
+                        <Checkbox.Root
+                          size="sm"
+                          aria-label="Select row"
+                          checked={row.getIsSelected()}
+                          onCheckedChange={({ checked }) =>
+                            row.toggleSelected(!!checked)
+                          }
+                        >
+                          <Checkbox.HiddenInput />
+                          <Checkbox.Control />
+                        </Checkbox.Root>
+                      </TableCell>
+                    )}
                     {row
                       .getVisibleCells()
                       .filter((cell) => activeColumns.includes(cell.column.id))
