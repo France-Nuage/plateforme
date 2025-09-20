@@ -65,13 +65,6 @@ export const AppTable = <T, U>({
   // Add search state for filtering
   const [globalFilter, setGlobalFilter] = useUrlState('globalFilter', '');
 
-  // Compute the instances data with associated relations.
-
-  // Track the column order.
-  const [columnOrder, setColumnOrder] = useState<string[]>(() =>
-    columns.map((column) => column.id!),
-  );
-
   // Track the sort column.
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -84,21 +77,19 @@ export const AppTable = <T, U>({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     globalFilterFn: 'includesString',
-    onColumnOrderChange: setColumnOrder,
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
-    state: { columnOrder, globalFilter, sorting },
+    state: { globalFilter, sorting },
   });
 
   // Handle column reordering after drag & drop
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active && over && active.id !== over.id) {
-      setColumnOrder((columnOrder) => {
-        const oldIndex = columnOrder.indexOf(active.id as string);
-        const newIndex = columnOrder.indexOf(over.id as string);
-        return arrayMove(columnOrder, oldIndex, newIndex);
-      });
+      const currentOrder = table.getAllColumns().map((col) => col.id);
+      const oldIndex = currentOrder.indexOf(active.id as string);
+      const newIndex = currentOrder.indexOf(over.id as string);
+      table.setColumnOrder(arrayMove(currentOrder, oldIndex, newIndex));
     }
   };
 
@@ -146,12 +137,15 @@ export const AppTable = <T, U>({
             <Portal>
               <Select.Positioner>
                 <Select.Content>
-                  {table.getAllColumns().map((column) => (
-                    <Select.Item item={column.id} key={column.id}>
-                      {`${column.columnDef.header}`}
-                      <Select.ItemIndicator />
-                    </Select.Item>
-                  ))}
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => (
+                      <Select.Item item={column.id} key={column.id}>
+                        {`${column.columnDef.header}`}
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
                 </Select.Content>
               </Select.Positioner>
             </Portal>
@@ -185,7 +179,7 @@ export const AppTable = <T, U>({
                       </Checkbox.Root>
                     </Table.ColumnHeader>
                     <SortableContext
-                      items={columnOrder}
+                      items={table.getAllColumns().map((col) => col.id)}
                       strategy={horizontalListSortingStrategy}
                     >
                       {headerGroup.headers
@@ -224,7 +218,7 @@ export const AppTable = <T, U>({
                       .map((cell) => (
                         <SortableContext
                           key={cell.id}
-                          items={columnOrder}
+                          items={table.getAllColumns().map((col) => col.id)}
                           strategy={horizontalListSortingStrategy}
                         >
                           <DragAlongTableCell cell={cell} />

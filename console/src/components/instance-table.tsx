@@ -36,7 +36,11 @@ const date = (cell: CellContext<InstanceData, string>) =>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const columns: ColumnDef<InstanceData, any>[] = [
-  columnHelper.accessor('name', { header: 'Name', id: 'name' }),
+  columnHelper.accessor('name', {
+    enableHiding: false,
+    header: 'Name',
+    id: 'name',
+  }),
   columnHelper.accessor('datacenter.name', {
     header: 'Datacenter',
     id: 'datacenterName',
