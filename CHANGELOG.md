@@ -1,3 +1,11 @@
+# [1.37.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.36.2...v1.37.0) (2025-09-20)
+
+
+### Features
+
+* add bulk edit option ([c3eb117](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/c3eb1177058c2daf06d0bf9c0f2f1b2578b861b3))
+* name column cannot be hidden anymore ([75966ee](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/75966eeb2ca7d615f17457aaeed1bc43c3c6b8b5))
+
 ## [1.36.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.36.1...v1.36.2) (2025-09-20)
 
 
