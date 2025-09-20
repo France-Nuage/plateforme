@@ -1,4 +1,4 @@
-use database::Persistable;
+use database_core::Persistable;
 use derive_repository::Repository;
 use sqlx::prelude::FromRow;
 use uuid::Uuid;

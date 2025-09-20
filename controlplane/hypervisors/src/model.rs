@@ -1,6 +1,4 @@
-use database::Persistable;
-use derive_factory::Factory;
-use derive_repository::Repository;
+use database::{Factory, Persistable, Repository};
 use infrastructure::DatacenterFactory;
 use resources::organizations::OrganizationFactory;
 use sqlx::FromRow;

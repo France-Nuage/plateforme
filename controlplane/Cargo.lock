@@ -129,8 +129,6 @@ dependencies = [
  "base64",
  "chrono",
  "database",
- "derive_factory",
- "derive_repository",
  "futures",
  "http",
  "http-body",
@@ -446,6 +444,15 @@ dependencies = [
 name = "database"
 version = "0.1.0"
 dependencies = [
+ "database-core",
+ "derive_factory",
+ "derive_repository",
+]
+
+[[package]]
+name = "database-core"
+version = "0.1.0"
+dependencies = [
  "sqlx",
 ]
 
@@ -488,6 +495,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "database",
+ "database-core",
  "proc-macro2",
  "quote",
  "sqlx",
@@ -502,6 +510,7 @@ name = "derive_repository"
 version = "0.1.0"
 dependencies = [
  "database",
+ "database-core",
  "heck",
  "pluralizer",
  "proc-macro2",
@@ -1089,8 +1098,6 @@ name = "hypervisors"
 version = "0.1.0"
 dependencies = [
  "database",
- "derive_factory",
- "derive_repository",
  "infrastructure",
  "prost",
  "resources",
@@ -1298,8 +1305,6 @@ name = "infrastructure"
 version = "0.1.0"
 dependencies = [
  "database",
- "derive_factory",
- "derive_repository",
  "prost",
  "prost-types",
  "resources",
@@ -1315,9 +1320,8 @@ dependencies = [
 name = "instances"
 version = "0.1.0"
 dependencies = [
+ "auth",
  "database",
- "derive_factory",
- "derive_repository",
  "futures",
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
@@ -2180,8 +2184,6 @@ version = "0.1.0"
 dependencies = [
  "auth",
  "database",
- "derive_factory",
- "derive_repository",
  "mock_server",
  "prost",
  "prost-types",

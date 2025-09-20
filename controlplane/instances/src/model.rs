@@ -1,14 +1,10 @@
 //! Database model for instance entities.
-
-use std::fmt::Display;
-
-use database::Persistable;
-use derive_factory::Factory;
-use derive_repository::Repository;
+use database::{Factory, Persistable, Repository};
 use hypervisors::HypervisorFactory;
 use resources::projects::ProjectFactory;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono;
+use std::fmt::Display;
 use uuid::Uuid;
 
 #[derive(Debug, Default, Factory, sqlx::FromRow, Repository)]

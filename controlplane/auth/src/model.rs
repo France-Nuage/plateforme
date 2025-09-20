@@ -51,9 +51,7 @@
 //! # }
 //! ```
 
-use database::Persistable;
-use derive_factory::Factory;
-use derive_repository::Repository;
+use database::{Factory, Persistable, Repository};
 use serde::Serialize;
 use sqlx::Postgres;
 use uuid::Uuid;

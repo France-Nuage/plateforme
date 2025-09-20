@@ -1,7 +1,5 @@
 use auth::model::User;
-use database::Persistable;
-use derive_factory::Factory;
-use derive_repository::Repository;
+use database::{Factory, Persistable, Repository};
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};

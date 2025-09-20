@@ -15,7 +15,7 @@ members = [
   "resources",
   "server",
   "spicedb",
-  "synchronizer",
+  "synchronizer", "database-core",
 ]
 
 resolver = "3"

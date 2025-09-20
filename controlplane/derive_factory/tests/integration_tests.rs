@@ -3,7 +3,7 @@
 //! These tests verify that the macro generates working code
 //! and serves as documentation examples.
 
-use database::Persistable;
+use database_core::Persistable;
 use derive_factory::Factory;
 
 #[derive(Debug, Default, Factory, PartialEq)]
@@ -16,7 +16,7 @@ struct Missile {
     created_at: chrono::DateTime<chrono::Utc>,
 }
 
-impl database::Persistable for Missile {
+impl database_core::Persistable for Missile {
     type Connection = ();
     type Error = ();
 
@@ -40,7 +40,7 @@ struct Category {
     name: String,
 }
 
-impl database::Persistable for Category {
+impl database_core::Persistable for Category {
     type Connection = ();
     type Error = ();
 

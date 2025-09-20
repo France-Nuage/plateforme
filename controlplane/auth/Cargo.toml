@@ -18,8 +18,6 @@ mock = [
 base64 = { version = "0.22", optional = true }
 chrono = { version = "0.4", features = ["serde"] }
 database = { path = "../database" }
-derive_factory = { path = "../derive_factory" }
-derive_repository = { path = "../derive_repository" }
 futures = "0.3"
 http = "1"
 http-body = "1"

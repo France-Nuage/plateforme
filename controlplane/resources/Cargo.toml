@@ -9,8 +9,6 @@ mock = ["auth/mock"]
 [dependencies]
 auth = { path = "../auth" }
 database = { path = "../database" }
-derive_factory = { path = "../derive_factory" }
-derive_repository = { path = "../derive_repository" }
 mock_server = { path = "../mock_server" }
 prost = "0.14"
 prost-types = "0.14"

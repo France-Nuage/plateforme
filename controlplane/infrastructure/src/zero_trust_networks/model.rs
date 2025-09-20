@@ -1,7 +1,5 @@
 use crate::ZeroTrustNetworkTypeFactory;
-use database::Persistable;
-use derive_factory::Factory;
-use derive_repository::Repository;
+use database::{Factory, Persistable, Repository};
 use resources::organizations::OrganizationFactory;
 use sqlx::FromRow;
 use sqlx::types::chrono;

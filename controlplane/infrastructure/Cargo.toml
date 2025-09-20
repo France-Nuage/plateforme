@@ -5,8 +5,6 @@ edition = "2024"
 
 [dependencies]
 database = { path = "../database" }
-derive_factory = { path = "../derive_factory" }
-derive_repository = { path = "../derive_repository" }
 prost = "0.14"
 prost-types = "0.14"
 resources = { path = "../resources" }
