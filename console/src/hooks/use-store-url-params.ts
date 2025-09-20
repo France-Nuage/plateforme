@@ -87,5 +87,12 @@ export function useStoreUrlParams() {
 
       dispatch(setActiveState({ activeOrganization, activeProject }));
     }
-  }, [activeOrganization, activeProject, dispatch, organizations, projects]);
+  }, [
+    activeOrganization,
+    activeProject,
+    dispatch,
+    organizations,
+    projects,
+    searchParams,
+  ]);
 }
