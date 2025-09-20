@@ -113,7 +113,7 @@
 //!     .unwrap();
 //! # })
 //! ```
-extern crate database;
+extern crate database_core;
 extern crate proc_macro;
 mod relation;
 use proc_macro::TokenStream;

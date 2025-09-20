@@ -4,4 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sqlx = { version = "0.8", features = ["postgres"] }
+database-core = { path = "../database-core" }
+derive_factory = { path = "../derive_factory" }
+derive_repository = { path = "../derive_repository" }
