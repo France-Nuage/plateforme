@@ -29,11 +29,9 @@
 //! `is_authenticated()` to verify the request's authentication status before
 //! processing protected operations.
 
+use crate::{Error, OpenID, authz::Authz, model::User, rfc7519::Claim};
 use sqlx::Postgres;
 use tokio::sync::OnceCell;
-use tracing::info;
-
-use crate::{Error, OpenID, authz::Authz, model::User, rfc7519::Claim};
 
 /// Identity and Access Management context for HTTP request authentication.
 ///
@@ -194,12 +192,12 @@ impl IAM {
     /// Returns errors for missing tokens, invalid signatures, expired tokens,
     /// or network failures when fetching JWK keys.
     async fn fetch_claim(&self) -> Result<Claim, Error> {
-        info!("in fetch_claim, token: {:?}", &self.token);
         let token = self
             .token
             .as_ref()
             .ok_or(Error::MissingAuthorizationHeader)?
             .strip_prefix("Bearer ")
+            .or_else(|| self.token.as_ref().and_then(|t| t.strip_prefix("bearer ")))
             .ok_or(Error::MalformedBearerToken)?;
 
         self.openid
@@ -235,5 +233,22 @@ impl IAM {
             .get_or_try_init(|| async { self.fetch_claim().await })
             .await
             .cloned()
+    }
+}
+
+#[cfg(feature = "mock")]
+impl IAM {
+    pub async fn mock() -> Self {
+        IAM {
+            authz: Authz::mock().await,
+            claim: OnceCell::new(),
+            token: None,
+            openid: OpenID::mock().await,
+        }
+    }
+
+    pub fn for_user(mut self, user: &User) -> Self {
+        self.token = Some(format!("bearer {}", OpenID::token(&user.email)));
+        self
     }
 }

@@ -230,9 +230,10 @@ pub mod mock {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use super::*;
-    use crate::mock::MOCK_JWK_KID;
+    use crate::mock::{MOCK_JWK_KID, WithJwks, WithWellKnown};
     use crate::rfc7519::Claim;
     use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
+    use mock_server::MockServer;
     use rand::{SeedableRng, rngs::StdRng};
     use rsa::pkcs8::{EncodePrivateKey, LineEnding};
     use rsa::{RsaPrivateKey, RsaPublicKey};
@@ -245,6 +246,26 @@ pub mod mock {
     static RSA_KEYS: OnceLock<(RsaPrivateKey, RsaPublicKey)> = OnceLock::new();
 
     impl OpenID {
+        pub async fn mock() -> Self {
+            let server = MockServer::new().await.with_well_known().with_jwks();
+            let openid = OpenID::discover(
+                reqwest::Client::new(),
+                &format!("{}/.well-known/openid-configuration", &server.url()),
+            )
+            .await
+            .expect("could not initialize mock openid");
+
+            // manually validate a dummy token to force fetching the jwks before the server goes
+            // out of scope
+            let token = OpenID::token("wile.coyote@acme.org");
+            openid
+                .validate_token(&token)
+                .await
+                .expect("could not validate token");
+
+            openid
+        }
+
         /// Retrieves or generates the RSA key pair for JWT testing.
         ///
         /// This method provides access to a static RSA key pair that is generated once
@@ -376,7 +397,7 @@ pub struct OpenIDProviderConfiguration {
     /// discovery is supported (see Section 2), this value MUST be identical
     /// to the issuer value returned by WebFinger. This also MUST be identical
     /// to the iss Claim value in ID Tokens issued from this Issuer.
-    pub issuer: String,
+    pub _issuer: String,
 
     /// REQUIRED. URL of the OP's JWK Set [JWK] document, which MUST use the
     /// https scheme. This contains the signing key(s) the RP uses to validate
