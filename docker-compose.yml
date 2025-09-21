@@ -43,7 +43,8 @@ services:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master-${TARGET:-development}
-      context: console
+      context: .
+      dockerfile: console/Dockerfile
       target: ${TARGET:-development}
     depends_on:
       controlplane:
@@ -341,6 +342,7 @@ services:
       - donotstart
     volumes:
       - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
+      - ./node-sdk:/node-sdk
       - ./system-tests:/app
       - /app/node_modules
 

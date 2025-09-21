@@ -6,6 +6,7 @@ import {
   InstanceStatus,
   ZeroTrustNetwork,
 } from '@france-nuage/sdk';
+import { Organization, Project } from '@france-nuage/sdk';
 import {
   CellContext,
   ColumnDef,
@@ -17,7 +18,6 @@ import { HiTrash } from 'react-icons/hi';
 import { HiPlay, HiStop } from 'react-icons/hi2';
 
 import { removeInstance, startInstance, stopInstance } from '@/features';
-import { Organization, Project } from '@/generated/rpc/resources';
 import { useAppDispatch } from '@/hooks';
 
 import { AppTable } from './app-table';
