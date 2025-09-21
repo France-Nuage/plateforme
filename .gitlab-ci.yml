@@ -76,8 +76,8 @@ gitleaks:
 "code style / nodejs-sdk":
   stage: code-style
   script:
-    - docker compose run --no-deps --remove-orphans nodejs-sdk npm run lint
-    - docker compose run --no-deps --remove-orphans nodejs-sdk npx prettier --check .
+    - docker compose run --no-deps --remove-orphans node-sdk npm run lint
+    - docker compose run --no-deps --remove-orphans node-sdk npx prettier --check .
 
 "code style / markdown":
   stage: code-style
