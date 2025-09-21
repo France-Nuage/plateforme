@@ -73,7 +73,7 @@ gitleaks:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
-"code style / nodejs-sdk":
+"code style / node-sdk":
   stage: code-style
   script:
     - docker compose run --no-deps --remove-orphans node-sdk npm run lint

@@ -152,6 +152,7 @@ services:
       context: node-sdk
     volumes:
       - ./node-sdk:/app
+      - /app/node_modules
 
   oidc:
     build:
