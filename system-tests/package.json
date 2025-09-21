@@ -24,7 +24,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@authzed/authzed-node": "^1.5.1",
     "@faker-js/faker": "^9.9.0",
+    "@france-nuage/sdk": "file:../node-sdk",
     "@types/lodash": "^4.17.16",
     "lodash": "^4.17.21"
   }

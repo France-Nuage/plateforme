@@ -4,7 +4,8 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.generated.tsbuildinfo",
     "types": ["vite/client"],
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "noImplicitOverride": false
   },
   "include": ["./**/*"],
   "exclude": []

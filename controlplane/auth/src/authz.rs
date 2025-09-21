@@ -50,6 +50,7 @@ use spicedb::{
     mock::SpiceDBServer,
 };
 use tonic::{Request, metadata::MetadataValue, transport::Channel};
+use uuid::Uuid;
 
 /// SpiceDB authorization client with fluent API for permission checking.
 ///
@@ -242,8 +243,9 @@ impl Authz {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn on(self, resource_type: &str, resource_id: &str) -> Self {
-        self.with_resource(resource_type, resource_id)
+    pub fn on(self, resource: (&'static str, &Uuid)) -> Self {
+        let (resource_type, resource_id) = resource;
+        self.with_resource(resource_type, &resource_id.to_string())
     }
 
     /// Executes the authorization check against the SpiceDB server.
@@ -298,9 +300,9 @@ impl Authz {
 
         // inject the authorization token if present
         if let Some(token) = &self.token {
-            let value = MetadataValue::from_str(&format!("Bearer {}", token))
+            let value = MetadataValue::from_str(&format!("bearer {}", token))
                 .map_err(|_| Error::UnparsableAuthzToken)?;
-            request.metadata_mut().insert("Authorization", value);
+            request.metadata_mut().insert("authorization", value);
         }
 
         // Perform the request and extract the permissionship in the response
@@ -426,19 +428,41 @@ impl Authz {
 
 #[cfg(test)]
 mod tests {
+    use crate::Authorize;
+
     use super::*;
     use uuid::Uuid;
+
+    struct Anvil {
+        id: Uuid,
+    }
+
+    impl Authorize for Anvil {
+        type Id = Uuid;
+
+        fn any_resource() -> (&'static str, &'static str) {
+            ("anvil", "*")
+        }
+
+        fn resource(&self) -> (&'static str, &Self::Id) {
+            ("anvil", &self.id)
+        }
+
+        fn resource_name() -> &'static str {
+            "anvil"
+        }
+    }
 
     #[tokio::test]
     async fn test_the_check_function_works() {
         let authz = Authz::mock().await;
-
+        let anvil = Anvil { id: Uuid::new_v4() };
         let user = User::default();
 
         let result = authz
             .can(&user)
             .perform(Permission::Get)
-            .on("instance", &Uuid::new_v4().to_string())
+            .on(anvil.resource())
             .check()
             .await;
 

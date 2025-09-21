@@ -28,3 +28,6 @@ export const createUser = (user: Partial<User>): Promise<RegistrationResponse> =
     username: user.username ?? faker.internet.username(),
   }),
 }).then((response: Response) => response.json())
+
+function initializeContext() {
+}

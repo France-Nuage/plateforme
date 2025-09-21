@@ -1,0 +1,36 @@
+{
+  "type": "module",
+  "name": "@france-nuage/sdk",
+  "version": "1.0.0",
+  "description": "NodeJS SDK for interacting with France Nuage APIs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ -I ../controlplane/infrastructure/ -I ../controlplane/resources/ --ts_out src/generated/rpc --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto ../controlplane/infrastructure/infrastructure.proto ../controlplane/resources/resources.proto",
+    "lint": "eslint ."
+  },
+  "author": "Robin Straub",
+  "license": "SSPL-1.0",
+  "dependencies": {
+    "@faker-js/faker": "^10.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@protobuf-ts/plugin": "^2.9.6",
+    "@protobuf-ts/protoc": "^2.9.6",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/node": "^24.5.2",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "prettier": "^3.5.3",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.30.1"
+  },
+  "peerDependencies": {
+    "@protobuf-ts/runtime": "^2.9.6",
+    "@protobuf-ts/runtime-rpc": "^2.9.6",
+    "@protobuf-ts/grpcweb-transport": "^2.9.6"
+  }
+}

@@ -1,12 +1,24 @@
+import { ButtonGroup, IconButton } from '@chakra-ui/react';
+import {
+  Datacenter,
+  Hypervisor,
+  Instance,
+  InstanceStatus,
+  ZeroTrustNetwork,
+} from '@france-nuage/sdk';
 import {
   CellContext,
   ColumnDef,
+  Row,
   createColumnHelper,
 } from '@tanstack/react-table';
-import { FunctionComponent, useMemo } from 'react';
+import { FunctionComponent, ReactNode, useMemo } from 'react';
+import { HiTrash } from 'react-icons/hi';
+import { HiPlay, HiStop } from 'react-icons/hi2';
 
+import { removeInstance, startInstance, stopInstance } from '@/features';
 import { Organization, Project } from '@/generated/rpc/resources';
-import { Datacenter, Hypervisor, Instance, ZeroTrustNetwork } from '@/types';
+import { useAppDispatch } from '@/hooks';
 
 import { AppTable } from './app-table';
 
@@ -41,6 +53,7 @@ const columns: ColumnDef<InstanceData, any>[] = [
     header: 'Name',
     id: 'name',
   }),
+  columnHelper.accessor('id', {}),
   columnHelper.accessor('datacenter.name', {
     header: 'Datacenter',
     id: 'datacenterName',
@@ -96,6 +109,11 @@ const columns: ColumnDef<InstanceData, any>[] = [
     header: 'Updated At',
     id: 'updatedAt',
   }),
+  columnHelper.display({
+    cell: ({ row }) => <ActionsCell row={row} />,
+    header: 'Actions',
+    id: 'actions',
+  }),
 ];
 
 export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
@@ -137,4 +155,63 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   );
 
   return <AppTable columns={columns} data={data} />;
+};
+
+export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
+  type Action = 'start' | 'stop' | 'remove';
+
+  const dispatch = useAppDispatch();
+
+  const actions: Record<Action, ReactNode> = {
+    remove: (
+      <IconButton
+        aria-label="remove instance"
+        bg={{ _hover: 'bg.error', base: 'transparent' }}
+        color="fg.error"
+        disabled
+        onClick={() => dispatch(removeInstance(row.original.id))}
+      >
+        <HiTrash />
+      </IconButton>
+    ),
+    start: (
+      <IconButton
+        aria-label="start instance"
+        onClick={() => {
+          console.log('coucou');
+          dispatch(startInstance(row.original.id));
+        }}
+      >
+        <HiPlay />
+      </IconButton>
+    ),
+    stop: (
+      <IconButton
+        aria-label="stop instance"
+        onClick={() => dispatch(stopInstance(row.original.id))}
+      >
+        <HiStop />
+      </IconButton>
+    ),
+  };
+
+  const matrix: Record<InstanceStatus, Action[]> = {
+    [InstanceStatus.Deprovisionning]: [],
+    [InstanceStatus.Provisioning]: [],
+    [InstanceStatus.Repairing]: [],
+    [InstanceStatus.Running]: ['stop', 'remove'],
+    [InstanceStatus.Staging]: [],
+    [InstanceStatus.Stopped]: ['start', 'remove'],
+    [InstanceStatus.Stopping]: [],
+    [InstanceStatus.Suspended]: [],
+    [InstanceStatus.Suspending]: [],
+    [InstanceStatus.Terminated]: [],
+    [InstanceStatus.UndefinedInstanceStatus]: [],
+  };
+
+  return (
+    <ButtonGroup size="xs" variant="ghost">
+      {...matrix[row.original.status].map((status) => actions[status])}
+    </ButtonGroup>
+  );
 };

@@ -1,9 +1,9 @@
+import { ServiceMode, Services, configureResolver } from '@france-nuage/sdk';
+
 import { AppStore } from '@/store';
 
-import { configureResolver } from './resolver';
 import { configureTransport } from './transport.rpc';
 
-export * from './resolver';
 export * from './user-manager';
 
 /**
@@ -20,7 +20,9 @@ export * from './user-manager';
  * @param store - The Redux store instance
  * @returns Complete service resolver for all service modes
  */
-export function configureServices(store: AppStore) {
+export function configureServices(
+  store: AppStore,
+): Record<ServiceMode, Services> {
   const transport = configureTransport(store);
   const resolver = configureResolver(transport);
 

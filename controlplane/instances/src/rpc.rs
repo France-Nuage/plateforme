@@ -8,11 +8,13 @@ use crate::{
         instances_server::Instances,
     },
 };
+use auth::{Authorize, IAM, Permission};
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 pub struct InstancesRpcService {
+    pool: PgPool,
     service: InstancesService,
 }
 
@@ -78,8 +80,24 @@ impl Instances for InstancesRpcService {
         &self,
         request: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
+        let iam = request
+            .extensions()
+            .get::<IAM>()
+            .ok_or(Status::internal("iam not found"))?
+            .clone();
+
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+
+        let user = iam.user(&self.pool).await?;
+
+        iam.authz
+            .can(&user)
+            .perform(Permission::Get)
+            .on((crate::model::Instance::resource_name(), &id))
+            .check()
+            .await?;
+
         self.service.start(id).await?;
         Ok(Response::new(StartInstanceResponse {}))
     }
@@ -100,7 +118,8 @@ impl Instances for InstancesRpcService {
 impl InstancesRpcService {
     pub fn new(pool: PgPool) -> Self {
         Self {
-            service: InstancesService::new(pool),
+            pool: pool.clone(),
+            service: InstancesService::new(pool.clone()),
         }
     }
 }

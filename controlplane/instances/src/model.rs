@@ -1,4 +1,5 @@
 //! Database model for instance entities.
+use auth::Authorize;
 use database::{Factory, Persistable, Repository};
 use hypervisors::HypervisorFactory;
 use resources::projects::ProjectFactory;
@@ -7,7 +8,7 @@ use sqlx::types::chrono;
 use std::fmt::Display;
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, sqlx::FromRow, Repository)]
+#[derive(Authorize, Debug, Default, Factory, sqlx::FromRow, Repository)]
 pub struct Instance {
     /// Unique identifier for the instance
     #[repository(primary)]

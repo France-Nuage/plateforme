@@ -158,7 +158,9 @@
 //! - **Concurrent Fetching**: Efficient parallel key fetching with backpressure control
 
 pub use authentication_layer::AuthenticationLayer;
+pub use authorize::Authorize;
 pub use authz::Authz;
+pub use derive_auth::Authorize;
 pub use error::Error;
 pub use iam::IAM;
 pub use openid::OpenID;
@@ -166,6 +168,7 @@ pub use permission::Permission;
 use tonic::Request;
 
 mod authentication_layer;
+mod authorize;
 mod authz;
 mod error;
 pub mod iam;

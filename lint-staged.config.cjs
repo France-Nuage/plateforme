@@ -9,5 +9,9 @@ module.exports = {
   "console/**/*": [
     () => 'docker compose run --no-deps -T console npx prettier --write .',
     () => "docker compose run --no-deps -T console npm run lint -- --fix"
-  ]
+  ],
+  "node-sdk/**/*": [
+    () => 'docker compose run --no-deps -T node-sdk npx prettier --write .',
+    () => "docker compose run --no-deps -T node-sdk npm run lint -- --fix"
+  ],
 };
