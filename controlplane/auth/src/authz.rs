@@ -20,13 +20,15 @@
 //!
 //! ```
 //! # use auth::{Authz, Permission, model::User};
+//! # use uuid::Uuid;
 //! # async fn example() -> Result<(), auth::Error> {
 //! # let authz = Authz::mock().await;
 //! # let user = User::default();
+//! # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
 //! let authorized = authz
 //!     .can(&user)
 //!     .perform(Permission::Get)
-//!     .on("instance", "instance-123")
+//!     .on(("instance", &instance_id))
 //!     .check()
 //!     .await;
 //!
@@ -77,14 +79,16 @@ use uuid::Uuid;
 ///
 /// ```
 /// # use auth::{Authz, Permission, model::User};
+/// # use uuid::Uuid;
 /// # async fn example() -> Result<(), auth::Error> {
 /// let authz = Authz::connect("http://spicedb:50051".to_owned(), "Bearer f00ba3".to_string()).await?;
 /// let user = User::default();
+/// let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
 ///
 /// authz
 ///     .can(&user)
 ///     .perform(Permission::Get)
-///     .on("instance", "my-instance")
+///     .on(("instance", &instance_id))
 ///     .check()
 ///     .await?;
 ///
@@ -97,15 +101,17 @@ use uuid::Uuid;
 ///
 /// ```
 /// # use auth::{Authz, Permission, model::User};
+/// # use uuid::Uuid;
 /// # async fn example() -> Result<(), auth::Error> {
 /// let authz = Authz::mock().await;
 /// let user = User::default();
+/// let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
 ///
 /// // Mock server allows all permissions by default
 /// let result = authz
 ///     .can(&user)
 ///     .perform(Permission::Get)
-///     .on("instance", "test-instance")
+///     .on(("instance", &instance_id))
 ///     .check()
 ///     .await;
 ///
@@ -237,9 +243,11 @@ impl Authz {
     ///
     /// ```
     /// # use auth::Authz;
+    /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
-    /// let authz = authz.on("instance", "i-1234567890abcdef0");
+    /// # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
+    /// let authz = authz.on(("instance", &instance_id));
     /// # Ok(())
     /// # }
     /// ```
@@ -269,14 +277,16 @@ impl Authz {
     ///
     /// ```
     /// # use auth::{Authz, Permission, model::User};
+    /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// let authz = Authz::mock().await;
     /// let user = User::default();
+    /// let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
     ///
     /// match authz
     ///     .can(&user)
     ///     .perform(Permission::Get)
-    ///     .on("instance", "my-instance")
+    ///     .on(("instance", &instance_id))
     ///     .check()
     ///     .await
     /// {
@@ -377,15 +387,17 @@ impl Authz {
     ///
     /// ```
     /// # use auth::{Authz, Permission, model::User};
+    /// # use uuid::Uuid;
     /// # async fn test_authorization() {
     /// let authz = Authz::mock().await;
     /// let user = User::default();
+    /// let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
     ///
     /// // Mock server allows all permissions
     /// let result = authz
     ///     .can(&user)
     ///     .perform(Permission::Get)
-    ///     .on("instance", "test-instance")
+    ///     .on(("instance", &instance_id))
     ///     .check()
     ///     .await;
     ///

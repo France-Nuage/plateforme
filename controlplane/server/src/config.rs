@@ -157,16 +157,11 @@ impl Config {
     /// - **Dynamic Port**: Uses `reserve_socket_addr(None)` to allocate an available port
     /// - **Mock Authentication**: Configures OpenID for the mock server
     /// - **Test Isolation**: Each test gets its own port to avoid interference
-    pub async fn test(pool: &Pool<Postgres>, mock_server: &MockServer) -> Result<Self, Error> {
+    pub async fn test(pool: &Pool<Postgres>, _mock_server: &MockServer) -> Result<Self, Error> {
         let addr = Config::reserve_socket_addr(None).await?;
 
-        let client = reqwest::Client::new();
         let authz = Authz::mock().await;
-        let openid = OpenID::discover(
-            client,
-            &format!("{}/.well-known/openid-configuration", &mock_server.url()),
-        )
-        .await?;
+        let openid = OpenID::mock().await;
 
         Ok(Config {
             addr,

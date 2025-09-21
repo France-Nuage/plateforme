@@ -126,15 +126,17 @@
 //! Perform fine-grained access control checks using SpiceDB:
 //! ```
 //! # use auth::{Authz, Permission, model::User};
+//! # use uuid::Uuid;
 //! # async fn example() -> Result<(), auth::Error> {
 //! let authz = Authz::connect("http://spicedb:50051".to_owned(), "Bearer f00ba3".to_owned()).await?;
 //! let user = User::default();
+//! let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
 //!
 //! // Check if user can read an instance
 //! authz
 //!     .can(&user)
 //!     .perform(Permission::Get)
-//!     .on("instance", "my-instance")
+//!     .on(("instance", &instance_id))
 //!     .check()
 //!     .await?;
 //!
