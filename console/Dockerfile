@@ -1,5 +1,7 @@
 FROM node:22-alpine AS base
 
+RUN apk add curl
+
 WORKDIR /node-sdk
 COPY ./node-sdk .
 RUN npm ci

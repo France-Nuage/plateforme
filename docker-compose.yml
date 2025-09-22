@@ -304,7 +304,8 @@ services:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:master
-      context: system-tests
+      context: .
+      dockerfile: system-tests/Dockerfile
     depends_on:
       console:
         condition: service_healthy
@@ -343,7 +344,6 @@ services:
       - donotstart
     volumes:
       - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
-      - ./node-sdk:/node-sdk
       - ./system-tests:/app
       - /app/node_modules
 
