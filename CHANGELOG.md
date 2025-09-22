@@ -1,3 +1,10 @@
+## [1.37.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.37.0...v1.37.1) (2025-09-22)
+
+
+### Bug Fixes
+
+* console container builds the sdk ([a86f866](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a86f8664a70b540127c1553d2b80b2babac13a00))
+
 # [1.37.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.36.2...v1.37.0) (2025-09-20)
 
 
