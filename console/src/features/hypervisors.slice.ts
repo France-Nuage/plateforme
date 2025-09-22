@@ -1,7 +1,7 @@
+import { Hypervisor, HypervisorFormValue } from '@france-nuage/sdk';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { ExtraArgument } from '@/store';
-import { Hypervisor, HypervisorFormValue } from '@/types';
 
 /**
  * Fetch all hypervisors.

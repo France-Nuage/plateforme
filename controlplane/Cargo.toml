@@ -3,6 +3,7 @@
 members = [
   "auth",
   "database",
+  "database-core",
   "derive_factory",
   "derive_repository",
   "hypervisors",
@@ -15,7 +16,8 @@ members = [
   "resources",
   "server",
   "spicedb",
-  "synchronizer", "database-core",
+  "synchronizer",
+  "derive-auth",
 ]
 
 resolver = "3"

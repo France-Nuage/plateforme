@@ -43,11 +43,14 @@ services:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master-${TARGET:-development}
-      context: console
+      context: .
+      dockerfile: console/Dockerfile
       target: ${TARGET:-development}
     depends_on:
       controlplane:
         condition: service_healthy
+      node-sdk:
+        condition: service_completed_successfully
       oidc:
         condition: service_healthy
     environment:
@@ -143,6 +146,13 @@ services:
     volumes:
       - .:/app
     working_dir: /app
+
+  node-sdk:
+    build:
+      context: node-sdk
+    volumes:
+      - ./node-sdk:/app
+      - /app/node_modules
 
   oidc:
     build:
@@ -294,12 +304,15 @@ services:
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:master
-      context: system-tests
+      context: .
+      dockerfile: system-tests/Dockerfile
     depends_on:
       console:
         condition: service_healthy
       controlplane:
         condition: service_healthy
+      node-sdk:
+        condition: service_completed_successfully
       playwright:
         condition: service_started
       traefik:
@@ -318,6 +331,8 @@ services:
       PROXMOX_TEST_URL: ${PROXMOX_TEST_URL:-https://pve01-test01.france-nuage.fr}
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
       PW_TEST_HTML_REPORT_OPEN: never
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
+      SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
       SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
     extra_hosts:
       - "console.test:host-gateway"
@@ -353,10 +368,12 @@ services:
 
   zed:
     image: authzed/zed:latest
+    command: schema write /authz/schema.zed
     environment:
-      - ZED_ENDPOINT=spicedb:50051
-      - ZED_INSECURE=true
-      - ZED_TOKEN=${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
+      ZED_ENDPOINT: spicedb:50051
+      ZED_INSECURE: true
+      ZED_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
+    restart: no
     volumes:
       - ./authz:/authz
 

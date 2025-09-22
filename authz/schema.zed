@@ -20,6 +20,8 @@ definition instance {
 	relation project: project
 
 	permission get = project->get
+  permission start = get
+  permission stop = get
 }
 
 definition user {}

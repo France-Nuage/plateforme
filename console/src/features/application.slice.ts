@@ -1,9 +1,8 @@
+import { Organization, Project, ServiceMode } from '@france-nuage/sdk';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { PayloadAction } from '@reduxjs/toolkit';
 
-import { Project } from '@/generated/rpc/resources';
 import { AppState } from '@/store';
-import { Organization, ServiceMode } from '@/types';
 
 /**
  * The slice state type.

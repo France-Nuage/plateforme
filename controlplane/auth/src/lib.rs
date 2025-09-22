@@ -126,15 +126,17 @@
 //! Perform fine-grained access control checks using SpiceDB:
 //! ```
 //! # use auth::{Authz, Permission, model::User};
+//! # use uuid::Uuid;
 //! # async fn example() -> Result<(), auth::Error> {
 //! let authz = Authz::connect("http://spicedb:50051".to_owned(), "Bearer f00ba3".to_owned()).await?;
 //! let user = User::default();
+//! let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
 //!
 //! // Check if user can read an instance
 //! authz
 //!     .can(&user)
 //!     .perform(Permission::Get)
-//!     .on("instance", "my-instance")
+//!     .on(("instance", &instance_id))
 //!     .check()
 //!     .await?;
 //!
@@ -158,7 +160,9 @@
 //! - **Concurrent Fetching**: Efficient parallel key fetching with backpressure control
 
 pub use authentication_layer::AuthenticationLayer;
+pub use authorize::Authorize;
 pub use authz::Authz;
+pub use derive_auth::Authorize;
 pub use error::Error;
 pub use iam::IAM;
 pub use openid::OpenID;
@@ -166,6 +170,7 @@ pub use permission::Permission;
 use tonic::Request;
 
 mod authentication_layer;
+mod authorize;
 mod authz;
 mod error;
 pub mod iam;

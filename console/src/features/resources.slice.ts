@@ -1,7 +1,7 @@
+import { Organization, Project } from '@france-nuage/sdk';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { ExtraArgument } from '@/store';
-import { Organization, Project } from '@/types';
 
 import { logout } from './authentication.slice';
 

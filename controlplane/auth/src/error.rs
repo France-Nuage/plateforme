@@ -160,14 +160,16 @@ pub enum Error {
     /// # Example Fix
     /// ```
     /// # use auth::{Authz, Permission, model::User};
+    /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
     /// # let user = User::default();
+    /// # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
     /// // Wrong: missing permission
-    /// // authz.can(&user).on("instance", "id").check().await; // Returns UnspecifiedPermission
+    /// // authz.can(&user).on(("instance", &instance_id)).check().await; // Returns UnspecifiedPermission
     ///
     /// // Correct: specify permission
-    /// authz.can(&user).perform(Permission::Get).on("instance", "id").check().await?;
+    /// authz.can(&user).perform(Permission::Get).on(("instance", &instance_id)).check().await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -183,14 +185,16 @@ pub enum Error {
     /// # Example Fix
     /// ```
     /// # use auth::{Authz, Permission, model::User};
+    /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
     /// # let user = User::default();
+    /// # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
     /// // Wrong: missing resource
     /// // authz.can(&user).perform(Permission::Get).check().await; // Returns UnspecifiedResource
     ///
     /// // Correct: specify resource
-    /// authz.can(&user).perform(Permission::Get).on("instance", "my-instance").check().await?;
+    /// authz.can(&user).perform(Permission::Get).on(("instance", &instance_id)).check().await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -206,14 +210,16 @@ pub enum Error {
     /// # Example Fix
     /// ```
     /// # use auth::{Authz, Permission, model::User};
+    /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
     /// # let user = User::default();
+    /// # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
     /// // Wrong: missing subject
-    /// // authz.perform(Permission::Get).on("instance", "id").check().await; // Returns UnspecifiedSubject
+    /// // authz.perform(Permission::Get).on(("instance", &instance_id)).check().await; // Returns UnspecifiedSubject
     ///
     /// // Correct: specify subject
-    /// authz.can(&user).perform(Permission::Get).on("instance", "id").check().await?;
+    /// authz.can(&user).perform(Permission::Get).on(("instance", &instance_id)).check().await?;
     /// # Ok(())
     /// # }
     /// ```

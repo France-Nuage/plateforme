@@ -8,11 +8,13 @@ use crate::{
         instances_server::Instances,
     },
 };
+use auth::{Authorize, IAM, Permission};
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
 pub struct InstancesRpcService {
+    pool: PgPool,
     service: InstancesService,
 }
 
@@ -78,8 +80,24 @@ impl Instances for InstancesRpcService {
         &self,
         request: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
+        let iam = request
+            .extensions()
+            .get::<IAM>()
+            .ok_or(Status::internal("iam not found"))?
+            .clone();
+
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+
+        let user = iam.user(&self.pool).await?;
+
+        iam.authz
+            .can(&user)
+            .perform(Permission::Get)
+            .on((crate::model::Instance::resource_name(), &id))
+            .check()
+            .await?;
+
         self.service.start(id).await?;
         Ok(Response::new(StartInstanceResponse {}))
     }
@@ -100,7 +118,8 @@ impl Instances for InstancesRpcService {
 impl InstancesRpcService {
     pub fn new(pool: PgPool) -> Self {
         Self {
-            service: InstancesService::new(pool),
+            pool: pool.clone(),
+            service: InstancesService::new(pool.clone()),
         }
     }
 }
@@ -112,6 +131,7 @@ mod tests {
         model::Instance,
         v1::{ListInstancesRequest, StartInstanceRequest},
     };
+    use auth::model::User;
     use hypervisor_connector_proxmox::mock::{
         WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
         WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
@@ -253,6 +273,14 @@ mod tests {
             .await
             .expect("could not create organization");
 
+        let user = User::factory()
+            .id(Uuid::new_v4())
+            .email("wile.coyote@acme.org".to_owned())
+            .organization_id(organization.id)
+            .create(&pool)
+            .await
+            .expect("could not create user");
+
         let instance = Instance::factory()
             .for_project_with(move |project| project.organization_id(organization.id))
             .for_hypervisor_with(move |hypervisor| {
@@ -269,9 +297,12 @@ mod tests {
         let service = InstancesRpcService::new(pool);
 
         // Act the call to the start_instance procedure
-        let request = Request::new(StartInstanceRequest {
+        let mut request = Request::new(StartInstanceRequest {
             id: instance.id.to_string(),
         });
+        request
+            .extensions_mut()
+            .insert(IAM::mock().await.for_user(&user));
         let result = service.start_instance(request).await;
 
         // Assert the procedure result

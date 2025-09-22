@@ -26,6 +26,7 @@ impl OpenID {
             .map_err(|_| Error::UnreachableOidcProvider(url.to_owned()))?
             .json()
             .await
+            .inspect_err(|err| println!("error: {:#?}", err))
             .map_err(|_| Error::UnparsableOidcMetadata(url.to_owned()))?;
 
         Ok(Self {
@@ -35,12 +36,6 @@ impl OpenID {
                 .max_capacity(JWK_CACHE_MAX_CAPACITY)
                 .time_to_live(Duration::from_secs(JWK_CACHE_TTL))
                 .build(),
-            // issuer: config.issuer,
-            // jwks_uri: config.jwks_uri,
-            // keys: Cache::builder()
-            //     .max_capacity(200)
-            //     .time_to_live(Duration::from_secs(3600))
-            //     .build(),
         })
     }
 
@@ -230,9 +225,10 @@ pub mod mock {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use super::*;
-    use crate::mock::MOCK_JWK_KID;
+    use crate::mock::{MOCK_JWK_KID, WithJwks, WithWellKnown};
     use crate::rfc7519::Claim;
     use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
+    use mock_server::MockServer;
     use rand::{SeedableRng, rngs::StdRng};
     use rsa::pkcs8::{EncodePrivateKey, LineEnding};
     use rsa::{RsaPrivateKey, RsaPublicKey};
@@ -245,6 +241,26 @@ pub mod mock {
     static RSA_KEYS: OnceLock<(RsaPrivateKey, RsaPublicKey)> = OnceLock::new();
 
     impl OpenID {
+        pub async fn mock() -> Self {
+            let server = MockServer::new().await.with_well_known().with_jwks();
+            let openid = OpenID::discover(
+                reqwest::Client::new(),
+                &format!("{}/.well-known/openid-configuration", &server.url()),
+            )
+            .await
+            .expect("could not initialize mock openid");
+
+            // manually validate a dummy token to force fetching the jwks before the server goes
+            // out of scope
+            let token = OpenID::token("wile.coyote@acme.org");
+            openid
+                .validate_token(&token)
+                .await
+                .expect("could not validate token");
+
+            openid
+        }
+
         /// Retrieves or generates the RSA key pair for JWT testing.
         ///
         /// This method provides access to a static RSA key pair that is generated once
@@ -376,7 +392,8 @@ pub struct OpenIDProviderConfiguration {
     /// discovery is supported (see Section 2), this value MUST be identical
     /// to the issuer value returned by WebFinger. This also MUST be identical
     /// to the iss Claim value in ID Tokens issued from this Issuer.
-    pub issuer: String,
+    #[serde(rename = "issuer")]
+    pub _issuer: String,
 
     /// REQUIRED. URL of the OP's JWK Set [JWK] document, which MUST use the
     /// https scheme. This contains the signing key(s) the RP uses to validate
@@ -397,7 +414,7 @@ pub struct OpenIDProviderConfiguration {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mock::{WithJwks, WithWellKnown};
+    use crate::mock::WithWellKnown;
     use mock_server::MockServer;
 
     #[tokio::test]
@@ -450,13 +467,7 @@ mod tests {
     #[tokio::test]
     async fn test_validate_token() {
         // Arrange a mock oidc server
-        let server = MockServer::new().await.with_well_known().with_jwks();
-        let openid = OpenID::discover(
-            reqwest::Client::new(),
-            &format!("{}/.well-known/openid-configuration", &server.url()),
-        )
-        .await
-        .unwrap();
+        let openid = OpenID::mock().await;
         let token = OpenID::token("wile.coyote@acme.org");
 
         // Act the call to the validate_token method

@@ -1,7 +1,11 @@
+import {
+  Datacenter,
+  ZeroTrustNetwork,
+  ZeroTrustNetworkType,
+} from '@france-nuage/sdk';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { ExtraArgument } from '@/store';
-import { Datacenter, ZeroTrustNetwork, ZeroTrustNetworkType } from '@/types';
 
 /**
  * Fetch all datacenters

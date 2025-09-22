@@ -1,8 +1,7 @@
+import { User } from '@france-nuage/sdk';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { User as OIDCUser } from 'oidc-client-ts';
-
-import { User } from '@/types';
 
 /**
  * Represents the authentication state.

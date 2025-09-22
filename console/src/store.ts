@@ -8,8 +8,7 @@ import {
   instancesSlice,
   resourcesSlice,
 } from '@/features';
-
-import { configureServices } from './services';
+import { configureServices } from '@/services';
 
 const extraArgument = {
   get services() {

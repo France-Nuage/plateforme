@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ -I ../controlplane/infrastructure/ -I ../controlplane/resources/ --ts_out src/generated/rpc --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto ../controlplane/infrastructure/infrastructure.proto ../controlplane/resources/resources.proto",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -18,6 +17,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.14.0",
     "@faker-js/faker": "^9.7.0",
+    "@france-nuage/sdk": "file:../node-sdk",
     "@protobuf-ts/grpcweb-transport": "^2.9.6",
     "@protobuf-ts/runtime": "^2.9.6",
     "@protobuf-ts/runtime-rpc": "^2.9.6",

@@ -20,13 +20,15 @@
 //!
 //! ```
 //! # use auth::{Authz, Permission, model::User};
+//! # use uuid::Uuid;
 //! # async fn example() -> Result<(), auth::Error> {
 //! # let authz = Authz::mock().await;
 //! # let user = User::default();
+//! # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
 //! let authorized = authz
 //!     .can(&user)
 //!     .perform(Permission::Get)
-//!     .on("instance", "instance-123")
+//!     .on(("instance", &instance_id))
 //!     .check()
 //!     .await;
 //!
@@ -50,6 +52,7 @@ use spicedb::{
     mock::SpiceDBServer,
 };
 use tonic::{Request, metadata::MetadataValue, transport::Channel};
+use uuid::Uuid;
 
 /// SpiceDB authorization client with fluent API for permission checking.
 ///
@@ -76,14 +79,16 @@ use tonic::{Request, metadata::MetadataValue, transport::Channel};
 ///
 /// ```
 /// # use auth::{Authz, Permission, model::User};
+/// # use uuid::Uuid;
 /// # async fn example() -> Result<(), auth::Error> {
 /// let authz = Authz::connect("http://spicedb:50051".to_owned(), "Bearer f00ba3".to_string()).await?;
 /// let user = User::default();
+/// let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
 ///
 /// authz
 ///     .can(&user)
 ///     .perform(Permission::Get)
-///     .on("instance", "my-instance")
+///     .on(("instance", &instance_id))
 ///     .check()
 ///     .await?;
 ///
@@ -96,15 +101,17 @@ use tonic::{Request, metadata::MetadataValue, transport::Channel};
 ///
 /// ```
 /// # use auth::{Authz, Permission, model::User};
+/// # use uuid::Uuid;
 /// # async fn example() -> Result<(), auth::Error> {
 /// let authz = Authz::mock().await;
 /// let user = User::default();
+/// let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
 ///
 /// // Mock server allows all permissions by default
 /// let result = authz
 ///     .can(&user)
 ///     .perform(Permission::Get)
-///     .on("instance", "test-instance")
+///     .on(("instance", &instance_id))
 ///     .check()
 ///     .await;
 ///
@@ -236,14 +243,17 @@ impl Authz {
     ///
     /// ```
     /// # use auth::Authz;
+    /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
-    /// let authz = authz.on("instance", "i-1234567890abcdef0");
+    /// # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
+    /// let authz = authz.on(("instance", &instance_id));
     /// # Ok(())
     /// # }
     /// ```
-    pub fn on(self, resource_type: &str, resource_id: &str) -> Self {
-        self.with_resource(resource_type, resource_id)
+    pub fn on(self, resource: (&'static str, &Uuid)) -> Self {
+        let (resource_type, resource_id) = resource;
+        self.with_resource(resource_type, &resource_id.to_string())
     }
 
     /// Executes the authorization check against the SpiceDB server.
@@ -267,14 +277,16 @@ impl Authz {
     ///
     /// ```
     /// # use auth::{Authz, Permission, model::User};
+    /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// let authz = Authz::mock().await;
     /// let user = User::default();
+    /// let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
     ///
     /// match authz
     ///     .can(&user)
     ///     .perform(Permission::Get)
-    ///     .on("instance", "my-instance")
+    ///     .on(("instance", &instance_id))
     ///     .check()
     ///     .await
     /// {
@@ -298,9 +310,9 @@ impl Authz {
 
         // inject the authorization token if present
         if let Some(token) = &self.token {
-            let value = MetadataValue::from_str(&format!("Bearer {}", token))
+            let value = MetadataValue::from_str(&format!("bearer {}", token))
                 .map_err(|_| Error::UnparsableAuthzToken)?;
-            request.metadata_mut().insert("Authorization", value);
+            request.metadata_mut().insert("authorization", value);
         }
 
         // Perform the request and extract the permissionship in the response
@@ -375,15 +387,17 @@ impl Authz {
     ///
     /// ```
     /// # use auth::{Authz, Permission, model::User};
+    /// # use uuid::Uuid;
     /// # async fn test_authorization() {
     /// let authz = Authz::mock().await;
     /// let user = User::default();
+    /// let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
     ///
     /// // Mock server allows all permissions
     /// let result = authz
     ///     .can(&user)
     ///     .perform(Permission::Get)
-    ///     .on("instance", "test-instance")
+    ///     .on(("instance", &instance_id))
     ///     .check()
     ///     .await;
     ///
@@ -426,19 +440,41 @@ impl Authz {
 
 #[cfg(test)]
 mod tests {
+    use crate::Authorize;
+
     use super::*;
     use uuid::Uuid;
+
+    struct Anvil {
+        id: Uuid,
+    }
+
+    impl Authorize for Anvil {
+        type Id = Uuid;
+
+        fn any_resource() -> (&'static str, &'static str) {
+            ("anvil", "*")
+        }
+
+        fn resource(&self) -> (&'static str, &Self::Id) {
+            ("anvil", &self.id)
+        }
+
+        fn resource_name() -> &'static str {
+            "anvil"
+        }
+    }
 
     #[tokio::test]
     async fn test_the_check_function_works() {
         let authz = Authz::mock().await;
-
+        let anvil = Anvil { id: Uuid::new_v4() };
         let user = User::default();
 
         let result = authz
             .can(&user)
             .perform(Permission::Get)
-            .on("instance", &Uuid::new_v4().to_string())
+            .on(anvil.resource())
             .check()
             .await;
 

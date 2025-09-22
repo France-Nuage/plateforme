@@ -8,6 +8,9 @@ import { minBy } from "lodash";
 import { ComputePage, HomePage, LoginPage, OidcPage } from "./pages";
 import { createUser } from "@/oidc";
 import { User } from '@/types';
+import { Authz } from "@/authz";
+import { controlplane } from "@/controlplane";
+import { Organization } from "@/protocol/resources";
 
 const requiredEnvVars = [
   'CONTROLPLANE_URL',
@@ -19,6 +22,8 @@ const requiredEnvVars = [
   'PROXMOX_TEST_AUTHORIZATION_TOKEN',
   'PROXMOX_TEST_STORAGE_NAME',
   'PROXMOX_TEST_URL',
+  'SPICEDB_GRPC_PRESHARED_KEY',
+  'SPICEDB_URL',
 ];
 
 for (const variable of requiredEnvVars) {
@@ -57,6 +62,7 @@ type WorkerFixtures = {
     hypervisors: HypervisorsClient,
     instances: InstancesClient,
   };
+
   /**
    * Provides the test hypervisor.
    *
@@ -64,13 +70,20 @@ type WorkerFixtures = {
    * living in database and ready to be used in tests.
    */
   hypervisor: Hypervisor;
+
+  /**
+   * Provides the test organization.
+   *
+   * This is a generated organization to scope the relations for the test suite.
+   */
+  organization: Organization;
 };
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   /**
    * @inheritdoc
    */
-  actingAs: async ({ page }, use) => {
+  actingAs: async ({ page, organization }, use) => {
     await use(async (user) => {
       // compute key/value pair for session storage representation of the user
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
@@ -103,10 +116,18 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     await use({ hypervisors, instances });
   }, { auto: true, scope: 'worker' }],
 
+  organization: [async ({ }, use) => {
+    controlplane.organization.list();
+    throw new Error('create organization not implemented');
+  }, { scope: 'worker' }],
+
   /**
    * @inheritdoc
    */
   hypervisor: [async ({ grpc }, use) => {
+    console.log('coucou! we should setup some data in the spicedb :D');
+    const authz = new Authz();
+    authz.foo('organization', 'foo', 'member', 'user', 'foo2');
     // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
     console.log('retrieving or registering dev hypervisor...');
     let devHypervisor = await grpc.hypervisors.listHypervisors({}).response.then(({ hypervisors }) => hypervisors.find((hypervisor) => hypervisor.url === process.env.PROXMOX_DEV_URL));
@@ -129,8 +150,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     // If there is an associated instance with the template, stop and delete it
     if (!!instance) {
       console.log('removing previous clone...');
-      await grpc.instances.stopInstance({ id: instance.id }).response;
-      await grpc.instances.deleteInstance({ id: instance.id }).response;
+      await grpc.instances.stopInstance({ id: instance!.id }).response;
+      await grpc.instances.deleteInstance({ id: instance!.id }).response;
     }
 
     // Clone, start and register the template as a hypervisor
