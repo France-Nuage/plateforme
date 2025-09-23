@@ -4,7 +4,8 @@ import {
   DatacentersClient,
   Datacenter as RpcDatacenter,
 } from '../../generated/rpc';
-import { Datacenter, DatacenterService } from '../../types';
+import { Datacenter } from '../../models';
+import { DatacenterService } from '../api';
 
 export class DatacenterRpcService implements DatacenterService {
   /**

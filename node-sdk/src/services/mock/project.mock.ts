@@ -1,6 +1,6 @@
 import { acmeProject, project, projects } from '../../fixtures';
-import { ProjectFormValue } from '../../types';
-import { ProjectService } from '../../types';
+import { ProjectFormValue } from '../../models';
+import { ProjectService } from '../api';
 
 /**
  * The mock implementation of the project service.

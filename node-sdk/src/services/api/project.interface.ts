@@ -1,4 +1,4 @@
-import { Project, ProjectFormValue } from '../models';
+import { Project, ProjectFormValue } from '../../models';
 
 /**
  * Define project actions.

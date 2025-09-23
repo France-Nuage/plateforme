@@ -4,11 +4,8 @@ import {
   HypervisorsClient,
   Hypervisor as RpcHypervisor,
 } from '../../generated/rpc';
-import {
-  Hypervisor,
-  HypervisorFormValue,
-  HypervisorService,
-} from '../../types';
+import { Hypervisor, HypervisorFormValue } from '../../models';
+import { HypervisorService } from '../api';
 
 export class HypervisorRpcService implements HypervisorService {
   /**

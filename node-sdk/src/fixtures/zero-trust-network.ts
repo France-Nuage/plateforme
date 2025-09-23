@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { ZeroTrustNetwork } from '../types';
+import { ZeroTrustNetwork } from '../models';
 
 export const acmeZeroTrustNetwork: ZeroTrustNetwork = {
   id: '00000000-0000-0000-0000-000000000000',

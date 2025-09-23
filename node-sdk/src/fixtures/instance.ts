@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Instance, InstanceStatus } from '../types';
+import { Instance, InstanceStatus } from '../models';
 
 export const instance = (preset?: Partial<Instance>): Instance => ({
   cpuUsagePercent: faker.number.float({ fractionDigits: 2, max: 100, min: 0 }),

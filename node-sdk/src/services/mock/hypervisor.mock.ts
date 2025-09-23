@@ -1,5 +1,5 @@
 import { acmeHypervisor, hypervisor } from '../../fixtures';
-import { HypervisorService } from '../../types';
+import { HypervisorService } from '../api';
 
 export class HypervisorMockService implements HypervisorService {
   /** @inheritdoc */

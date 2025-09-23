@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Hypervisor } from '../types';
+import { Hypervisor } from '../models';
 import { acmeDatacenter } from './datacenter';
 import { acmeOrganization } from './organization';
 

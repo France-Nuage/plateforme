@@ -5,10 +5,15 @@ import {
   instance,
   instances,
 } from '../../fixtures';
-import { InstanceFormValue } from '../../types';
-import { InstanceService } from '../../types';
+import { InstanceFormValue } from '../../models';
+import { InstanceService } from '../api';
 
 export class InstanceMockService implements InstanceService {
+  /** @inheritdoc */
+  clone() {
+    return Promise.resolve(instance());
+  }
+
   /** @inheritdoc */
   create(data: InstanceFormValue) {
     return Promise.resolve({ ...instance(), ...data });
@@ -25,14 +30,17 @@ export class InstanceMockService implements InstanceService {
     );
   }
 
+  /** @inheritdoc */
   remove() {
     return Promise.resolve();
   }
 
+  /** @inheritdoc */
   start() {
     return Promise.resolve();
   }
 
+  /** @inheritdoc */
   stop() {
     return Promise.resolve();
   }

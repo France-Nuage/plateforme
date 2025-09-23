@@ -1,7 +1,8 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
 import { ResourcesClient, Project as RpcProject } from '../../generated/rpc';
-import { Project, ProjectFormValue, ProjectService } from '../../types';
+import { Project, ProjectFormValue } from '../../models';
+import { ProjectService } from '../api';
 
 export class ProjectRpcService implements ProjectService {
   /**

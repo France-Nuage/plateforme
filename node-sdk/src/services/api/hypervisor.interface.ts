@@ -1,4 +1,4 @@
-import { Hypervisor, HypervisorFormValue } from '../models';
+import { Hypervisor, HypervisorFormValue } from '../../models';
 
 export interface HypervisorService {
   list: () => Promise<Hypervisor[]>;

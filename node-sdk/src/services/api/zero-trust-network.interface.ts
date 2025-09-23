@@ -1,4 +1,4 @@
-import { ZeroTrustNetwork } from '../models';
+import { ZeroTrustNetwork } from '../../models';
 
 /**
  * Define zero trust network type actions.

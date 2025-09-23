@@ -1,4 +1,4 @@
-import { Datacenter } from '../models';
+import { Datacenter } from '../../models';
 
 /**
  * Define datacenter actions.

@@ -1,4 +1,4 @@
-import { Organization, OrganizationFormValue } from '../models';
+import { Organization, OrganizationFormValue } from '../../models';
 
 /**
  * Define organization actions.
