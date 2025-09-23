@@ -187,6 +187,7 @@ impl OpenID {
         let decoding_key = self.get_or_fetch_key(&kid).await?;
         let mut validation = Validation::new(header.alg);
         validation.validate_aud = false;
+        validation.validate_exp = false;
 
         decode(token, &decoding_key, &validation).map_err(Into::into)
     }
