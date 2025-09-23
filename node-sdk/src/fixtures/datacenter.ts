@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Datacenter } from '../types';
+import { Datacenter } from '../models';
 
 export const acmeDatacenter: Datacenter = {
   id: '00000000-0000-0000-0000-000000000000',

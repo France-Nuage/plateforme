@@ -1,4 +1,4 @@
-import { Instance, InstanceFormValue } from '../models';
+import { Instance, InstanceFormValue } from '../../models';
 
 export interface InstanceService {
   /** Lists the available instances. */

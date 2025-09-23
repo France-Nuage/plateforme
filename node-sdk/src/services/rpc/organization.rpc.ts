@@ -4,11 +4,8 @@ import {
   ResourcesClient,
   Organization as RpcOrganization,
 } from '../../generated/rpc';
-import {
-  Organization,
-  OrganizationFormValue,
-  OrganizationService,
-} from '../../types';
+import { Organization, OrganizationFormValue } from '../../models';
+import { OrganizationService } from '../api';
 
 export class OrganizationRpcService implements OrganizationService {
   /**

@@ -1,5 +1,5 @@
 import { acmeZeroTrustNetwork, zeroTrustNetworks } from '../../fixtures';
-import { ZeroTrustNetworkService } from '../../types';
+import { ZeroTrustNetworkService } from '../api';
 
 /**
  * The mock implementation of the zero trust network type service.

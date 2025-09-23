@@ -1,5 +1,5 @@
 import { acmeDatacenter, datacenters } from '../../fixtures';
-import { DatacenterService } from '../../types';
+import { DatacenterService } from '../api';
 
 /**
  * The mock implementation of the datacenter service.

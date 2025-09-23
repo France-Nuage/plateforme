@@ -6,10 +6,9 @@ import {
   InstanceService,
   OrganizationService,
   ProjectService,
-  ServiceMode,
   ZeroTrustNetworkService,
   ZeroTrustNetworkTypeService,
-} from '../types';
+} from './api';
 import {
   datacenterMockService,
   hypervisorMockService,
@@ -28,6 +27,7 @@ import {
   ZeroTrustNetworkRpcService,
   ZeroTrustNetworkTypeRpcService,
 } from './rpc';
+import { ServiceMode } from './service-mode';
 
 export type Services = {
   datacenter: DatacenterService;

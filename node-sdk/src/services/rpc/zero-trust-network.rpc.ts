@@ -4,7 +4,8 @@ import {
   ZeroTrustNetwork as RpcZeroTrustNetwork,
   ZeroTrustNetworksClient,
 } from '../../generated/rpc';
-import { ZeroTrustNetwork, ZeroTrustNetworkService } from '../../types';
+import { ZeroTrustNetwork } from '../../models';
+import { ZeroTrustNetworkService } from '../api';
 
 export class ZeroTrustNetworkRpcService implements ZeroTrustNetworkService {
   /**

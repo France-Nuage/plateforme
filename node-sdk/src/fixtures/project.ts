@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Project } from '../types';
+import { Project } from '../models';
 
 export const acmeProject: Project = {
   id: '00000000-0000-0000-0000-000000000000',

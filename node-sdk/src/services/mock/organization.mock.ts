@@ -3,8 +3,8 @@ import {
   organization,
   organizations,
 } from '../../fixtures/organization';
-import { OrganizationFormValue } from '../../types';
-import { OrganizationService } from '../../types';
+import { OrganizationFormValue } from '../../models';
+import { OrganizationService } from '../api';
 
 /**
  * The mock implementation of the organization service.

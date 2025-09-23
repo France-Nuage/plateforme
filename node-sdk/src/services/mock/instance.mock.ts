@@ -5,8 +5,8 @@ import {
   instance,
   instances,
 } from '../../fixtures';
-import { InstanceFormValue } from '../../types';
-import { InstanceService } from '../../types';
+import { InstanceFormValue } from '../../models';
+import { InstanceService } from '../api';
 
 export class InstanceMockService implements InstanceService {
   /** @inheritdoc */

@@ -5,12 +5,8 @@ import {
   Instance as RpcInstance,
   InstanceStatus as RpcInstanceStatus,
 } from '../../generated/rpc';
-import {
-  Instance,
-  InstanceFormValue,
-  InstanceService,
-  InstanceStatus,
-} from '../../types';
+import { Instance, InstanceFormValue, InstanceStatus } from '../../models';
+import { InstanceService } from '../api';
 
 export class InstanceRpcService implements InstanceService {
   /**
