@@ -22,6 +22,13 @@ export class InstanceRpcService implements InstanceService {
   }
 
   /** @inheritdoc */
+  public clone(id: string) {
+    return this.client
+      .cloneInstance({ id })
+      .response.then((data) => fromRpcInstance(data));
+  }
+
+  /** @inheritdoc */
   public create(data: InstanceFormValue): Promise<Instance> {
     return this.client
       .createInstance({
@@ -49,15 +56,7 @@ export class InstanceRpcService implements InstanceService {
 
   /** @inheritdoc */
   public start(id: string) {
-    console.log('request sent to controlplane');
-    return this.client
-      .startInstance({ id })
-      .response.then((result) => {
-        console.log('start successful', result);
-      })
-      .catch((err) => {
-        console.warn('problem', err);
-      });
+    return this.client.startInstance({ id }).then(() => {});
   }
 
   /** @inheritdoc */
