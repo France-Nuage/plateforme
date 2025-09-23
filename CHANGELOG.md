@@ -1,3 +1,10 @@
+## [1.37.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.37.1...v1.37.2) (2025-09-23)
+
+
+### Bug Fixes
+
+* disable signature expiry ([b0dc7b1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b0dc7b10a9cf28709d5ee32358963ab048815e9a))
+
 ## [1.37.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.37.0...v1.37.1) (2025-09-22)
 
 
