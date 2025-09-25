@@ -1,3 +1,11 @@
+# [1.38.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.37.2...v1.38.0) (2025-09-25)
+
+
+### Features
+
+* add authz worker ([f13a173](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f13a17394b349ad97cc29f09d0d978da18e25319))
+* add protection on clone instance rpc ([9a79a87](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9a79a87b4fef20d3faf8c37543874b58b6a5a5c6))
+
 ## [1.37.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.37.1...v1.37.2) (2025-09-23)
 
 
