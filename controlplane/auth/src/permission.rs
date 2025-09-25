@@ -46,14 +46,23 @@ use strum_macros::{Display, EnumString};
 /// ```
 #[derive(Debug, Default, Display, EnumString)]
 pub enum Permission {
+    #[strum(serialize = "delete")]
+    Delete,
+
     /// Permission to read a given resource.
     ///
     /// This permission allows users to read a specific resource
     /// within their authorized scope. The scope is determined by the resource
     /// relationships defined in SpiceDB.
     #[strum(serialize = "get")]
-    #[default]
     Get,
+
+    #[strum(serialize = "none")]
+    #[default]
+    None,
+
+    #[strum(serialize = "start")]
+    Start,
 }
 
 impl From<String> for Permission {

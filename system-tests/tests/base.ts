@@ -122,7 +122,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
               ...options,
               meta: {
                 ...options.meta,
-                'Authorization': `Bearer ${process.env.CONTROLPLANE_TOKEN}`,
+                'Authorization': `Bearer ${process.env.PRODUCTION_CONTROLPLANE_TOKEN}`,
               }
             });
           }

@@ -1,4 +1,4 @@
-use auth::mock::WithWellKnown;
+use auth::{OpenID, mock::WithWellKnown, model::User};
 use hypervisor_connector_proxmox::mock::{
     WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
 };
@@ -9,6 +9,8 @@ use instances::{
 use mock_server::MockServer;
 use resources::organizations::Organization;
 use server::Config;
+use std::str::FromStr;
+use tonic::{Request, metadata::MetadataValue};
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_clone_instance_procedure_works(
@@ -38,17 +40,29 @@ async fn test_the_clone_instance_procedure_works(
         .create(&pool)
         .await?;
 
+    let user = User::factory()
+        .organization_id(organization.id)
+        .email("wile.coyote@acme.org".to_owned())
+        .create(&pool)
+        .await
+        .expect("could not create user");
+    let token = OpenID::token(&user.email);
+
     let config = Config::test(&pool, &mock).await?;
     let server_url = format!("http://{}", config.addr);
     let shutdown_tx = server::serve(config).await?;
     let mut client = InstancesClient::connect(server_url).await?;
 
     // Act the request to the test_the_status_procedure_works
-    let response = client
-        .clone_instance(CloneInstanceRequest {
-            id: instance.id.to_string(),
-        })
-        .await;
+    let mut request = Request::new(CloneInstanceRequest {
+        id: instance.id.to_string(),
+    });
+    request.metadata_mut().insert(
+        "authorization",
+        MetadataValue::from_str(&format!("Bearer {}", &token)).unwrap(),
+    );
+
+    let response = client.clone_instance(request).await;
 
     // Assert the result
     assert!(response.is_ok());
