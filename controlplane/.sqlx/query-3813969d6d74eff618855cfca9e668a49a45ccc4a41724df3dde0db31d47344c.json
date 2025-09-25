@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, relation, object_id, object_type, subject_id, subject_type FROM relationship_queue",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "relation",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "object_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "object_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "subject_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "subject_type",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "3813969d6d74eff618855cfca9e668a49a45ccc4a41724df3dde0db31d47344c"
+}

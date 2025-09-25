@@ -6,15 +6,15 @@ COPY . .
 
 # Development Stage
 FROM base AS development
-CMD ["cargo", "run", "--bin=synchronizer"]
+CMD ["cargo", "run", "--bin=authz-worker"]
 
 # Build Stage
 FROM base AS builder
-RUN SQLX_OFFLINE=true cargo build --package=synchronizer --release
+RUN SQLX_OFFLINE=true cargo build --package=authz-worker --release
 
 # Production Stage
 FROM alpine:3.21 AS release
 
-COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer
-RUN chmod +x /usr/bin/synchronizer
-CMD ["/usr/bin/synchronizer"]
+COPY --from=builder /app/target/release/authz-worker /usr/bin/authz-worker
+RUN chmod +x /usr/bin/authz-worker
+CMD ["/usr/bin/authz-worker"]

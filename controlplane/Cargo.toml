@@ -2,8 +2,10 @@
 
 members = [
   "auth",
+  "authz-worker",
   "database",
   "database-core",
+  "derive-auth",
   "derive_factory",
   "derive_repository",
   "hypervisors",
@@ -17,7 +19,6 @@ members = [
   "server",
   "spicedb",
   "synchronizer",
-  "derive-auth",
 ]
 
 resolver = "3"

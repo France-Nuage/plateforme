@@ -26,6 +26,8 @@
 //! and authorization checks. The string representations must match exactly
 //! with the permissions defined in the SpiceDB configuration.
 
+use std::str::FromStr;
+
 use strum_macros::{Display, EnumString};
 
 /// Enumeration of all permissions available in the platform.
@@ -42,7 +44,7 @@ use strum_macros::{Display, EnumString};
 /// let permission = Permission::Get;
 /// assert_eq!(permission.to_string(), "get");
 /// ```
-#[derive(Display, EnumString)]
+#[derive(Debug, Default, Display, EnumString)]
 pub enum Permission {
     /// Permission to read a given resource.
     ///
@@ -50,5 +52,19 @@ pub enum Permission {
     /// within their authorized scope. The scope is determined by the resource
     /// relationships defined in SpiceDB.
     #[strum(serialize = "get")]
+    #[default]
     Get,
+}
+
+impl From<String> for Permission {
+    fn from(value: String) -> Self {
+        Permission::from_str(&value)
+            .unwrap_or_else(|_| panic!("invalid permission string: {}", value))
+    }
+}
+
+impl From<Permission> for String {
+    fn from(value: Permission) -> Self {
+        value.to_string()
+    }
 }

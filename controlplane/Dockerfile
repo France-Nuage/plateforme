@@ -16,7 +16,7 @@ COPY . .
 
 # Development Stage
 FROM base AS development
-CMD ["cargo", "run", "--bin=server"]
+CMD ["cargo", "run", "-j4", "--bin=server"]
 
 # Build Stage
 FROM base AS builder

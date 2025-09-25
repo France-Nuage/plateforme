@@ -1,3 +1,4 @@
+use auth::Authorize;
 use database::{Factory, Persistable, Repository};
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
@@ -5,7 +6,7 @@ use uuid::Uuid;
 
 use crate::organizations::OrganizationFactory;
 
-#[derive(Debug, Default, Factory, FromRow, Repository)]
+#[derive(Authorize, Debug, Default, Factory, FromRow, Repository)]
 pub struct Project {
     /// The project id
     #[repository(primary)]

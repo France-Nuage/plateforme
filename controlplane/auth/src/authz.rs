@@ -40,17 +40,16 @@
 //! # }
 //! ```
 
-use std::str::FromStr;
-
 use crate::{Error, Permission, model::User};
 use spicedb::{
     api::v1::{
-        CheckPermissionRequest, Consistency, ObjectReference, SubjectReference,
-        check_permission_response::Permissionship,
-        permissions_service_client::PermissionsServiceClient,
+        CheckPermissionRequest, Consistency, ObjectReference, Relationship, RelationshipUpdate,
+        SubjectReference, WriteRelationshipsRequest, check_permission_response::Permissionship,
+        permissions_service_client::PermissionsServiceClient, relationship_update::Operation,
     },
     mock::SpiceDBServer,
 };
+use std::str::FromStr;
 use tonic::{Request, metadata::MetadataValue, transport::Channel};
 use uuid::Uuid;
 
@@ -335,6 +334,48 @@ impl Authz {
                 "Permissionship::ConditionalPermission is not implemented".to_owned(),
             )),
         }
+    }
+
+    pub async fn write_relationship(
+        mut self,
+        relationship: &crate::Relationship,
+    ) -> Result<(), Error> {
+        let mut request = Request::new(WriteRelationshipsRequest {
+            optional_preconditions: vec![],
+            updates: vec![RelationshipUpdate {
+                operation: Operation::Touch as i32,
+                relationship: Some(Relationship {
+                    optional_caveat: None,
+                    resource: Some(ObjectReference {
+                        object_id: relationship.object_id.to_string(),
+                        object_type: relationship.object_type.clone(),
+                    }),
+                    relation: relationship.relation.to_string(),
+                    subject: Some(SubjectReference {
+                        object: Some(ObjectReference {
+                            object_id: relationship.subject_id.to_string(),
+                            object_type: relationship.subject_type.clone(),
+                        }),
+                        optional_relation: "".to_owned(),
+                    }),
+                }),
+            }],
+        });
+
+        // inject the authorization token if present
+        if let Some(token) = &self.token {
+            let value = MetadataValue::from_str(&format!("bearer {}", token))
+                .map_err(|_| Error::UnparsableAuthzToken)?;
+            request.metadata_mut().insert("authorization", value);
+        }
+
+        self.client
+            .write_relationships(request)
+            .await
+            .map_err(|err| Error::AuthorizationServerError(err.message().to_owned()))?
+            .into_inner();
+
+        Ok(())
     }
 
     /// Connects to a SpiceDB server and creates a new authorization client.
