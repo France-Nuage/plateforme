@@ -8,7 +8,8 @@ use crate::{
         instances_server::Instances,
     },
 };
-use auth::{Authorize, IAM, Permission};
+use auth::{Authorize, IAM, Permission, Relation, Relationship};
+use resources::projects::Project;
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
@@ -20,8 +21,8 @@ pub struct InstancesRpcService {
 
 #[tonic::async_trait]
 impl Instances for InstancesRpcService {
-    #[doc = " CreateInstance provisions a new instance based on the specified configuration."]
-    #[doc = " Returns details of the newly created instance or a ProblemDetails on failure."]
+    /// CreateInstance provisions a new instance based on the specified configuration.
+    /// Returns details of the newly created instance or a ProblemDetails on failure.
     async fn create_instance(
         &self,
         request: tonic::Request<CreateInstanceRequest>,
@@ -37,8 +38,8 @@ impl Instances for InstancesRpcService {
         }))
     }
 
-    #[doc = " DeleteInstance deletes a given instance."]
-    #[doc = " Returns an empty message or a ProblemDetails on failure."]
+    /// DeleteInstance deletes a given instance.
+    /// Returns an empty message or a ProblemDetails on failure.
     async fn delete_instance(
         &self,
         request: tonic::Request<DeleteInstanceRequest>,
@@ -49,20 +50,47 @@ impl Instances for InstancesRpcService {
         Ok(Response::new(DeleteInstanceResponse {}))
     }
 
-    #[doc = " CloneInstance provisions a new instance based on a given existing instance."]
-    #[doc = " Returns the cloned instance."]
+    /// CloneInstance provisions a new instance based on a given existing instance.
+    /// Returns the cloned instance.
     async fn clone_instance(
         &self,
         request: tonic::Request<CloneInstanceRequest>,
     ) -> std::result::Result<tonic::Response<Instance>, tonic::Status> {
+        let iam = request
+            .extensions()
+            .get::<IAM>()
+            .ok_or(Status::internal("iam not found"))?
+            .clone();
+
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+
+        let user = iam.user(&self.pool).await?;
+
+        iam.authz
+            .clone()
+            .can(&user)
+            .perform(Permission::Start)
+            .on((crate::Instance::resource_name(), &id))
+            .check()
+            .await?;
+        println!("user is authenticated");
+
         let instance = self.service.clone(id).await?;
+
+        iam.authz
+            .write_relationship(&Relationship::new(
+                instance.resource(),
+                Relation::BelongsToProject,
+                (Project::resource_name(), &instance.project_id),
+            ))
+            .await?;
+
         Ok(Response::new(instance.into()))
     }
 
-    #[doc = " ListInstances retrieves information about all available instances."]
-    #[doc = " Returns a collection of instance details including their current status and resource usage."]
+    /// ListInstances retrieves information about all available instances.
+    /// Returns a collection of instance details including their current status and resource usage.
     async fn list_instances(
         &self,
         _: Request<ListInstancesRequest>,
@@ -74,8 +102,8 @@ impl Instances for InstancesRpcService {
         }))
     }
 
-    #[doc = " StartInstance initiates a specific instance identified by its unique ID."]
-    #[doc = " Returns a response indicating success or a ProblemDetails on failure."]
+    /// StartInstance initiates a specific instance identified by its unique ID.
+    /// Returns a response indicating success or a ProblemDetails on failure.
     async fn start_instance(
         &self,
         request: Request<StartInstanceRequest>,
@@ -102,8 +130,8 @@ impl Instances for InstancesRpcService {
         Ok(Response::new(StartInstanceResponse {}))
     }
 
-    #[doc = " StopInstance halts a specific instance identified by its unique ID."]
-    #[doc = " Returns a response indicating success or a ProblemDetails on failure."]
+    /// StopInstance halts a specific instance identified by its unique ID.
+    /// Returns a response indicating success or a ProblemDetails on failure.
     async fn stop_instance(
         &self,
         request: Request<StopInstanceRequest>,
@@ -192,6 +220,14 @@ mod tests {
             .await
             .expect("could not create organization");
 
+        let user = User::factory()
+            .id(Uuid::new_v4())
+            .email("wile.coyote@acme.org".to_owned())
+            .organization_id(organization.id)
+            .create(&pool)
+            .await
+            .expect("could not create user");
+
         let instance = Instance::factory()
             .for_project_with(move |project| project.organization_id(organization.id))
             .for_hypervisor_with(move |hypervisor| {
@@ -208,10 +244,15 @@ mod tests {
         let service = InstancesRpcService::new(pool);
 
         // Act the call to the start_instance procedure
-        let request = Request::new(CloneInstanceRequest {
+        let mut request = Request::new(CloneInstanceRequest {
             id: instance.id.to_string(),
         });
+        request
+            .extensions_mut()
+            .insert(IAM::mock().await.for_user(&user));
+
         let result = service.clone_instance(request).await;
+        println!("result: {:#?}", &result);
 
         // Assert the procedure result
         assert!(result.is_ok());

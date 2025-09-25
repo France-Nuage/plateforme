@@ -31,6 +31,28 @@ services:
     profiles:
       - donotstart
 
+  authz-worker:
+    build:
+      cache_from:
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}authz-worker:${CI_COMMIT_REF_SLUG:-latest}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}authz-worker:master
+      context: controlplane
+      dockerfile: Dockerfile.authz-worker
+      target: ${TARGET:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spicedb:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
+      SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}authz-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+    volumes:
+      - ./controlplane:/app
+      - /app/target
+
   console:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:

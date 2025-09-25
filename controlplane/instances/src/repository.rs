@@ -50,7 +50,10 @@ pub async fn read(pool: &sqlx::PgPool, id: Uuid) -> Result<Instance, sqlx::Error
 /// # Returns
 ///
 /// Ok(()) on success or a Problem if the operation fails
-pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), sqlx::Error> {
+pub async fn upsert(
+    pool: &sqlx::PgPool,
+    instances: &[Instance],
+) -> Result<Vec<Instance>, sqlx::Error> {
     // Extract the data into separate vectors
     let ids: Vec<Uuid> = instances.iter().map(|i| i.id).collect();
     let hypervisor_ids: Vec<Uuid> = instances.iter().map(|i| i.hypervisor_id).collect();
@@ -66,7 +69,8 @@ pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), s
     let disk_usage_bytes: Vec<i64> = instances.iter().map(|i| i.disk_usage_bytes).collect();
     let max_disk_bytes: Vec<i64> = instances.iter().map(|i| i.max_disk_bytes).collect();
 
-    sqlx::query!(
+    sqlx::query_as!(
+        Instance,
         r#"
         INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
         SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes
@@ -86,6 +90,7 @@ pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), s
             disk_usage_bytes = EXCLUDED.disk_usage_bytes,
             max_disk_bytes = EXCLUDED.max_disk_bytes,
             updated_at = NOW()
+        RETURNING *
     "#,
         &ids,
         &hypervisor_ids,
@@ -101,7 +106,6 @@ pub async fn upsert(pool: &sqlx::PgPool, instances: &[Instance]) -> Result<(), s
         &disk_usage_bytes,
         &max_disk_bytes,
     )
-    .execute(pool)
-    .await?;
-    Ok(())
+    .fetch_all(pool)
+    .await
 }

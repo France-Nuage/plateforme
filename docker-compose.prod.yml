@@ -1,6 +1,28 @@
 services:
+  authz-worker:
+    container_name: france-nuage-authz-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spicedb:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
+      SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
+    image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/authz-worker:release
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    restart: always
+    pull_policy: always
+
   controlplane:
-    container_name: france-nuage-control-plane
+    container_name: france-nuage-controlplane
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spicedb:
+        condition: service_healthy
     environment:
       CONSOLE_URL: https://console.france-nuage.fr
       CONTROLPLANE_ADDR: 0.0.0.0:80
@@ -63,6 +85,19 @@ services:
     ports:
       - "50051:50051"
       - "8443:8443"
+
+  synchronizer:
+    container_name: france-nuage-synchronizer
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
+    image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/synchronizer:release
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    restart: always
+    pull_policy: always
 
   watchtower:
     command: "--interval 300 --label-enable --cleanup"

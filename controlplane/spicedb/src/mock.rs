@@ -4,7 +4,7 @@ use crate::api::v1::{
     ExpandPermissionTreeRequest, ExpandPermissionTreeResponse, LookupResourcesRequest,
     LookupResourcesResponse, LookupSubjectsRequest, LookupSubjectsResponse,
     ReadRelationshipsRequest, ReadRelationshipsResponse, WriteRelationshipsRequest,
-    WriteRelationshipsResponse,
+    WriteRelationshipsResponse, ZedToken,
     check_permission_response::Permissionship,
     permissions_service_server::{PermissionsService, PermissionsServiceServer},
 };
@@ -134,6 +134,8 @@ impl PermissionsService for SpiceDBServer {
         &self,
         _: Request<WriteRelationshipsRequest>,
     ) -> Result<Response<WriteRelationshipsResponse>, Status> {
-        unimplemented!()
+        Ok(Response::new(WriteRelationshipsResponse {
+            written_at: Some(ZedToken::default()),
+        }))
     }
 }

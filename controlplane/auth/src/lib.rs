@@ -167,6 +167,9 @@ pub use error::Error;
 pub use iam::IAM;
 pub use openid::OpenID;
 pub use permission::Permission;
+pub use relation::Relation;
+pub use relationship_queue::RELATIONSHIP_QUEUE_NAME;
+pub use relationship_queue::Relationship;
 use tonic::Request;
 
 mod authentication_layer;
@@ -177,6 +180,8 @@ pub mod iam;
 pub mod model;
 mod openid;
 mod permission;
+mod relation;
+mod relationship_queue;
 mod rfc7519;
 
 #[cfg(feature = "mock")]

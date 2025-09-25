@@ -194,6 +194,39 @@ table "organizations" {
     columns = [column.id]
   }
 }
+table "relationship_queue" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "object_id" {
+    null = false
+    type = uuid
+  }
+  column "object_type" {
+    null = false
+    type = text
+  }
+  column "relation" {
+    null = false
+    type = text
+  }
+  column "subject_id" {
+    null = false
+    type= uuid
+  }
+  column "subject_type" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+}
 table "projects" {
   schema = schema.public
   column "id" {

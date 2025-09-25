@@ -1,0 +1,57 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO relationship_queue (id, relation, object_id, object_type, subject_id, subject_type) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, relation, object_id, object_type, subject_id, subject_type",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "relation",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "object_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "object_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "subject_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "subject_type",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1ae0f0731ecd3542a568e3cd56e2fc3092b3826e1983770510ec0464079b81a2"
+}

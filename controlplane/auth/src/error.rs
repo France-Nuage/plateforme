@@ -176,6 +176,9 @@ pub enum Error {
     #[error("no permission was specified for this authorization request")]
     UnspecifiedPermission,
 
+    #[error("no relation was specified for this authorization request")]
+    UnspecifedRelation,
+
     /// Authorization check attempted without specifying a target resource.
     ///
     /// This error occurs when `Authz::check()` is called without first

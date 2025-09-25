@@ -144,6 +144,10 @@ gitleaks:
   stage: deploy
   script:
     - docker compose run zed schema write --endpoint 100.96.0.50:50051 --insecure --token $SPICEDB_TOKEN authz/schema.zed
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
 
 "deploy / controlplane":
   stage: deploy

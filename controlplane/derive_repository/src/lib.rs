@@ -13,7 +13,7 @@ mod extract_table_name;
 use builder::RepositoryBuilder;
 use syn::parse_macro_input;
 
-#[proc_macro_derive(Repository, attributes(repository))]
+#[proc_macro_derive(Repository, attributes(repository, table))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input);
     RepositoryBuilder::new(ast)

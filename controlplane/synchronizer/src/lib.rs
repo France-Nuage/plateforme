@@ -1,8 +1,7 @@
 use instances::InstancesService;
 use std::error::Error;
-use tracing::{error, instrument};
+use tracing::error;
 
-#[instrument(skip(service))]
 pub async fn synchronize(service: &InstancesService) -> Result<(), Box<dyn Error>> {
     service.sync().await?;
     Ok(())

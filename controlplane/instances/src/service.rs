@@ -1,9 +1,10 @@
 use crate::{model::Instance, problem::Problem, repository};
+use auth::{Authorize, Relation, Relationship};
 use database::Persistable;
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor_connector::{InstanceConfig, InstanceService};
 use hypervisors::{Hypervisor, HypervisorsService};
-use resources::service::ResourcesService;
+use resources::{projects::Project, service::ResourcesService};
 use sqlx::{PgPool, types::chrono};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -111,7 +112,17 @@ impl InstancesService {
             .try_collect::<Vec<Instance>>()
             .await?;
 
-        repository::upsert(&self.pool, &instances).await?;
+        let instances = repository::upsert(&self.pool, &instances).await?;
+
+        for instance in &instances {
+            Relationship::new(
+                instance.resource(),
+                Relation::BelongsToProject,
+                (Project::resource_name(), &instance.project_id),
+            )
+            .publish(&self.pool)
+            .await?;
+        }
 
         Ok(instances)
     }
