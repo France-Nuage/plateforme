@@ -1,7 +1,7 @@
 services:
   atlas:
     # Pin a given, audited version of the latest-alpine tag.
-    image: arigaio/atlas@sha256:591872655a7758a60edcb6a23e60caee2fd3ae3fb08bceb8bc4e095f6d5013b5
+    image: arigaio/atlas@sha256:c6a6c07af0d00d0db07ce76688bedae3bde1f3824772ab784f62b9b6084f6a9b
     depends_on:
       atlas-dev-database:
         condition: service_healthy
