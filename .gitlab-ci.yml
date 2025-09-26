@@ -140,6 +140,15 @@ gitleaks:
       when: on_success
     - when: never
 
+"deploy / authz-worker":
+  stage: deploy
+  script:
+    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/authz-worker:release --file=controlplane/Dockerfile.authz-worker --push controlplane
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
+
 "deploy / apply authz schema":
   stage: deploy
   script:
