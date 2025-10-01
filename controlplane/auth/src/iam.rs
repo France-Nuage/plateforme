@@ -30,7 +30,7 @@
 //! processing protected operations.
 
 use crate::{Error, OpenID, authz::Authz, rfc7519::Claim};
-use frn_core::models::User;
+use frn_core::identity::User;
 use sqlx::Postgres;
 use tokio::sync::OnceCell;
 

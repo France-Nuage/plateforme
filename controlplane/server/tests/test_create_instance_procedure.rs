@@ -1,6 +1,6 @@
 use auth::mock::WithWellKnown;
 use database::Persistable;
-use frn_core::models::{Organization, Project};
+use frn_core::resourcemanager::{Organization, Project};
 use hypervisor_connector_proxmox::mock::{
     WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCreateMock,
 };

@@ -1,7 +1,7 @@
-pub mod authorization;
 mod error;
-pub mod models;
-pub mod services;
+pub mod iam;
+pub mod identity;
+pub mod resourcemanager;
 
 pub use error::Error;
 

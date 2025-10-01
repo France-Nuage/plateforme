@@ -1,4 +1,4 @@
-use frn_core::models::Organization;
+use frn_core::resourcemanager::Organization;
 use sqlx::PgPool;
 use uuid::Uuid;
 

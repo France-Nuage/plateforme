@@ -14,7 +14,7 @@ use crate::{
 };
 use auth::IAM;
 use database::Persistable;
-use frn_core::models::{Organization, Project};
+use frn_core::resourcemanager::{Organization, Project};
 use sqlx::{PgPool, Pool, Postgres};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
@@ -192,7 +192,7 @@ mod tests {
         Authz, OpenID,
         mock::{WithJwks, WithWellKnown},
     };
-    use frn_core::models::User;
+    use frn_core::identity::User;
     use mock_server::MockServer;
     use sqlx::PgPool;
     use tonic::Request;

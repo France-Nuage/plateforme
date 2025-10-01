@@ -2,7 +2,7 @@ use database::{Factory, Persistable, Repository};
 use sqlx::{Pool, Postgres, types::chrono};
 use uuid::Uuid;
 
-use crate::models::Organization;
+use crate::{iam::Principal, resourcemanager::Organization};
 
 #[derive(Debug, Default, Factory, Repository)]
 pub struct User {
@@ -48,11 +48,13 @@ impl User {
         .fetch_optional(pool)
         .await
     }
+}
 
-    pub async fn organizations(
+impl Principal for User {
+    async fn organizations(
         &self,
         connection: &Pool<Postgres>,
-    ) -> Result<Vec<Organization>, sqlx::Error> {
-        Organization::list(connection).await
+    ) -> Result<Vec<Organization>, crate::Error> {
+        Organization::list(connection).await.map_err(Into::into)
     }
 }

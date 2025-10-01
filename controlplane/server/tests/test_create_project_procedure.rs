@@ -1,5 +1,5 @@
 use auth::mock::WithWellKnown;
-use frn_core::models::Organization;
+use frn_core::resourcemanager::Organization;
 use mock_server::MockServer;
 use resources::v1::{
     CreateProjectRequest, CreateProjectResponse, Project, resources_client::ResourcesClient,

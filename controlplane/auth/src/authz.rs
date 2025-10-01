@@ -41,7 +41,7 @@
 //! ```
 
 use crate::{Error, Permission};
-use frn_core::models::User;
+use frn_core::identity::User;
 use spicedb::{
     api::v1::{
         CheckPermissionRequest, Consistency, ObjectReference, Relationship, RelationshipUpdate,

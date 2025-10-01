@@ -1,4 +1,4 @@
-use frn_core::models::Project;
+use frn_core::resourcemanager::Project;
 use sqlx::PgPool;
 
 use crate::Problem;

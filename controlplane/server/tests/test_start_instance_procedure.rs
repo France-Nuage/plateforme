@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use auth::{OpenID, mock::WithWellKnown};
-use frn_core::models::{Organization, User};
+use frn_core::{identity::User, resourcemanager::Organization};
 use hypervisor_connector_proxmox::mock::{
     WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStartMock,
 };

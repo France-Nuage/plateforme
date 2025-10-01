@@ -1,6 +1,6 @@
 //! Database model for instance entities.
 use database::{Factory, Persistable, Repository};
-use frn_core::{authorization::Authorize, models::ProjectFactory};
+use frn_core::{iam::Authorize, resourcemanager::ProjectFactory};
 use hypervisors::HypervisorFactory;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono;

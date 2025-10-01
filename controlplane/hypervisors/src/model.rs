@@ -1,5 +1,5 @@
 use database::{Factory, Persistable, Repository};
-use frn_core::models::OrganizationFactory;
+use frn_core::resourcemanager::OrganizationFactory;
 use infrastructure::DatacenterFactory;
 use sqlx::FromRow;
 use uuid::Uuid;

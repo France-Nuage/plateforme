@@ -1,5 +1,5 @@
 use auth::mock::WithWellKnown;
-use frn_core::models::Organization;
+use frn_core::resourcemanager::Organization;
 use hypervisors::v1::{RegisterHypervisorRequest, hypervisors_client::HypervisorsClient};
 use infrastructure::Datacenter;
 use mock_server::MockServer;

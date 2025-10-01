@@ -4,7 +4,7 @@ use auth::{
     OpenID,
     mock::{WithJwks, WithWellKnown},
 };
-use frn_core::models::{Organization, User};
+use frn_core::{identity::User, resourcemanager::Organization};
 use frn_rpc::v1::resources::{ListOrganizationsRequest, resources_client::ResourcesClient};
 use mock_server::MockServer;
 use server::Config;

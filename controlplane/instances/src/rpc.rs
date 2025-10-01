@@ -9,7 +9,7 @@ use crate::{
     },
 };
 use auth::{IAM, Permission, Relation, Relationship};
-use frn_core::{authorization::Authorize, models::Project};
+use frn_core::{iam::Authorize, resourcemanager::Project};
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
@@ -159,7 +159,7 @@ mod tests {
         model::Instance,
         v1::{ListInstancesRequest, StartInstanceRequest},
     };
-    use frn_core::models::{Organization, User};
+    use frn_core::{identity::User, resourcemanager::Organization};
     use hypervisor_connector_proxmox::mock::{
         WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
         WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,

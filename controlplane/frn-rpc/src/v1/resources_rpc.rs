@@ -5,8 +5,8 @@ use crate::{
     error::Error,
     v1::resources::{
         CreateOrganizationRequest, CreateOrganizationResponse, CreateProjectRequest,
-        CreateProjectResponse, ListProjectsRequest, ListProjectsResponse,
-        resources_server::Resources,
+        CreateProjectResponse, ListOrganizationsRequest, ListOrganizationsResponse,
+        ListProjectsRequest, ListProjectsResponse, resources_server::Resources,
     },
 };
 
@@ -41,11 +41,8 @@ impl Resources for ResourcesRpcService {
     #[doc = " Returns a collection of organizations."]
     async fn list_organizations(
         &self,
-        request: tonic::Request<super::resources::ListOrganizationsRequest>,
-    ) -> std::result::Result<
-        tonic::Response<super::resources::ListOrganizationsResponse>,
-        tonic::Status,
-    > {
+        request: tonic::Request<ListOrganizationsRequest>,
+    ) -> Result<Response<ListOrganizationsResponse>, tonic::Status> {
         let iam = request
             .extensions()
             .get::<auth::IAM>()
@@ -53,7 +50,7 @@ impl Resources for ResourcesRpcService {
 
         let user = iam.user(&self.pool).await?;
 
-        let organizations = frn_core::services::organization::list(&self.pool, user)
+        let organizations = frn_core::resourcemanager::list_organizations(&self.pool, &user)
             .await
             .map_err(Error::convert)?;
 
@@ -72,7 +69,7 @@ impl Resources for ResourcesRpcService {
     ) -> Result<Response<CreateOrganizationResponse>, Status> {
         let CreateOrganizationRequest { name } = request.into_inner();
 
-        let organization = frn_core::services::organization::create(&self.pool, name)
+        let organization = frn_core::resourcemanager::create_organization(&self.pool, name)
             .await
             .map_err(Error::convert)?;
 
@@ -89,7 +86,7 @@ impl Resources for ResourcesRpcService {
         &self,
         _request: Request<ListProjectsRequest>,
     ) -> Result<Response<ListProjectsResponse>, Status> {
-        let projects = frn_core::services::project::list(&self.pool)
+        let projects = frn_core::resourcemanager::list_projects(&self.pool)
             .await
             .map_err(Error::convert)?;
 
@@ -111,7 +108,7 @@ impl Resources for ResourcesRpcService {
         let organization_id = Uuid::parse_str(&organization_id)
             .map_err(|_| Status::invalid_argument("invalid argument organization_id"))?;
 
-        let project = frn_core::services::project::create(&self.pool, name, organization_id)
+        let project = frn_core::resourcemanager::create_project(&self.pool, name, organization_id)
             .await
             .map_err(Error::convert)?;
 

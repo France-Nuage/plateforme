@@ -75,6 +75,8 @@ services:
         condition: service_completed_successfully
       oidc:
         condition: service_healthy
+      traefik:
+        condition: service_started
     environment:
       NODE_EXTRA_CA_CERTS: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
@@ -119,6 +121,8 @@ services:
         condition: service_healthy
       spicedb:
         condition: service_healthy
+      traefik:
+        condition: service_started
     healthcheck:
       test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:80"]
       interval: 5s

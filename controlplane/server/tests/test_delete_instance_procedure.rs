@@ -1,5 +1,5 @@
 use auth::mock::WithWellKnown;
-use frn_core::models::Organization;
+use frn_core::resourcemanager::Organization;
 use hypervisor_connector_proxmox::mock::{
     WithClusterResourceList, WithTaskStatusReadMock, WithVMDeleteMock,
 };

@@ -14,7 +14,7 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
     let resource_name = name.to_string().to_lowercase();
 
     quote! {
-        impl frn_core::authorization::Authorize for #name {
+        impl frn_core::iam::Authorize for #name {
             type Id = uuid::Uuid;
 
             fn any_resource() -> (&'static str, &'static str) {
@@ -50,7 +50,7 @@ mod tests {
         let output = make_derive(input);
 
         let expected = quote! {
-            impl frn_core::authorization::Authorize for Anvil {
+            impl frn_core::iam::Authorize for Anvil {
                 type Id = uuid::Uuid;
 
                 fn any_resource() -> (&'static str, &'static str) {
