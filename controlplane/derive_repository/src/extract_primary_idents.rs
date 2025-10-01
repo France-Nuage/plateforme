@@ -7,16 +7,16 @@ pub fn extract_primary_idents(idents: &Punctuated<Field, Comma>) -> Vec<&Ident> 
         .into_iter()
         .filter(|field| {
             field.attrs.iter().any(|attr| {
-                if attr.path().is_ident("repository") {
-                    if let syn::Meta::List(list) = &attr.meta {
-                        return list.tokens.clone().into_iter().any(|token| {
-                            if let TokenTree::Ident(ident) = token {
-                                ident == "primary"
-                            } else {
-                                false
-                            }
-                        });
-                    }
+                if attr.path().is_ident("repository")
+                    && let syn::Meta::List(list) = &attr.meta
+                {
+                    return list.tokens.clone().into_iter().any(|token| {
+                        if let TokenTree::Ident(ident) = token {
+                            ident == "primary"
+                        } else {
+                            false
+                        }
+                    });
                 }
                 false
             })

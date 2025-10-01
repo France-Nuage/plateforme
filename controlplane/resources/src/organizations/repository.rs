@@ -1,4 +1,4 @@
-use crate::organizations::model::Organization;
+use frn_core::models::Organization;
 use sqlx::PgPool;
 use uuid::Uuid;
 

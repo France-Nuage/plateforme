@@ -130,6 +130,7 @@ dependencies = [
  "chrono",
  "database",
  "derive-auth",
+ "frn-core",
  "futures",
  "http",
  "http-body",
@@ -705,6 +706,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "frn-core"
+version = "0.1.0"
+dependencies = [
+ "database",
+ "frn-derive",
+ "sqlx",
+ "thiserror 2.0.12",
+ "uuid",
+]
+
+[[package]]
+name = "frn-derive"
+version = "0.1.0"
+dependencies = [
+ "auth",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "uuid",
+]
+
+[[package]]
+name = "frn-rpc"
+version = "0.1.0"
+dependencies = [
+ "auth",
+ "frn-core",
+ "prost",
+ "prost-types",
+ "sqlx",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+]
+
+[[package]]
 name = "futures"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1121,9 +1158,9 @@ name = "hypervisors"
 version = "0.1.0"
 dependencies = [
  "database",
+ "frn-core",
  "infrastructure",
  "prost",
- "resources",
  "sqlx",
  "thiserror 2.0.12",
  "tokio",
@@ -1328,6 +1365,7 @@ name = "infrastructure"
 version = "0.1.0"
 dependencies = [
  "database",
+ "frn-core",
  "prost",
  "prost-types",
  "resources",
@@ -1345,6 +1383,7 @@ version = "0.1.0"
 dependencies = [
  "auth",
  "database",
+ "frn-core",
  "futures",
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
@@ -2207,6 +2246,7 @@ version = "0.1.0"
 dependencies = [
  "auth",
  "database",
+ "frn-core",
  "mock_server",
  "prost",
  "prost-types",
@@ -2503,6 +2543,8 @@ dependencies = [
  "auth",
  "bytes",
  "database",
+ "frn-core",
+ "frn-rpc",
  "http",
  "http-body",
  "hyper",

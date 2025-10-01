@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT id, name, created_at, updated_at \n                FROM organizations \n                WHERE organizations.id = $1\n            ",
+  "query": "SELECT id, email, is_admin, created_at, updated_at FROM users",
   "describe": {
     "columns": [
       {
@@ -10,31 +10,35 @@
       },
       {
         "ordinal": 1,
-        "name": "name",
+        "name": "email",
         "type_info": "Text"
       },
       {
         "ordinal": 2,
+        "name": "is_admin",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 3,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
-      "Left": [
-        "Uuid"
-      ]
+      "Left": []
     },
     "nullable": [
+      false,
       false,
       false,
       false,
       false
     ]
   },
-  "hash": "64c34499ffbcf6bafd5015f20bc8b84ec0e021c9b17937b47255ecc2ed1dbf1b"
+  "hash": "a055fcbfb87236cf4fdfb1d180e1d4e51c19555c0385bcdab6ccafeb78e04e6d"
 }

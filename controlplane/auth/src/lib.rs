@@ -177,7 +177,6 @@ mod authorize;
 mod authz;
 mod error;
 pub mod iam;
-pub mod model;
 mod openid;
 mod permission;
 mod relation;

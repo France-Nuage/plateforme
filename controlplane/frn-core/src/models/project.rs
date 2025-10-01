@@ -1,10 +1,10 @@
-use auth::Authorize;
 use database::{Factory, Persistable, Repository};
+use frn_core::authorization::Authorize;
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
 use uuid::Uuid;
 
-use crate::organizations::OrganizationFactory;
+use crate::models::OrganizationFactory;
 
 #[derive(Authorize, Debug, Default, Factory, FromRow, Repository)]
 pub struct Project {

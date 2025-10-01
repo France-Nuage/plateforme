@@ -1,10 +1,8 @@
+use frn_core::models::Project;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::{
-    DEFAULT_PROJECT_NAME, Problem,
-    projects::{Project, repository::Query},
-};
+use crate::{DEFAULT_PROJECT_NAME, Problem, projects::repository::Query};
 
 pub struct ResourcesService {
     pool: PgPool,

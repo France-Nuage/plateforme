@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 auth = { path = "../auth", features = ["mock"] }
 bytes = "1"
+frn-core = { path = "../frn-core" }
+frn-rpc = { path = "../frn-rpc" }
 http = "1"
 http-body = "1"
 hyper = "1"

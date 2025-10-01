@@ -1,8 +1,8 @@
 use auth::mock::WithWellKnown;
+use frn_core::models::Organization;
 use hypervisors::v1::{RegisterHypervisorRequest, hypervisors_client::HypervisorsClient};
 use infrastructure::Datacenter;
 use mock_server::MockServer;
-use resources::organizations::Organization;
 use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]

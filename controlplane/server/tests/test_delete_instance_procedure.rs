@@ -1,4 +1,5 @@
 use auth::mock::WithWellKnown;
+use frn_core::models::Organization;
 use hypervisor_connector_proxmox::mock::{
     WithClusterResourceList, WithTaskStatusReadMock, WithVMDeleteMock,
 };
@@ -7,7 +8,6 @@ use instances::{
     v1::{DeleteInstanceRequest, instances_client::InstancesClient},
 };
 use mock_server::MockServer;
-use resources::organizations::Organization;
 use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]

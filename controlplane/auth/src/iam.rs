@@ -29,7 +29,8 @@
 //! `is_authenticated()` to verify the request's authentication status before
 //! processing protected operations.
 
-use crate::{Error, OpenID, authz::Authz, model::User, rfc7519::Claim};
+use crate::{Error, OpenID, authz::Authz, rfc7519::Claim};
+use frn_core::models::User;
 use sqlx::Postgres;
 use tokio::sync::OnceCell;
 

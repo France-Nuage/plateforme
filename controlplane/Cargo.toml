@@ -3,6 +3,9 @@
 members = [
   "auth",
   "authz-worker",
+  "frn-core",
+  "frn-derive",
+  "frn-rpc",
   "database",
   "database-core",
   "derive-auth",

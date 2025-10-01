@@ -1,6 +1,7 @@
+use frn_core::models::Organization;
 use sqlx::PgPool;
 
-use crate::{Problem, organizations::Organization};
+use crate::Problem;
 
 pub struct OrganizationService {
     pool: PgPool,

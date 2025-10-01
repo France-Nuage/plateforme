@@ -1,0 +1,11 @@
+[package]
+name = "frn-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+database = { path = "../database" }
+frn-derive = { path = "../frn-derive" }
+sqlx = { version = "0.8", features = ["chrono", "postgres", "uuid"] }
+thiserror = "2"
+uuid = "1"

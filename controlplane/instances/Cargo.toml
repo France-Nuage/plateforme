@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 auth = { path = "../auth" }
 database = { path = "../database" }
+frn-core = { path = "../frn-core" }
 futures = "0.3"
 hypervisors = { path = "../hypervisors" }
 hypervisor_connector = { path = "../hypervisor_connector" }

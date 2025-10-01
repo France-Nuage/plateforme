@@ -3,13 +3,10 @@ use std::str::FromStr;
 use auth::{
     OpenID,
     mock::{WithJwks, WithWellKnown},
-    model::User,
 };
+use frn_core::models::{Organization, User};
+use frn_rpc::v1::resources::{ListOrganizationsRequest, resources_client::ResourcesClient};
 use mock_server::MockServer;
-use resources::{
-    organizations::Organization,
-    v1::{ListOrganizationsRequest, resources_client::ResourcesClient},
-};
 use server::Config;
 use sqlx::{Pool, Postgres, types::Uuid};
 use tonic::{Code, Request, metadata::MetadataValue};
@@ -104,7 +101,7 @@ async fn test_the_list_organizations_procedure_only_returns_the_user_organizatio
 ) {
     // Arrange the grpc server and a client
     let mock = MockServer::new().await.with_well_known().with_jwks();
-    let organization = Organization::factory()
+    let _organization = Organization::factory()
         .id(Uuid::new_v4())
         .create(&pool)
         .await
@@ -116,7 +113,6 @@ async fn test_the_list_organizations_procedure_only_returns_the_user_organizatio
         .unwrap();
     let user = User::factory()
         .email("wile.coyote@acme.org".to_owned())
-        .organization_id(organization.id)
         .create(&pool)
         .await
         .unwrap();
@@ -148,7 +144,7 @@ async fn test_the_list_organizations_procedure_returns_all_organizations_for_an_
 ) {
     // Arrange the grpc server and a client
     let mock = MockServer::new().await.with_well_known().with_jwks();
-    let organization = Organization::factory()
+    let _organization = Organization::factory()
         .id(Uuid::new_v4())
         .create(&pool)
         .await
@@ -160,7 +156,6 @@ async fn test_the_list_organizations_procedure_returns_all_organizations_for_an_
         .unwrap();
     let user = User::factory()
         .email("wile.coyote@acme.org".to_owned())
-        .organization_id(organization.id)
         .is_admin(true)
         .create(&pool)
         .await

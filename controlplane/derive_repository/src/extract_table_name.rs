@@ -16,23 +16,21 @@ pub fn extract_table_name(input: &DeriveInput) -> String {
 /// Extract table name from attributes like #[table(name = "custom_table")]
 fn extract_table_attribute(attrs: &[Attribute]) -> Option<String> {
     for attr in attrs {
-        if attr.path().is_ident("table") {
-            if let Meta::List(meta_list) = &attr.meta {
-                // Parse the content inside the parentheses
-                let parsed: Result<Punctuated<Meta, Token![,]>, _> =
-                    meta_list.parse_args_with(Punctuated::parse_terminated);
+        if attr.path().is_ident("table")
+            && let Meta::List(meta_list) = &attr.meta
+        {
+            // Parse the content inside the parentheses
+            let parsed: Result<Punctuated<Meta, Token![,]>, _> =
+                meta_list.parse_args_with(Punctuated::parse_terminated);
 
-                if let Ok(nested_metas) = parsed {
-                    for meta in nested_metas {
-                        if let Meta::NameValue(name_value) = meta {
-                            if name_value.path.is_ident("name") {
-                                if let syn::Expr::Lit(expr_lit) = &name_value.value {
-                                    if let Lit::Str(lit_str) = &expr_lit.lit {
-                                        return Some(lit_str.value());
-                                    }
-                                }
-                            }
-                        }
+            if let Ok(nested_metas) = parsed {
+                for meta in nested_metas {
+                    if let Meta::NameValue(name_value) = meta
+                        && name_value.path.is_ident("name")
+                        && let syn::Expr::Lit(expr_lit) = &name_value.value
+                        && let Lit::Str(lit_str) = &expr_lit.lit
+                    {
+                        return Some(lit_str.value());
                     }
                 }
             }
