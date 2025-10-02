@@ -1,4 +1,5 @@
 -- Modify "users" table
+-- atlas:nolint DS103
 ALTER TABLE "public"."users" DROP COLUMN "organization_id";
 -- Create "organization_user" table
 CREATE TABLE "public"."organization_user" (
