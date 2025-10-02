@@ -131,11 +131,11 @@ impl IAM {
     /// ```
     /// # use sqlx::PgPool;
     /// # use auth::{IAM, OpenID};
-    /// # use auth::model::User;
+    /// # use frn_core::identity::User;
     /// # async fn example(pool: &PgPool, iam: &IAM) -> Result<(), auth::Error> {
     /// // Get user authorization context for authenticated request
     /// let user = iam.user(pool).await?;
-    /// println!("User authorized for organization: {}", user.organization_id);
+    /// println!("User authenticated: {}", user.email);
     /// # Ok(())
     /// # }
     /// ```

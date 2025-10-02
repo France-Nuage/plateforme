@@ -159,7 +159,8 @@ pub enum Error {
     ///
     /// # Example Fix
     /// ```
-    /// # use auth::{Authz, Permission, model::User};
+    /// # use auth::{Authz, Permission};
+    /// # use frn_core::identity::User;
     /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
@@ -187,7 +188,8 @@ pub enum Error {
     ///
     /// # Example Fix
     /// ```
-    /// # use auth::{Authz, Permission, model::User};
+    /// # use auth::{Authz, Permission};
+    /// # use frn_core::identity::User;
     /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
@@ -212,7 +214,8 @@ pub enum Error {
     ///
     /// # Example Fix
     /// ```
-    /// # use auth::{Authz, Permission, model::User};
+    /// # use auth::{Authz, Permission};
+    /// # use frn_core::identity::User;
     /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
