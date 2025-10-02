@@ -136,8 +136,8 @@ mod tests {
             hypervisors_server::Hypervisors,
         },
     };
+    use frn_core::resourcemanager::Organization;
     use infrastructure::Datacenter;
-    use resources::organizations::Organization;
     use tonic::Request;
 
     use super::HypervisorsRpcService;

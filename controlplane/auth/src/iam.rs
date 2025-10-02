@@ -29,7 +29,8 @@
 //! `is_authenticated()` to verify the request's authentication status before
 //! processing protected operations.
 
-use crate::{Error, OpenID, authz::Authz, model::User, rfc7519::Claim};
+use crate::{Error, OpenID, authz::Authz, rfc7519::Claim};
+use frn_core::identity::User;
 use sqlx::Postgres;
 use tokio::sync::OnceCell;
 
@@ -130,11 +131,11 @@ impl IAM {
     /// ```
     /// # use sqlx::PgPool;
     /// # use auth::{IAM, OpenID};
-    /// # use auth::model::User;
+    /// # use frn_core::identity::User;
     /// # async fn example(pool: &PgPool, iam: &IAM) -> Result<(), auth::Error> {
     /// // Get user authorization context for authenticated request
     /// let user = iam.user(pool).await?;
-    /// println!("User authorized for organization: {}", user.organization_id);
+    /// println!("User authenticated: {}", user.email);
     /// # Ok(())
     /// # }
     /// ```

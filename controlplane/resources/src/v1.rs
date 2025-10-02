@@ -9,8 +9,8 @@ use std::time::SystemTime;
 tonic::include_proto!("francenuage.fr.api.controlplane.v1.resources");
 
 /// Convert between model and protobuf types
-impl From<crate::organizations::Organization> for Organization {
-    fn from(org: crate::organizations::Organization) -> Self {
+impl From<frn_core::resourcemanager::Organization> for Organization {
+    fn from(org: frn_core::resourcemanager::Organization) -> Self {
         Self {
             id: org.id.to_string(),
             name: org.name,
@@ -21,8 +21,8 @@ impl From<crate::organizations::Organization> for Organization {
 }
 
 /// Convert between model and protobuf types
-impl From<crate::projects::Project> for Project {
-    fn from(project: crate::projects::Project) -> Self {
+impl From<frn_core::resourcemanager::Project> for Project {
+    fn from(project: frn_core::resourcemanager::Project) -> Self {
         Self {
             id: project.id.to_string(),
             name: project.name,

@@ -1,5 +1,6 @@
 use auth::mock::WithWellKnown;
 use database::Persistable;
+use frn_core::resourcemanager::{Organization, Project};
 use hypervisor_connector_proxmox::mock::{
     WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCreateMock,
 };
@@ -8,7 +9,7 @@ use instances::v1::{
     CreateInstanceRequest, CreateInstanceResponse, instances_client::InstancesClient,
 };
 use mock_server::MockServer;
-use resources::{DEFAULT_PROJECT_NAME, organizations::Organization, projects::Project};
+use resources::DEFAULT_PROJECT_NAME;
 use server::Config;
 use sqlx::types::Uuid;
 

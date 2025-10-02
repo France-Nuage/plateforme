@@ -1,6 +1,7 @@
+use frn_core::resourcemanager::Project;
 use sqlx::PgPool;
 
-use crate::{Problem, projects::Project};
+use crate::Problem;
 
 pub struct ProjectService {
     pool: PgPool,

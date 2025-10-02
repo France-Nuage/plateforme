@@ -1,9 +1,7 @@
 use auth::mock::WithWellKnown;
+use frn_core::resourcemanager::Project;
+use frn_rpc::v1::resources::{ListProjectsRequest, resources_client::ResourcesClient};
 use mock_server::MockServer;
-use resources::{
-    projects::Project,
-    v1::{ListProjectsRequest, resources_client::ResourcesClient},
-};
 use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]

@@ -75,9 +75,7 @@
 //! - **iam** - Identity and Access Management context for authenticated requests
 //! - **authz** - SpiceDB authorization client with fluent API for permission checking
 //! - **permission** - Type-safe permission definitions for fine-grained access control
-//! - **model** - Temporary database models for user authorization (will be replaced by SpiceDB)
 //! - **openid** - JWT token validation with JWK key management and caching
-//! - **discovery** - OIDC provider metadata and discovery functionality
 //! - **error** - Comprehensive error types for all authentication and authorization operations
 //! - **rfc7517** - JWT claims structures following RFC 7517 specification
 //!
@@ -125,7 +123,8 @@
 //! ### Authorization with SpiceDB
 //! Perform fine-grained access control checks using SpiceDB:
 //! ```
-//! # use auth::{Authz, Permission, model::User};
+//! # use auth::{Authz, Permission};
+//! # use frn_core::identity::User;
 //! # use uuid::Uuid;
 //! # async fn example() -> Result<(), auth::Error> {
 //! let authz = Authz::connect("http://spicedb:50051".to_owned(), "Bearer f00ba3".to_owned()).await?;
@@ -177,7 +176,6 @@ mod authorize;
 mod authz;
 mod error;
 pub mod iam;
-pub mod model;
 mod openid;
 mod permission;
 mod relation;

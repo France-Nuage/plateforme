@@ -5,6 +5,7 @@
 //! and provides a builder pattern for progressive service registration with
 //! proper dependency injection.
 
+use frn_rpc::v1::{ResourcesRpcService, resources::resources_server::ResourcesServer};
 use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
 use infrastructure::DatacenterRpcService;
 use infrastructure::ZeroTrustNetworkRpcService;
@@ -13,7 +14,6 @@ use infrastructure::v1::datacenters_server::DatacentersServer;
 use infrastructure::v1::zero_trust_network_types_server::ZeroTrustNetworkTypesServer;
 use infrastructure::v1::zero_trust_networks_server::ZeroTrustNetworksServer;
 use instances::{InstancesRpcService, v1::instances_server::InstancesServer};
-use resources::{rpc::ResourcesRpcService, v1::resources_server::ResourcesServer};
 use sqlx::{Pool, Postgres};
 use tonic::service::Routes;
 

@@ -242,16 +242,14 @@ fn extract_relation_fields(fields: &Punctuated<Field, Token![,]>) -> Vec<Relatio
             for attr in &field.attrs {
                 if attr.path().is_ident("factory") {
                     // Combine the nested if let statements
-                    if let Ok(syn::Meta::NameValue(nv)) = attr.parse_args::<syn::Meta>() {
-                        if nv.path.is_ident("relation") {
-                            if let syn::Expr::Lit(syn::ExprLit {
-                                lit: syn::Lit::Str(lit_str),
-                                ..
-                            }) = nv.value
-                            {
-                                return Some(Relation::new(field, lit_str.value()));
-                            }
-                        }
+                    if let Ok(syn::Meta::NameValue(nv)) = attr.parse_args::<syn::Meta>()
+                        && nv.path.is_ident("relation")
+                        && let syn::Expr::Lit(syn::ExprLit {
+                            lit: syn::Lit::Str(lit_str),
+                            ..
+                        }) = nv.value
+                    {
+                        return Some(Relation::new(field, lit_str.value()));
                     }
                 }
             }

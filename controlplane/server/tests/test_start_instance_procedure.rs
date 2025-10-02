@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
-use auth::{OpenID, mock::WithWellKnown, model::User};
+use auth::{OpenID, mock::WithWellKnown};
+use frn_core::{identity::User, resourcemanager::Organization};
 use hypervisor_connector_proxmox::mock::{
     WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStartMock,
 };
@@ -9,7 +10,6 @@ use instances::{
     v1::{StartInstanceRequest, instances_client::InstancesClient},
 };
 use mock_server::MockServer;
-use resources::organizations::Organization;
 use server::Config;
 use tonic::{Request, metadata::MetadataValue};
 
@@ -40,7 +40,6 @@ async fn test_the_start_instance_procedure_works(
         .await?;
 
     let user = User::factory()
-        .organization_id(organization.id)
         .email("wile.coyote@acme.org".to_owned())
         .create(&pool)
         .await

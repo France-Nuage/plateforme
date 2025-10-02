@@ -1,11 +1,12 @@
 use auth::mock::WithWellKnown;
+use frn_core::resourcemanager::Organization;
 use hypervisor_connector_proxmox::mock::WithClusterResourceList;
 use instances::{
     Instance,
     v1::{ListInstancesRequest, instances_client::InstancesClient},
 };
 use mock_server::MockServer;
-use resources::{DEFAULT_PROJECT_NAME, organizations::Organization};
+use resources::DEFAULT_PROJECT_NAME;
 use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]

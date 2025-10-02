@@ -194,6 +194,51 @@ table "organizations" {
     columns = [column.id]
   }
 }
+table "organization_user" {
+  schema = schema.public
+    column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
+  column "organization_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "user_organizations_user_id_fkey" {
+    columns = [column.user_id]
+    ref_columns = [table.users.column.id]
+    on_update = NO_ACTION
+    on_delete = CASCADE
+  }
+  foreign_key "user_organizations_organization_id_fkey" {
+    columns = [column.organization_id]
+    ref_columns = [table.organizations.column.id]
+    on_update = NO_ACTION
+    on_delete = CASCADE
+  }
+  index "user_organizations_user_id_organization_id_idx" {
+    unique = true
+    columns = [column.user_id, column.organization_id]
+  }
+}
 table "relationship_queue" {
   schema = schema.public
   column "id" {
@@ -269,10 +314,6 @@ table "users" {
     type = uuid
     default = sql("gen_random_uuid()")
   }
-  column "organization_id" {
-    null = false
-    type = uuid
-  }
   column "email" {
     null = false
     type = text
@@ -294,12 +335,6 @@ table "users" {
   }
   primary_key {
     columns = [column.id]
-  }
-  foreign_key "users_organization_id_fkey" {
-    columns = [column.organization_id]
-    ref_columns = [table.organizations.column.id]
-    on_update = NO_ACTION
-    on_delete = CASCADE
   }
   index "users_email_idx" {
     unique = true

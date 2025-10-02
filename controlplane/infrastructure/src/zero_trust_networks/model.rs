@@ -1,6 +1,6 @@
 use crate::ZeroTrustNetworkTypeFactory;
 use database::{Factory, Persistable, Repository};
-use resources::organizations::OrganizationFactory;
+use frn_core::resourcemanager::OrganizationFactory;
 use sqlx::FromRow;
 use sqlx::types::chrono;
 use uuid::Uuid;

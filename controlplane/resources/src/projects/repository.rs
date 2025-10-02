@@ -1,4 +1,4 @@
-use crate::projects::model::Project;
+use frn_core::resourcemanager::Project;
 use sqlx::PgPool;
 use uuid::Uuid;
 

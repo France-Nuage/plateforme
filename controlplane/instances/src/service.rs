@@ -1,10 +1,11 @@
 use crate::{model::Instance, problem::Problem, repository};
-use auth::{Authorize, Relation, Relationship};
+use auth::{Relation, Relationship};
 use database::Persistable;
+use frn_core::{iam::Authorize, resourcemanager::Project};
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor_connector::{InstanceConfig, InstanceService};
 use hypervisors::{Hypervisor, HypervisorsService};
-use resources::{projects::Project, service::ResourcesService};
+use resources::service::ResourcesService;
 use sqlx::{PgPool, types::chrono};
 use std::sync::Arc;
 use uuid::Uuid;

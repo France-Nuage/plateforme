@@ -19,7 +19,8 @@
 //! Authorization checks follow the pattern: "Can [subject] perform [permission] on [resource]?"
 //!
 //! ```
-//! # use auth::{Authz, Permission, model::User};
+//! # use auth::{Authz, Permission};
+//! # use frn_core::identity::User;
 //! # use uuid::Uuid;
 //! # async fn example() -> Result<(), auth::Error> {
 //! # let authz = Authz::mock().await;
@@ -40,7 +41,8 @@
 //! # }
 //! ```
 
-use crate::{Error, Permission, model::User};
+use crate::{Error, Permission};
+use frn_core::identity::User;
 use spicedb::{
     api::v1::{
         CheckPermissionRequest, Consistency, ObjectReference, Relationship, RelationshipUpdate,
@@ -77,7 +79,8 @@ use uuid::Uuid;
 /// ### Basic Authorization Check
 ///
 /// ```
-/// # use auth::{Authz, Permission, model::User};
+/// # use auth::{Authz, Permission};
+/// # use frn_core::identity::User;
 /// # use uuid::Uuid;
 /// # async fn example() -> Result<(), auth::Error> {
 /// let authz = Authz::connect("http://spicedb:50051".to_owned(), "Bearer f00ba3".to_string()).await?;
@@ -99,7 +102,8 @@ use uuid::Uuid;
 /// ### Using Mock Server for Testing
 ///
 /// ```
-/// # use auth::{Authz, Permission, model::User};
+/// # use auth::{Authz, Permission};
+/// # use frn_core::identity::User;
 /// # use uuid::Uuid;
 /// # async fn example() -> Result<(), auth::Error> {
 /// let authz = Authz::mock().await;
@@ -182,7 +186,8 @@ impl Authz {
     /// # Examples
     ///
     /// ```
-    /// # use auth::{Authz, model::User};
+    /// # use auth::Authz;
+    /// # use frn_core::identity::User;
     /// # async fn example() -> Result<(), auth::Error> {
     /// # let authz = Authz::mock().await;
     /// let user = User::default();
@@ -275,7 +280,8 @@ impl Authz {
     /// # Examples
     ///
     /// ```
-    /// # use auth::{Authz, Permission, model::User};
+    /// # use auth::{Authz, Permission};
+    /// # use frn_core::identity::User;
     /// # use uuid::Uuid;
     /// # async fn example() -> Result<(), auth::Error> {
     /// let authz = Authz::mock().await;
@@ -427,7 +433,8 @@ impl Authz {
     /// # Examples
     ///
     /// ```
-    /// # use auth::{Authz, Permission, model::User};
+    /// # use auth::{Authz, Permission};
+    /// # use frn_core::identity::User;
     /// # use uuid::Uuid;
     /// # async fn test_authorization() {
     /// let authz = Authz::mock().await;

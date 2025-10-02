@@ -5,9 +5,9 @@ edition = "2024"
 
 [dependencies]
 database = { path = "../database" }
+frn-core = { path = "../frn-core" }
 infrastructure = { path = "../infrastructure" }
 prost = "0.14"
-resources = { path = "../resources" }
 sqlx = { version = "0.8", features = [
   "chrono",
   "migrate",

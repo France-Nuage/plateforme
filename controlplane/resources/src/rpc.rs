@@ -4,8 +4,8 @@
 //! handling requests to manage organizations and projects.
 
 use crate::{
-    organizations::{Organization, OrganizationService},
-    projects::{Project, ProjectService},
+    organizations::OrganizationService,
+    projects::ProjectService,
     v1::{
         CreateOrganizationRequest, CreateOrganizationResponse, CreateProjectRequest,
         CreateProjectResponse, ListOrganizationsRequest, ListOrganizationsResponse,
@@ -13,6 +13,8 @@ use crate::{
     },
 };
 use auth::IAM;
+use database::Persistable;
+use frn_core::resourcemanager::{Organization, Project};
 use sqlx::{PgPool, Pool, Postgres};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
@@ -57,9 +59,11 @@ impl Resources for ResourcesRpcService {
             .get::<IAM>()
             .ok_or(Status::internal("iam not found"))?;
 
-        let user = iam.user(&self.pool).await?;
+        let _user = iam.user(&self.pool).await?;
 
-        let organizations = Organization::find_by_user(&self.pool, user).await?;
+        let organizations = Organization::list(&self.pool)
+            .await
+            .map_err(|_| Status::internal("database error"))?;
 
         Ok(Response::new(ListOrganizationsResponse {
             organizations: organizations.into_iter().map(Into::into).collect(),
@@ -187,8 +191,8 @@ mod tests {
     use auth::{
         Authz, OpenID,
         mock::{WithJwks, WithWellKnown},
-        model::User,
     };
+    use frn_core::identity::User;
     use mock_server::MockServer;
     use sqlx::PgPool;
     use tonic::Request;
@@ -196,12 +200,11 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_organizations_works(pool: PgPool) {
         // Arrange a service with necessary dependencies
-        let organization = Organization::factory()
+        let _organization = Organization::factory()
             .create(&pool)
             .await
             .expect("could not create organization");
         let user = User::factory()
-            .organization_id(organization.id)
             .email("wile.coyote@acme.org".to_owned())
             .is_admin(true)
             .create(&pool)

@@ -8,8 +8,8 @@ use crate::{
         instances_server::Instances,
     },
 };
-use auth::{Authorize, IAM, Permission, Relation, Relationship};
-use resources::projects::Project;
+use auth::{IAM, Permission, Relation, Relationship};
+use frn_core::{iam::Authorize, resourcemanager::Project};
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
@@ -159,13 +159,12 @@ mod tests {
         model::Instance,
         v1::{ListInstancesRequest, StartInstanceRequest},
     };
-    use auth::model::User;
+    use frn_core::{identity::User, resourcemanager::Organization};
     use hypervisor_connector_proxmox::mock::{
         WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
         WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
     };
     use mock_server::MockServer;
-    use resources::organizations::Organization;
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_instances_works(pool: sqlx::PgPool) {
@@ -223,7 +222,6 @@ mod tests {
         let user = User::factory()
             .id(Uuid::new_v4())
             .email("wile.coyote@acme.org".to_owned())
-            .organization_id(organization.id)
             .create(&pool)
             .await
             .expect("could not create user");
@@ -317,7 +315,6 @@ mod tests {
         let user = User::factory()
             .id(Uuid::new_v4())
             .email("wile.coyote@acme.org".to_owned())
-            .organization_id(organization.id)
             .create(&pool)
             .await
             .expect("could not create user");
