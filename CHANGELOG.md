@@ -1,3 +1,15 @@
+# [1.39.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.38.0...v1.39.0) (2025-10-02)
+
+
+### Bug Fixes
+
+* allow dropping column in migration ([5c09875](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/5c09875d8684eaa383d684caad18a37973160a1d))
+
+
+### Features
+
+* move relation organization user to m2m ([1f950ca](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1f950ca74786e0b5701191dd87a8a925e251d4f2))
+
 # [1.38.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.37.2...v1.38.0) (2025-09-25)
 
 
