@@ -1,26 +1,28 @@
+use crate::error::Error;
+use crate::request::ExtractToken;
+use crate::v1::resources::{
+    CreateOrganizationRequest, CreateOrganizationResponse, CreateProjectRequest,
+    CreateProjectResponse, ListOrganizationsRequest, ListOrganizationsResponse,
+    ListProjectsRequest, ListProjectsResponse, resources_server::Resources,
+};
+use frn_core::{
+    authorization::AuthorizationServer, identity::IAM, resourcemanager::OrganizationService,
+};
 use sqlx::{Pool, Postgres, types::Uuid};
 use tonic::{Request, Response, Status};
-
-use crate::{
-    error::Error,
-    v1::resources::{
-        CreateOrganizationRequest, CreateOrganizationResponse, CreateProjectRequest,
-        CreateProjectResponse, ListOrganizationsRequest, ListOrganizationsResponse,
-        ListProjectsRequest, ListProjectsResponse, resources_server::Resources,
-    },
-};
 
 /// Implementation of the Resources gRPC service.
 ///
 /// This service handles operations related to resource management,
 /// including listing and creating organizations and projects. It uses a database
 /// connection to persist and retrieve resource information.
-pub struct ResourcesRpcService {
-    /// The database pool
+pub struct ResourcesRpcService<Auth: AuthorizationServer> {
+    iam: IAM,
     pool: Pool<Postgres>,
+    organizations: OrganizationService<Auth>,
 }
 
-impl ResourcesRpcService {
+impl<Auth: AuthorizationServer> ResourcesRpcService<Auth> {
     /// Creates a new instance of the Resources gRPC service.
     ///
     /// # Arguments
@@ -30,29 +32,30 @@ impl ResourcesRpcService {
     /// # Returns
     ///
     /// A new `ResourcesRpcService` instance
-    pub fn new(pool: Pool<Postgres>) -> Self {
-        Self { pool }
+    pub fn new(iam: IAM, organizations: OrganizationService<Auth>, pool: Pool<Postgres>) -> Self {
+        Self {
+            iam,
+            organizations,
+            pool,
+        }
     }
 }
 
 #[tonic::async_trait]
-impl Resources for ResourcesRpcService {
+impl<Auth: AuthorizationServer + Sync + 'static> Resources for ResourcesRpcService<Auth> {
     #[doc = " ListOrganizations retrieves information about all available organizations."]
     #[doc = " Returns a collection of organizations."]
     async fn list_organizations(
         &self,
         request: tonic::Request<ListOrganizationsRequest>,
-    ) -> Result<Response<ListOrganizationsResponse>, tonic::Status> {
-        let iam = request
-            .extensions()
-            .get::<auth::IAM>()
-            .ok_or(tonic::Status::internal("iam not found"))?;
+    ) -> Result<Response<ListOrganizationsResponse>, Status> {
+        let principal = self.iam.user(request.access_token()).await?;
 
-        let user = iam.user(&self.pool).await?;
-
-        let organizations = frn_core::resourcemanager::list_organizations(&self.pool, &user)
-            .await
-            .map_err(Error::convert)?;
+        let organizations = self
+            .organizations
+            .clone()
+            .list_organizations(&principal)
+            .await?;
 
         Ok(tonic::Response::new(
             super::resources::ListOrganizationsResponse {
@@ -67,11 +70,15 @@ impl Resources for ResourcesRpcService {
         &self,
         request: Request<CreateOrganizationRequest>,
     ) -> Result<Response<CreateOrganizationResponse>, Status> {
+        let principal = self.iam.user(request.access_token()).await?;
+
         let CreateOrganizationRequest { name } = request.into_inner();
 
-        let organization = frn_core::resourcemanager::create_organization(&self.pool, name)
-            .await
-            .map_err(Error::convert)?;
+        let organization = self
+            .organizations
+            .clone()
+            .create_organization(&self.pool, &principal, name)
+            .await?;
 
         Ok(tonic::Response::new(
             super::resources::CreateOrganizationResponse {

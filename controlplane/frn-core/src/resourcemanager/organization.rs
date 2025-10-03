@@ -1,12 +1,12 @@
 use crate::Error;
-use crate::iam::Principal;
+use crate::authorization::{AuthorizationServer, Permission, Principal, Resource};
 use database::{Factory, Persistable, Repository};
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, FromRow, Repository)]
+#[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
 pub struct Organization {
     /// The organization id
     #[repository(primary)]
@@ -19,20 +19,42 @@ pub struct Organization {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-pub async fn list_organizations<P: Principal>(
-    connection: &Pool<Postgres>,
-    principal: &P,
-) -> Result<Vec<Organization>, Error> {
-    principal.organizations(connection).await
+#[derive(Clone)]
+pub struct OrganizationService<A: AuthorizationServer> {
+    auth: A,
+    db: Pool<Postgres>,
 }
 
-pub async fn create_organization(
-    connection: &Pool<Postgres>,
-    name: String,
-) -> Result<Organization, Error> {
-    Organization::factory()
-        .name(name)
-        .create(connection)
-        .await
-        .map_err(Into::into)
+impl<A: AuthorizationServer> OrganizationService<A> {
+    pub async fn list_organizations<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+    ) -> Result<Vec<Organization>, Error> {
+        self.auth
+            .can(principal)
+            .perform(Permission::Get)
+            .over(&Organization::any())
+            .await?;
+
+        principal.organizations(&self.db).await
+    }
+
+    pub async fn create_organization<P: Principal + Sync>(
+        &mut self,
+        connection: &Pool<Postgres>,
+        principal: &P,
+        name: String,
+    ) -> Result<Organization, Error> {
+        self.auth
+            .can(principal)
+            .perform(Permission::Create)
+            .over(&Organization::any())
+            .await?;
+
+        Organization::factory()
+            .name(name)
+            .create(connection)
+            .await
+            .map_err(Into::into)
+    }
 }

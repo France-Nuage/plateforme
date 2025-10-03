@@ -12,7 +12,12 @@ mod authzed {
     }
 }
 
+mod client;
+mod error;
+
 pub use authzed::api;
+pub use client::SpiceDB;
+pub use error::Error;
 
 #[cfg(feature = "mock")]
 pub mod mock;

@@ -1,7 +1,7 @@
 use crate::{model::Instance, problem::Problem, repository};
 use auth::{Relation, Relationship};
 use database::Persistable;
-use frn_core::{iam::Authorize, resourcemanager::Project};
+use frn_core::{authorization::Resource, resourcemanager::Project};
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor_connector::{InstanceConfig, InstanceService};
 use hypervisors::{Hypervisor, HypervisorsService};
@@ -117,9 +117,9 @@ impl InstancesService {
 
         for instance in &instances {
             Relationship::new(
-                instance.resource(),
+                instance.resource_identifier(),
                 Relation::BelongsToProject,
-                (Project::resource_name(), &instance.project_id),
+                (Project::NAME, &instance.project_id),
             )
             .publish(&self.pool)
             .await?;

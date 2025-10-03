@@ -1,13 +1,13 @@
 use crate::Error;
 use crate::resourcemanager::OrganizationFactory;
 use database::{Factory, Persistable, Repository};
-use frn_core::iam::Authorize;
+use frn_core::authorization::Resource;
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Authorize, Debug, Default, Factory, FromRow, Repository)]
+#[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
 pub struct Project {
     /// The project id
     #[repository(primary)]
