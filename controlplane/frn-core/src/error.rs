@@ -26,7 +26,7 @@ impl From<spicedb::Error> for Error {
 }
 
 impl From<Error> for tonic::Status {
-    fn from(value: Error) -> tonic::Status {
+    fn from(_value: Error) -> tonic::Status {
         tonic::Status::internal("oopsie")
     }
 }

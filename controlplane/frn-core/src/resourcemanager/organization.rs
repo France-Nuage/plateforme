@@ -26,6 +26,10 @@ pub struct OrganizationService<A: AuthorizationServer> {
 }
 
 impl<A: AuthorizationServer> OrganizationService<A> {
+    pub fn new(auth: A, db: Pool<Postgres>) -> Self {
+        Self { auth, db }
+    }
+
     pub async fn list_organizations<P: Principal + Sync>(
         &mut self,
         principal: &P,

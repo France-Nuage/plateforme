@@ -4,6 +4,7 @@ use crate::api::v1::{
     CheckPermissionRequest, ObjectReference, SubjectReference,
     permissions_service_client::PermissionsServiceClient,
 };
+use crate::mock::SpiceDBServer;
 use std::str::FromStr;
 use tonic::service::{Interceptor, interceptor::InterceptedService};
 use tonic::transport::Channel;
@@ -26,6 +27,11 @@ impl SpiceDB {
         let client = SpiceDB::new(channel, token.to_owned());
 
         Ok(client)
+    }
+
+    pub async fn mock() -> Self {
+        let channel = SpiceDBServer::new().serve().await;
+        Self::new(channel, "".to_owned())
     }
 
     pub fn new(channel: Channel, token: String) -> Self {

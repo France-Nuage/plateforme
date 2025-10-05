@@ -1,5 +1,6 @@
 use crate::{Error, identity::User};
 
+#[derive(Clone, Default)]
 pub struct IAM {}
 
 impl IAM {
