@@ -9,7 +9,7 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Self {
         Self {
-            auth_server_url: read_env_var("AUTH_SERVER_URL"),
+            auth_server_url: read_env_var("SPICEDB_URL"),
             auth_server_token: read_env_var("SPICEDB_GRPC_PRESHARED_KEY"),
             database_url: read_env_var("DATABASE_URL"),
         }
