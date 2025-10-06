@@ -14,6 +14,7 @@ Keep module documentation concise and practical:
 3. **Usage notes**: Brief mention of key methods/patterns if relevant
 
 Avoid:
+
 - Verbose section headers (Key Features, Design Philosophy, etc.)
 - Doc test examples unless they provide significant value
 - Repetitive or obvious information
