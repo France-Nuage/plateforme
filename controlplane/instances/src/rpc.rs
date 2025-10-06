@@ -9,7 +9,7 @@ use crate::{
     },
 };
 use auth::{IAM, Permission, Relation, Relationship};
-use frn_core::{iam::Authorize, resourcemanager::Project};
+use frn_core::authorization::Resource;
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
@@ -71,7 +71,7 @@ impl Instances for InstancesRpcService {
             .clone()
             .can(&user)
             .perform(Permission::Start)
-            .on((crate::Instance::resource_name(), &id))
+            .on((crate::model::Instance::NAME, &id))
             .check()
             .await?;
         println!("user is authenticated");
@@ -80,9 +80,12 @@ impl Instances for InstancesRpcService {
 
         iam.authz
             .write_relationship(&Relationship::new(
-                instance.resource(),
+                instance.resource_identifier(),
                 Relation::BelongsToProject,
-                (Project::resource_name(), &instance.project_id),
+                (
+                    frn_core::resourcemanager::Project::NAME,
+                    &instance.project_id,
+                ),
             ))
             .await?;
 
@@ -122,7 +125,7 @@ impl Instances for InstancesRpcService {
         iam.authz
             .can(&user)
             .perform(Permission::Get)
-            .on((crate::model::Instance::resource_name(), &id))
+            .on((crate::model::Instance::NAME, &id))
             .check()
             .await?;
 

@@ -1,8 +1,12 @@
+mod app;
+pub mod authorization;
+mod config;
 mod error;
-pub mod iam;
 pub mod identity;
 pub mod resourcemanager;
 
+pub use app::App;
+pub use config::Config;
 pub use error::Error;
 
 // Allow the frn-derive macro to generate code using `::frn_core::...` paths

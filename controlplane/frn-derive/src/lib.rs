@@ -1,8 +1,8 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{DeriveInput, parse_macro_input};
+use syn::{DeriveInput, Ident, parse_macro_input};
 
-#[proc_macro_derive(Authorize)]
+#[proc_macro_derive(Resource)]
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     let stream = make_derive(ast);
@@ -10,25 +10,51 @@ pub fn derive(input: TokenStream) -> TokenStream {
 }
 
 fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
-    let name = &input.ident;
-    let resource_name = name.to_string().to_lowercase();
+    let struct_ident = &input.ident;
+    let companion_struct_ident =
+        Ident::new(&format!("{}Resource", &struct_ident), struct_ident.span());
+    let resource_name = struct_ident.to_string().to_lowercase();
 
     quote! {
-        impl frn_core::iam::Authorize for #name {
+        impl frn_core::authorization::Resource for #struct_ident {
             type Id = uuid::Uuid;
+            const NAME: &'static str = #resource_name;
 
-            fn any_resource() -> (&'static str, &'static str) {
-                (#resource_name, "*")
+            fn resource_identifier(&self) -> (&'static str, &Self::Id) {
+                (&Self::NAME, &self.id)
             }
 
-            fn resource(&self) -> (&'static str, &Self::Id) {
-                (#resource_name, &self.id)
-            }
-
-            fn resource_name() -> &'static str {
-                #resource_name
+            fn any() -> impl frn_core::authorization::Resource<Id = String> {
+                #companion_struct_ident::any()
             }
         }
+
+        pub struct #companion_struct_ident {
+            identifier: String,
+        }
+
+         impl #companion_struct_ident {
+             pub fn from(identifier: String) -> Self {
+                 Self {
+                     identifier,
+                 }
+             }
+         }
+
+         impl frn_core::authorization::Resource for #companion_struct_ident {
+             type Id = String;
+             const NAME: &'static str = #resource_name;
+
+             fn resource_identifier(&self) -> (&'static str, &Self::Id) {
+                 (&#struct_ident::NAME, &self.identifier)
+             }
+
+             fn any() -> impl frn_core::authorization::Resource<Id = String> {
+                 Self {
+                     identifier: "*".to_owned(),
+                 }
+             }
+         }
     }
 }
 
@@ -50,19 +76,43 @@ mod tests {
         let output = make_derive(input);
 
         let expected = quote! {
-            impl frn_core::iam::Authorize for Anvil {
+            impl frn_core::authorization::Resource for Anvil {
                 type Id = uuid::Uuid;
+                const NAME: &'static str = "anvil";
 
-                fn any_resource() -> (&'static str, &'static str) {
-                    ("anvil", "*")
+                fn resource_identifier(&self) -> (&'static str, &Self::Id) {
+                    (&Self::NAME, &self.id)
                 }
 
-                fn resource(&self) -> (&'static str, &Self::Id) {
-                    ("anvil", &self.id)
+                fn any() -> impl frn_core::authorization::Resource<Id = String> {
+                    AnvilResource::any()
+                }
+            }
+
+            pub struct AnvilResource {
+                identifier: String,
+            }
+
+            impl AnvilResource {
+                pub fn from(identifier: String) -> Self {
+                    Self {
+                        identifier,
+                    }
+                }
+            }
+
+            impl frn_core::authorization::Resource for AnvilResource {
+                type Id = String;
+                const NAME: &'static str = "anvil";
+
+                fn resource_identifier(&self) -> (&'static str, &Self::Id) {
+                    (&Anvil::NAME, &self.identifier)
                 }
 
-                fn resource_name() -> &'static str {
-                    "anvil"
+                fn any() -> impl frn_core::authorization::Resource<Id = String> {
+                    Self {
+                        identifier: "*".to_owned(),
+                    }
                 }
             }
         };

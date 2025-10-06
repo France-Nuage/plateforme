@@ -5,6 +5,8 @@
 //! and provides a builder pattern for progressive service registration with
 //! proper dependency injection.
 
+use frn_core::identity::IAM;
+use frn_core::resourcemanager::OrganizationService;
 use frn_rpc::v1::{ResourcesRpcService, resources::resources_server::ResourcesServer};
 use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
 use infrastructure::DatacenterRpcService;
@@ -14,6 +16,7 @@ use infrastructure::v1::datacenters_server::DatacentersServer;
 use infrastructure::v1::zero_trust_network_types_server::ZeroTrustNetworkTypesServer;
 use infrastructure::v1::zero_trust_networks_server::ZeroTrustNetworksServer;
 use instances::{InstancesRpcService, v1::instances_server::InstancesServer};
+use spicedb::SpiceDB;
 use sqlx::{Pool, Postgres};
 use tonic::service::Routes;
 
@@ -92,7 +95,7 @@ impl Router {
                 health_reporter.set_serving::<DatacentersServer<DatacenterRpcService>>(),
                 health_reporter.set_serving::<HypervisorsServer<HypervisorsRpcService>>(),
                 health_reporter.set_serving::<InstancesServer<InstancesRpcService>>(),
-                health_reporter.set_serving::<ResourcesServer<ResourcesRpcService>>(),
+                health_reporter.set_serving::<ResourcesServer<ResourcesRpcService<SpiceDB>>>(),
                 health_reporter
                     .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>(),
                 health_reporter
@@ -151,11 +154,20 @@ impl Router {
     /// # Parameters
     ///
     /// * `pool` - PostgreSQL database connection pool for database operations
-    pub fn resources(self, pool: Pool<Postgres>) -> Self {
+    pub fn resources(
+        self,
+        iam: IAM,
+        organizations: OrganizationService<SpiceDB>,
+        pool: Pool<Postgres>,
+    ) -> Self {
         Self {
             routes: self
                 .routes
-                .add_service(ResourcesServer::new(ResourcesRpcService::new(pool))),
+                .add_service(ResourcesServer::new(ResourcesRpcService::new(
+                    iam,
+                    organizations,
+                    pool,
+                ))),
         }
     }
 

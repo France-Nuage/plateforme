@@ -54,7 +54,6 @@ use serde::{Deserialize, Serialize};
 ///
 /// There are three classes of JWT Claim Names: Registered Claim Names, Public
 /// Claim Names, and Private Claim Names.
-
 /// [Registered Claim Names](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1)
 ///
 /// The following Claim Names are registered in the IANA "JSON Web Token Claims"

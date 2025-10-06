@@ -6,6 +6,12 @@ edition = "2024"
 [dependencies]
 database = { path = "../database" }
 frn-derive = { path = "../frn-derive" }
+http = "1.3"
 sqlx = { version = "0.8", features = ["chrono", "postgres", "uuid"] }
+spicedb = { path = "../spicedb" }
+strum = "0.27"
+strum_macros = "0.27"
 thiserror = "2"
+tonic = "0.14"
+tracing = "0.1"
 uuid = "1"

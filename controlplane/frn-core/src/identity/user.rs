@@ -1,10 +1,11 @@
 use database::{Factory, Persistable, Repository};
+use frn_derive::Resource;
 use sqlx::{Pool, Postgres, types::chrono};
 use uuid::Uuid;
 
-use crate::{iam::Principal, resourcemanager::Organization};
+use crate::{authorization::Principal, resourcemanager::Organization};
 
-#[derive(Debug, Default, Factory, Repository)]
+#[derive(Debug, Default, Factory, Repository, Resource)]
 pub struct User {
     /// Unique identifier for the user
     #[repository(primary)]

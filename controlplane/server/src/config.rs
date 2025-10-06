@@ -8,7 +8,9 @@
 
 use crate::error::Error;
 use auth::{Authz, OpenID};
+use frn_core::App;
 use mock_server::MockServer;
+use spicedb::SpiceDB;
 use sqlx::{Pool, Postgres};
 use std::{env, net::SocketAddr};
 use tokio::net::TcpListener;
@@ -39,6 +41,9 @@ use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, ExposeHeaders};
 /// and HTTP methods, making it suitable for development scenarios.
 #[derive(Clone)]
 pub struct Config {
+    /// The frn core app. Allows for incremental upgrade to the new code structure.
+    pub app: App<SpiceDB>,
+
     /// The socket address where the server will bind and listen for connections.
     ///
     /// This field determines both the IP address and port number that the gRPC server
@@ -89,45 +94,6 @@ pub struct Config {
 }
 
 impl Config {
-    /// Creates a new [`Config`] instance with development-friendly defaults.
-    ///
-    /// This constructor initializes the configuration with settings appropriate for
-    /// local development and testing environments:
-    ///
-    /// - **Address**: `[::]:8080` - Binds to all interfaces on port 8080
-    /// - **Allow Origin**: [`AllowOrigin::any()`] - Accepts requests from any origin
-    /// - **Allow Methods**: [`AllowMethods::any()`] - Permits all HTTP methods
-    /// - **PostgreSQL Pool**: Uses the provided connection pool for database operations
-    /// - **OpenID Provider**: Uses the provided OpenID provider for OIDC authentication
-    ///
-    /// # Parameters
-    ///
-    /// * `pool` - PostgreSQL connection pool that will be shared across all services
-    /// * `openid` - OpenID provider configured with OIDC information for JWT authentication
-    ///
-    /// # Example
-    ///
-    /// ```rust,no_run
-    /// use server::config::Config;
-    /// use sqlx::PgPool;
-    ///
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let pool = PgPool::connect("postgresql://localhost/db").await?;
-    /// # let mock = mock_server::MockServer::new().await;
-    /// let config = Config::test(&pool, &mock).await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    ///
-    /// # Note
-    ///
-    /// The default configuration is permissive and intended for development use.
-    /// For production deployments, consider creating more restrictive configurations
-    /// by constructing the struct manually or adding additional constructor methods.
-    ///
-    /// [`AllowOrigin::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowOrigin.html#method.any
-    /// [`AllowMethods::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowMethods.html#method.any
-
     /// Creates a test configuration with a dynamically allocated port and mock OIDC server.
     ///
     /// This constructor is specifically designed for test environments where:
@@ -160,10 +126,15 @@ impl Config {
     pub async fn test(pool: &Pool<Postgres>, _mock_server: &MockServer) -> Result<Self, Error> {
         let addr = Config::reserve_socket_addr(None).await?;
 
+        let app = App::test(pool.to_owned())
+            .await
+            .expect("could not bootstrap app");
+
         let authz = Authz::mock().await;
         let openid = OpenID::mock().await;
 
         Ok(Config {
+            app,
             addr,
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
@@ -199,6 +170,7 @@ impl Config {
     /// - OIDC discovery fails or provider is unreachable
     /// - OIDC provider configuration is invalid
     pub async fn from_env() -> Result<Self, Error> {
+        let app = App::new().await.expect("could not bootstrap app");
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
         let oidc_url = env::var("OIDC_URL").expect("OIDC_URL must be set");
         let pool = sqlx::PgPool::connect(&database_url)
@@ -218,6 +190,7 @@ impl Config {
             .expect("could not connect to authz server");
 
         Ok(Config {
+            app,
             addr: Config::reserve_socket_addr(env::var("CONTROLPLANE_ADDR").ok()).await?,
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
