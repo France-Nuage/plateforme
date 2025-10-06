@@ -7,13 +7,16 @@ across the controlplane cargo workspace.
 
 ### Module-Level Documentation (`//!`)
 
-Structure:
+Keep module documentation concise and practical:
 
-1. **Title**: Clear, descriptive header
-2. **Overview**: Brief description of what the module provides  
-3. **Key Features**: Bulleted list of main capabilities
-4. **Design Philosophy**: Core principles and architectural decisions
-5. **Usage Pattern**: How the module is typically used (with useful code examples)
+1. **Title**: Single-line description (no "# Title" header)
+2. **Overview**: 2-3 sentence paragraph explaining what the module provides
+3. **Usage notes**: Brief mention of key methods/patterns if relevant
+
+Avoid:
+- Verbose section headers (Key Features, Design Philosophy, etc.)
+- Doc test examples unless they provide significant value
+- Repetitive or obvious information
 
 ### Function/Struct Documentation (`///`)
 

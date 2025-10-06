@@ -1,3 +1,9 @@
+//! SpiceDB client
+//!
+//! Provides a gRPC client for connecting to SpiceDB authorization servers and
+//! checking permissions. Use `SpiceDB::connect()` for production connections or
+//! `SpiceDB::mock()` for testing with an in-memory server.
+
 use crate::Error;
 use crate::api::v1::check_permission_response::Permissionship;
 use crate::api::v1::{
@@ -104,9 +110,9 @@ impl Interceptor for AuthenticationInterceptor {
         &mut self,
         mut request: tonic::Request<()>,
     ) -> Result<tonic::Request<()>, tonic::Status> {
-        let value = MetadataValue::from_str(&format!("bearer {}", self.token))
+        let value = MetadataValue::from_str(&format!("Bearer {}", self.token))
             .map_err(|_| tonic::Status::internal("unparsable token"))?;
-        request.metadata_mut().insert("token", value);
+        request.metadata_mut().insert("authorization", value);
         Ok(request)
     }
 }

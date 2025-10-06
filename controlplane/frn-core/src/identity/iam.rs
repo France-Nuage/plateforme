@@ -1,3 +1,8 @@
+//! Identity and access management
+//!
+//! Provides the `IAM` service for resolving user identity from access tokens.
+//! Currently returns a default user; will be extended to validate OIDC tokens.
+
 use crate::{Error, identity::User};
 
 #[derive(Clone, Default)]

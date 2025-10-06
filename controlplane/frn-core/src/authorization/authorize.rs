@@ -77,11 +77,10 @@ impl<'a, P: Principal + Sync, R: Resource + Sync, S: AuthorizationServer>
 
     /// Executes the authorization check.
     pub async fn execute(self) -> Result<(), Error> {
-        let request = AuthorizationRequest::new(
-            self.principal.unwrap(),
-            self.permission.unwrap(),
-            self.resource.unwrap(),
-        );
+        let principal = self.principal.ok_or(Error::UnspecifiedPrincipal)?;
+        let permission = self.permission.ok_or(Error::UnspecifiedPermission)?;
+        let resource = self.resource.ok_or(Error::UnspecifiedResource)?;
+        let request = AuthorizationRequest::new(principal, permission, resource);
         self.server.check(request).await
     }
 }
@@ -100,11 +99,10 @@ impl<'a, P: Principal + Sync, R: Resource + Sync, S: AuthorizationServer> IntoFu
 
     fn into_future(self) -> Self::IntoFuture {
         Box::pin(async move {
-            let request = AuthorizationRequest::new(
-                self.principal.unwrap(),
-                self.permission.unwrap(),
-                self.resource.unwrap(),
-            );
+            let principal = self.principal.ok_or(Error::UnspecifiedPrincipal)?;
+            let permission = self.permission.ok_or(Error::UnspecifiedPermission)?;
+            let resource = self.resource.ok_or(Error::UnspecifiedResource)?;
+            let request = AuthorizationRequest::new(principal, permission, resource);
             self.server.check(request).await
         })
     }
