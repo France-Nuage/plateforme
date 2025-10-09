@@ -1,5 +1,7 @@
-h1:J2yeZUJyUabRr7ANUGZgV7PmW/Sy/dFpD4qjy69GVLU=
+h1:Fq8JiJShUKvTnD0UZ/FEbsOuJerlT2EqhIWcmRCxdtM=
 20250901201631_initial.sql h1:I+fkuCn9NMpmL/AwF1y/wsmW2+IcPhAfSxGEH9Y2Seo=
 20250905065156_create_users.sql h1:tKKPDZycejUig1fxcYo+gDlLeZugn45InwitZubLDME=
 20250924143151_create_relationship_queue.sql h1:pjj8Bxl7ybKoq6/2j03x6WxdNODyBTp4dn1JXLnaXwY=
 20250926093544_create_organization_user.sql h1:UcmssFN0hyQzcvRPxxS3ilG9UHoMAqPAQiXssJQHDOs=
+20251006154943_rename_datacenters_zones.sql h1:1pWm7EmQuFPlGH8q3HEnXMIcratJwWO2IKLau3kWKy0=
+20251007074634_add_service_accounts.sql h1:oAHEbl+5bFnQZvdnnWtxj+tHK75mr9/PPPpgDezp6q0=

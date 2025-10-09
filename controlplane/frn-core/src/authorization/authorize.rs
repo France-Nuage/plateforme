@@ -15,6 +15,8 @@ pub trait Resource {
     fn any() -> impl Resource<Id = String>;
 
     fn resource_identifier(&self) -> (&'static str, &Self::Id);
+
+    fn some(id: Self::Id) -> impl Resource<Id = String>;
 }
 
 /// Represents a permission check query to the authorization server.
@@ -112,7 +114,7 @@ impl<'a, P: Principal + Sync, R: Resource + Sync, S: AuthorizationServer> IntoFu
 ///
 /// Abstraction over authorization backends for checking if principals
 /// have permissions on resources.
-pub trait AuthorizationServer: Clone + Send {
+pub trait AuthorizationServer: Clone + Send + Sync {
     fn can<'a, P: Principal + Sync, R: Resource + Sync>(
         &'a mut self,
         principal: &'a P,

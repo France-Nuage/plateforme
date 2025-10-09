@@ -1,5 +1,5 @@
+use frn_core::App;
 use instances::InstancesService;
-use sqlx::postgres::PgPoolOptions;
 use std::{error::Error, sync::Arc, time::Duration};
 use synchronizer::{heartbeat, synchronize};
 use tokio::{sync::Mutex, time};
@@ -14,17 +14,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     info!("Starting synchronizer service...");
 
-    // Setup service
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = PgPoolOptions::new()
-        .min_connections(5)
-        .max_connections(30)
-        .max_lifetime(Some(Duration::from_secs(30 * 60)))
-        .idle_timeout(Some(Duration::from_secs(60)))
-        .connect(&database_url)
-        .await?;
+    let app = App::new().await.expect("could not bootstrap app");
 
-    let instances_service = InstancesService::new(pool);
+    let mut instances_service = InstancesService::new(app.db, app.hypervisors, app.projects);
 
     // Setup ticker
     let tick = std::env::var("INTERVAL")
@@ -49,7 +41,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // Call the synchronization process
-        match synchronize(&instances_service).await {
+        match synchronize(&mut instances_service).await {
             // If the synchronization worked, trigger a heartbeat if the url is defined
             Ok(_) => heartbeat(&client, &heartbeat_url).await,
             // Otherwise log an error

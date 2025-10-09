@@ -52,6 +52,7 @@ impl User {
 }
 
 impl Principal for User {
+    /// Returns all organizations this user has access to
     async fn organizations(
         &self,
         connection: &Pool<Postgres>,

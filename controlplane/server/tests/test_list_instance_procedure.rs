@@ -1,12 +1,11 @@
 use auth::mock::WithWellKnown;
-use frn_core::resourcemanager::Organization;
+use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization};
 use hypervisor_connector_proxmox::mock::WithClusterResourceList;
 use instances::{
     Instance,
     v1::{ListInstancesRequest, instances_client::InstancesClient},
 };
 use mock_server::MockServer;
-use resources::DEFAULT_PROJECT_NAME;
 use server::Config;
 
 #[sqlx::test(migrations = "../migrations")]
@@ -24,7 +23,7 @@ async fn test_the_list_instances_procedure_works(
     Instance::factory()
         .for_hypervisor_with(move |hypervisor| {
             hypervisor
-                .for_default_datacenter()
+                .for_default_zone()
                 .organization_id(organization.id)
                 .url(mock_url)
         })

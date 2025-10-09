@@ -11,6 +11,7 @@ use instances::{
 };
 use mock_server::MockServer;
 use server::Config;
+use sqlx::types::Uuid;
 use tonic::{Request, metadata::MetadataValue};
 
 #[sqlx::test(migrations = "../migrations")]
@@ -26,11 +27,15 @@ async fn test_the_start_instance_procedure_works(
         .with_well_known();
     let mock_url = mock.url();
 
-    let organization = Organization::factory().create(&pool).await?;
+    let organization = Organization::factory()
+        .id(Uuid::new_v4())
+        .create(&pool)
+        .await?;
     let instance = Instance::factory()
         .for_hypervisor_with(move |hypervisor| {
             hypervisor
-                .for_default_datacenter()
+                .for_default_zone()
+                .for_default_organization()
                 .organization_id(organization.id)
                 .url(mock_url)
         })

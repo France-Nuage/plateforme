@@ -130,6 +130,7 @@ services:
       retries: 24
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
+      CARGO_BUILD_JOBS: ${CARGO_BUILD_JOBS:-4}
       CONSOLE_URL: ${CONSOLE_URL:-https://console.test}
       CONTROLPLANE_ADDR: 0.0.0.0:80
       CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt

@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package francenuage.fr.resourcemanager.v1;
+
+import "google/protobuf/timestamp.proto";
+import "validate.proto";
+
+service Organizations {
+    rpc List (ListOrganizationsRequest) returns (ListOrganizationsResponse);
+    rpc Create (CreateOrganizationRequest) returns (CreateOrganizationResponse);
+}
+
+service Projects {
+    rpc List (ListProjectsRequest) returns (ListProjectsResponse);
+    rpc Create (CreateProjectRequest) returns (CreateProjectResponse);
+}
+
+message Organization {
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+    string name = 2 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 64,
+        pattern: "^[a-zA-Z0-9_\\- ]+$"
+    }];
+    google.protobuf.Timestamp created_at = 3;
+    google.protobuf.Timestamp updated_at = 4;
+}
+
+message Project {
+    string id = 1 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+    string name = 2 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 64,
+        pattern: "^[a-zA-Z0-9_\\- ]+$"
+    }];
+    string organization_id = 3 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+    google.protobuf.Timestamp created_at = 4;
+    google.protobuf.Timestamp updated_at = 5;
+}
+
+message ListOrganizationsRequest {}
+
+message ListOrganizationsResponse {
+    repeated Organization organizations = 1;
+}
+
+message CreateOrganizationRequest {
+    string name = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 64,
+        pattern: "^[a-zA-Z0-9_\\- ]+$"
+    }];
+}
+
+message CreateOrganizationResponse {
+    Organization organization = 1;
+}
+
+message ListProjectsRequest {}
+
+message ListProjectsResponse {
+    repeated Project projects = 1;
+}
+
+message CreateProjectRequest {
+    string name = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 64,
+        pattern: "^[a-zA-Z0-9_\\- ]+$"
+    }];
+    string organization_id = 2 [(validate.rules).string = {
+        min_len: 1, 
+        max_len: 36, 
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+message CreateProjectResponse {
+    Project project = 1;
+}

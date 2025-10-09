@@ -1,48 +1,50 @@
 use crate::{model::Instance, problem::Problem, repository};
 use auth::{Relation, Relationship};
 use database::Persistable;
+use frn_core::authorization::{AuthorizationServer, Principal};
+use frn_core::compute::{Hypervisor, Hypervisors};
+use frn_core::resourcemanager::Projects;
 use frn_core::{authorization::Resource, resourcemanager::Project};
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor_connector::{InstanceConfig, InstanceService};
-use hypervisors::{Hypervisor, HypervisorsService};
-use resources::service::ResourcesService;
 use sqlx::{PgPool, types::chrono};
 use std::sync::Arc;
 use uuid::Uuid;
 
-pub struct InstancesService {
-    hypervisors_service: HypervisorsService,
-    resources_service: ResourcesService,
+#[derive(Clone)]
+pub struct InstancesService<Auth: AuthorizationServer> {
+    hypervisors: Hypervisors<Auth>,
+    projects: Projects<Auth>,
     pool: PgPool,
 }
 
-impl InstancesService {
+impl<Auth: AuthorizationServer> InstancesService<Auth> {
     pub async fn list(&self) -> Result<Vec<Instance>, Problem> {
         Instance::list(&self.pool).await.map_err(Into::into)
     }
 
-    pub async fn sync(&self) -> Result<Vec<Instance>, Problem> {
-        let hypervisors = self.hypervisors_service.list().await?;
-        let instances = stream::iter(hypervisors)
-            .map(|hypervisor| async move { self.sync_hypervisor_instances(&hypervisor).await })
-            .buffer_unordered(4)
-            .try_collect::<Vec<Vec<Instance>>>()
-            .await?
-            .into_iter()
-            .flatten()
-            .collect();
+    pub async fn sync<P: Principal>(&mut self, principal: &P) -> Result<Vec<Instance>, Problem> {
+        let hypervisors = self.hypervisors.list(principal).await?;
+        let mut instances: Vec<Instance> = Vec::new();
+        for hypervisor in hypervisors {
+            let retrieved = self
+                .sync_hypervisor_instances(principal, &hypervisor)
+                .await?;
+            instances.extend(retrieved);
+        }
 
         Ok(instances)
     }
 
-    pub async fn sync_hypervisor_instances(
-        &self,
+    pub async fn sync_hypervisor_instances<P: Principal>(
+        &mut self,
+        principal: &P,
         hypervisor: &Hypervisor,
     ) -> Result<Vec<Instance>, Problem> {
         // Get the default project for the hypervisor
         let default_project = self
-            .resources_service
-            .get_default_project(&hypervisor.organization_id)
+            .projects
+            .get_default_project(principal, &hypervisor.organization_id)
             .await?;
 
         // Get a instance_service instance
@@ -56,9 +58,10 @@ impl InstancesService {
         let instances = stream::iter(distant_instances)
             .map(|distant_instance| {
                 let instance_service = instance_service.clone();
+                let pool = self.pool.clone();
                 async move {
                     let result =
-                        repository::find_one_by_distant_id(&self.pool, &distant_instance.id).await;
+                        repository::find_one_by_distant_id(&pool, &distant_instance.id).await;
 
                     match result {
                         Ok(maybe_instance) => {
@@ -128,11 +131,15 @@ impl InstancesService {
         Ok(instances)
     }
 
-    pub async fn clone(&self, id: Uuid) -> Result<Instance, Problem> {
+    pub async fn clone_instance<P: Principal>(
+        &mut self,
+        id: Uuid,
+        principal: &P,
+    ) -> Result<Instance, Problem> {
         let existing = repository::read(&self.pool, id).await?;
         let hypervisor = self
-            .hypervisors_service
-            .read(existing.hypervisor_id)
+            .hypervisors
+            .read(principal, existing.hypervisor_id)
             .await?;
         let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
         let new_id = connector.clone(&existing.distant_id).await?;
@@ -146,12 +153,13 @@ impl InstancesService {
         instance.create(&self.pool).await.map_err(Into::into)
     }
 
-    pub async fn create(
-        &self,
+    pub async fn create<P: Principal>(
+        &mut self,
         options: InstanceConfig,
         project_id: Uuid,
+        principal: &P,
     ) -> Result<Instance, Problem> {
-        let hypervisors = self.hypervisors_service.list().await?;
+        let hypervisors = self.hypervisors.list(principal).await?;
         let hypervisor = &hypervisors
             .first()
             .ok_or_else(|| Problem::NoHypervisorsAvaible)?;
@@ -171,11 +179,11 @@ impl InstancesService {
         instance.create(&self.pool).await.map_err(Into::into)
     }
 
-    pub async fn delete(&self, id: Uuid) -> Result<(), Problem> {
+    pub async fn delete<P: Principal>(&mut self, principal: &P, id: Uuid) -> Result<(), Problem> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self
-            .hypervisors_service
-            .read(instance.hypervisor_id)
+            .hypervisors
+            .read(principal, instance.hypervisor_id)
             .await?;
         let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
         connector
@@ -184,11 +192,12 @@ impl InstancesService {
             .map_err(Problem::from)
     }
 
-    pub async fn start(&self, id: Uuid) -> Result<(), Problem> {
+    pub async fn start<P: Principal>(&self, principal: &P, id: Uuid) -> Result<(), Problem> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self
-            .hypervisors_service
-            .read(instance.hypervisor_id)
+            .hypervisors
+            .clone()
+            .read(principal, instance.hypervisor_id)
             .await?;
         let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
         connector
@@ -197,11 +206,12 @@ impl InstancesService {
             .map_err(Problem::from)
     }
 
-    pub async fn stop(&self, id: Uuid) -> Result<(), Problem> {
+    pub async fn stop<P: Principal>(&self, principal: &P, id: Uuid) -> Result<(), Problem> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self
-            .hypervisors_service
-            .read(instance.hypervisor_id)
+            .hypervisors
+            .clone()
+            .read(principal, instance.hypervisor_id)
             .await?;
         let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
         connector
@@ -210,10 +220,10 @@ impl InstancesService {
             .map_err(Problem::from)
     }
 
-    pub fn new(pool: PgPool) -> Self {
+    pub fn new(pool: PgPool, hypervisors: Hypervisors<Auth>, projects: Projects<Auth>) -> Self {
         Self {
-            hypervisors_service: HypervisorsService::new(pool.clone()),
-            resources_service: ResourcesService::new(pool.clone()),
+            hypervisors,
+            projects,
             pool,
         }
     }

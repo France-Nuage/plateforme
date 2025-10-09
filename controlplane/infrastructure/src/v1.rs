@@ -2,18 +2,6 @@ use std::time::SystemTime;
 
 tonic::include_proto!("francenuage.fr.api.controlplane.v1.infrastructure");
 
-/// Converts a `crate::Datacenter` into a protocol compatible `v1::Datacenter`.
-impl From<crate::Datacenter> for Datacenter {
-    fn from(value: crate::Datacenter) -> Self {
-        Datacenter {
-            id: value.id.to_string(),
-            name: value.name,
-            created_at: Some(SystemTime::from(value.created_at).into()),
-            updated_at: Some(SystemTime::from(value.updated_at).into()),
-        }
-    }
-}
-
 /// Converts a `crate::ZeroTrustNetworkType` into a protocol compatible `v1::ZeroTrustNetworkType`.
 impl From<crate::ZeroTrustNetworkType> for ZeroTrustNetworkType {
     fn from(value: crate::ZeroTrustNetworkType) -> Self {

@@ -1,6 +1,6 @@
 use auth::mock::WithWellKnown;
 use frn_core::resourcemanager::Project;
-use frn_rpc::v1::resources::{ListProjectsRequest, resources_client::ResourcesClient};
+use frn_rpc::v1::resourcemanager::{ListProjectsRequest, projects_client::ProjectsClient};
 use mock_server::MockServer;
 use server::Config;
 
@@ -19,10 +19,10 @@ async fn test_the_list_projects_procedure_works(
     let config = Config::test(&pool, &mock).await?;
     let server_url = format!("http://{}", config.addr);
     let shutdown_tx = server::serve(config).await?;
-    let mut client = ResourcesClient::connect(server_url).await?;
+    let mut client = ProjectsClient::connect(server_url).await?;
 
     // Act the request to the test_the_status_procedure_works
-    let response = client.list_projects(ListProjectsRequest::default()).await;
+    let response = client.list(ListProjectsRequest::default()).await;
 
     // Assert the result
     assert!(response.is_ok());

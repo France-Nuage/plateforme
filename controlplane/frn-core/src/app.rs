@@ -9,8 +9,11 @@
 //! `App::test()` with a test database pool for testing with mock authorization.
 
 use crate::{
-    Config, Error, authorization::AuthorizationServer, identity::IAM,
-    resourcemanager::OrganizationService,
+    Config, Error,
+    authorization::AuthorizationServer,
+    compute::Hypervisors,
+    identity::IAM,
+    resourcemanager::{Organizations, Projects},
 };
 use spicedb::SpiceDB;
 use sqlx::{PgPool, Pool, Postgres};
@@ -26,7 +29,9 @@ pub struct App<Auth: AuthorizationServer> {
     pub iam: IAM,
 
     // services
-    pub organizations: OrganizationService<Auth>,
+    pub hypervisors: Hypervisors<Auth>,
+    pub organizations: Organizations<Auth>,
+    pub projects: Projects<Auth>,
 }
 
 impl App<SpiceDB> {
@@ -41,13 +46,17 @@ impl App<SpiceDB> {
         let db = PgPool::connect(&config.database_url).await?;
         let iam = IAM::new();
 
-        let organizations = OrganizationService::new(auth.clone(), db.clone());
+        let hypervisors = Hypervisors::new(auth.clone(), db.clone());
+        let organizations = Organizations::new(auth.clone(), db.clone());
+        let projects = Projects::new(auth.clone(), db.clone());
 
         let app = Self {
             auth,
             db,
             iam,
+            hypervisors,
             organizations,
+            projects,
         };
 
         Ok(app)
@@ -59,13 +68,18 @@ impl App<SpiceDB> {
     pub async fn test(db: Pool<Postgres>) -> Result<Self, Error> {
         let auth = SpiceDB::mock().await;
         let iam = IAM::new();
-        let organizations = OrganizationService::new(auth.clone(), db.clone());
+
+        let hypervisors = Hypervisors::new(auth.clone(), db.clone());
+        let organizations = Organizations::new(auth.clone(), db.clone());
+        let projects = Projects::new(auth.clone(), db.clone());
 
         let app = Self {
             auth,
             db,
             iam,
+            hypervisors,
             organizations,
+            projects,
         };
 
         Ok(app)

@@ -27,7 +27,7 @@ async fn test_the_stop_instance_procedure_works(
     let instance = Instance::factory()
         .for_hypervisor_with(move |hypervisor| {
             hypervisor
-                .for_default_datacenter()
+                .for_default_zone()
                 .organization_id(organization.id)
                 .url(mock_url)
         })

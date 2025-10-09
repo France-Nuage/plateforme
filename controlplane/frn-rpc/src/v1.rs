@@ -1,4 +1,2 @@
-pub mod resources;
-mod resources_rpc;
-
-pub use resources_rpc::ResourcesRpcService;
+pub mod compute;
+pub mod resourcemanager;
