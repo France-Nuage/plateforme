@@ -104,7 +104,6 @@ impl<Auth: AuthorizationServer> Instances<Auth> {
             .can(principal)
             .perform(Permission::Create)
             .over(&Instance::any())
-            .execute()
             .await?;
         todo!()
     }
@@ -117,9 +116,8 @@ impl<Auth: AuthorizationServer> Instances<Auth> {
     ) -> Result<Instance, Error> {
         self.auth
             .can(principal)
-            .perform(Permission::Create)
+            .perform(Permission::Delete)
             .over(&Instance::some(id))
-            .execute()
             .await?;
         todo!()
     }
