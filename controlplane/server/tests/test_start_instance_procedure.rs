@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use auth::{OpenID, mock::WithWellKnown};
 use frn_core::{identity::User, resourcemanager::Organization};
 use hypervisor_connector_proxmox::mock::{
@@ -12,6 +10,7 @@ use instances::{
 use mock_server::MockServer;
 use server::Config;
 use sqlx::types::Uuid;
+use std::str::FromStr;
 use tonic::{Request, metadata::MetadataValue};
 
 #[sqlx::test(migrations = "../migrations")]

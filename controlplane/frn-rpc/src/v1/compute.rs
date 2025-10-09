@@ -1,10 +1,9 @@
+use crate::{error::Error, request::ExtractToken};
 use frn_core::authorization::AuthorizationServer;
 use frn_core::compute::{HypervisorCreateRequest, Hypervisors as Service};
 use frn_core::identity::IAM;
 use sqlx::{Pool, Postgres, types::Uuid};
 use tonic::{Request, Response, Status};
-
-use crate::{error::Error, request::ExtractToken};
 
 tonic::include_proto!("francenuage.fr.v1.compute");
 

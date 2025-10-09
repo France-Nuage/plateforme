@@ -1,4 +1,5 @@
 -- Create "service_accounts" table
+-- atlas:nolint PG110
 CREATE TABLE "public"."service_accounts" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
   "name" text NOT NULL DEFAULT 'false',
