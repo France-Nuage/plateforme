@@ -8,7 +8,6 @@ database = { path = "../database" }
 frn-core = { path = "../frn-core" }
 prost = "0.14"
 prost-types = "0.14"
-resources = { path = "../resources" }
 sqlx = { version = "0.8", features = [
   "chrono",
   "migrate",

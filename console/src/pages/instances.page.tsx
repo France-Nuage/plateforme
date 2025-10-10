@@ -8,14 +8,12 @@ import { useAppSelector } from '@/hooks';
  *
  * Displays a table of compute instances filtered by the currently active project.
  * The page retrieves all necessary data from the Redux store including instances,
- * datacenters, hypervisors, organizations, projects, and VPCs.
+ * zones, hypervisors, organizations, projects, and VPCs.
  *
  * @returns The rendered instances page with filtered instance table
  */
 export const InstancesPage: FunctionComponent = () => {
-  const datacenters = useAppSelector(
-    (state) => state.infrastructure.datacenters,
-  );
+  const zones = useAppSelector((state) => state.infrastructure.zones);
   const hypervisors = useAppSelector((state) => state.hypervisors.hypervisors);
   const organizations = useAppSelector(
     (state) => state.resources.organizations,
@@ -36,7 +34,7 @@ export const InstancesPage: FunctionComponent = () => {
 
   return (
     <InstanceTable
-      datacenters={datacenters}
+      zones={zones}
       hypervisors={hypervisors}
       instances={scopedInstances}
       organizations={organizations}

@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 
 import {
-  fetchAllDatacenters,
   fetchAllHypervisors,
   fetchAllInstances,
   fetchAllOrganizations,
   fetchAllProjects,
   fetchAllZeroTrustNetworkTypes,
   fetchAllZeroTrustNetworks,
+  fetchAllZones,
 } from '@/features';
 
 import { useAppDispatch } from './use-app-dispatch';
@@ -42,12 +42,12 @@ export function useControlplaneData() {
   // Stage 2: Load dependent resources once organizations are available
   useEffect(() => {
     if (isAuthenticated && organizations.length > 0) {
-      dispatch(fetchAllDatacenters());
       dispatch(fetchAllHypervisors());
       dispatch(fetchAllInstances());
       dispatch(fetchAllProjects());
       dispatch(fetchAllZeroTrustNetworks());
       dispatch(fetchAllZeroTrustNetworkTypes());
+      dispatch(fetchAllZones());
     }
   }, [dispatch, isAuthenticated, organizations]);
 }

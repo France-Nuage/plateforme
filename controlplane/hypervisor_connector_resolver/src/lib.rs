@@ -1,5 +1,5 @@
+use frn_core::compute::Hypervisor;
 use hypervisor_connector::InstanceService;
-use hypervisors::Hypervisor;
 
 pub fn resolve(
     api_url: String,

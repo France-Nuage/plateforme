@@ -1,6 +1,7 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
-import { ResourcesClient, Project as RpcProject } from '../../generated/rpc';
+import { Project as RpcProject } from '../../generated/rpc/resourcemanager';
+import { ProjectsClient } from '../../generated/rpc/resourcemanager.client';
 import { Project, ProjectFormValue } from '../../models';
 import { ProjectService } from '../api';
 
@@ -8,19 +9,19 @@ export class ProjectRpcService implements ProjectService {
   /**
    * The gRPC resources client
    */
-  private client: ResourcesClient;
+  private client: ProjectsClient;
 
   /**
    * The class constructor.
    */
   constructor(transport: GrpcWebFetchTransport) {
-    this.client = new ResourcesClient(transport);
+    this.client = new ProjectsClient(transport);
   }
 
   /** @inheritdoc */
   public create(data: ProjectFormValue): Promise<Project> {
     return this.client
-      .createProject({
+      .create({
         name: data.name,
         organizationId: data.organizationId,
       })
@@ -30,7 +31,7 @@ export class ProjectRpcService implements ProjectService {
   /** @inheritdoc */
   public list(): Promise<Project[]> {
     return this.client
-      .listProjects({})
+      .list({})
       .response.then(({ projects }) => projects.map(fromRpcProject));
   }
 }

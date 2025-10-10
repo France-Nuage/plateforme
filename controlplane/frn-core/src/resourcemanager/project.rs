@@ -1,4 +1,5 @@
 use crate::Error;
+use crate::authorization::{AuthorizationServer, Principal};
 use crate::resourcemanager::OrganizationFactory;
 use database::{Factory, Persistable, Repository};
 use frn_core::authorization::Resource;
@@ -6,6 +7,8 @@ use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
+
+pub const DEFAULT_PROJECT_NAME: &str = "unattributed";
 
 #[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
 pub struct Project {
@@ -25,6 +28,64 @@ pub struct Project {
 
     /// Last update time of the project
     pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+pub struct ProjectCreateRequest {
+    name: String,
+    organization_id: Uuid,
+}
+
+#[derive(Clone)]
+pub struct Projects<Auth: AuthorizationServer> {
+    auth: Auth,
+    db: Pool<Postgres>,
+}
+
+impl<Auth: AuthorizationServer> Projects<Auth> {
+    pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
+        Self { auth, db }
+    }
+
+    pub async fn create<P: Principal>(
+        &mut self,
+        _principal: &P,
+        request: ProjectCreateRequest,
+    ) -> Result<Project, Error> {
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::Create)
+        //     .over(&Project::any())
+        //     .await?;
+
+        Project::factory()
+            .name(request.name)
+            .organization_id(request.organization_id)
+            .create(&self.db)
+            .await
+            .map_err(Into::into)
+    }
+
+    pub async fn get_default_project<P: Principal>(
+        &mut self,
+        _principal: &P,
+        organization_id: &Uuid,
+    ) -> Result<Project, Error> {
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::Get)
+        //     .over(&Project::any())
+        //     .await?;
+
+        sqlx::query_as!(
+            Project,
+            "SELECT * FROM projects WHERE organization_id = $1 AND name = $2",
+            organization_id,
+            DEFAULT_PROJECT_NAME,
+        )
+        .fetch_one(&self.db)
+        .await
+        .map_err(Into::into)
+    }
 }
 
 pub async fn create_project(

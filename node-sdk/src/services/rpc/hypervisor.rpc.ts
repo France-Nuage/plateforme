@@ -1,9 +1,7 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
-import {
-  HypervisorsClient,
-  Hypervisor as RpcHypervisor,
-} from '../../generated/rpc';
+import { Hypervisor as RpcHypervisor } from '../../generated/rpc/compute';
+import { HypervisorsClient } from '../../generated/rpc/compute.client';
 import { Hypervisor, HypervisorFormValue } from '../../models';
 import { HypervisorService } from '../api';
 
@@ -23,41 +21,39 @@ export class HypervisorRpcService implements HypervisorService {
   /**
    * @inheritdoc
    */
-  public list(): Promise<Hypervisor[]> {
-    return this.client
-      .listHypervisors({})
-      .response.then(({ hypervisors }) => hypervisors.map(fromRpcHypervisor));
+  public async list(): Promise<Hypervisor[]> {
+    const { hypervisors } = await this.client.list({}).response;
+    return hypervisors.map(fromRpcHypervisor);
   }
 
   /**
    * @inheritdoc
    */
-  public register({
+  public async register({
     authorizationToken = '',
-    datacenterId,
     storageName,
     organizationId,
     url,
+    zoneId,
   }: HypervisorFormValue): Promise<Hypervisor> {
-    return this.client
-      .registerHypervisor({
-        authorizationToken,
-        datacenterId,
-        organizationId,
-        storageName,
-        url,
-      })
-      .response.then(({ hypervisor }) => fromRpcHypervisor(hypervisor!));
+    const { hypervisor } = await this.client.register({
+      authorizationToken,
+      organizationId,
+      storageName,
+      url,
+      zoneId,
+    }).response;
+    return fromRpcHypervisor(hypervisor!);
   }
 }
 
 // Converts a protocol Hypervisor into a concrete Hypervisor.
 function fromRpcHypervisor(hypervisor: RpcHypervisor): Hypervisor {
   return {
-    datacenterId: hypervisor.datacenterId,
     id: hypervisor.id,
     organizationId: hypervisor.organizationId,
     storageName: hypervisor.storageName,
     url: hypervisor.url,
+    zoneId: hypervisor.zoneId,
   };
 }

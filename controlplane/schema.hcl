@@ -1,4 +1,4 @@
-table "datacenters" {
+table "zones" {
   schema = schema.public
   column "id" {
     null    = false
@@ -46,16 +46,16 @@ table "hypervisors" {
     null = false
     type = uuid
   }
-  column "datacenter_id" {
+  column "zone_id" {
     null = false
     type = uuid
   }
   primary_key {
     columns = [column.id]
   }
-  foreign_key "hypervisors_datacenter_id_fkey" {
-    columns     = [column.datacenter_id]
-    ref_columns = [table.datacenters.column.id]
+  foreign_key "hypervisors_zone_id_fkey" {
+    columns     = [column.zone_id]
+    ref_columns = [table.zones.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
   }
@@ -194,6 +194,51 @@ table "organizations" {
     columns = [column.id]
   }
 }
+table "organization_service_account" {
+  schema = schema.public
+    column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "service_account_id" {
+    null = false
+    type = uuid
+  }
+  column "organization_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "organization_service_account_service_account_id_fkey" {
+    columns = [column.service_account_id]
+    ref_columns = [table.service_accounts.column.id]
+    on_update = NO_ACTION
+    on_delete = CASCADE
+  }
+  foreign_key "organization_service_account_organization_id_fkey" {
+    columns = [column.organization_id]
+    ref_columns = [table.organizations.column.id]
+    on_update = NO_ACTION
+    on_delete = CASCADE
+  }
+  index "organization_service_account_service_account_id_organization_id_idx" {
+    unique = true
+    columns = [column.service_account_id, column.organization_id]
+  }
+}
 table "organization_user" {
   schema = schema.public
     column "id" {
@@ -305,6 +350,37 @@ table "projects" {
     ref_columns = [table.organizations.column.id]
     on_update   = NO_ACTION
     on_delete   = CASCADE
+  }
+}
+table "service_accounts" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "name" {
+    null = false
+    type = text
+    default = false
+  }
+  column "key" {
+    null = false
+    type = text
+    default = false
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamptz
+    default = sql("now()")
+  }
+  primary_key {
+    columns = [column.id]
   }
 }
 table "users" {

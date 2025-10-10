@@ -5,8 +5,8 @@ WITH organization AS (
   VALUES ('ACME')
   RETURNING id
 ),
-datacenter AS (
-  INSERT INTO datacenters (name)
+zone AS (
+  INSERT INTO zones (name)
   VALUES ('ACME Mesa Data Facility')
   RETURNING id
 )
@@ -15,14 +15,14 @@ INSERT INTO hypervisors (
   authorization_token,
   storage_name,
   organization_id,
-  datacenter_id
+  zone_id
 )
 SELECT
   :url,
   :token,
   :storage,
   organization.id,
-  datacenter.id
-FROM organization, datacenter;
+  zone.id
+FROM organization, zone;
 
 COMMIT;

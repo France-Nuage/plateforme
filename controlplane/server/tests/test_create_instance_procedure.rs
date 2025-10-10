@@ -1,15 +1,16 @@
 use auth::mock::WithWellKnown;
 use database::Persistable;
-use frn_core::resourcemanager::{Organization, Project};
+use frn_core::{
+    compute::Hypervisor,
+    resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project},
+};
 use hypervisor_connector_proxmox::mock::{
     WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCreateMock,
 };
-use hypervisors::Hypervisor;
 use instances::v1::{
     CreateInstanceRequest, CreateInstanceResponse, instances_client::InstancesClient,
 };
 use mock_server::MockServer;
-use resources::DEFAULT_PROJECT_NAME;
 use server::Config;
 use sqlx::types::Uuid;
 
@@ -31,7 +32,7 @@ async fn test_the_create_instance_procedure_works(
 
     Hypervisor::factory()
         .url(mock_url)
-        .for_default_datacenter()
+        .for_default_zone()
         .organization_id(organization.id)
         .create(&pool)
         .await?;

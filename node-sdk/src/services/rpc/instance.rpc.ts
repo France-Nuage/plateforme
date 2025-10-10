@@ -1,10 +1,10 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
 import {
-  InstancesClient,
   Instance as RpcInstance,
   InstanceStatus as RpcInstanceStatus,
-} from '../../generated/rpc';
+} from '../../generated/rpc/instances';
+import { InstancesClient } from '../../generated/rpc/instances.client';
 import { Instance, InstanceFormValue, InstanceStatus } from '../../models';
 import { InstanceService } from '../api';
 

@@ -1,5 +1,6 @@
 mod app;
 pub mod authorization;
+pub mod compute;
 mod config;
 mod error;
 pub mod identity;

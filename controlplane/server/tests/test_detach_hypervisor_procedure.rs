@@ -1,8 +1,6 @@
 use auth::mock::WithWellKnown;
-use hypervisors::{
-    Hypervisor,
-    v1::{DetachHypervisorRequest, hypervisors_client::HypervisorsClient},
-};
+use frn_core::compute::Hypervisor;
+use frn_rpc::v1::compute::{DetachHypervisorRequest, hypervisors_client::HypervisorsClient};
 use mock_server::MockServer;
 use server::Config;
 
@@ -14,7 +12,7 @@ async fn test_the_detach_hypervisor_procedure_works(
 
     // Arrange the grpc server and a client
     let hypervisor = Hypervisor::factory()
-        .for_default_datacenter()
+        .for_default_zone()
         .for_organization_with(|organization| organization)
         .create(&pool)
         .await?;
@@ -26,7 +24,7 @@ async fn test_the_detach_hypervisor_procedure_works(
 
     // Act the request to the test_the_status_procedure_works
     let result = client
-        .detach_hypervisor(DetachHypervisorRequest {
+        .detach(DetachHypervisorRequest {
             id: hypervisor.id.to_string(),
         })
         .await;

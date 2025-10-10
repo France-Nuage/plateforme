@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "generate": "protoc -I ../controlplane/instances/ -I ../controlplane/hypervisors/ -I ../controlplane/infrastructure/ -I ../controlplane/resources/ --ts_out src/generated/rpc --ts_opt optimize_code_size ../controlplane/instances/*.proto ../controlplane/hypervisors/*.proto ../controlplane/infrastructure/infrastructure.proto ../controlplane/resources/resources.proto",
+    "generate": "protoc -I ../controlplane/frn-rpc/ -I ../controlplane/instances/ -I ../controlplane/infrastructure/ --ts_out src/generated/rpc --ts_opt optimize_code_size ../controlplane/frn-rpc/*.proto ../controlplane/instances/instances.proto ../controlplane/infrastructure/infrastructure.proto",
     "lint": "eslint ."
   },
   "author": "Robin Straub",

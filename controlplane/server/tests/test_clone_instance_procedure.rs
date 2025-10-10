@@ -33,7 +33,7 @@ async fn test_the_clone_instance_procedure_works(
         .for_hypervisor_with(move |hypervisor| {
             hypervisor
                 .url(mock_url)
-                .for_default_datacenter()
+                .for_default_zone()
                 .organization_id(organization.id)
         })
         .for_project_with(move |project| project.organization_id(organization.id))

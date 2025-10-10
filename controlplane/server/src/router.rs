@@ -6,13 +6,16 @@
 //! proper dependency injection.
 
 use frn_core::identity::IAM;
-use frn_core::resourcemanager::OrganizationService;
-use frn_rpc::v1::{ResourcesRpcService, resources::resources_server::ResourcesServer};
-use hypervisors::{rpc::HypervisorsRpcService, v1::hypervisors_server::HypervisorsServer};
-use infrastructure::DatacenterRpcService;
+use frn_rpc::v1::compute::Hypervisors;
+use frn_rpc::v1::compute::Zones;
+use frn_rpc::v1::compute::hypervisors_server::HypervisorsServer;
+use frn_rpc::v1::compute::zones_server::ZonesServer;
+use frn_rpc::v1::resourcemanager::Organizations;
+use frn_rpc::v1::resourcemanager::Projects;
+use frn_rpc::v1::resourcemanager::organizations_server::OrganizationsServer;
+use frn_rpc::v1::resourcemanager::projects_server::ProjectsServer;
 use infrastructure::ZeroTrustNetworkRpcService;
 use infrastructure::ZeroTrustNetworkTypeRpcService;
-use infrastructure::v1::datacenters_server::DatacentersServer;
 use infrastructure::v1::zero_trust_network_types_server::ZeroTrustNetworkTypesServer;
 use infrastructure::v1::zero_trust_networks_server::ZeroTrustNetworksServer;
 use instances::{InstancesRpcService, v1::instances_server::InstancesServer};
@@ -50,24 +53,6 @@ impl Router {
         }
     }
 
-    /// Registers the datacenters service with the router.
-    ///
-    /// This method adds the datacenters gRPC service to the router, providing
-    /// endpoints for datacenter management and location operations. The service
-    /// is configured with the provided database pool for persistent storage
-    /// operations.
-    ///
-    /// # Parameters
-    ///
-    /// * `pool` - PostgreSQL database connection pool for database operations
-    pub fn datacenters(self, pool: Pool<Postgres>) -> Self {
-        Self {
-            routes: self
-                .routes
-                .add_service(DatacentersServer::new(DatacenterRpcService::new(pool))),
-        }
-    }
-
     /// Registers the health check service with the router.
     ///
     /// This method adds the gRPC health check service to the router, providing
@@ -92,10 +77,10 @@ impl Router {
         // that i "wiped the shit under the carpet" here.
         tokio::spawn(async move {
             tokio::join!(
-                health_reporter.set_serving::<DatacentersServer<DatacenterRpcService>>(),
-                health_reporter.set_serving::<HypervisorsServer<HypervisorsRpcService>>(),
-                health_reporter.set_serving::<InstancesServer<InstancesRpcService>>(),
-                health_reporter.set_serving::<ResourcesServer<ResourcesRpcService<SpiceDB>>>(),
+                health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
+                health_reporter.set_serving::<InstancesServer<InstancesRpcService<SpiceDB>>>(),
+                health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
+                health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
                 health_reporter
                     .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>(),
                 health_reporter
@@ -118,11 +103,16 @@ impl Router {
     /// # Parameters
     ///
     /// * `pool` - PostgreSQL database connection pool for database operations
-    pub fn hypervisors(self, pool: Pool<Postgres>) -> Self {
+    pub fn hypervisors(
+        self,
+        iam: IAM,
+        pool: Pool<Postgres>,
+        service: frn_core::compute::Hypervisors<SpiceDB>,
+    ) -> Self {
         Self {
             routes: self
                 .routes
-                .add_service(HypervisorsServer::new(HypervisorsRpcService::new(pool))),
+                .add_service(HypervisorsServer::new(Hypervisors::new(iam, pool, service))),
         }
     }
 
@@ -136,11 +126,22 @@ impl Router {
     /// # Parameters
     ///
     /// * `pool` - Database connection pool for database operations (generic over DB type)
-    pub fn instances(self, pool: Pool<Postgres>) -> Self {
+    pub fn instances(
+        self,
+        iam: IAM,
+        pool: Pool<Postgres>,
+        hypervisors: frn_core::compute::Hypervisors<SpiceDB>,
+        projects: frn_core::resourcemanager::Projects<SpiceDB>,
+    ) -> Self {
         Self {
             routes: self
                 .routes
-                .add_service(InstancesServer::new(InstancesRpcService::new(pool))),
+                .add_service(InstancesServer::new(InstancesRpcService::new(
+                    iam,
+                    pool,
+                    hypervisors,
+                    projects,
+                ))),
         }
     }
 
@@ -157,17 +158,18 @@ impl Router {
     pub fn resources(
         self,
         iam: IAM,
-        organizations: OrganizationService<SpiceDB>,
+        organizations: frn_core::resourcemanager::Organizations<SpiceDB>,
         pool: Pool<Postgres>,
     ) -> Self {
         Self {
             routes: self
                 .routes
-                .add_service(ResourcesServer::new(ResourcesRpcService::new(
-                    iam,
-                    organizations,
-                    pool,
-                ))),
+                .add_service(OrganizationsServer::new(Organizations::new(
+                    iam.clone(),
+                    organizations.clone(),
+                    pool.clone(),
+                )))
+                .add_service(ProjectsServer::new(Projects::<SpiceDB>::new(iam, pool))),
         }
     }
 
@@ -204,6 +206,14 @@ impl Router {
             routes: self.routes.add_service(ZeroTrustNetworksServer::new(
                 ZeroTrustNetworkRpcService::new(pool),
             )),
+        }
+    }
+
+    pub fn zones(self, iam: IAM, zones: frn_core::compute::Zones<SpiceDB>) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(ZonesServer::new(Zones::new(iam, zones))),
         }
     }
 }

@@ -5,6 +5,7 @@
 //! `SpiceDB::mock()` for testing with an in-memory server.
 
 use crate::Error;
+use crate::api::v1::LookupResourcesRequest;
 use crate::api::v1::check_permission_response::Permissionship;
 use crate::api::v1::{
     CheckPermissionRequest, ObjectReference, SubjectReference,
@@ -48,6 +49,39 @@ impl SpiceDB {
         Self { client }
     }
 
+    pub async fn lookup(
+        &mut self,
+        (subject_type, subject_id): (String, String),
+        permission: String,
+        resource_type: String,
+    ) -> Result<Vec<String>, Error> {
+        let request = Request::new(LookupResourcesRequest {
+            consistency: None,
+            context: None,
+            optional_cursor: None,
+            optional_limit: 0,
+            resource_object_type: resource_type,
+            permission,
+            subject: Some(SubjectReference {
+                object: Some(ObjectReference {
+                    object_type: subject_type,
+                    object_id: subject_id,
+                }),
+                optional_relation: "".to_owned(),
+            }),
+        });
+
+        let mut stream = self.client.lookup_resources(request).await?.into_inner();
+
+        let mut resource_ids = Vec::new();
+
+        while let Some(response) = stream.message().await? {
+            resource_ids.push(response.resource_object_id);
+        }
+
+        Ok(resource_ids)
+    }
+
     pub async fn check_permission(
         &mut self,
         (subject_type, subject_id): (String, String),
@@ -58,15 +92,15 @@ impl SpiceDB {
         let request = Request::new(CheckPermissionRequest {
             consistency: None,
             context: None,
-            permission,
+            permission: permission.clone(),
             resource: Some(ObjectReference {
-                object_type: resource_type,
-                object_id: resource_id,
+                object_type: resource_type.clone(),
+                object_id: resource_id.clone(),
             }),
             subject: Some(SubjectReference {
                 object: Some(ObjectReference {
-                    object_type: subject_type,
-                    object_id: subject_id,
+                    object_type: subject_type.clone(),
+                    object_id: subject_id.clone(),
                 }),
                 optional_relation: "".to_owned(),
             }),
@@ -76,7 +110,14 @@ impl SpiceDB {
         let permissionship = self
             .client
             .check_permission(request)
-            .await?
+            .await
+            .inspect_err(|error| {
+                println!("got error in spicedb: {:#?}", error);
+                println!(
+                    "this happened for resource {}#{}, subject {}#{}, permission {}",
+                    resource_type, resource_id, subject_type, subject_id, permission
+                );
+            })?
             .into_inner()
             .permissionship();
 

@@ -1,7 +1,6 @@
 use auth::mock::WithWellKnown;
-use frn_core::resourcemanager::Organization;
-use hypervisors::v1::{RegisterHypervisorRequest, hypervisors_client::HypervisorsClient};
-use infrastructure::Datacenter;
+use frn_core::{compute::Zone, resourcemanager::Organization};
+use frn_rpc::v1::compute::{RegisterHypervisorRequest, hypervisors_client::HypervisorsClient};
 use mock_server::MockServer;
 use server::Config;
 
@@ -11,7 +10,7 @@ async fn test_the_register_hypervisor_procedure_works(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mock = MockServer::new().await.with_well_known();
 
-    let datacenter = Datacenter::factory().create(&pool).await?;
+    let zone = Zone::factory().create(&pool).await?;
     let organization = Organization::factory().create(&pool).await?;
 
     let config = Config::test(&pool, &mock).await?;
@@ -21,8 +20,8 @@ async fn test_the_register_hypervisor_procedure_works(
 
     // Act the request to the test_the_status_procedure_works
     let result = client
-        .register_hypervisor(RegisterHypervisorRequest {
-            datacenter_id: datacenter.id.to_string(),
+        .register(RegisterHypervisorRequest {
+            zone_id: zone.id.to_string(),
             organization_id: organization.id.to_string(),
             ..Default::default()
         })

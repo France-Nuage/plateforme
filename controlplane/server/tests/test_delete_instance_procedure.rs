@@ -29,7 +29,7 @@ async fn test_the_delete_instance_procedure_works(
         .distant_id("100".into())
         .for_hypervisor_with(move |hypervisor| {
             hypervisor
-                .for_default_datacenter()
+                .for_default_zone()
                 .organization_id(organization.id)
                 .url(mock_url)
         })

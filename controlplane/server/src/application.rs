@@ -216,19 +216,28 @@ impl<L> Application<L> {
     /// efficient connection management across the application.
     pub fn with_services(self) -> Application<L> {
         let iam = self.config.app.iam.clone();
-        let organizations = self.config.app.organizations.clone();
         let pool = self.config.pool.clone();
+        let hypervisors = self.config.app.hypervisors.clone();
+        let organizations = self.config.app.organizations.clone();
+        let projects = self.config.app.projects.clone();
+        let zones = self.config.app.zones.clone();
         Self {
             config: self.config,
             router: self
                 .router
                 .health()
-                .datacenters(pool.clone())
-                .hypervisors(pool.clone())
-                .instances(pool.clone())
-                .resources(iam, organizations, pool.clone())
+                .hypervisors(iam.clone(), pool.clone(), hypervisors.clone())
+                .instances(
+                    iam.clone(),
+                    pool.clone(),
+                    hypervisors.clone(),
+                    projects.clone(),
+                )
+                .resources(iam.clone(), organizations, pool.clone())
                 .zero_trust_networks(pool.clone())
-                .zero_trust_network_types(pool.clone()),
+                .zero_trust_network_types(pool.clone())
+                .zones(iam.clone(), zones.clone()),
+
             server: self.server,
         }
     }

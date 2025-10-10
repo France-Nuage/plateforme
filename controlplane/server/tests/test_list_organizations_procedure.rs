@@ -5,11 +5,12 @@ use auth::{
     mock::{WithJwks, WithWellKnown},
 };
 use frn_core::{identity::User, resourcemanager::Organization};
-use frn_rpc::v1::resources::{ListOrganizationsRequest, resources_client::ResourcesClient};
+use frn_rpc::v1::resourcemanager::{
+    ListOrganizationsRequest, organizations_client::OrganizationsClient,
+};
 use mock_server::MockServer;
 use server::Config;
-use sqlx::{Pool, Postgres, types::Uuid};
-use tonic::{Code, Request, metadata::MetadataValue};
+use tonic::{Request, metadata::MetadataValue};
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_list_organizations_procedure_works(
@@ -27,7 +28,7 @@ async fn test_the_list_organizations_procedure_works(
     let config = Config::test(&pool, &mock).await?;
     let server_url = format!("http://{}", config.addr);
     let shutdown_tx = server::serve(config).await?;
-    let mut client = ResourcesClient::connect(server_url).await?;
+    let mut client = OrganizationsClient::connect(server_url).await?;
 
     // Act the request to the test_the_status_procedure_works
     let mut request = Request::new(ListOrganizationsRequest::default());
@@ -35,7 +36,7 @@ async fn test_the_list_organizations_procedure_works(
         "authorization",
         MetadataValue::from_str(&format!("Bearer {}", &token)).unwrap(),
     );
-    let response = client.list_organizations(request).await;
+    let response = client.list(request).await;
 
     // Assert the result
     println!("response: {:#?}", &response);

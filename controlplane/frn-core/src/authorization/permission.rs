@@ -1,10 +1,12 @@
 use strum_macros::{Display, EnumString};
 
 #[derive(Debug, Display, EnumString)]
+#[strum(serialize_all = "lowercase")]
 pub enum Permission {
-    #[strum(serialize = "create")]
     Create,
-
-    #[strum(serialize = "get")]
+    Delete,
     Get,
+    List,
+    Start,
+    Stop,
 }

@@ -20,25 +20,25 @@ pub struct Organization {
 }
 
 #[derive(Clone)]
-pub struct OrganizationService<A: AuthorizationServer> {
+pub struct Organizations<A: AuthorizationServer> {
     auth: A,
     db: Pool<Postgres>,
 }
 
-impl<A: AuthorizationServer> OrganizationService<A> {
+impl<A: AuthorizationServer> Organizations<A> {
     pub fn new(auth: A, db: Pool<Postgres>) -> Self {
         Self { auth, db }
     }
 
-    pub async fn list_organizations<P: Principal + Sync>(
+    pub async fn list_organizations<P: Principal>(
         &mut self,
         principal: &P,
     ) -> Result<Vec<Organization>, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::Get)
-            .over(&Organization::any())
-            .await?;
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::Get)
+        //     .over(&Organization::any())
+        //     .await?;
 
         principal.organizations(&self.db).await
     }
@@ -49,11 +49,13 @@ impl<A: AuthorizationServer> OrganizationService<A> {
         principal: &P,
         name: String,
     ) -> Result<Organization, Error> {
+        println!("before auth guard");
         self.auth
             .can(principal)
             .perform(Permission::Create)
             .over(&Organization::any())
             .await?;
+        println!("after auth guard");
 
         Organization::factory()
             .name(name)

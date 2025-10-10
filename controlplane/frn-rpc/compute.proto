@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.compute;
+
+// Hypervisors service provides operations to manage hypervisors.
+service Hypervisors {
+    // List retrieves information about all registered hypervisors.
+    rpc List (ListHypervisorsRequest) returns (ListHypervisorsResponse);
+
+    // Register adds a new hypervisor to the system.
+    rpc Register (RegisterHypervisorRequest) returns (RegisterHypervisorResponse);
+
+    // Detach removes a hypervisor from the system.
+    rpc Detach (DetachHypervisorRequest) returns (DetachHypervisorResponse);
+}
+
+// Hypervisors service provides operations to manage zones.
+service Zones {
+    // List retrieves information about all registered zones.
+    rpc List (ListZonesRequest) returns (ListZonesResponse);
+}
+
+// ListHypervisorsRequest is an empty message for listing hypervisors.
+message ListHypervisorsRequest {}
+
+// ListHypervisorsResponse contains a collection of hypervisor information.
+message ListHypervisorsResponse {
+    // List of hypervisor details
+    repeated Hypervisor hypervisors = 1;
+}
+
+// RegisterHypervisorRequest contains the necessary information to register a hypervisor.
+message RegisterHypervisorRequest {
+    // Authorization token for secure API access
+    string authorization_token = 1;
+ 
+    // Name of the storage to use for instances
+    string storage_name = 2;
+
+    // URL endpoint of the hypervisor API
+    string url = 3;
+
+    // Id of the zone this hypervisor belongs to
+    string zone_id = 4;
+
+    // Id of the organization this hypervisor belongs to
+    string organization_id = 5;
+}
+
+// RegisterHypervisorResponse contains the result of a register hypervisor operation.
+message RegisterHypervisorResponse {
+    // The registered hypervisor.
+    Hypervisor hypervisor = 1;
+}
+
+// DetachHypervisorRequest contains the necessary information to detach a hypervisor.
+message DetachHypervisorRequest {
+    // Id of the hypervisor
+    string id = 1;
+}
+
+// DetachHypervisorResponse contains the result of a DetachHypervisor operation.
+message DetachHypervisorResponse {}
+
+// Hypervisor represents a virtualization platform that can host instances.
+message Hypervisor {
+    // Id of the hypervisor
+    string id = 1;
+
+    // Name of the storage to use for instances
+    string storage_name = 2;
+
+    // URL endpoint of the hypervisor API
+    string url = 3;
+
+    // Id of the zone the hypervisor belongs to
+    string zone_id = 4;
+
+    // Id of the organization the hypervisor belongs to
+    string organization_id = 5;
+}
+
+// ListZonesRequest is an empty message for listing zones.
+message ListZonesRequest {}
+
+// ListZonesResponse contains a collection of zone information.
+message ListZonesResponse {
+    // List of zone details
+    repeated Zone zones = 1;
+}
+
+// Zone represents a zone.
+message Zone {
+    // Id of the zone
+    string id = 1;
+
+    // Name of the zone.
+    string name = 2;
+}

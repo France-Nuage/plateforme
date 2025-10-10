@@ -1,9 +1,7 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
-import {
-  ZeroTrustNetwork as RpcZeroTrustNetwork,
-  ZeroTrustNetworksClient,
-} from '../../generated/rpc';
+import { ZeroTrustNetwork as RpcZeroTrustNetwork } from '../../generated/rpc/infrastructure';
+import { ZeroTrustNetworksClient } from '../../generated/rpc/infrastructure.client';
 import { ZeroTrustNetwork } from '../../models';
 import { ZeroTrustNetworkService } from '../api';
 
@@ -21,24 +19,19 @@ export class ZeroTrustNetworkRpcService implements ZeroTrustNetworkService {
   }
 
   /** @inheritdoc */
-  public list(): Promise<ZeroTrustNetwork[]> {
-    return this.client
-      .list({})
-      .response.then(({ zeroTrustNetworks }) =>
-        zeroTrustNetworks.map(fromRpcZeroTrustNetwork),
-      );
+  public async list(): Promise<ZeroTrustNetwork[]> {
+    const { zeroTrustNetworks } = await this.client.list({}).response;
+    return zeroTrustNetworks.map(fromRpcZeroTrustNetwork);
   }
 }
 
 /**
- * Convert a protocol organization into a concrete Organization.
+ * Convert a protocol zero trust network into a concrete model.
  */
-function fromRpcZeroTrustNetwork(
-  zeroTrustNetwork: RpcZeroTrustNetwork,
-): ZeroTrustNetwork {
-  return {
-    id: zeroTrustNetwork.id,
-    name: zeroTrustNetwork.name,
-    zeroTrustNetworkTypeId: zeroTrustNetwork.zeroTrustNetworkTypeId,
-  };
+function fromRpcZeroTrustNetwork({
+  id,
+  name,
+  zeroTrustNetworkTypeId,
+}: RpcZeroTrustNetwork): ZeroTrustNetwork {
+  return { id, name, zeroTrustNetworkTypeId };
 }

@@ -8,7 +8,7 @@ use sqlx::{Pool, Postgres};
 
 use crate::{authorization::Resource, resourcemanager::Organization};
 
-pub trait Principal: Resource + Sized {
+pub trait Principal: Resource + Sized + Sync {
     fn organizations(
         &self,
         connection: &Pool<Postgres>,

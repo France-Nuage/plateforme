@@ -27,6 +27,10 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
             fn any() -> impl frn_core::authorization::Resource<Id = String> {
                 #companion_struct_ident::any()
             }
+
+            fn some(id: Self::Id) -> impl frn_core::authorization::Resource<Id = String> {
+                #companion_struct_ident::some(id.to_string())
+            }
         }
 
         pub struct #companion_struct_ident {
@@ -54,6 +58,12 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
                      identifier: "*".to_owned(),
                  }
              }
+
+            fn some(id: Self::Id) -> impl frn_core::authorization::Resource<Id = String> {
+                Self {
+                    identifier: id.to_string(),
+                }
+            }
          }
     }
 }
@@ -87,6 +97,10 @@ mod tests {
                 fn any() -> impl frn_core::authorization::Resource<Id = String> {
                     AnvilResource::any()
                 }
+
+                fn some(id: Self::Id) -> impl frn_core::authorization::Resource<Id = String> {
+                    AnvilResource::some(id.to_string())
+                }
             }
 
             pub struct AnvilResource {
@@ -112,6 +126,12 @@ mod tests {
                 fn any() -> impl frn_core::authorization::Resource<Id = String> {
                     Self {
                         identifier: "*".to_owned(),
+                    }
+                }
+
+                fn some(id: Self::Id) -> impl frn_core::authorization::Resource<Id = String> {
+                    Self {
+                        identifier: id.to_string(),
                     }
                 }
             }

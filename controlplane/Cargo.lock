@@ -709,9 +709,14 @@ dependencies = [
 name = "frn-core"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "database",
  "frn-derive",
+ "futures",
  "http",
+ "hypervisor",
+ "serde",
+ "serde_plain",
  "spicedb",
  "sqlx",
  "strum",
@@ -743,6 +748,7 @@ dependencies = [
  "prost",
  "prost-types",
  "sqlx",
+ "thiserror 2.0.12",
  "tonic",
  "tonic-prost",
  "tonic-prost-build",
@@ -1126,6 +1132,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hypervisor"
+version = "0.1.0"
+dependencies = [
+ "strum",
+ "strum_macros",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "hypervisor_connector"
 version = "0.1.0"
 dependencies = [
@@ -1154,27 +1169,10 @@ dependencies = [
 name = "hypervisor_connector_resolver"
 version = "0.1.0"
 dependencies = [
+ "frn-core",
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
- "hypervisors",
  "reqwest",
-]
-
-[[package]]
-name = "hypervisors"
-version = "0.1.0"
-dependencies = [
- "database",
- "frn-core",
- "infrastructure",
- "prost",
- "sqlx",
- "thiserror 2.0.12",
- "tokio",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
- "uuid",
 ]
 
 [[package]]
@@ -1375,7 +1373,6 @@ dependencies = [
  "frn-core",
  "prost",
  "prost-types",
- "resources",
  "sqlx",
  "thiserror 2.0.12",
  "tonic",
@@ -1391,17 +1388,16 @@ dependencies = [
  "auth",
  "database",
  "frn-core",
+ "frn-rpc",
  "futures",
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
  "hypervisor_connector_resolver",
- "hypervisors",
  "infrastructure",
  "mock_server",
  "prost",
  "prost-types",
  "reqwest",
- "resources",
  "serde",
  "serde_plain",
  "sqlx",
@@ -2248,26 +2244,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "resources"
-version = "0.1.0"
-dependencies = [
- "auth",
- "database",
- "frn-core",
- "mock_server",
- "prost",
- "prost-types",
- "reqwest",
- "sqlx",
- "thiserror 2.0.12",
- "tokio",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
- "uuid",
-]
-
-[[package]]
 name = "ring"
 version = "0.17.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2556,7 +2532,6 @@ dependencies = [
  "http-body",
  "hyper",
  "hypervisor_connector_proxmox",
- "hypervisors",
  "infrastructure",
  "instances",
  "jsonwebtoken",
@@ -2564,7 +2539,6 @@ dependencies = [
  "prost",
  "prost-types",
  "reqwest",
- "resources",
  "spicedb",
  "sqlx",
  "thiserror 2.0.12",
@@ -3006,10 +2980,9 @@ dependencies = [
 name = "synchronizer"
 version = "0.1.0"
 dependencies = [
- "hypervisors",
+ "frn-core",
  "instances",
  "reqwest",
- "sqlx",
  "tokio",
  "tracing",
  "tracing-subscriber",

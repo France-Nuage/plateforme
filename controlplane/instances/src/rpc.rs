@@ -8,30 +8,39 @@ use crate::{
         instances_server::Instances,
     },
 };
-use auth::{IAM, Permission, Relation, Relationship};
-use frn_core::authorization::Resource;
+use frn_core::{
+    authorization::AuthorizationServer, compute::Hypervisors, identity::IAM,
+    resourcemanager::Projects,
+};
+use frn_rpc::request::ExtractToken;
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-pub struct InstancesRpcService {
-    pool: PgPool,
-    service: InstancesService,
+pub struct InstancesRpcService<Auth: AuthorizationServer> {
+    iam: IAM,
+    service: InstancesService<Auth>,
 }
 
 #[tonic::async_trait]
-impl Instances for InstancesRpcService {
+impl<Auth: AuthorizationServer + 'static> Instances for InstancesRpcService<Auth> {
     /// CreateInstance provisions a new instance based on the specified configuration.
     /// Returns details of the newly created instance or a ProblemDetails on failure.
     async fn create_instance(
         &self,
         request: tonic::Request<CreateInstanceRequest>,
     ) -> Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
+        let principal = self.iam.user(request.access_token()).await?;
+
         let request = request.into_inner();
         let project_id = Uuid::parse_str(&request.project_id)
             .map_err(|_| Problem::MalformedInstanceId(request.project_id.clone()))?;
 
-        let instance = self.service.create(request.into(), project_id).await?;
+        let instance = self
+            .service
+            .clone()
+            .create(request.into(), project_id, &principal)
+            .await?;
 
         Ok(Response::new(CreateInstanceResponse {
             instance: Some(instance.into()),
@@ -44,9 +53,10 @@ impl Instances for InstancesRpcService {
         &self,
         request: tonic::Request<DeleteInstanceRequest>,
     ) -> std::result::Result<tonic::Response<DeleteInstanceResponse>, tonic::Status> {
+        let principal = self.iam.user(request.access_token()).await?;
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
-        self.service.delete(id).await?;
+        self.service.clone().delete(&principal, id).await?;
         Ok(Response::new(DeleteInstanceResponse {}))
     }
 
@@ -56,38 +66,11 @@ impl Instances for InstancesRpcService {
         &self,
         request: tonic::Request<CloneInstanceRequest>,
     ) -> std::result::Result<tonic::Response<Instance>, tonic::Status> {
-        let iam = request
-            .extensions()
-            .get::<IAM>()
-            .ok_or(Status::internal("iam not found"))?
-            .clone();
-
+        let principal = self.iam.user(request.access_token()).await?;
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
 
-        let user = iam.user(&self.pool).await?;
-
-        iam.authz
-            .clone()
-            .can(&user)
-            .perform(Permission::Start)
-            .on((crate::model::Instance::NAME, &id))
-            .check()
-            .await?;
-        println!("user is authenticated");
-
-        let instance = self.service.clone(id).await?;
-
-        iam.authz
-            .write_relationship(&Relationship::new(
-                instance.resource_identifier(),
-                Relation::BelongsToProject,
-                (
-                    frn_core::resourcemanager::Project::NAME,
-                    &instance.project_id,
-                ),
-            ))
-            .await?;
+        let instance = self.service.clone().clone_instance(id, &principal).await?;
 
         Ok(Response::new(instance.into()))
     }
@@ -111,25 +94,11 @@ impl Instances for InstancesRpcService {
         &self,
         request: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
-        let iam = request
-            .extensions()
-            .get::<IAM>()
-            .ok_or(Status::internal("iam not found"))?
-            .clone();
-
+        let principal = self.iam.user(request.access_token()).await?;
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
 
-        let user = iam.user(&self.pool).await?;
-
-        iam.authz
-            .can(&user)
-            .perform(Permission::Get)
-            .on((crate::model::Instance::NAME, &id))
-            .check()
-            .await?;
-
-        self.service.start(id).await?;
+        self.service.start(&principal, id).await?;
         Ok(Response::new(StartInstanceResponse {}))
     }
 
@@ -139,255 +108,24 @@ impl Instances for InstancesRpcService {
         &self,
         request: Request<StopInstanceRequest>,
     ) -> Result<Response<StopInstanceResponse>, Status> {
+        let principal = self.iam.user(request.access_token()).await?;
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
-        self.service.stop(id).await?;
+        self.service.stop(&principal, id).await?;
         Ok(Response::new(StopInstanceResponse {}))
     }
 }
 
-impl InstancesRpcService {
-    pub fn new(pool: PgPool) -> Self {
+impl<Auth: AuthorizationServer> InstancesRpcService<Auth> {
+    pub fn new(
+        iam: IAM,
+        pool: PgPool,
+        hypervisors: Hypervisors<Auth>,
+        projects: Projects<Auth>,
+    ) -> Self {
         Self {
-            pool: pool.clone(),
-            service: InstancesService::new(pool.clone()),
+            iam,
+            service: InstancesService::new(pool.clone(), hypervisors, projects),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{
-        model::Instance,
-        v1::{ListInstancesRequest, StartInstanceRequest},
-    };
-    use frn_core::{identity::User, resourcemanager::Organization};
-    use hypervisor_connector_proxmox::mock::{
-        WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
-        WithVMDeleteMock, WithVMStatusStartMock, WithVMStatusStopMock,
-    };
-    use mock_server::MockServer;
-
-    #[sqlx::test(migrations = "../migrations")]
-    async fn test_list_instances_works(pool: sqlx::PgPool) {
-        // Arrange a service and a request for the list_instances procedure
-        let server = MockServer::new().await.with_cluster_resource_list();
-        let mock_url = server.url();
-
-        let organization = Organization::factory()
-            .create(&pool)
-            .await
-            .expect("could not create organization");
-
-        Instance::factory()
-            .for_hypervisor_with(move |hypervisor| {
-                hypervisor
-                    .for_default_datacenter()
-                    .organization_id(organization.id)
-                    .url(mock_url)
-            })
-            .for_project_with(move |project| project.organization_id(organization.id))
-            .create(&pool)
-            .await
-            .expect("could not create instance");
-
-        let service = InstancesRpcService::new(pool);
-
-        // Act the call to the list_instances procedure
-        let result = service
-            .list_instances(Request::new(ListInstancesRequest::default()))
-            .await;
-
-        // Assert the procedure result
-        assert!(result.is_ok());
-        let response = result.unwrap().into_inner();
-        // Check that we have a Success result
-        assert_eq!(response.instances.len(), 1);
-    }
-
-    #[sqlx::test(migrations = "../migrations")]
-    async fn test_clone_instance_works(pool: sqlx::PgPool) {
-        // Arrange a service and a request for the start_instance procedure
-        let server = MockServer::new()
-            .await
-            .with_cluster_next_id()
-            .with_cluster_resource_list()
-            .with_vm_clone()
-            .with_task_status_read();
-        let mock_url = server.url();
-
-        let organization = Organization::factory()
-            .create(&pool)
-            .await
-            .expect("could not create organization");
-
-        let user = User::factory()
-            .id(Uuid::new_v4())
-            .email("wile.coyote@acme.org".to_owned())
-            .create(&pool)
-            .await
-            .expect("could not create user");
-
-        let instance = Instance::factory()
-            .for_project_with(move |project| project.organization_id(organization.id))
-            .for_hypervisor_with(move |hypervisor| {
-                hypervisor
-                    .for_default_datacenter()
-                    .url(mock_url)
-                    .organization_id(organization.id)
-            })
-            .distant_id(String::from("100"))
-            .create(&pool)
-            .await
-            .expect("could not create instance");
-
-        let service = InstancesRpcService::new(pool);
-
-        // Act the call to the start_instance procedure
-        let mut request = Request::new(CloneInstanceRequest {
-            id: instance.id.to_string(),
-        });
-        request
-            .extensions_mut()
-            .insert(IAM::mock().await.for_user(&user));
-
-        let result = service.clone_instance(request).await;
-        println!("result: {:#?}", &result);
-
-        // Assert the procedure result
-        assert!(result.is_ok());
-    }
-
-    #[sqlx::test(migrations = "../migrations")]
-    async fn test_delete_instance_works(pool: sqlx::PgPool) {
-        // Arrange a service and a request for the start_instance procedure
-        let server = MockServer::new()
-            .await
-            .with_cluster_resource_list()
-            .with_vm_delete()
-            .with_task_status_read();
-
-        let mock_url = server.url();
-
-        let organization = Organization::factory()
-            .create(&pool)
-            .await
-            .expect("could not create organization");
-
-        let instance = Instance::factory()
-            .for_project_with(move |project| project.organization_id(organization.id))
-            .for_hypervisor_with(move |hypervisor| {
-                hypervisor
-                    .for_default_datacenter()
-                    .url(mock_url)
-                    .organization_id(organization.id)
-            })
-            .distant_id(String::from("100"))
-            .create(&pool)
-            .await
-            .expect("could not create instance");
-
-        let service = InstancesRpcService::new(pool);
-
-        // Act the call to the start_instance procedure
-        let request = Request::new(DeleteInstanceRequest {
-            id: instance.id.to_string(),
-        });
-        let result = service.delete_instance(request).await;
-
-        // Assert the procedure result
-        assert!(result.is_ok());
-    }
-
-    #[sqlx::test(migrations = "../migrations")]
-    async fn test_start_instance_works(pool: sqlx::PgPool) {
-        // Arrange a service and a request for the start_instance procedure
-        let server = MockServer::new()
-            .await
-            .with_cluster_resource_list()
-            .with_task_status_read()
-            .with_vm_status_start();
-        let mock_url = server.url();
-
-        let organization = Organization::factory()
-            .create(&pool)
-            .await
-            .expect("could not create organization");
-
-        let user = User::factory()
-            .id(Uuid::new_v4())
-            .email("wile.coyote@acme.org".to_owned())
-            .create(&pool)
-            .await
-            .expect("could not create user");
-
-        let instance = Instance::factory()
-            .for_project_with(move |project| project.organization_id(organization.id))
-            .for_hypervisor_with(move |hypervisor| {
-                hypervisor
-                    .for_default_datacenter()
-                    .url(mock_url)
-                    .organization_id(organization.id)
-            })
-            .distant_id(String::from("100"))
-            .create(&pool)
-            .await
-            .expect("could not create instance");
-
-        let service = InstancesRpcService::new(pool);
-
-        // Act the call to the start_instance procedure
-        let mut request = Request::new(StartInstanceRequest {
-            id: instance.id.to_string(),
-        });
-        request
-            .extensions_mut()
-            .insert(IAM::mock().await.for_user(&user));
-        let result = service.start_instance(request).await;
-
-        // Assert the procedure result
-        assert!(result.is_ok());
-    }
-
-    #[sqlx::test(migrations = "../migrations")]
-    async fn test_stop_instance_works(pool: sqlx::PgPool) {
-        // Arrange a service and a request for the start_instance procedure
-        let server = MockServer::new()
-            .await
-            .with_cluster_resource_list()
-            .with_task_status_read()
-            .with_vm_status_stop();
-
-        let mock_url = server.url();
-
-        let organization = Organization::factory()
-            .create(&pool)
-            .await
-            .expect("could not create organization");
-
-        let instance = Instance::factory()
-            .for_project_with(move |project| project.organization_id(organization.id))
-            .for_hypervisor_with(move |hypervisor| {
-                hypervisor
-                    .for_default_datacenter()
-                    .url(mock_url)
-                    .organization_id(organization.id)
-            })
-            .distant_id(String::from("100"))
-            .create(&pool)
-            .await
-            .expect("could not create instance");
-
-        let service = InstancesRpcService::new(pool);
-
-        // Act the call to the start_instance procedure
-        let request = Request::new(crate::v1::StopInstanceRequest {
-            id: instance.id.to_string(),
-        });
-        let result = service.stop_instance(request).await;
-
-        // Assert the procedure result
-        assert!(result.is_ok());
     }
 }

@@ -4,9 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4"
 database = { path = "../database" }
 frn-derive = { path = "../frn-derive" }
+futures = "0.3"
 http = "1.3"
+hypervisor = { path = "../hypervisor" }
+serde = { version = "1.0", features = ["derive"] }
+serde_plain = "1.0"
 sqlx = { version = "0.8", features = ["chrono", "postgres", "uuid"] }
 spicedb = { path = "../spicedb" }
 strum = "0.27"
