@@ -1,12 +1,13 @@
 import { ButtonGroup, IconButton } from '@chakra-ui/react';
 import {
-  Datacenter,
   Hypervisor,
   Instance,
   InstanceStatus,
+  Organization,
+  Project,
   ZeroTrustNetwork,
+  Zone,
 } from '@france-nuage/sdk';
-import { Organization, Project } from '@france-nuage/sdk';
 import {
   CellContext,
   ColumnDef,
@@ -23,7 +24,7 @@ import { useAppDispatch } from '@/hooks';
 import { AppTable } from './app-table';
 
 export type InstanceTableProps = {
-  datacenters: Datacenter[];
+  zones: Zone[];
   hypervisors: Hypervisor[];
   instances: Instance[];
   organizations: Organization[];
@@ -32,7 +33,7 @@ export type InstanceTableProps = {
 };
 
 type InstanceData = Instance & {
-  datacenter?: Datacenter;
+  zone?: Zone;
   hypervisor?: Hypervisor;
   vpc?: ZeroTrustNetwork;
   organization?: Organization;
@@ -54,9 +55,9 @@ const columns: ColumnDef<InstanceData, any>[] = [
     id: 'name',
   }),
   columnHelper.accessor('id', {}),
-  columnHelper.accessor('datacenter.name', {
-    header: 'Datacenter',
-    id: 'datacenterName',
+  columnHelper.accessor('zone.name', {
+    header: 'Zone',
+    id: 'zoneName',
   }),
   columnHelper.accessor('vpc.name', { header: 'Vpc', id: 'vpcName' }),
   columnHelper.accessor('organization.name', {
@@ -117,12 +118,12 @@ const columns: ColumnDef<InstanceData, any>[] = [
 ];
 
 export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
-  datacenters,
   hypervisors,
   instances,
   organizations,
   projects,
   vpcs,
+  zones,
 }) => {
   // Compute the instances data with associated relations.
   const data: InstanceData[] = useMemo(
@@ -131,9 +132,7 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
         const hypervisor = hypervisors.find(
           (hypervisor) => hypervisor.id === instance.hypervisorId,
         );
-        const datacenter = datacenters.find(
-          (datacenter) => datacenter.id === hypervisor?.datacenterId,
-        );
+        const zone = zones.find((zone) => zone.id === hypervisor?.zoneId);
         const project = projects.find(
           (project) => project.id === instance.projectId,
         );
@@ -144,14 +143,14 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
 
         return {
           ...instance,
-          datacenter,
           hypervisor,
           organization,
           project,
           vpc,
+          zone,
         };
       }),
-    [datacenters, hypervisors, instances, organizations, projects, vpcs],
+    [zones, hypervisors, instances, organizations, projects, vpcs],
   );
 
   return <AppTable columns={columns} data={data} />;

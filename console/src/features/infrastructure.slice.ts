@@ -1,21 +1,21 @@
 import {
-  Datacenter,
   ZeroTrustNetwork,
   ZeroTrustNetworkType,
+  Zone,
 } from '@france-nuage/sdk';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { ExtraArgument } from '@/store';
 
 /**
- * Fetch all datacenters
+ * Fetch all zones
  */
-export const fetchAllDatacenters = createAsyncThunk<
-  Datacenter[],
+export const fetchAllZones = createAsyncThunk<
+  Zone[],
   void,
   { extra: ExtraArgument }
->('resources/fetchAllDatacenters', async (_, { extra }) =>
-  extra.services.datacenter.list(),
+>('resources/fetchAllZones', async (_, { extra }) =>
+  extra.services.zone.list(),
 );
 
 /**
@@ -44,18 +44,18 @@ export const fetchAllZeroTrustNetworks = createAsyncThunk<
  * The resources slice state shape.
  */
 export type InfrastructureState = {
-  datacenters: Datacenter[];
   zeroTrustNetworkTypes: ZeroTrustNetworkType[];
   zeroTrustNetworks: ZeroTrustNetwork[];
+  zones: Zone[];
 };
 
 /**
  * The resources slice initial state.
  */
 const initialState: InfrastructureState = {
-  datacenters: [],
   zeroTrustNetworks: [],
   zeroTrustNetworkTypes: [],
+  zones: [],
 };
 
 /**
@@ -64,14 +64,14 @@ const initialState: InfrastructureState = {
 export const infrastructureSlice = createSlice({
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAllDatacenters.fulfilled, (state, action) => {
-        state.datacenters = action.payload;
-      })
       .addCase(fetchAllZeroTrustNetworkTypes.fulfilled, (state, action) => {
         state.zeroTrustNetworkTypes = action.payload;
       })
       .addCase(fetchAllZeroTrustNetworks.fulfilled, (state, action) => {
         state.zeroTrustNetworks = action.payload;
+      })
+      .addCase(fetchAllZones.fulfilled, (state, action) => {
+        state.zones = action.payload;
       });
   },
   initialState,
