@@ -5,7 +5,7 @@ import { ZonesClient } from '../../generated/rpc/compute.client';
 import { Zone } from '../../models';
 import { ZoneService } from '../api';
 
-export class DatacenterRpcService implements ZoneService {
+export class ZoneRpcService implements ZoneService {
   /**
    * The gRPC resources client
    */
@@ -21,13 +21,13 @@ export class DatacenterRpcService implements ZoneService {
   /** @inheritdoc */
   public async list(): Promise<Zone[]> {
     const { zones } = await this.client.list({}).response;
-    return zones.map(fromRpcDatacenter);
+    return zones.map(fromRpcZone);
   }
 }
 
 /**
- * Convert a protocol datacenter into a concrete Datacenter.
+ * Convert a protocol zone into a concrete Datacenter.
  */
-function fromRpcDatacenter({ id, name }: RpcZone): Zone {
+function fromRpcZone({ id, name }: RpcZone): Zone {
   return { id, name };
 }

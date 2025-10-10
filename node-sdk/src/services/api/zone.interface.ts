@@ -1,9 +1,9 @@
 import { Zone } from '../../models';
 
 /**
- * Define datacenter actions.
+ * Define zone actions.
  */
 export interface ZoneService {
-  /** List the available datacenters */
+  /** List the available zones */
   list: () => Promise<Zone[]>;
 }

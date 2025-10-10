@@ -1,3 +1,8 @@
+//! Compute instance management and lifecycle operations.
+//!
+//! Provides the Instance data model and Instances service for creating, managing,
+//! and controlling compute instances with authorization checks.
+
 use crate::Error;
 use crate::authorization::{AuthorizationServer, Permission, Principal, Resource};
 use crate::compute::HypervisorFactory;

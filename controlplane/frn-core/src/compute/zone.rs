@@ -7,14 +7,14 @@ use uuid::Uuid;
 
 #[derive(Debug, Default, Factory, FromRow, PartialEq, Repository, Resource)]
 pub struct Zone {
-    /// Unique identifier for the datacenter
+    /// Unique identifier for the zone
     #[repository(primary)]
     pub id: Uuid,
 
-    /// A human-readable name for the datacenter
+    /// A human-readable name for the zone
     pub name: String,
 
-    // Creation time of the datacenter
+    // Creation time of the zone
     pub created_at: DateTime<Utc>,
 
     // Time of the datancenter last update

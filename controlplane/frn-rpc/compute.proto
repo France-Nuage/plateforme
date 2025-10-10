@@ -89,7 +89,7 @@ message ListZonesResponse {
     repeated Zone zones = 1;
 }
 
-// Zone represents a datacenter.
+// Zone represents a zone.
 message Zone {
     // Id of the zone
     string id = 1;

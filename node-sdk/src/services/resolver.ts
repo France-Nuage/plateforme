@@ -10,27 +10,27 @@ import {
   ZoneService,
 } from './api';
 import {
-  datacenterMockService,
   hypervisorMockService,
   instanceMockService,
   organizationMockService,
   projectMockService,
   zeroTrustNetworkMockService,
   zeroTrustNetworkTypeMockService,
+  zoneMockService,
 } from './mock';
 import {
-  DatacenterRpcService,
   HypervisorRpcService,
   InstanceRpcService,
   OrganizationRpcService,
   ProjectRpcService,
   ZeroTrustNetworkRpcService,
   ZeroTrustNetworkTypeRpcService,
+  ZoneRpcService,
 } from './rpc';
 import { ServiceMode } from './service-mode';
 
 export type Services = {
-  datacenter: ZoneService;
+  zone: ZoneService;
   hypervisor: HypervisorService;
   instance: InstanceService;
   organization: OrganizationService;
@@ -53,22 +53,22 @@ export function configureResolver(
 ): Record<ServiceMode, Services> {
   return {
     [ServiceMode.Mock]: {
-      datacenter: datacenterMockService,
       hypervisor: hypervisorMockService,
       instance: instanceMockService,
       organization: organizationMockService,
       project: projectMockService,
       zeroTrustNetwork: zeroTrustNetworkMockService,
       zeroTrustNetworkType: zeroTrustNetworkTypeMockService,
+      zone: zoneMockService,
     },
     [ServiceMode.Rpc]: {
-      datacenter: new DatacenterRpcService(transport),
       hypervisor: new HypervisorRpcService(transport),
       instance: new InstanceRpcService(transport),
       organization: new OrganizationRpcService(transport),
       project: new ProjectRpcService(transport),
       zeroTrustNetwork: new ZeroTrustNetworkRpcService(transport),
       zeroTrustNetworkType: new ZeroTrustNetworkTypeRpcService(transport),
+      zone: new ZoneRpcService(transport),
     },
   };
 }
