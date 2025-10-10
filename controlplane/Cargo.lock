@@ -49,9 +49,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.100"
+version = "1.0.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
+checksum = "b0674a1ddeecb70197781e945de4b3b8ffb61fa939a5597bcf48503737663100"
 
 [[package]]
 name = "assert-json-diff"
@@ -709,14 +709,9 @@ dependencies = [
 name = "frn-core"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "database",
  "frn-derive",
- "futures",
  "http",
- "hypervisor",
- "serde",
- "serde_plain",
  "spicedb",
  "sqlx",
  "strum",
@@ -748,7 +743,6 @@ dependencies = [
  "prost",
  "prost-types",
  "sqlx",
- "thiserror 2.0.12",
  "tonic",
  "tonic-prost",
  "tonic-prost-build",
@@ -1132,15 +1126,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hypervisor"
-version = "0.1.0"
-dependencies = [
- "strum",
- "strum_macros",
- "thiserror 2.0.12",
-]
-
-[[package]]
 name = "hypervisor_connector"
 version = "0.1.0"
 dependencies = [
@@ -1169,10 +1154,27 @@ dependencies = [
 name = "hypervisor_connector_resolver"
 version = "0.1.0"
 dependencies = [
- "frn-core",
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
+ "hypervisors",
  "reqwest",
+]
+
+[[package]]
+name = "hypervisors"
+version = "0.1.0"
+dependencies = [
+ "database",
+ "frn-core",
+ "infrastructure",
+ "prost",
+ "sqlx",
+ "thiserror 2.0.12",
+ "tokio",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+ "uuid",
 ]
 
 [[package]]
@@ -1373,6 +1375,7 @@ dependencies = [
  "frn-core",
  "prost",
  "prost-types",
+ "resources",
  "sqlx",
  "thiserror 2.0.12",
  "tonic",
@@ -1388,16 +1391,17 @@ dependencies = [
  "auth",
  "database",
  "frn-core",
- "frn-rpc",
  "futures",
  "hypervisor_connector",
  "hypervisor_connector_proxmox",
  "hypervisor_connector_resolver",
+ "hypervisors",
  "infrastructure",
  "mock_server",
  "prost",
  "prost-types",
  "reqwest",
+ "resources",
  "serde",
  "serde_plain",
  "sqlx",
@@ -2244,6 +2248,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "resources"
+version = "0.1.0"
+dependencies = [
+ "auth",
+ "database",
+ "frn-core",
+ "mock_server",
+ "prost",
+ "prost-types",
+ "reqwest",
+ "sqlx",
+ "thiserror 2.0.12",
+ "tokio",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+ "uuid",
+]
+
+[[package]]
 name = "ring"
 version = "0.17.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2532,6 +2556,7 @@ dependencies = [
  "http-body",
  "hyper",
  "hypervisor_connector_proxmox",
+ "hypervisors",
  "infrastructure",
  "instances",
  "jsonwebtoken",
@@ -2539,6 +2564,7 @@ dependencies = [
  "prost",
  "prost-types",
  "reqwest",
+ "resources",
  "spicedb",
  "sqlx",
  "thiserror 2.0.12",
@@ -2980,9 +3006,10 @@ dependencies = [
 name = "synchronizer"
 version = "0.1.0"
 dependencies = [
- "frn-core",
+ "hypervisors",
  "instances",
  "reqwest",
+ "sqlx",
  "tokio",
  "tracing",
  "tracing-subscriber",
