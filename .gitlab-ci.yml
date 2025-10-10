@@ -132,7 +132,6 @@ gitleaks:
 "deploy / apply migrations":
   stage: deploy
   script:
-    - docker compose run atlas login --token=$ATLAS_TOKEN
     - docker compose run atlas migrate apply --url="$PRODUCTION_DATABASE_URL" --dir="file://controlplane/migrations"
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
@@ -142,7 +141,8 @@ gitleaks:
 "deploy / authz-worker":
   stage: deploy
   script:
-    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/authz-worker:release --file=controlplane/Dockerfile.authz-worker --push controlplane
+    - docker tag ${CI_REGISTRY_IMAGE}/authz-worker:master-release ${CI_REGISTRY_IMAGE}/authz-worker:release
+    - docker push ${CI_REGISTRY_IMAGE}/authz-worker:release
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
@@ -160,7 +160,8 @@ gitleaks:
 "deploy / controlplane":
   stage: deploy
   script:
-    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/controlplane:release --push controlplane
+    - docker tag ${CI_REGISTRY_IMAGE}/controlplane:master-release ${CI_REGISTRY_IMAGE}/controlplane:release
+    - docker push ${CI_REGISTRY_IMAGE}/controlplane:release
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
@@ -169,7 +170,8 @@ gitleaks:
 "deploy / console":
   stage: deploy
   script:
-    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/console:release --push console
+    - docker tag ${CI_REGISTRY_IMAGE}/console:master-release ${CI_REGISTRY_IMAGE}/console:release
+    - docker push ${CI_REGISTRY_IMAGE}/console:release
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
@@ -178,7 +180,8 @@ gitleaks:
 "deploy / synchronizer":
   stage: deploy
   script:
-    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/synchronizer:release --file=controlplane/Dockerfile.synchronizer --push controlplane
+    - docker tag ${CI_REGISTRY_IMAGE}/synchronizer:master-release ${CI_REGISTRY_IMAGE}/synchronizer:release
+    - docker push ${CI_REGISTRY_IMAGE}/synchronizer:release
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
