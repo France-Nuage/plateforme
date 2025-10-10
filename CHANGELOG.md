@@ -1,3 +1,15 @@
+# [1.40.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.39.0...v1.40.0) (2025-10-10)
+
+
+### Bug Fixes
+
+* change permission for delete ([e0207c9](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/e0207c9d9d88a449e709eeed1ce3c7187b1145ec))
+
+
+### Features
+
+* add service accounts ([1aceb84](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1aceb84fb4fd7147d1ca73a93bcf9eb1b1ad2522))
+
 # [1.39.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.38.0...v1.39.0) (2025-10-02)
 
 
