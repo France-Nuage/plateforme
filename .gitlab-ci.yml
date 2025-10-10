@@ -129,6 +129,15 @@ gitleaks:
       - docker-compose-logs.txt
     expire_in: 1 week
 
+"deploy / console":
+  stage: deploy
+  script:
+    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/console:release --push --file=console/Dockerfile .
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
+
 "deploy / apply migrations":
   stage: deploy
   script:
@@ -164,17 +173,6 @@ gitleaks:
     - docker pull ${CI_REGISTRY_IMAGE}/controlplane:master-release
     - docker tag ${CI_REGISTRY_IMAGE}/controlplane:master-release ${CI_REGISTRY_IMAGE}/controlplane:release
     - docker push ${CI_REGISTRY_IMAGE}/controlplane:release
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      when: on_success
-    - when: never
-
-"deploy / console":
-  stage: deploy
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}/console:master-release
-    - docker tag ${CI_REGISTRY_IMAGE}/console:master-release ${CI_REGISTRY_IMAGE}/console:release
-    - docker push ${CI_REGISTRY_IMAGE}/console:release
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
