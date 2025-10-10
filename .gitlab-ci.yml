@@ -141,6 +141,7 @@ gitleaks:
 "deploy / authz-worker":
   stage: deploy
   script:
+    - docker pull ${CI_REGISTRY_IMAGE}/authz-worker:master-release
     - docker tag ${CI_REGISTRY_IMAGE}/authz-worker:master-release ${CI_REGISTRY_IMAGE}/authz-worker:release
     - docker push ${CI_REGISTRY_IMAGE}/authz-worker:release
   rules:
@@ -160,6 +161,7 @@ gitleaks:
 "deploy / controlplane":
   stage: deploy
   script:
+    - docker pull ${CI_REGISTRY_IMAGE}/controlplane:master-release
     - docker tag ${CI_REGISTRY_IMAGE}/controlplane:master-release ${CI_REGISTRY_IMAGE}/controlplane:release
     - docker push ${CI_REGISTRY_IMAGE}/controlplane:release
   rules:
@@ -170,6 +172,7 @@ gitleaks:
 "deploy / console":
   stage: deploy
   script:
+    - docker pull ${CI_REGISTRY_IMAGE}/console:master-release
     - docker tag ${CI_REGISTRY_IMAGE}/console:master-release ${CI_REGISTRY_IMAGE}/console:release
     - docker push ${CI_REGISTRY_IMAGE}/console:release
   rules:
@@ -180,6 +183,7 @@ gitleaks:
 "deploy / synchronizer":
   stage: deploy
   script:
+    - docker pull ${CI_REGISTRY_IMAGE}/synchronizer:master-release
     - docker tag ${CI_REGISTRY_IMAGE}/synchronizer:master-release ${CI_REGISTRY_IMAGE}/synchronizer:release
     - docker push ${CI_REGISTRY_IMAGE}/synchronizer:release
   rules:
