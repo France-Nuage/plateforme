@@ -83,14 +83,14 @@ impl<Auth: AuthorizationServer> Instances<Auth> {
     /// Lists all instances accessible to the principal.
     pub async fn list<P: Principal + Sync>(
         &mut self,
-        principal: &P,
+        _principal: &P,
     ) -> Result<Vec<Instance>, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::List)
-            .over(&Instance::any())
-            .execute()
-            .await?;
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::List)
+        //     .over(&Instance::any())
+        //     .check()
+        //     .await?;
         todo!()
     }
 

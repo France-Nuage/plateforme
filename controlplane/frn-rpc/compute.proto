@@ -4,17 +4,20 @@ package francenuage.fr.v1.compute;
 
 // Hypervisors service provides operations to manage hypervisors.
 service Hypervisors {
-    // ListHypervisors retrieves information about all registered hypervisors.
-    // Returns a collection of hypervisor details.
+    // List retrieves information about all registered hypervisors.
     rpc List (ListHypervisorsRequest) returns (ListHypervisorsResponse);
 
-    // RegisterHypervisor adds a new hypervisor to the system.
-    // Returns an empty response on success or a ProblemDetails on failure.
+    // Register adds a new hypervisor to the system.
     rpc Register (RegisterHypervisorRequest) returns (RegisterHypervisorResponse);
 
-    // DetachHypervisor removes a hypervisor from the system.
-    // Returns an empty response on success or a ProblemDetails on failure.
+    // Detach removes a hypervisor from the system.
     rpc Detach (DetachHypervisorRequest) returns (DetachHypervisorResponse);
+}
+
+// Hypervisors service provides operations to manage zones.
+service Zones {
+    // List retrieves information about all registered zones.
+    rpc List (ListZonesRequest) returns (ListZonesResponse);
 }
 
 // ListHypervisorsRequest is an empty message for listing hypervisors.
@@ -75,4 +78,22 @@ message Hypervisor {
 
     // Id of the organization the hypervisor belongs to
     string organization_id = 5;
+}
+
+// ListZonesRequest is an empty message for listing zones.
+message ListZonesRequest {}
+
+// ListZonesResponse contains a collection of zone information.
+message ListZonesResponse {
+    // List of zone details
+    repeated Zone zones = 1;
+}
+
+// Zone represents a datacenter.
+message Zone {
+    // Id of the zone
+    string id = 1;
+
+    // Name of the zone.
+    string name = 2;
 }

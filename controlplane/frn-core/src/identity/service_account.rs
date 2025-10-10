@@ -56,7 +56,7 @@ impl<Auth: AuthorizationServer> ServiceAccounts<Auth> {
             .can(principal)
             .perform(Permission::List)
             .over(&ServiceAccount::any())
-            .execute()
+            .check()
             .await?;
         todo!()
     }
@@ -71,7 +71,7 @@ impl<Auth: AuthorizationServer> ServiceAccounts<Auth> {
             .can(principal)
             .perform(Permission::Create)
             .over(&ServiceAccount::any())
-            .execute()
+            .check()
             .await?;
         todo!()
     }

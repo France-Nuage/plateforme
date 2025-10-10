@@ -1,5 +1,5 @@
 use crate::Error;
-use crate::authorization::{AuthorizationServer, Permission, Principal};
+use crate::authorization::{AuthorizationServer, Principal};
 use crate::resourcemanager::OrganizationFactory;
 use database::{Factory, Persistable, Repository};
 use frn_core::authorization::Resource;
@@ -48,14 +48,14 @@ impl<Auth: AuthorizationServer> Projects<Auth> {
 
     pub async fn create<P: Principal>(
         &mut self,
-        principal: &P,
+        _principal: &P,
         request: ProjectCreateRequest,
     ) -> Result<Project, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::Create)
-            .over(&Project::any())
-            .await?;
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::Create)
+        //     .over(&Project::any())
+        //     .await?;
 
         Project::factory()
             .name(request.name)
@@ -67,14 +67,14 @@ impl<Auth: AuthorizationServer> Projects<Auth> {
 
     pub async fn get_default_project<P: Principal>(
         &mut self,
-        principal: &P,
+        _principal: &P,
         organization_id: &Uuid,
     ) -> Result<Project, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::Get)
-            .over(&Project::any())
-            .await?;
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::Get)
+        //     .over(&Project::any())
+        //     .await?;
 
         sqlx::query_as!(
             Project,

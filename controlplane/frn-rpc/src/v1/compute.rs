@@ -101,3 +101,39 @@ impl<Auth: AuthorizationServer + 'static> hypervisors_server::Hypervisors for Hy
         }))
     }
 }
+
+impl From<frn_core::compute::Zone> for Zone {
+    fn from(value: frn_core::compute::Zone) -> Self {
+        Zone {
+            id: value.id.to_string(),
+            name: value.name,
+        }
+    }
+}
+
+pub struct Zones<Auth: AuthorizationServer> {
+    iam: IAM,
+    zones: frn_core::compute::Zones<Auth>,
+}
+
+impl<Auth: AuthorizationServer> Zones<Auth> {
+    pub fn new(iam: IAM, zones: frn_core::compute::Zones<Auth>) -> Self {
+        Self { iam, zones }
+    }
+}
+
+#[tonic::async_trait]
+impl<Auth: AuthorizationServer + 'static> zones_server::Zones for Zones<Auth> {
+    async fn list(
+        &self,
+        request: Request<ListZonesRequest>,
+    ) -> Result<Response<ListZonesResponse>, Status> {
+        let principal = self.iam.user(request.access_token()).await?;
+
+        let zones = self.zones.clone().list(&principal).await?;
+
+        Ok(Response::new(ListZonesResponse {
+            zones: zones.into_iter().map(Into::into).collect(),
+        }))
+    }
+}

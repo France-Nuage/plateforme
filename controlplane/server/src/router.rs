@@ -7,7 +7,9 @@
 
 use frn_core::identity::IAM;
 use frn_rpc::v1::compute::Hypervisors;
+use frn_rpc::v1::compute::Zones;
 use frn_rpc::v1::compute::hypervisors_server::HypervisorsServer;
+use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::resourcemanager::Organizations;
 use frn_rpc::v1::resourcemanager::Projects;
 use frn_rpc::v1::resourcemanager::organizations_server::OrganizationsServer;
@@ -204,6 +206,14 @@ impl Router {
             routes: self.routes.add_service(ZeroTrustNetworksServer::new(
                 ZeroTrustNetworkRpcService::new(pool),
             )),
+        }
+    }
+
+    pub fn zones(self, iam: IAM, zones: frn_core::compute::Zones<SpiceDB>) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(ZonesServer::new(Zones::new(iam, zones))),
         }
     }
 }

@@ -11,7 +11,7 @@
 use crate::{
     Config, Error,
     authorization::AuthorizationServer,
-    compute::Hypervisors,
+    compute::{Hypervisors, Zones},
     identity::IAM,
     resourcemanager::{Organizations, Projects},
 };
@@ -32,6 +32,7 @@ pub struct App<Auth: AuthorizationServer> {
     pub hypervisors: Hypervisors<Auth>,
     pub organizations: Organizations<Auth>,
     pub projects: Projects<Auth>,
+    pub zones: Zones<Auth>,
 }
 
 impl App<SpiceDB> {
@@ -49,6 +50,7 @@ impl App<SpiceDB> {
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
+        let zones = Zones::new(auth.clone(), db.clone());
 
         let app = Self {
             auth,
@@ -57,6 +59,7 @@ impl App<SpiceDB> {
             hypervisors,
             organizations,
             projects,
+            zones,
         };
 
         Ok(app)
@@ -72,6 +75,7 @@ impl App<SpiceDB> {
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
+        let zones = Zones::new(auth.clone(), db.clone());
 
         let app = Self {
             auth,
@@ -80,6 +84,7 @@ impl App<SpiceDB> {
             hypervisors,
             organizations,
             projects,
+            zones,
         };
 
         Ok(app)

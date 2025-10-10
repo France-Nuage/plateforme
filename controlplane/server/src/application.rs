@@ -220,6 +220,7 @@ impl<L> Application<L> {
         let hypervisors = self.config.app.hypervisors.clone();
         let organizations = self.config.app.organizations.clone();
         let projects = self.config.app.projects.clone();
+        let zones = self.config.app.zones.clone();
         Self {
             config: self.config,
             router: self
@@ -234,7 +235,9 @@ impl<L> Application<L> {
                 )
                 .resources(iam.clone(), organizations, pool.clone())
                 .zero_trust_networks(pool.clone())
-                .zero_trust_network_types(pool.clone()),
+                .zero_trust_network_types(pool.clone())
+                .zones(iam.clone(), zones.clone()),
+
             server: self.server,
         }
     }

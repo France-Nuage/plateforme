@@ -78,12 +78,21 @@ impl<'a, P: Principal + Sync, R: Resource + Sync, S: AuthorizationServer>
     }
 
     /// Executes the authorization check.
-    pub async fn execute(self) -> Result<(), Error> {
+    pub async fn check(self) -> Result<(), Error> {
         let principal = self.principal.ok_or(Error::UnspecifiedPrincipal)?;
         let permission = self.permission.ok_or(Error::UnspecifiedPermission)?;
         let resource = self.resource.ok_or(Error::UnspecifiedResource)?;
         let request = AuthorizationRequest::new(principal, permission, resource);
         self.server.check(request).await
+    }
+
+    /// Returns all resources of the given type that the principal has the requested permission on.
+    pub async fn lookup(self) -> Result<Vec<String>, Error> {
+        let principal = self.principal.ok_or(Error::UnspecifiedPrincipal)?;
+        let permission = self.permission.ok_or(Error::UnspecifiedPermission)?;
+        let resource = self.resource.ok_or(Error::UnspecifiedResource)?;
+        let request = AuthorizationRequest::new(principal, permission, resource);
+        self.server.lookup(request).await
     }
 }
 
@@ -125,10 +134,17 @@ pub trait AuthorizationServer: Clone + Send + Sync {
         AuthorizationBuilder::new(self).principal(principal)
     }
 
+    /// Checks if the principal has permission to perform the action on the specific resource.
     fn check<P: Principal + Sync, R: Resource + Sync>(
         &mut self,
         request: AuthorizationRequest<'_, P, R>,
     ) -> impl Future<Output = Result<(), Error>> + Send;
+
+    /// Returns all resources of the given type that the principal has the requested permission on.
+    fn lookup<P: Principal + Sync, R: Resource + Sync>(
+        &mut self,
+        request: AuthorizationRequest<'_, P, R>,
+    ) -> impl Future<Output = Result<Vec<String>, Error>> + Send;
 }
 
 impl AuthorizationServer for SpiceDB {
@@ -142,6 +158,22 @@ impl AuthorizationServer for SpiceDB {
             (principal_type.to_string(), principal_id.to_string()),
             request.permission.to_string(),
             (resource_type.to_string(), resource_id.to_string()),
+        )
+        .await
+        .map_err(Into::into)
+    }
+
+    async fn lookup<P: Principal, R: Resource>(
+        &mut self,
+        request: AuthorizationRequest<'_, P, R>,
+    ) -> Result<Vec<String>, Error> {
+        let (principal_type, principal_id) = request.principal.resource_identifier();
+        let (resource_type, _) = request.resource.resource_identifier();
+
+        self.lookup(
+            (principal_type.to_string(), principal_id.to_string()),
+            request.permission.to_string(),
+            resource_type.to_string(),
         )
         .await
         .map_err(Into::into)

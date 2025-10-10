@@ -34,11 +34,11 @@ impl<A: AuthorizationServer> Organizations<A> {
         &mut self,
         principal: &P,
     ) -> Result<Vec<Organization>, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::Get)
-            .over(&Organization::any())
-            .await?;
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::Get)
+        //     .over(&Organization::any())
+        //     .await?;
 
         principal.organizations(&self.db).await
     }

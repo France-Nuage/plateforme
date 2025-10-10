@@ -1,13 +1,13 @@
-import { acmeDatacenter, datacenters } from '../../fixtures';
-import { DatacenterService } from '../api';
+import { acmeZone, zones } from '../../fixtures';
+import { ZoneService } from '../api';
 
 /**
  * The mock implementation of the datacenter service.
  */
-export class DatacenterMockService implements DatacenterService {
+export class DatacenterMockService implements ZoneService {
   /** @inheritdoc */
   list() {
-    return Promise.resolve([acmeDatacenter, ...datacenters(2)]);
+    return Promise.resolve([acmeZone, ...zones(2)]);
   }
 }
 

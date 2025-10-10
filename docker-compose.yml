@@ -321,6 +321,8 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
+      SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
     volumes:
       - ./controlplane:/app
       - /app/target

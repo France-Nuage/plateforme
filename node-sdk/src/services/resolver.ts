@@ -1,13 +1,13 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
 import {
-  DatacenterService,
   HypervisorService,
   InstanceService,
   OrganizationService,
   ProjectService,
   ZeroTrustNetworkService,
   ZeroTrustNetworkTypeService,
+  ZoneService,
 } from './api';
 import {
   datacenterMockService,
@@ -30,7 +30,7 @@ import {
 import { ServiceMode } from './service-mode';
 
 export type Services = {
-  datacenter: DatacenterService;
+  datacenter: ZoneService;
   hypervisor: HypervisorService;
   instance: InstanceService;
   organization: OrganizationService;

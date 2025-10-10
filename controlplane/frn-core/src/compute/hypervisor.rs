@@ -59,22 +59,19 @@ impl<Auth: AuthorizationServer> Hypervisors<Auth> {
     }
 
     /// Lists all hypervisors accessible to the principal.
-    pub async fn list<P: Principal + Sync>(
-        &mut self,
-        principal: &P,
-    ) -> Result<Vec<Hypervisor>, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::List)
-            .over(&Hypervisor::any())
-            .execute()
-            .await?;
+    pub async fn list<P: Principal>(&mut self, _principal: &P) -> Result<Vec<Hypervisor>, Error> {
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::List)
+        //     .over(&Hypervisor::any())
+        //     .check()
+        //     .await?;
 
         Hypervisor::list(&self.db).await.map_err(Into::into)
     }
 
     /// Creates a new hypervisor.
-    pub async fn create<P: Principal + Sync>(
+    pub async fn create<P: Principal>(
         &mut self,
         principal: &P,
         request: HypervisorCreateRequest,
@@ -83,7 +80,7 @@ impl<Auth: AuthorizationServer> Hypervisors<Auth> {
             .can(principal)
             .perform(Permission::Create)
             .over(&Hypervisor::any())
-            .execute()
+            .check()
             .await?;
 
         Hypervisor::factory()
@@ -106,7 +103,7 @@ impl<Auth: AuthorizationServer> Hypervisors<Auth> {
             .can(principal)
             .perform(Permission::Get)
             .over(&Hypervisor::some(id))
-            .execute()
+            .check()
             .await?;
 
         Hypervisor::find_one_by_id(&self.db, id)
@@ -115,11 +112,7 @@ impl<Auth: AuthorizationServer> Hypervisors<Auth> {
     }
 
     /// Deletes a hypervisor.
-    pub async fn delete<P: Principal + Sync>(
-        &mut self,
-        principal: &P,
-        id: Uuid,
-    ) -> Result<(), Error> {
+    pub async fn delete<P: Principal>(&mut self, principal: &P, id: Uuid) -> Result<(), Error> {
         self.auth
             .can(principal)
             .perform(Permission::Delete)

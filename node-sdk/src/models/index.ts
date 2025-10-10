@@ -1,4 +1,3 @@
-export * from './datacenter';
 export * from './instance';
 export * from './hypervisor';
 export * from './organization';
@@ -7,3 +6,4 @@ export * from './route';
 export * from './user';
 export * from './zero-trust-network-type';
 export * from './zero-trust-network';
+export * from './zone';
