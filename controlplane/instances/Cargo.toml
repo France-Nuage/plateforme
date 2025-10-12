@@ -9,9 +9,10 @@ database = { path = "../database" }
 frn-core = { path = "../frn-core" }
 frn-rpc = { path = "../frn-rpc" }
 futures = "0.3"
-hypervisor_connector = { path = "../hypervisor_connector" }
-hypervisor_connector_proxmox = { path = "../hypervisor_connector_proxmox" }
-hypervisor_connector_resolver = { path = "../hypervisor_connector_resolver" }
+hypervisor = { path = "../hypervisor" }
+# hypervisor_connector = { path = "../hypervisor_connector" }
+# hypervisor_connector_proxmox = { path = "../hypervisor_connector_proxmox" }
+# hypervisor_connector_resolver = { path = "../hypervisor_connector_resolver" }
 infrastructure = { path = "../infrastructure" }
 mock_server = { path = "../mock_server" }
 prost = "0.14"

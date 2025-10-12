@@ -1,5 +1,5 @@
+mod error;
 mod model;
-mod problem;
 pub mod repository;
 mod rpc;
 mod service;

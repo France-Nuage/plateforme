@@ -1,8 +1,6 @@
 use auth::{OpenID, mock::WithWellKnown};
 use frn_core::{identity::User, resourcemanager::Organization};
-use hypervisor_connector_proxmox::mock::{
-    WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStartMock,
-};
+use hypervisor::mock::{WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStartMock};
 use instances::{
     Instance,
     v1::{StartInstanceRequest, instances_client::InstancesClient},

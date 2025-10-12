@@ -37,13 +37,13 @@ pub struct ProjectCreateRequest {
 
 #[derive(Clone)]
 pub struct Projects<Auth: AuthorizationServer> {
-    auth: Auth,
+    _auth: Auth,
     db: Pool<Postgres>,
 }
 
 impl<Auth: AuthorizationServer> Projects<Auth> {
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
-        Self { auth, db }
+        Self { _auth: auth, db }
     }
 
     pub async fn create<P: Principal>(

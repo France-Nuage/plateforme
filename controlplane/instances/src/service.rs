@@ -1,4 +1,4 @@
-use crate::{model::Instance, problem::Problem, repository};
+use crate::{error::Error, model::Instance, repository};
 use auth::{Relation, Relationship};
 use database::Persistable;
 use frn_core::authorization::{AuthorizationServer, Principal};
@@ -6,7 +6,7 @@ use frn_core::compute::{Hypervisor, Hypervisors};
 use frn_core::resourcemanager::Projects;
 use frn_core::{authorization::Resource, resourcemanager::Project};
 use futures::{StreamExt, TryStreamExt, stream};
-use hypervisor_connector::{InstanceConfig, InstanceService};
+use hypervisor::instance::{InstanceCreateRequest, Instances};
 use sqlx::{PgPool, types::chrono};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -19,11 +19,11 @@ pub struct InstancesService<Auth: AuthorizationServer> {
 }
 
 impl<Auth: AuthorizationServer> InstancesService<Auth> {
-    pub async fn list(&self) -> Result<Vec<Instance>, Problem> {
+    pub async fn list(&self) -> Result<Vec<Instance>, Error> {
         Instance::list(&self.pool).await.map_err(Into::into)
     }
 
-    pub async fn sync<P: Principal>(&mut self, principal: &P) -> Result<Vec<Instance>, Problem> {
+    pub async fn sync<P: Principal>(&mut self, principal: &P) -> Result<Vec<Instance>, Error> {
         let hypervisors = self.hypervisors.list(principal).await?;
         let mut instances: Vec<Instance> = Vec::new();
         for hypervisor in hypervisors {
@@ -40,7 +40,7 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
         &mut self,
         principal: &P,
         hypervisor: &Hypervisor,
-    ) -> Result<Vec<Instance>, Problem> {
+    ) -> Result<Vec<Instance>, Error> {
         // Get the default project for the hypervisor
         let default_project = self
             .projects
@@ -48,8 +48,9 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
             .await?;
 
         // Get a instance_service instance
-        let instance_service = Arc::new(hypervisor_connector_resolver::resolve_for_hypervisor(
-            hypervisor,
+        let instance_service = Arc::new(hypervisor::resolve(
+            hypervisor.url.clone(),
+            hypervisor.authorization_token.clone(),
         ));
 
         // Retrieve the distant instances
@@ -78,9 +79,7 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
                                     .await
                                 {
                                     Ok(value) => Ok(value),
-                                    Err(hypervisor_connector::Problem::InstanceNotRunning(_)) => {
-                                        Ok(None)
-                                    }
+                                    Err(hypervisor::Error::InstanceNotRunning(_)) => Ok(None),
                                     Err(err) => Err(err),
                                 }?;
 
@@ -108,7 +107,7 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
                                 updated_at: chrono::Utc::now(),
                             })
                         }
-                        Err(err) => Err(Problem::from(err)),
+                        Err(err) => Err(Error::from(err)),
                     }
                 }
             })
@@ -135,13 +134,13 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
         &mut self,
         id: Uuid,
         principal: &P,
-    ) -> Result<Instance, Problem> {
+    ) -> Result<Instance, Error> {
         let existing = repository::read(&self.pool, id).await?;
         let hypervisor = self
             .hypervisors
             .read(principal, existing.hypervisor_id)
             .await?;
-        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
+        let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
         let new_id = connector.clone(&existing.distant_id).await?;
 
         let instance = Instance {
@@ -155,18 +154,21 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
 
     pub async fn create<P: Principal>(
         &mut self,
-        options: InstanceConfig,
+        options: InstanceCreateRequest,
         project_id: Uuid,
         principal: &P,
-    ) -> Result<Instance, Problem> {
+    ) -> Result<Instance, Error> {
         let hypervisors = self.hypervisors.list(principal).await?;
         let hypervisor = &hypervisors
             .first()
-            .ok_or_else(|| Problem::NoHypervisorsAvaible)?;
+            .ok_or_else(|| Error::NoHypervisorsAvaible)?;
 
-        let result = hypervisor_connector_resolver::resolve_for_hypervisor(hypervisor)
-            .create(options)
-            .await?;
+        let result = hypervisor::resolve(
+            hypervisor.url.clone(),
+            hypervisor.authorization_token.clone(),
+        )
+        .create(options)
+        .await?;
 
         let instance = Instance {
             id: Uuid::new_v4(),
@@ -179,45 +181,45 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
         instance.create(&self.pool).await.map_err(Into::into)
     }
 
-    pub async fn delete<P: Principal>(&mut self, principal: &P, id: Uuid) -> Result<(), Problem> {
+    pub async fn delete<P: Principal>(&mut self, principal: &P, id: Uuid) -> Result<(), Error> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self
             .hypervisors
             .read(principal, instance.hypervisor_id)
             .await?;
-        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
+        let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
         connector
             .delete(&instance.distant_id)
             .await
-            .map_err(Problem::from)
+            .map_err(Error::from)
     }
 
-    pub async fn start<P: Principal>(&self, principal: &P, id: Uuid) -> Result<(), Problem> {
+    pub async fn start<P: Principal>(&self, principal: &P, id: Uuid) -> Result<(), Error> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self
             .hypervisors
             .clone()
             .read(principal, instance.hypervisor_id)
             .await?;
-        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
+        let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
         connector
             .start(&instance.distant_id)
             .await
-            .map_err(Problem::from)
+            .map_err(Error::from)
     }
 
-    pub async fn stop<P: Principal>(&self, principal: &P, id: Uuid) -> Result<(), Problem> {
+    pub async fn stop<P: Principal>(&self, principal: &P, id: Uuid) -> Result<(), Error> {
         let instance = repository::read(&self.pool, id).await?;
         let hypervisor = self
             .hypervisors
             .clone()
             .read(principal, instance.hypervisor_id)
             .await?;
-        let connector = hypervisor_connector_resolver::resolve_for_hypervisor(&hypervisor);
+        let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
         connector
             .stop(&instance.distant_id)
             .await
-            .map_err(Problem::from)
+            .map_err(Error::from)
     }
 
     pub fn new(pool: PgPool, hypervisors: Hypervisors<Auth>, projects: Projects<Auth>) -> Self {

@@ -1,8 +1,6 @@
 use auth::mock::WithWellKnown;
 use frn_core::resourcemanager::Organization;
-use hypervisor_connector_proxmox::mock::{
-    WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStopMock,
-};
+use hypervisor::mock::{WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStopMock};
 use instances::{
     Instance,
     v1::{StopInstanceRequest, instances_client::InstancesClient},

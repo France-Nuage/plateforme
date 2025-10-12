@@ -38,6 +38,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
 database = { path = "../database" }
-hypervisor_connector_proxmox = { path = "../hypervisor_connector_proxmox", features = [
-  "mock",
-] }
+hypervisor = { path = "../hypervisor", features = ["mock"] }

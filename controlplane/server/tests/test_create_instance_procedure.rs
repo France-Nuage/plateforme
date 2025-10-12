@@ -4,7 +4,7 @@ use frn_core::{
     compute::Hypervisor,
     resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project},
 };
-use hypervisor_connector_proxmox::mock::{
+use hypervisor::mock::{
     WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCreateMock,
 };
 use instances::v1::{
