@@ -53,9 +53,9 @@ impl From<crate::model::Instance> for Instance {
 }
 
 /// Converts a `v1::CreateInstanceRequest` into a `hypervisor_connector::InstanceConfig`.
-impl From<CreateInstanceRequest> for hypervisor_connector::InstanceConfig {
+impl From<CreateInstanceRequest> for hypervisor::instance::InstanceCreateRequest {
     fn from(value: CreateInstanceRequest) -> Self {
-        hypervisor_connector::InstanceConfig {
+        hypervisor::instance::InstanceCreateRequest {
             id: String::from("invalid"),
             cores: value.cpu_cores as u8,
             disk_image: value.image,

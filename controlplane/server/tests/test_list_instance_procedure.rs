@@ -1,6 +1,6 @@
 use auth::mock::WithWellKnown;
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization};
-use hypervisor_connector_proxmox::mock::WithClusterResourceList;
+use hypervisor::mock::WithClusterResourceList;
 use instances::{
     Instance,
     v1::{ListInstancesRequest, instances_client::InstancesClient},

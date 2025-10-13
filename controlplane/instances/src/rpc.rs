@@ -1,5 +1,5 @@
 use crate::{
-    problem::Problem,
+    error::Error,
     service::InstancesService,
     v1::{
         CloneInstanceRequest, CreateInstanceRequest, CreateInstanceResponse, DeleteInstanceRequest,
@@ -34,7 +34,7 @@ impl<Auth: AuthorizationServer + 'static> Instances for InstancesRpcService<Auth
 
         let request = request.into_inner();
         let project_id = Uuid::parse_str(&request.project_id)
-            .map_err(|_| Problem::MalformedInstanceId(request.project_id.clone()))?;
+            .map_err(|_| Error::MalformedInstanceId(request.project_id.clone()))?;
 
         let instance = self
             .service
@@ -55,7 +55,7 @@ impl<Auth: AuthorizationServer + 'static> Instances for InstancesRpcService<Auth
     ) -> std::result::Result<tonic::Response<DeleteInstanceResponse>, tonic::Status> {
         let principal = self.iam.user(request.access_token()).await?;
         let id = request.into_inner().id;
-        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedInstanceId(id))?;
         self.service.clone().delete(&principal, id).await?;
         Ok(Response::new(DeleteInstanceResponse {}))
     }
@@ -68,7 +68,7 @@ impl<Auth: AuthorizationServer + 'static> Instances for InstancesRpcService<Auth
     ) -> std::result::Result<tonic::Response<Instance>, tonic::Status> {
         let principal = self.iam.user(request.access_token()).await?;
         let id = request.into_inner().id;
-        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedInstanceId(id))?;
 
         let instance = self.service.clone().clone_instance(id, &principal).await?;
 
@@ -96,7 +96,7 @@ impl<Auth: AuthorizationServer + 'static> Instances for InstancesRpcService<Auth
     ) -> Result<Response<StartInstanceResponse>, Status> {
         let principal = self.iam.user(request.access_token()).await?;
         let id = request.into_inner().id;
-        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedInstanceId(id))?;
 
         self.service.start(&principal, id).await?;
         Ok(Response::new(StartInstanceResponse {}))
@@ -110,7 +110,7 @@ impl<Auth: AuthorizationServer + 'static> Instances for InstancesRpcService<Auth
     ) -> Result<Response<StopInstanceResponse>, Status> {
         let principal = self.iam.user(request.access_token()).await?;
         let id = request.into_inner().id;
-        let id = Uuid::parse_str(&id).map_err(|_| Problem::MalformedInstanceId(id))?;
+        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedInstanceId(id))?;
         self.service.stop(&principal, id).await?;
         Ok(Response::new(StopInstanceResponse {}))
     }

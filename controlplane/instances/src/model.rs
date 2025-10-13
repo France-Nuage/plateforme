@@ -40,7 +40,7 @@ pub struct Instance {
     pub name: String,
     /// Current operational status of the instance
     #[sqlx(try_from = "String")]
-    pub status: InstanceStatus,
+    pub status: Status,
     // Creation time of the instance
     pub created_at: chrono::DateTime<chrono::Utc>,
     // Time of the instance last update
@@ -49,37 +49,37 @@ pub struct Instance {
 
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum InstanceStatus {
+pub enum Status {
     #[default]
     Unknown,
     Running,
     Stopped,
 }
 
-impl From<hypervisor_connector::InstanceStatus> for InstanceStatus {
-    fn from(value: hypervisor_connector::InstanceStatus) -> Self {
+impl From<hypervisor::instance::Status> for Status {
+    fn from(value: hypervisor::instance::Status) -> Self {
         match value {
-            hypervisor_connector::InstanceStatus::Running => InstanceStatus::Running,
-            hypervisor_connector::InstanceStatus::Stopped => InstanceStatus::Stopped,
-            hypervisor_connector::InstanceStatus::Unknown => InstanceStatus::Unknown,
+            hypervisor::instance::Status::Running => Status::Running,
+            hypervisor::instance::Status::Stopped => Status::Stopped,
+            hypervisor::instance::Status::Unknown => Status::Unknown,
         }
     }
 }
 
-impl From<InstanceStatus> for String {
-    fn from(value: InstanceStatus) -> Self {
+impl From<Status> for String {
+    fn from(value: Status) -> Self {
         serde_plain::to_string(&value).expect("Could not serialize an InstanceStatus into a string")
     }
 }
 
-impl From<String> for InstanceStatus {
+impl From<String> for Status {
     fn from(value: String) -> Self {
         serde_plain::from_str(&value)
             .expect("could not deserialize a string into an InstanceStatus")
     }
 }
 
-impl Display for InstanceStatus {
+impl Display for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(
             serde_plain::to_string(self)
