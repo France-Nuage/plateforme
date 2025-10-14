@@ -1,3 +1,10 @@
+## [1.40.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.40.0...v1.40.1) (2025-10-14)
+
+
+### Bug Fixes
+
+* change ip default value ([387c888](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/387c88820c5fa769b08d5a2f3d504c0425178f4d))
+
 # [1.40.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.39.0...v1.40.0) (2025-10-10)
 
 
