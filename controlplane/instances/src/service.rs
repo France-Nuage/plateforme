@@ -73,7 +73,7 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
                             });
 
                             // Try to retrieve the ip address if it is not known yet
-                            if existing.ip_v4 == *"0.0.0.0" {
+                            if existing.ip_v4 == *"" {
                                 let ip = match instance_service
                                     .get_ip_address(&distant_instance.id)
                                     .await
