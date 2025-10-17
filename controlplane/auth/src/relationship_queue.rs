@@ -14,23 +14,23 @@ pub struct Relationship {
     pub id: Uuid,
     #[sqlx(try_from = "String")]
     pub relation: Relation,
-    pub object_id: Uuid,
+    pub object_id: String,
     pub object_type: String,
-    pub subject_id: Uuid,
+    pub subject_id: String,
     pub subject_type: String,
 }
 
 impl Relationship {
-    pub fn new(object: (&str, &Uuid), relation: Relation, subject: (&str, &Uuid)) -> Self {
+    pub fn new(object: (String, String), relation: Relation, subject: (String, String)) -> Self {
         let (object_type, object_id) = object;
         let (subject_type, subject_id) = subject;
         Self {
             id: Uuid::new_v4(),
             relation,
-            object_id: *object_id,
-            object_type: object_type.to_string(),
-            subject_id: *subject_id,
-            subject_type: subject_type.to_string(),
+            object_id,
+            object_type,
+            subject_id,
+            subject_type,
         }
     }
 
