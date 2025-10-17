@@ -1,3 +1,10 @@
+## [1.40.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.40.1...v1.40.2) (2025-10-17)
+
+
+### Bug Fixes
+
+* templates do not fail the synchronization process anymore ([7f93dd1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7f93dd11edef34366d044532730d3de7f7b98d60))
+
 ## [1.40.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.40.0...v1.40.1) (2025-10-14)
 
 
