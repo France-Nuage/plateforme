@@ -91,6 +91,7 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
                 }
             }
             reqwest::StatusCode::UNAUTHORIZED => Err(Error::Unauthorized),
+            status if status.as_u16() == 595 => Err(Error::IsTemplate),
             _ => panic!("Unexpected response status: {:?}", response.status()),
         }
     }

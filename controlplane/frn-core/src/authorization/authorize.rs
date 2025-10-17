@@ -9,14 +9,11 @@ use spicedb::SpiceDB;
 /// Resources are entities that can have permissions checked against them.
 /// Each resource has a name (type) and an identifier (instance).
 pub trait Resource {
-    type Id: ToString;
-    const NAME: &'static str;
+    fn any() -> impl Resource;
 
-    fn any() -> impl Resource<Id = String>;
+    fn resource_identifier(&self) -> (String, String);
 
-    fn resource_identifier(&self) -> (&'static str, &Self::Id);
-
-    fn some(id: Self::Id) -> impl Resource<Id = String>;
+    fn some(id: impl ToString) -> impl Resource;
 }
 
 /// Represents a permission check query to the authorization server.
@@ -155,9 +152,9 @@ impl AuthorizationServer for SpiceDB {
         let (principal_type, principal_id) = request.principal.resource_identifier();
         let (resource_type, resource_id) = request.resource.resource_identifier();
         self.check_permission(
-            (principal_type.to_string(), principal_id.to_string()),
+            (principal_type, principal_id),
             request.permission.to_string(),
-            (resource_type.to_string(), resource_id.to_string()),
+            (resource_type, resource_id),
         )
         .await
         .map_err(Into::into)
@@ -171,9 +168,9 @@ impl AuthorizationServer for SpiceDB {
         let (resource_type, _) = request.resource.resource_identifier();
 
         self.lookup(
-            (principal_type.to_string(), principal_id.to_string()),
+            (principal_type, principal_id),
             request.permission.to_string(),
-            resource_type.to_string(),
+            resource_type,
         )
         .await
         .map_err(Into::into)

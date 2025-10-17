@@ -293,7 +293,7 @@ table "relationship_queue" {
   }
   column "object_id" {
     null = false
-    type = uuid
+    type = text
   }
   column "object_type" {
     null = false
@@ -305,7 +305,7 @@ table "relationship_queue" {
   }
   column "subject_id" {
     null = false
-    type= uuid
+    type= text
   }
   column "subject_type" {
     null = false

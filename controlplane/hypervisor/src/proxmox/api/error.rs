@@ -35,6 +35,9 @@ pub enum Error {
     #[error("Proxmox Task #{0} has not completed")]
     TaskNotCompleted(String),
 
+    #[error("Attempted to run a VM action on a VM template")]
+    IsTemplate,
+
     #[error("Proxmox Unauthorized Error")]
     Unauthorized,
 
@@ -56,6 +59,7 @@ impl From<Error> for crate::Error {
         match &value {
             Error::VMNotFound(id) => crate::Error::DistantInstanceNotFound(id.to_string()),
             Error::VMNotRunning(id) => crate::Error::InstanceNotRunning(id.to_string()),
+            Error::IsTemplate => crate::Error::InstanceNotRunning("template".to_owned()),
             _ => crate::Error::Other(Box::new(value)),
         }
     }

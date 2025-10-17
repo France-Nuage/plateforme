@@ -17,19 +17,16 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
 
     quote! {
         impl frn_core::authorization::Resource for #struct_ident {
-            type Id = uuid::Uuid;
-            const NAME: &'static str = #resource_name;
-
-            fn resource_identifier(&self) -> (&'static str, &Self::Id) {
-                (&Self::NAME, &self.id)
+            fn resource_identifier(&self) -> (String, String) {
+                (#resource_name.to_string(), self.id.to_string())
             }
 
-            fn any() -> impl frn_core::authorization::Resource<Id = String> {
+            fn any() -> impl frn_core::authorization::Resource {
                 #companion_struct_ident::any()
             }
 
-            fn some(id: Self::Id) -> impl frn_core::authorization::Resource<Id = String> {
-                #companion_struct_ident::some(id.to_string())
+            fn some(id: impl ToString) -> impl frn_core::authorization::Resource {
+                #companion_struct_ident::some(id)
             }
         }
 
@@ -46,20 +43,17 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
          }
 
          impl frn_core::authorization::Resource for #companion_struct_ident {
-             type Id = String;
-             const NAME: &'static str = #resource_name;
-
-             fn resource_identifier(&self) -> (&'static str, &Self::Id) {
-                 (&#struct_ident::NAME, &self.identifier)
+             fn resource_identifier(&self) -> (String, String) {
+                 (#resource_name.to_string(), self.identifier.clone())
              }
 
-             fn any() -> impl frn_core::authorization::Resource<Id = String> {
+             fn any() -> impl frn_core::authorization::Resource {
                  Self {
                      identifier: "*".to_owned(),
                  }
              }
 
-            fn some(id: Self::Id) -> impl frn_core::authorization::Resource<Id = String> {
+            fn some(id: impl ToString) -> impl frn_core::authorization::Resource {
                 Self {
                     identifier: id.to_string(),
                 }
@@ -87,19 +81,16 @@ mod tests {
 
         let expected = quote! {
             impl frn_core::authorization::Resource for Anvil {
-                type Id = uuid::Uuid;
-                const NAME: &'static str = "anvil";
-
-                fn resource_identifier(&self) -> (&'static str, &Self::Id) {
-                    (&Self::NAME, &self.id)
+                fn resource_identifier(&self) -> (String, String) {
+                    ("anvil".to_string(), self.id.to_string())
                 }
 
-                fn any() -> impl frn_core::authorization::Resource<Id = String> {
+                fn any() -> impl frn_core::authorization::Resource {
                     AnvilResource::any()
                 }
 
-                fn some(id: Self::Id) -> impl frn_core::authorization::Resource<Id = String> {
-                    AnvilResource::some(id.to_string())
+                fn some(id: impl ToString) -> impl frn_core::authorization::Resource {
+                    AnvilResource::some(id)
                 }
             }
 
@@ -116,20 +107,17 @@ mod tests {
             }
 
             impl frn_core::authorization::Resource for AnvilResource {
-                type Id = String;
-                const NAME: &'static str = "anvil";
-
-                fn resource_identifier(&self) -> (&'static str, &Self::Id) {
-                    (&Anvil::NAME, &self.identifier)
+                fn resource_identifier(&self) -> (String, String) {
+                    ("anvil".to_string(), self.identifier.clone())
                 }
 
-                fn any() -> impl frn_core::authorization::Resource<Id = String> {
+                fn any() -> impl frn_core::authorization::Resource {
                     Self {
                         identifier: "*".to_owned(),
                     }
                 }
 
-                fn some(id: Self::Id) -> impl frn_core::authorization::Resource<Id = String> {
+                fn some(id: impl ToString) -> impl frn_core::authorization::Resource {
                     Self {
                         identifier: id.to_string(),
                     }

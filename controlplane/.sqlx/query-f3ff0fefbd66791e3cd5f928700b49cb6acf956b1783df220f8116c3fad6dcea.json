@@ -11,7 +11,7 @@
       {
         "ordinal": 1,
         "name": "object_id",
-        "type_info": "Uuid"
+        "type_info": "Text"
       },
       {
         "ordinal": 2,
@@ -26,7 +26,7 @@
       {
         "ordinal": 4,
         "name": "subject_id",
-        "type_info": "Uuid"
+        "type_info": "Text"
       },
       {
         "ordinal": 5,
