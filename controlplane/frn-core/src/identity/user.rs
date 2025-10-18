@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use database::{Factory, Persistable, Repository};
 use frn_derive::Resource;
 use sqlx::{Pool, Postgres, types::chrono};
@@ -51,6 +52,7 @@ impl User {
     }
 }
 
+#[async_trait]
 impl Principal for User {
     /// Returns all organizations this user has access to
     async fn organizations(

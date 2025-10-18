@@ -119,7 +119,7 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
 
         for instance in &instances {
             Relationship::new(
-                instance.resource_identifier(),
+                instance.resource(),
                 Relation::BelongsToProject,
                 ("project".to_owned(), instance.project_id.to_string()),
             )

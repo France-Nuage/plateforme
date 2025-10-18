@@ -1,6 +1,7 @@
 use crate::Error;
-use crate::authorization::{AuthorizationServer, Permission, Principal, Resource};
+use crate::authorization::{AuthorizationServer, Principal, Resource};
 use crate::resourcemanager::Organization;
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use database::{Factory, Persistable, Repository};
 use sqlx::{FromRow, Pool, Postgres};
@@ -25,6 +26,7 @@ pub struct ServiceAccount {
     pub updated_at: DateTime<Utc>,
 }
 
+#[async_trait]
 impl Principal for ServiceAccount {
     /// Returns all organizations this service account has access to
     async fn organizations(
@@ -38,41 +40,44 @@ impl Principal for ServiceAccount {
 pub struct ServiceAccountCreateRequest {}
 
 pub struct ServiceAccounts<Auth: AuthorizationServer> {
-    auth: Auth,
+    _auth: Auth,
     _db: Pool<Postgres>,
 }
 
 impl<Auth: AuthorizationServer> ServiceAccounts<Auth> {
     /// Creates a new service accounts service.
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
-        Self { auth, _db: db }
+        Self {
+            _auth: auth,
+            _db: db,
+        }
     }
     /// Lists all service accounts accessible to the principal.
     pub async fn list<P: Principal>(
         &mut self,
-        principal: &P,
+        _principal: &P,
     ) -> Result<Vec<ServiceAccount>, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::List)
-            .over(&ServiceAccount::any())
-            .check()
-            .await?;
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::List)
+        //     .over(&ServiceAccount::any())
+        //     .check()
+        //     .await?;
         todo!()
     }
 
     /// Creates a new service account.
     pub async fn create<P: Principal>(
         &mut self,
-        principal: &P,
+        _principal: &P,
         _request: ServiceAccountCreateRequest,
     ) -> Result<ServiceAccount, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::Create)
-            .over(&ServiceAccount::any())
-            .check()
-            .await?;
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::Create)
+        //     .over(&ServiceAccount::any())
+        //     .check()
+        //     .await?;
         todo!()
     }
 }

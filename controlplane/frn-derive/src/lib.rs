@@ -17,16 +17,17 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
 
     quote! {
         impl frn_core::authorization::Resource for #struct_ident {
-            fn resource_identifier(&self) -> (String, String) {
+            fn resource(&self) -> (String, String) {
                 (#resource_name.to_string(), self.id.to_string())
             }
 
-            fn any() -> impl frn_core::authorization::Resource {
-                #companion_struct_ident::any()
-            }
-
-            fn some(id: impl ToString) -> impl frn_core::authorization::Resource {
-                #companion_struct_ident::some(id)
+            fn some(id: impl ToString) -> Box<dyn frn_core::authorization::Resource + Send + Sync>
+            where
+                Self: Sized,
+            {
+                Box::new(#companion_struct_ident {
+                    identifier: id.to_string(),
+                })
             }
         }
 
@@ -34,31 +35,20 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
             identifier: String,
         }
 
-         impl #companion_struct_ident {
-             pub fn from(identifier: String) -> Self {
-                 Self {
-                     identifier,
-                 }
-             }
-         }
-
-         impl frn_core::authorization::Resource for #companion_struct_ident {
-             fn resource_identifier(&self) -> (String, String) {
-                 (#resource_name.to_string(), self.identifier.clone())
-             }
-
-             fn any() -> impl frn_core::authorization::Resource {
-                 Self {
-                     identifier: "*".to_owned(),
-                 }
-             }
-
-            fn some(id: impl ToString) -> impl frn_core::authorization::Resource {
-                Self {
-                    identifier: id.to_string(),
-                }
+        impl frn_core::authorization::Resource for #companion_struct_ident {
+            fn resource(&self) -> (String, String) {
+                (#resource_name.to_string(), self.identifier.clone())
             }
-         }
+
+            fn some(id: impl ToString) -> Box<dyn frn_core::authorization::Resource + Send + Sync>
+            where
+                Self: Sized,
+            {
+                Box::new(Self {
+                    identifier: id.to_string(),
+                })
+            }
+        }
     }
 }
 
@@ -81,16 +71,17 @@ mod tests {
 
         let expected = quote! {
             impl frn_core::authorization::Resource for Anvil {
-                fn resource_identifier(&self) -> (String, String) {
+                fn resource(&self) -> (String, String) {
                     ("anvil".to_string(), self.id.to_string())
                 }
 
-                fn any() -> impl frn_core::authorization::Resource {
-                    AnvilResource::any()
-                }
-
-                fn some(id: impl ToString) -> impl frn_core::authorization::Resource {
-                    AnvilResource::some(id)
+                fn some(id: impl ToString) -> Box<dyn frn_core::authorization::Resource + Send + Sync>
+                where
+                    Self: Sized,
+                {
+                    Box::new(AnvilResource {
+                        identifier: id.to_string(),
+                    })
                 }
             }
 
@@ -98,29 +89,18 @@ mod tests {
                 identifier: String,
             }
 
-            impl AnvilResource {
-                pub fn from(identifier: String) -> Self {
-                    Self {
-                        identifier,
-                    }
-                }
-            }
-
             impl frn_core::authorization::Resource for AnvilResource {
-                fn resource_identifier(&self) -> (String, String) {
+                fn resource(&self) -> (String, String) {
                     ("anvil".to_string(), self.identifier.clone())
                 }
 
-                fn any() -> impl frn_core::authorization::Resource {
-                    Self {
-                        identifier: "*".to_owned(),
-                    }
-                }
-
-                fn some(id: impl ToString) -> impl frn_core::authorization::Resource {
-                    Self {
+                fn some(id: impl ToString) -> Box<dyn frn_core::authorization::Resource + Send + Sync>
+                where
+                    Self: Sized,
+                {
+                    Box::new(Self {
                         identifier: id.to_string(),
-                    }
+                    })
                 }
             }
         };

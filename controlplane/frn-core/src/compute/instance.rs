@@ -102,14 +102,14 @@ impl<Auth: AuthorizationServer> Instances<Auth> {
     /// Creates a new instance.
     pub async fn create<P: Principal + Sync>(
         &mut self,
-        principal: &P,
+        _principal: &P,
         _request: InstanceCreateRequest,
     ) -> Result<Instance, Error> {
-        self.auth
-            .can(principal)
-            .perform(Permission::Create)
-            .over(&Instance::any())
-            .await?;
+        // self.auth
+        //     .can(principal)
+        //     .perform(Permission::Create)
+        //     .over(&Instance::any())
+        //     .await?;
         todo!()
     }
 

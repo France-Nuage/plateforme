@@ -43,8 +43,11 @@ impl<Auth: AuthorizationServer + 'static> hypervisors_server::Hypervisors for Hy
         request: Request<DetachHypervisorRequest>,
     ) -> Result<Response<DetachHypervisorResponse>, Status> {
         let principal = self.iam.user(request.access_token()).await?;
-        let id = request.into_inner().id;
-        let id = id.parse::<Uuid>().map_err(|_| Error::MalformedId(id))?;
+        let inner = request.into_inner();
+        let id = inner
+            .id
+            .parse::<Uuid>()
+            .map_err(|_| Error::MalformedId(inner.id))?;
 
         self.service.clone().delete(&principal, id).await?;
 

@@ -21,6 +21,9 @@ pub enum Error {
     #[error("internal: {0}")]
     AuthorizationServerError(spicedb::Error),
 
+    #[error("unauthenticated")]
+    Unauthenticated,
+
     /// Authorization builder missing principal.
     #[error("authorization check missing principal")]
     UnspecifiedPrincipal,
