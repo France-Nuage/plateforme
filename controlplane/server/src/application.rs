@@ -233,6 +233,7 @@ impl<L> Application<L> {
                     hypervisors.clone(),
                     projects.clone(),
                 )
+                .reflection()
                 .resources(iam.clone(), organizations, pool.clone())
                 .zero_trust_networks(pool.clone())
                 .zero_trust_network_types(pool.clone())
