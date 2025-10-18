@@ -146,6 +146,8 @@ services:
       SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
     expose:
       - 80
+    ports:
+      - "50052:80"
     extra_hosts:
       - "oidc.test:host-gateway"
       - "console.test:host-gateway"

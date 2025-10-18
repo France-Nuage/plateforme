@@ -216,4 +216,39 @@ impl Router {
                 .add_service(ZonesServer::new(Zones::new(iam, zones))),
         }
     }
+
+    /// Registers the gRPC reflection services (v1 and v1alpha) with the router.
+    ///
+    /// This method adds both v1 and v1alpha gRPC server reflection services, which
+    /// enable runtime introspection of the available gRPC services and their schemas.
+    /// This is particularly useful for debugging with tools like grpcurl, grpcui, or
+    /// Bruno that can dynamically discover service definitions.
+    ///
+    /// Both versions are registered to ensure compatibility with different clients:
+    /// - v1: The current stable reflection API (grpcurl, grpcui)
+    /// - v1alpha: Legacy reflection API (Bruno, older clients)
+    ///
+    /// The reflection services provide metadata about all registered gRPC services,
+    /// allowing clients to query available methods, message types, and service
+    /// definitions without requiring access to .proto files.
+    pub fn reflection(self) -> Self {
+        // Build v1 reflection service
+        let reflection_v1 = tonic_reflection::server::Builder::configure()
+            .register_encoded_file_descriptor_set(frn_rpc::REFLECTION_DESCRIPTOR_V1)
+            .build_v1()
+            .expect("failed to build v1 reflection service");
+
+        // Build v1alpha reflection service for compatibility with clients like Bruno
+        let reflection_v1alpha = tonic_reflection::server::Builder::configure()
+            .register_encoded_file_descriptor_set(frn_rpc::REFLECTION_DESCRIPTOR_V1ALPHA)
+            .build_v1alpha()
+            .expect("failed to build v1alpha reflection service");
+
+        Self {
+            routes: self
+                .routes
+                .add_service(reflection_v1)
+                .add_service(reflection_v1alpha),
+        }
+    }
 }
