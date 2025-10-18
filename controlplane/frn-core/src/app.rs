@@ -45,7 +45,7 @@ impl App<SpiceDB> {
         let config = Config::from_env()?;
         let auth = SpiceDB::connect(&config.auth_server_url, &config.auth_server_token).await?;
         let db = PgPool::connect(&config.database_url).await?;
-        let iam = IAM::new();
+        let iam = IAM::new(db.clone());
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
@@ -70,7 +70,7 @@ impl App<SpiceDB> {
     /// Uses the provided database pool and a mock SpiceDB server for testing.
     pub async fn test(db: Pool<Postgres>) -> Result<Self, Error> {
         let auth = SpiceDB::mock().await;
-        let iam = IAM::new();
+        let iam = IAM::new(db.clone());
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
