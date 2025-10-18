@@ -117,6 +117,7 @@ impl<Auth: AuthorizationServer> Hypervisors<Auth> {
             .can(principal)
             .perform(Permission::Delete)
             .over(&Hypervisor::some(id))
+            .check()
             .await?;
 
         sqlx::query!("DELETE FROM hypervisors WHERE id = $1", id)
