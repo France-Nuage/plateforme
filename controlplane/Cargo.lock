@@ -716,6 +716,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "thiserror",
+ "tokio",
  "tonic",
  "tracing",
  "uuid",

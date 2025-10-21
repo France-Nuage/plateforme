@@ -10,7 +10,7 @@
 
 use crate::{
     Config, Error,
-    authorization::AuthorizationServer,
+    authorization::Authorize,
     compute::{Hypervisors, Zones},
     identity::IAM,
     resourcemanager::{Organizations, Projects},
@@ -23,7 +23,7 @@ use sqlx::{PgPool, Pool, Postgres};
 /// Generic over `Auth` to support different authorization backends
 /// (SpiceDB in production, mock in tests).
 #[derive(Clone)]
-pub struct App<Auth: AuthorizationServer> {
+pub struct App<Auth: Authorize> {
     pub auth: Auth,
     pub db: Pool<Postgres>,
     pub iam: IAM,

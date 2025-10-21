@@ -1,13 +1,9 @@
-use frn_core::{
-    authorization::Principal,
-    identity::{IAM, ServiceAccount},
-};
-
 use crate::error::Error;
+use frn_core::identity::{IAM, Principal, ServiceAccount};
 
 pub trait ExtractToken {
     fn access_token(&self) -> Option<String>;
-    fn principal(&self, iam: IAM) -> impl Future<Output = Result<Box<dyn Principal>, Error>>;
+    fn principal(&self, iam: IAM) -> impl Future<Output = Result<Principal, Error>>;
 }
 
 impl<T> ExtractToken for tonic::Request<T> {
@@ -19,7 +15,7 @@ impl<T> ExtractToken for tonic::Request<T> {
             .map(|value| value.to_owned())
     }
 
-    async fn principal(&self, iam: IAM) -> Result<Box<dyn Principal>, Error> {
+    async fn principal(&self, iam: IAM) -> Result<Principal, Error> {
         let token = self
             .access_token()
             .ok_or(Error::MissingAuthorizationHeader)?;
@@ -32,12 +28,12 @@ impl<T> ExtractToken for tonic::Request<T> {
         .fetch_optional(&iam.db)
         .await?
         {
-            return Ok(Box::new(service_account));
+            return Ok(Principal::ServiceAccount(service_account));
         }
 
         iam.user(Some(token))
             .await
-            .map(|u| Box::new(u) as Box<dyn Principal>)
+            .map(Principal::User)
             .map_err(Into::into)
     }
 }

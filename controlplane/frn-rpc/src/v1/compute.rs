@@ -1,5 +1,5 @@
 use crate::{error::Error, request::ExtractToken};
-use frn_core::authorization::AuthorizationServer;
+use frn_core::authorization::Authorize;
 use frn_core::compute::{HypervisorCreateRequest, Hypervisors as Service};
 use frn_core::identity::IAM;
 use sqlx::{Pool, Postgres, types::Uuid};
@@ -20,13 +20,13 @@ impl From<frn_core::compute::Hypervisor> for Hypervisor {
     }
 }
 
-pub struct Hypervisors<Auth: AuthorizationServer> {
+pub struct Hypervisors<Auth: Authorize> {
     iam: IAM,
     _pool: Pool<Postgres>,
     service: Service<Auth>,
 }
 
-impl<Auth: AuthorizationServer> Hypervisors<Auth> {
+impl<Auth: Authorize> Hypervisors<Auth> {
     pub fn new(iam: IAM, pool: Pool<Postgres>, service: Service<Auth>) -> Self {
         Self {
             iam,
@@ -37,7 +37,7 @@ impl<Auth: AuthorizationServer> Hypervisors<Auth> {
 }
 
 #[tonic::async_trait]
-impl<Auth: AuthorizationServer + 'static> hypervisors_server::Hypervisors for Hypervisors<Auth> {
+impl<Auth: Authorize + 'static> hypervisors_server::Hypervisors for Hypervisors<Auth> {
     async fn detach(
         &self,
         request: Request<DetachHypervisorRequest>,
@@ -114,19 +114,19 @@ impl From<frn_core::compute::Zone> for Zone {
     }
 }
 
-pub struct Zones<Auth: AuthorizationServer> {
+pub struct Zones<Auth: Authorize> {
     iam: IAM,
     zones: frn_core::compute::Zones<Auth>,
 }
 
-impl<Auth: AuthorizationServer> Zones<Auth> {
+impl<Auth: Authorize> Zones<Auth> {
     pub fn new(iam: IAM, zones: frn_core::compute::Zones<Auth>) -> Self {
         Self { iam, zones }
     }
 }
 
 #[tonic::async_trait]
-impl<Auth: AuthorizationServer + 'static> zones_server::Zones for Zones<Auth> {
+impl<Auth: Authorize + 'static> zones_server::Zones for Zones<Auth> {
     async fn list(
         &self,
         request: Request<ListZonesRequest>,

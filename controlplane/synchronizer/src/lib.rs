@@ -1,9 +1,9 @@
-use frn_core::{authorization::AuthorizationServer, identity::ServiceAccount};
+use frn_core::{authorization::Authorize, identity::ServiceAccount};
 use instances::InstancesService;
 use std::error::Error;
 use tracing::error;
 
-pub async fn synchronize<Auth: AuthorizationServer>(
+pub async fn synchronize<Auth: Authorize>(
     service: &mut InstancesService<Auth>,
 ) -> Result<(), Box<dyn Error>> {
     let principal = ServiceAccount::default();

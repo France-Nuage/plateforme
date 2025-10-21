@@ -10,10 +10,13 @@
 //! check permissions with the fluent API.
 
 mod authorize;
+mod check;
 mod permission;
 mod principal;
+mod resource;
 
-pub use authorize::{AuthorizationRequest, AuthorizationServer, Resource};
-pub use frn_derive::Resource;
-pub use permission::Permission;
-pub use principal::Principal;
+pub use authorize::*;
+pub use frn_derive::*;
+pub use permission::*;
+pub use principal::*;
+pub use resource::*;
