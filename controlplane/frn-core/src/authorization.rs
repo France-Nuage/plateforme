@@ -11,6 +11,7 @@
 
 mod authorize;
 mod check;
+mod lookup;
 mod permission;
 mod principal;
 mod resource;

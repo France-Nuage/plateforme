@@ -1,16 +1,22 @@
 use sqlx::PgPool;
 
 pub trait Persistable: Sized {
-    type Connection: Clone;
+    type Connection: Clone + Send + Sync;
     type Error;
 
-    fn list(executor: &Self::Connection) -> impl Future<Output = Result<Vec<Self>, Self::Error>>;
+    fn list(
+        executor: &Self::Connection,
+    ) -> impl Future<Output = Result<Vec<Self>, Self::Error>> + Send;
 
-    fn create(self, executor: &Self::Connection)
-    -> impl Future<Output = Result<Self, Self::Error>>;
+    fn create(
+        self,
+        executor: &Self::Connection,
+    ) -> impl Future<Output = Result<Self, Self::Error>> + Send;
 
-    fn update(self, executor: &Self::Connection)
-    -> impl Future<Output = Result<Self, Self::Error>>;
+    fn update(
+        self,
+        executor: &Self::Connection,
+    ) -> impl Future<Output = Result<Self, Self::Error>> + Send;
 }
 
 /// deprecated

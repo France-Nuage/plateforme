@@ -7,27 +7,30 @@ use crate::Error;
 use crate::authorization::resource::Resource;
 use crate::authorization::{Authorize, Permission, Principal};
 
-pub struct WithPrincipal<'a, A: Authorize, P: Principal, R: Resource> {
+/// Typestate after specifying the principal
+pub struct CheckWithPrincipal<'a, A: Authorize, P: Principal, R: Resource> {
     auth: A,
-    subject_id: &'a P::Id,
     resource: PhantomData<R>,
+    subject_id: &'a P::Id,
 }
 
-pub struct WithPermission<'a, A: Authorize, P: Principal, R: Resource> {
+/// Typestate after specifying the permission
+pub struct CheckWithPermission<'a, A: Authorize, P: Principal, R: Resource> {
     auth: A,
-    subject_id: &'a P::Id,
     permission: Permission,
     resource: PhantomData<R>,
+    subject_id: &'a P::Id,
 }
 
-pub struct CheckRequest<'a, A: Authorize, P: Principal, R: Resource> {
+/// Typestate with all parameters set, ready to execute the authorization check
+pub struct CheckWithResource<'a, A: Authorize, P: Principal, R: Resource> {
     auth: A,
     principal: &'a P::Id,
     permission: Permission,
     resource_id: &'a R::Id,
 }
 
-impl<'a, A: Authorize, P: Principal, R: Resource> WithPrincipal<'a, A, P, R> {
+impl<'a, A: Authorize, P: Principal, R: Resource> CheckWithPrincipal<'a, A, P, R> {
     pub fn new(auth: A, subject_id: &'a P::Id) -> Self {
         Self {
             auth,
@@ -36,8 +39,9 @@ impl<'a, A: Authorize, P: Principal, R: Resource> WithPrincipal<'a, A, P, R> {
         }
     }
 
-    pub fn perform(self, permission: Permission) -> WithPermission<'a, A, P, R> {
-        WithPermission {
+    /// Specify the permission to check
+    pub fn perform(self, permission: Permission) -> CheckWithPermission<'a, A, P, R> {
+        CheckWithPermission {
             auth: self.auth,
             subject_id: self.subject_id,
             permission,
@@ -46,9 +50,10 @@ impl<'a, A: Authorize, P: Principal, R: Resource> WithPrincipal<'a, A, P, R> {
     }
 }
 
-impl<'a, A: Authorize, P: Principal, R: Resource> WithPermission<'a, A, P, R> {
-    pub fn over(self, resource_id: &'a R::Id) -> CheckRequest<'a, A, P, R> {
-        CheckRequest {
+impl<'a, A: Authorize, P: Principal, R: Resource> CheckWithPermission<'a, A, P, R> {
+    /// Specify the resource to check permission against
+    pub fn over(self, resource_id: &'a R::Id) -> CheckWithResource<'a, A, P, R> {
+        CheckWithResource {
             auth: self.auth,
             principal: self.subject_id,
             permission: self.permission,
@@ -57,9 +62,9 @@ impl<'a, A: Authorize, P: Principal, R: Resource> WithPermission<'a, A, P, R> {
     }
 }
 
-impl<'a, A: Authorize, P: Principal, R: Resource> CheckRequest<'a, A, P, R> {
-    pub fn can(auth: A, subject_id: &P::Id) -> WithPrincipal<'_, A, P, R> {
-        WithPrincipal {
+impl<'a, A: Authorize, P: Principal, R: Resource> CheckWithResource<'a, A, P, R> {
+    pub fn can(auth: A, subject_id: &P::Id) -> CheckWithPrincipal<'_, A, P, R> {
+        CheckWithPrincipal {
             auth,
             subject_id,
             resource: PhantomData,
@@ -67,22 +72,24 @@ impl<'a, A: Authorize, P: Principal, R: Resource> CheckRequest<'a, A, P, R> {
     }
 }
 
-impl<'a, A: Authorize + 'a, P: Principal, R: Resource> IntoFuture for CheckRequest<'a, A, P, R> {
+impl<'a, A: Authorize + 'a, P: Principal, R: Resource> IntoFuture
+    for CheckWithResource<'a, A, P, R>
+{
     type Output = Result<(), Error>;
 
     type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send + 'a>>;
 
-    fn into_future(self) -> Self::IntoFuture {
-        let mut auth = self.auth.clone();
+    fn into_future(mut self) -> Self::IntoFuture {
         Box::pin(async move {
-            auth._check(
-                P::NAME.to_string(),
-                self.principal.to_string(),
-                self.permission.to_string(),
-                R::NAME.to_string(),
-                self.resource_id.to_string(),
-            )
-            .await
+            self.auth
+                ._check(
+                    P::NAME.to_string(),
+                    self.principal.to_string(),
+                    self.permission.to_string(),
+                    R::NAME.to_string(),
+                    self.resource_id.to_string(),
+                )
+                .await
         })
     }
 }
@@ -113,7 +120,7 @@ mod tests {
         let auth = SpiceDB::mock().await;
         let user = User::default();
         let anvil = Anvil { id: Uuid::new_v4() };
-        CheckRequest::<SpiceDB, User, Anvil>::can(auth, &user.id)
+        CheckWithResource::<SpiceDB, User, Anvil>::can(auth, &user.id)
             .perform(Permission::Create)
             .over(anvil.id());
     }

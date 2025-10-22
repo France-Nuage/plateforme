@@ -1,5 +1,5 @@
 use crate::Error;
-use crate::authorization::{Authorize, Principal, Resource};
+use crate::authorization::{Authorize, Permission, Principal, Resource};
 use database::{Factory, Persistable, Repository};
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
@@ -21,31 +21,25 @@ pub struct Organization {
 
 #[derive(Clone)]
 pub struct Organizations<A: Authorize> {
-    _auth: A,
+    auth: A,
     db: Pool<Postgres>,
 }
 
 impl<A: Authorize> Organizations<A> {
     pub fn new(auth: A, db: Pool<Postgres>) -> Self {
-        Self { _auth: auth, db }
+        Self { auth, db }
     }
 
     pub async fn list_organizations<P: Principal>(
         &mut self,
         principal: &P,
     ) -> Result<Vec<Organization>, Error> {
-        // TODO: Implement lookup functionality in new authorization API
-        // let verbs = self
-        //     .auth
-        //     .check::<P, Organization>(principal.id())
-        //     .perform(Permission::Get)
-        //     .over(&Organization::some(""))
-        //     .lookup::<Organization>(&self.db)
-        //     .await?;
-        //
-        // tracing::info!("data: {:?}", verbs);
-
-        principal.organizations(&self.db).await
+        self.auth
+            .lookup::<Organization>()
+            .on_behalf_of(principal)
+            .with(Permission::Get)
+            .against(&self.db)
+            .await
     }
 
     pub async fn create_organization<P: Principal + Sync>(

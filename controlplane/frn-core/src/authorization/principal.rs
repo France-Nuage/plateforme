@@ -11,6 +11,7 @@ use crate::{authorization::Resource, resourcemanager::Organization};
 
 #[async_trait]
 pub trait Principal: Resource + Send + Sync {
+    /// Retrieve all organizations associated with this principal
     async fn organizations(
         &self,
         connection: &Pool<Postgres>,

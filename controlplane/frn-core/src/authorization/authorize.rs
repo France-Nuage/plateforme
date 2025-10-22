@@ -1,10 +1,12 @@
-use crate::{
-    Error,
-    authorization::{Principal, Resource, check::WithPrincipal},
-};
+use crate::Error;
+use crate::authorization::lookup::LookupWithResource;
+use crate::authorization::{Principal, Resource, check::CheckWithPrincipal};
+use database::Persistable;
 use spicedb::SpiceDB;
 
+/// Authorization backend trait for checking and looking up permissions
 pub trait Authorize: Clone + Send + Sync {
+    /// Internal method to check if a subject has permission on a resource
     fn _check(
         &mut self,
         subject_type: String,
@@ -14,8 +16,26 @@ pub trait Authorize: Clone + Send + Sync {
         resource_id: String,
     ) -> impl Future<Output = Result<(), Error>> + Send;
 
-    fn check<'a, P: Principal, R: Resource>(&self, id: &'a P::Id) -> WithPrincipal<'a, Self, P, R> {
-        WithPrincipal::new(self.clone(), id)
+    /// Internal method to lookup resources a subject has permission on
+    fn _lookup(
+        &mut self,
+        subject_type: String,
+        subject_id: String,
+        permission: String,
+        resource_type: String,
+    ) -> impl Future<Output = Result<Vec<String>, Error>> + Send;
+
+    /// Start a permission check with a principal
+    fn check<'a, P: Principal, R: Resource>(
+        &self,
+        id: &'a P::Id,
+    ) -> CheckWithPrincipal<'a, Self, P, R> {
+        CheckWithPrincipal::new(self.clone(), id)
+    }
+
+    /// Start a resource lookup query
+    fn lookup<R: Resource + Persistable>(&self) -> LookupWithResource<Self, R> {
+        LookupWithResource::new(self.clone())
     }
 }
 
@@ -35,6 +55,25 @@ impl Authorize for SpiceDB {
         )
         .await
         .map_err(Into::into)
+    }
+
+    async fn _lookup(
+        &mut self,
+        subject_type: String,
+        subject_id: String,
+        permission: String,
+        resource_type: String,
+    ) -> Result<Vec<String>, Error> {
+        tracing::info!(
+            "looking up permission '{}' over resource '{}' for principal '{}'&'{}'",
+            permission,
+            resource_type,
+            subject_type,
+            subject_id
+        );
+        self.lookup((subject_type, subject_id), permission, resource_type)
+            .await
+            .map_err(Into::into)
     }
 }
 
