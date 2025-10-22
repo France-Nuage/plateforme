@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.8.0",
+  "packageManager": "pnpm@10.19.0",
   "devDependencies": {
     "@playwright/test": "^1.51.1",
     "@protobuf-ts/grpcweb-transport": "^2.9.6",
