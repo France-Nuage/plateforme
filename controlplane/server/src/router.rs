@@ -10,6 +10,8 @@ use frn_rpc::v1::compute::Hypervisors;
 use frn_rpc::v1::compute::Zones;
 use frn_rpc::v1::compute::hypervisors_server::HypervisorsServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
+use frn_rpc::v1::iam::Invitations;
+use frn_rpc::v1::iam::invitations_server::InvitationsServer;
 use frn_rpc::v1::resourcemanager::Organizations;
 use frn_rpc::v1::resourcemanager::Projects;
 use frn_rpc::v1::resourcemanager::organizations_server::OrganizationsServer;
@@ -79,6 +81,7 @@ impl Router {
             tokio::join!(
                 health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
                 health_reporter.set_serving::<InstancesServer<InstancesRpcService<SpiceDB>>>(),
+                health_reporter.set_serving::<InvitationsServer<Invitations<SpiceDB>>>(),
                 health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
                 health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
                 health_reporter
@@ -141,6 +144,23 @@ impl Router {
                     pool,
                     hypervisors,
                     projects,
+                ))),
+        }
+    }
+
+    pub fn invitations(
+        self,
+        iam: IAM,
+        invitations: frn_core::identity::Invitations<SpiceDB>,
+        users: frn_core::identity::Users<SpiceDB>,
+    ) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(InvitationsServer::new(Invitations::new(
+                    iam,
+                    invitations,
+                    users,
                 ))),
         }
     }

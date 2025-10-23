@@ -1,7 +1,6 @@
 use crate::Error;
 use crate::authorization::{Authorize, Principal, Resource};
 use crate::resourcemanager::Organization;
-use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use database::{Factory, Persistable, Repository};
 use sqlx::{FromRow, Pool, Postgres};
@@ -26,7 +25,6 @@ pub struct ServiceAccount {
     pub updated_at: DateTime<Utc>,
 }
 
-#[async_trait]
 impl Principal for ServiceAccount {
     /// Returns all organizations this service account has access to
     async fn organizations(

@@ -5,7 +5,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tonic_prost_build::configure()
         .file_descriptor_set_path(&descriptor_path)
-        .compile_protos(&["compute.proto", "resourcemanager.proto"], &["."])?;
+        .compile_protos(
+            &["compute.proto", "iam.proto", "resourcemanager.proto"],
+            &["."],
+        )?;
 
     // Read the descriptor set and write it for both v1 and v1alpha reflection services
     let descriptor_set = std::fs::read(&descriptor_path)?;

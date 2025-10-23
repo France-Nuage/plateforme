@@ -8,4 +8,7 @@ pub trait Resource {
 
     /// Get the resource's identifier
     fn id(&self) -> &Self::Id;
+
+    /// Get the resource type name used in authorization checks
+    fn name(&self) -> &'static str;
 }

@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.iam;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service Invitations {
+  rpc List(ListInvitationsRequest) returns (ListInvitationsResponse);
+  rpc Create(CreateInvitationRequest) returns (CreateInvitationResponse);
+  rpc Answer(AnswerInvitationRequest) returns (AnswerInvitationResponse);
+}
+
+message ListInvitationsRequest {}
+
+message ListInvitationsResponse {
+  repeated Invitation invitations = 1;
+}
+
+message CreateInvitationRequest {
+  string organization_id = 1;
+  string email = 2;
+}
+
+message CreateInvitationResponse {
+  Invitation invitation = 1;
+}
+
+message AnswerInvitationRequest {
+  string invitation_id = 1;
+  bool accept = 2;
+}
+
+message AnswerInvitationResponse {
+  Invitation invitation = 1;
+}
+
+message Invitation {
+  string id = 1;
+  string organization_id = 2;
+  string user_id = 3;
+  InvitationState state = 4;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp answered_at = 10;
+}
+
+enum InvitationState {
+  INVITATION_STATE_UNSPECIFIED = 0;
+  PENDING = 1;
+  ACCEPTED = 2;
+  DECLINED = 3;
+  EXPIRED = 4;
+}

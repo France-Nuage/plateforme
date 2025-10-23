@@ -22,6 +22,7 @@ pub struct LookupWithPrincipal<'a, A: Authorize, P: Principal, R: Resource + Per
     auth: A,
     resource: PhantomData<R>,
     subject_id: &'a P::Id,
+    subject_type: &'static str,
 }
 
 /// Typestate after specifying the permission
@@ -30,6 +31,7 @@ pub struct LookupWithPermission<'a, A: Authorize, P: Principal, R: Resource + Pe
     permission: Permission,
     resource: PhantomData<R>,
     subject_id: &'a P::Id,
+    subject_type: &'static str,
 }
 
 /// Typestate with all parameters set, ready to execute the resource lookup
@@ -39,6 +41,7 @@ pub struct LookupWithConnection<'a, A: Authorize, P: Principal, R: Resource + Pe
     permission: Permission,
     resource: PhantomData<R>,
     subject_id: &'a P::Id,
+    subject_type: &'static str,
 }
 
 impl<A: Authorize, R: Resource + Persistable> LookupWithResource<A, R> {
@@ -54,16 +57,21 @@ impl<A: Authorize, R: Resource + Persistable> LookupWithResource<A, R> {
         self,
         principal: &'a P,
     ) -> LookupWithPrincipal<'a, A, P, R> {
-        LookupWithPrincipal::new(self, principal.id())
+        LookupWithPrincipal::new(self, principal.name(), principal.id())
     }
 }
 
 impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithPrincipal<'a, A, P, R> {
-    pub fn new(prev: LookupWithResource<A, R>, subject_id: &'a P::Id) -> Self {
+    pub fn new(
+        prev: LookupWithResource<A, R>,
+        subject_type: &'static str,
+        subject_id: &'a P::Id,
+    ) -> Self {
         Self {
             auth: prev.auth,
             resource: prev.resource,
             subject_id,
+            subject_type,
         }
     }
 
@@ -76,8 +84,9 @@ impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithPermis
     pub fn new(prev: LookupWithPrincipal<'a, A, P, R>, permission: Permission) -> Self {
         Self {
             auth: prev.auth,
-            subject_id: prev.subject_id,
             resource: prev.resource,
+            subject_id: prev.subject_id,
+            subject_type: prev.subject_type,
             permission,
         }
     }
@@ -95,6 +104,7 @@ impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithConnec
             permission: prev.permission,
             resource: prev.resource,
             subject_id: prev.subject_id,
+            subject_type: prev.subject_type,
             connection,
         }
     }
@@ -112,7 +122,7 @@ impl<'a, A: Authorize + 'a, P: Principal, R: Resource + Persistable> IntoFuture
             let ids = self
                 .auth
                 ._lookup(
-                    P::NAME.to_string(),
+                    self.subject_type.to_string(),
                     self.subject_id.to_string(),
                     self.permission.to_string(),
                     R::NAME.to_string(),

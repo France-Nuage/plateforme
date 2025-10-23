@@ -1,3 +1,4 @@
+use heck::ToSnakeCase;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{Data, DeriveInput, Fields, parse_macro_input};
@@ -11,7 +12,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
 fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
     let struct_ident = &input.ident;
-    let resource_name = struct_ident.to_string().to_lowercase();
+    let resource_name = struct_ident.to_string().to_snake_case();
 
     // Extract the type of the `id` field
     let id_type = match &input.data {
@@ -34,6 +35,10 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
 
             fn id(&self) -> &Self::Id {
                 &self.id
+            }
+
+            fn name(&self) -> &'static str {
+                Self::NAME
             }
         }
     }
@@ -64,6 +69,11 @@ mod tests {
                 fn id(&self) -> &Self::Id {
                     &self.id
                 }
+
+                fn name(&self) -> &'static str {
+                    Self::NAME
+                }
+
             }
         };
         assert_eq!(output.to_string(), expected.to_string());

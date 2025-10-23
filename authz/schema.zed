@@ -1,8 +1,9 @@
 definition organization {
-	relation member: user
+	relation member: service_account | user
   relation parent: organization
 
   permission get = member + parent->member
+  permission invite_member = member + parent->member
 }
 
 definition folder {
@@ -23,5 +24,7 @@ definition instance {
   permission start = get
   permission stop = get
 }
+
+definition service_account {}
 
 definition user {}

@@ -120,9 +120,9 @@ impl<Auth: Authorize> Instances<Auth> {
         id: Uuid,
     ) -> Result<Instance, Error> {
         self.auth
-            .check::<P, Instance>(principal.id())
+            .can(principal)
             .perform(Permission::Delete)
-            .over(&id)
+            .over::<Instance>(&id)
             .await?;
         todo!()
     }
@@ -134,9 +134,9 @@ impl<Auth: Authorize> Instances<Auth> {
         id: Uuid,
     ) -> Result<Instance, Error> {
         self.auth
-            .check::<P, Instance>(principal.id())
+            .can(principal)
             .perform(Permission::Start)
-            .over(&id)
+            .over::<Instance>(&id)
             .await?;
         todo!()
     }
@@ -148,9 +148,9 @@ impl<Auth: Authorize> Instances<Auth> {
         id: Uuid,
     ) -> Result<Instance, Error> {
         self.auth
-            .check::<P, Instance>(principal.id())
+            .can(principal)
             .perform(Permission::Stop)
-            .over(&id)
+            .over::<Instance>(&id)
             .await?;
         todo!()
     }

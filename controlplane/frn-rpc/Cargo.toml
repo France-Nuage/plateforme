@@ -13,6 +13,7 @@ sqlx = { version = "0.8", features = ["postgres"] }
 thiserror = "2"
 tonic = "0.14"
 tonic-prost = "0.14"
+uuid = "1"
 
 [build-dependencies]
 tonic-prost-build = "0.14"

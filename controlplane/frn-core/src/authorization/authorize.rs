@@ -26,11 +26,8 @@ pub trait Authorize: Clone + Send + Sync {
     ) -> impl Future<Output = Result<Vec<String>, Error>> + Send;
 
     /// Start a permission check with a principal
-    fn check<'a, P: Principal, R: Resource>(
-        &self,
-        id: &'a P::Id,
-    ) -> CheckWithPrincipal<'a, Self, P, R> {
-        CheckWithPrincipal::new(self.clone(), id)
+    fn can<'a, P: Principal>(&self, principal: &'a P) -> CheckWithPrincipal<'a, Self, P> {
+        CheckWithPrincipal::new(self.clone(), principal)
     }
 
     /// Start a resource lookup query
@@ -89,9 +86,9 @@ mod tests {
         let resource = Organization::default();
 
         let result = auth
-            .check::<ServiceAccount, Organization>(&principal.id)
+            .can(&principal)
             .perform(crate::authorization::Permission::Create)
-            .over(&resource.id)
+            .over::<Organization>(&resource.id)
             .await;
 
         assert!(result.is_ok())

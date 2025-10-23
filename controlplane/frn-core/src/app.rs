@@ -12,7 +12,7 @@ use crate::{
     Config, Error,
     authorization::Authorize,
     compute::{Hypervisors, Zones},
-    identity::IAM,
+    identity::{IAM, Invitations, Users},
     resourcemanager::{Organizations, Projects},
 };
 use spicedb::SpiceDB;
@@ -30,8 +30,10 @@ pub struct App<Auth: Authorize> {
 
     // services
     pub hypervisors: Hypervisors<Auth>,
+    pub invitations: Invitations<Auth>,
     pub organizations: Organizations<Auth>,
     pub projects: Projects<Auth>,
+    pub users: Users<Auth>,
     pub zones: Zones<Auth>,
 }
 
@@ -48,8 +50,10 @@ impl App<SpiceDB> {
         let iam = IAM::new(db.clone());
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
+        let invitations = Invitations::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
+        let users = Users::new(auth.clone(), db.clone());
         let zones = Zones::new(auth.clone(), db.clone());
 
         let app = Self {
@@ -57,8 +61,10 @@ impl App<SpiceDB> {
             db,
             iam,
             hypervisors,
+            invitations,
             organizations,
             projects,
+            users,
             zones,
         };
 
@@ -73,8 +79,10 @@ impl App<SpiceDB> {
         let iam = IAM::new(db.clone());
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
+        let invitations = Invitations::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
+        let users = Users::new(auth.clone(), db.clone());
         let zones = Zones::new(auth.clone(), db.clone());
 
         let app = Self {
@@ -82,8 +90,10 @@ impl App<SpiceDB> {
             db,
             iam,
             hypervisors,
+            invitations,
             organizations,
             projects,
+            users,
             zones,
         };
 

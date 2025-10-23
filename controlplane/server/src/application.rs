@@ -218,8 +218,10 @@ impl<L> Application<L> {
         let iam = self.config.app.iam.clone();
         let pool = self.config.pool.clone();
         let hypervisors = self.config.app.hypervisors.clone();
+        let invitations = self.config.app.invitations.clone();
         let organizations = self.config.app.organizations.clone();
         let projects = self.config.app.projects.clone();
+        let users = self.config.app.users.clone();
         let zones = self.config.app.zones.clone();
         Self {
             config: self.config,
@@ -233,6 +235,7 @@ impl<L> Application<L> {
                     hypervisors.clone(),
                     projects.clone(),
                 )
+                .invitations(iam.clone(), invitations.clone(), users.clone())
                 .reflection()
                 .resources(iam.clone(), organizations, pool.clone())
                 .zero_trust_networks(pool.clone())

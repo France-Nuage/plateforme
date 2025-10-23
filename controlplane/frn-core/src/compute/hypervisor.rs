@@ -100,9 +100,9 @@ impl<Auth: Authorize> Hypervisors<Auth> {
         id: Uuid,
     ) -> Result<Hypervisor, Error> {
         self.auth
-            .check::<P, Hypervisor>(principal.id())
+            .can::<P>(principal)
             .perform(Permission::Get)
-            .over(&id)
+            .over::<Hypervisor>(&id)
             .await?;
 
         Hypervisor::find_one_by_id(&self.db, id)
@@ -113,9 +113,9 @@ impl<Auth: Authorize> Hypervisors<Auth> {
     /// Deletes a hypervisor.
     pub async fn delete<P: Principal>(&mut self, principal: &P, id: Uuid) -> Result<(), Error> {
         self.auth
-            .check::<P, Hypervisor>(principal.id())
+            .can::<P>(principal)
             .perform(Permission::Delete)
-            .over(&id)
+            .over::<Hypervisor>(&id)
             .await?;
 
         sqlx::query!("DELETE FROM hypervisors WHERE id = $1", id)
