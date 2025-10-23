@@ -1,6 +1,7 @@
+use heck::ToSnakeCase;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{DeriveInput, Ident, parse_macro_input};
+use syn::{Data, DeriveInput, Fields, parse_macro_input};
 
 #[proc_macro_derive(Resource)]
 pub fn derive(input: TokenStream) -> TokenStream {
@@ -11,42 +12,33 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
 fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
     let struct_ident = &input.ident;
-    let companion_struct_ident =
-        Ident::new(&format!("{}Resource", &struct_ident), struct_ident.span());
-    let resource_name = struct_ident.to_string().to_lowercase();
+    let resource_name = struct_ident.to_string().to_snake_case();
+
+    // Extract the type of the `id` field
+    let id_type = match &input.data {
+        Data::Struct(data) => match &data.fields {
+            Fields::Named(fields) => fields
+                .named
+                .iter()
+                .find(|f| f.ident.as_ref().map(|i| i == "id").unwrap_or(false))
+                .map(|f| &f.ty)
+                .expect("Resource derive requires an 'id' field"),
+            _ => panic!("Resource derive only supports structs with named fields"),
+        },
+        _ => panic!("Resource derive only supports structs"),
+    };
 
     quote! {
         impl frn_core::authorization::Resource for #struct_ident {
-            fn resource(&self) -> (String, String) {
-                (#resource_name.to_string(), self.id.to_string())
+            type Id = #id_type;
+            const NAME: &'static str = #resource_name;
+
+            fn id(&self) -> &Self::Id {
+                &self.id
             }
 
-            fn some(id: impl ToString) -> Box<dyn frn_core::authorization::Resource + Send + Sync>
-            where
-                Self: Sized,
-            {
-                Box::new(#companion_struct_ident {
-                    identifier: id.to_string(),
-                })
-            }
-        }
-
-        pub struct #companion_struct_ident {
-            identifier: String,
-        }
-
-        impl frn_core::authorization::Resource for #companion_struct_ident {
-            fn resource(&self) -> (String, String) {
-                (#resource_name.to_string(), self.identifier.clone())
-            }
-
-            fn some(id: impl ToString) -> Box<dyn frn_core::authorization::Resource + Send + Sync>
-            where
-                Self: Sized,
-            {
-                Box::new(Self {
-                    identifier: id.to_string(),
-                })
+            fn name(&self) -> &'static str {
+                Self::NAME
             }
         }
     }
@@ -71,37 +63,17 @@ mod tests {
 
         let expected = quote! {
             impl frn_core::authorization::Resource for Anvil {
-                fn resource(&self) -> (String, String) {
-                    ("anvil".to_string(), self.id.to_string())
+                type Id = String;
+                const NAME: &'static str = "anvil";
+
+                fn id(&self) -> &Self::Id {
+                    &self.id
                 }
 
-                fn some(id: impl ToString) -> Box<dyn frn_core::authorization::Resource + Send + Sync>
-                where
-                    Self: Sized,
-                {
-                    Box::new(AnvilResource {
-                        identifier: id.to_string(),
-                    })
-                }
-            }
-
-            pub struct AnvilResource {
-                identifier: String,
-            }
-
-            impl frn_core::authorization::Resource for AnvilResource {
-                fn resource(&self) -> (String, String) {
-                    ("anvil".to_string(), self.identifier.clone())
+                fn name(&self) -> &'static str {
+                    Self::NAME
                 }
 
-                fn some(id: impl ToString) -> Box<dyn frn_core::authorization::Resource + Send + Sync>
-                where
-                    Self: Sized,
-                {
-                    Box::new(Self {
-                        identifier: id.to_string(),
-                    })
-                }
             }
         };
         assert_eq!(output.to_string(), expected.to_string());

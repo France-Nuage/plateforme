@@ -1,4 +1,4 @@
-h1:+xpHMm64u+ecv8hE3MTj1VqDYnXndFnwmeoCpaMuFaU=
+h1:A0YiJMgwsxPDt2QQoFzmwgiCLLOmTNvQduy9yIDYBVo=
 20250901201631_initial.sql h1:I+fkuCn9NMpmL/AwF1y/wsmW2+IcPhAfSxGEH9Y2Seo=
 20250905065156_create_users.sql h1:tKKPDZycejUig1fxcYo+gDlLeZugn45InwitZubLDME=
 20250924143151_create_relationship_queue.sql h1:pjj8Bxl7ybKoq6/2j03x6WxdNODyBTp4dn1JXLnaXwY=
@@ -7,3 +7,4 @@ h1:+xpHMm64u+ecv8hE3MTj1VqDYnXndFnwmeoCpaMuFaU=
 20251007074634_add_service_accounts.sql h1:eVOqpmc18UDSz4f1N83j0CUI1v1l/ZI8K5C44Xgm9FE=
 20251015083226_move_relationship_types_to_string.sql h1:O5GZ0GTkECqoIV9EL5g3hvx0h30TbbWq4bdV5XTot5s=
 20251015083304_move_relationship_types_to_string.sql h1:UUXuLH4cfTdwdpHuWBg3y8+7rn2s3kA6awR+HFYL7eM=
+20251022063048_add_invitations.sql h1:HSP6AzVpxNhls9A+9LAwKjRMZd5FkPCyWVxBpe3sH9w=

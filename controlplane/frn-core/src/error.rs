@@ -9,6 +9,10 @@ use thiserror::Error as ThisError;
 /// Application-level errors.
 #[derive(Debug, ThisError)]
 pub enum Error {
+    /// Authorization server error.
+    #[error("internal: {0}")]
+    AuthorizationServerError(spicedb::Error),
+
     /// Database operation failed.
     #[error("{0}")]
     Database(#[from] sqlx::Error),
@@ -17,9 +21,8 @@ pub enum Error {
     #[error("forbidden")]
     Forbidden,
 
-    /// Authorization server error.
-    #[error("internal: {0}")]
-    AuthorizationServerError(spicedb::Error),
+    #[error("other: {0}")]
+    Other(String),
 
     #[error("unauthenticated")]
     Unauthenticated,

@@ -1,5 +1,5 @@
 use crate::Error;
-use crate::authorization::{AuthorizationServer, Principal, Resource};
+use crate::authorization::{Authorize, Principal, Resource};
 use chrono::{DateTime, Utc};
 use database::{Factory, Persistable, Repository};
 use sqlx::{FromRow, Pool, Postgres};
@@ -22,12 +22,12 @@ pub struct Zone {
 }
 
 #[derive(Clone)]
-pub struct Zones<Auth: AuthorizationServer> {
+pub struct Zones<Auth: Authorize> {
     _auth: Auth,
     db: Pool<Postgres>,
 }
 
-impl<Auth: AuthorizationServer> Zones<Auth> {
+impl<Auth: Authorize> Zones<Auth> {
     /// Creates a new zones service.
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
         Self { _auth: auth, db }

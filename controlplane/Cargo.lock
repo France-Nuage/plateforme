@@ -716,6 +716,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "thiserror",
+ "tokio",
  "tonic",
  "tracing",
  "uuid",
@@ -726,6 +727,7 @@ name = "frn-derive"
 version = "0.1.0"
 dependencies = [
  "auth",
+ "heck",
  "proc-macro2",
  "quote",
  "syn",
@@ -747,6 +749,7 @@ dependencies = [
  "tonic-prost",
  "tonic-prost-build",
  "tonic-reflection",
+ "uuid",
 ]
 
 [[package]]

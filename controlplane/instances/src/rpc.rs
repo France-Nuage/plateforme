@@ -9,21 +9,20 @@ use crate::{
     },
 };
 use frn_core::{
-    authorization::AuthorizationServer, compute::Hypervisors, identity::IAM,
-    resourcemanager::Projects,
+    authorization::Authorize, compute::Hypervisors, identity::IAM, resourcemanager::Projects,
 };
 use frn_rpc::request::ExtractToken;
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-pub struct InstancesRpcService<Auth: AuthorizationServer> {
+pub struct InstancesRpcService<Auth: Authorize> {
     iam: IAM,
     service: InstancesService<Auth>,
 }
 
 #[tonic::async_trait]
-impl<Auth: AuthorizationServer + 'static> Instances for InstancesRpcService<Auth> {
+impl<Auth: Authorize + 'static> Instances for InstancesRpcService<Auth> {
     /// CreateInstance provisions a new instance based on the specified configuration.
     /// Returns details of the newly created instance or a ProblemDetails on failure.
     async fn create_instance(
@@ -116,7 +115,7 @@ impl<Auth: AuthorizationServer + 'static> Instances for InstancesRpcService<Auth
     }
 }
 
-impl<Auth: AuthorizationServer> InstancesRpcService<Auth> {
+impl<Auth: Authorize> InstancesRpcService<Auth> {
     pub fn new(
         iam: IAM,
         pool: PgPool,

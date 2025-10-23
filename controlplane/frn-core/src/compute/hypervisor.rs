@@ -1,5 +1,5 @@
 use crate::Error;
-use crate::authorization::{AuthorizationServer, Permission, Principal, Resource};
+use crate::authorization::{Authorize, Permission, Principal, Resource};
 use crate::compute::ZoneFactory;
 use database::{Factory, Persistable, Repository};
 use frn_core::resourcemanager::OrganizationFactory;
@@ -47,12 +47,12 @@ pub struct HypervisorCreateRequest {
 }
 
 #[derive(Clone)]
-pub struct Hypervisors<Auth: AuthorizationServer> {
+pub struct Hypervisors<Auth: Authorize> {
     auth: Auth,
     db: Pool<Postgres>,
 }
 
-impl<Auth: AuthorizationServer> Hypervisors<Auth> {
+impl<Auth: Authorize> Hypervisors<Auth> {
     /// Creates a new hypervisors service.
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
         Self { auth, db }
@@ -100,10 +100,9 @@ impl<Auth: AuthorizationServer> Hypervisors<Auth> {
         id: Uuid,
     ) -> Result<Hypervisor, Error> {
         self.auth
-            .can(principal)
+            .can::<P>(principal)
             .perform(Permission::Get)
-            .over(&Hypervisor::some(id))
-            .check()
+            .over::<Hypervisor>(&id)
             .await?;
 
         Hypervisor::find_one_by_id(&self.db, id)
@@ -112,12 +111,11 @@ impl<Auth: AuthorizationServer> Hypervisors<Auth> {
     }
 
     /// Deletes a hypervisor.
-    pub async fn delete(&mut self, principal: &dyn Principal, id: Uuid) -> Result<(), Error> {
+    pub async fn delete<P: Principal>(&mut self, principal: &P, id: Uuid) -> Result<(), Error> {
         self.auth
-            .can(principal)
+            .can::<P>(principal)
             .perform(Permission::Delete)
-            .over(&Hypervisor::some(id))
-            .check()
+            .over::<Hypervisor>(&id)
             .await?;
 
         sqlx::query!("DELETE FROM hypervisors WHERE id = $1", id)

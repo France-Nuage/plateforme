@@ -1,5 +1,5 @@
 use crate::Error;
-use crate::authorization::{AuthorizationServer, Principal};
+use crate::authorization::{Authorize, Principal};
 use crate::resourcemanager::OrganizationFactory;
 use database::{Factory, Persistable, Repository};
 use frn_core::authorization::Resource;
@@ -36,12 +36,12 @@ pub struct ProjectCreateRequest {
 }
 
 #[derive(Clone)]
-pub struct Projects<Auth: AuthorizationServer> {
+pub struct Projects<Auth: Authorize> {
     _auth: Auth,
     db: Pool<Postgres>,
 }
 
-impl<Auth: AuthorizationServer> Projects<Auth> {
+impl<Auth: Authorize> Projects<Auth> {
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
         Self { _auth: auth, db }
     }

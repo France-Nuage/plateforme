@@ -1,8 +1,7 @@
 use crate::{error::Error, model::Instance, repository};
 use auth::{Relation, Relationship};
 use database::Persistable;
-use frn_core::authorization::Resource;
-use frn_core::authorization::{AuthorizationServer, Principal};
+use frn_core::authorization::{Authorize, Principal, Resource};
 use frn_core::compute::{Hypervisor, Hypervisors};
 use frn_core::resourcemanager::Projects;
 use futures::{StreamExt, TryStreamExt, stream};
@@ -12,13 +11,13 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 #[derive(Clone)]
-pub struct InstancesService<Auth: AuthorizationServer> {
+pub struct InstancesService<Auth: Authorize> {
     hypervisors: Hypervisors<Auth>,
     projects: Projects<Auth>,
     pool: PgPool,
 }
 
-impl<Auth: AuthorizationServer> InstancesService<Auth> {
+impl<Auth: Authorize> InstancesService<Auth> {
     pub async fn list(&self) -> Result<Vec<Instance>, Error> {
         Instance::list(&self.pool).await.map_err(Into::into)
     }
@@ -119,7 +118,7 @@ impl<Auth: AuthorizationServer> InstancesService<Auth> {
 
         for instance in &instances {
             Relationship::new(
-                instance.resource(),
+                (Instance::NAME.to_owned(), instance.id().to_string()),
                 Relation::BelongsToProject,
                 ("project".to_owned(), instance.project_id.to_string()),
             )

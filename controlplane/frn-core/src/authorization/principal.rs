@@ -4,15 +4,13 @@
 //! authorization checks. Principals are resources that can also query their
 //! associated organizations from the database.
 
-use async_trait::async_trait;
+use crate::{authorization::Resource, resourcemanager::Organization};
 use sqlx::{Pool, Postgres};
 
-use crate::{authorization::Resource, resourcemanager::Organization};
-
-#[async_trait]
 pub trait Principal: Resource + Send + Sync {
-    async fn organizations(
+    /// Retrieve all organizations associated with this principal
+    fn organizations(
         &self,
         connection: &Pool<Postgres>,
-    ) -> Result<Vec<Organization>, crate::Error>;
+    ) -> impl Future<Output = Result<Vec<Organization>, crate::Error>>;
 }

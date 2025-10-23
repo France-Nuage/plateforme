@@ -110,7 +110,17 @@ impl PermissionsService for SpiceDBServer {
         &self,
         _: Request<LookupResourcesRequest>,
     ) -> Result<Response<Self::LookupResourcesStream>, Status> {
-        unimplemented!()
+        // Create a stream with a single response item
+        let response = LookupResourcesResponse {
+            after_result_cursor: None,
+            looked_up_at: None,
+            partial_caveat_info: None,
+            permissionship: Permissionship::HasPermission as i32,
+            resource_object_id: "00000000-0000-0000-0000-000000000000".to_owned(),
+        };
+
+        let stream = futures::stream::iter(vec![Ok(response)]);
+        Ok(Response::new(Box::pin(stream)))
     }
 
     /// Lookup the subjects matching the request.

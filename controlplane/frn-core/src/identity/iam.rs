@@ -3,13 +3,11 @@
 //! Provides the `IAM` service for resolving user identity from access tokens.
 //! Currently returns a default user; will be extended to validate OIDC tokens.
 
-use sqlx::{Pool, Postgres};
-
 use crate::{
     Error,
-    authorization::Principal,
-    identity::{ServiceAccount, User},
+    identity::{Principal, ServiceAccount, User},
 };
+use sqlx::{Pool, Postgres};
 
 #[derive(Clone)]
 pub struct IAM {
@@ -21,10 +19,7 @@ impl IAM {
         Self { db }
     }
 
-    pub async fn principal<T>(
-        &self,
-        request: &tonic::Request<T>,
-    ) -> Result<Box<dyn Principal>, Error> {
+    pub async fn principal<T>(&self, request: &tonic::Request<T>) -> Result<Principal, Error> {
         let token = request
             .metadata()
             .get("authorization")
@@ -41,12 +36,10 @@ impl IAM {
         .fetch_optional(&self.db)
         .await?
         {
-            return Ok(Box::new(service_account));
+            return Ok(Principal::ServiceAccount(service_account));
         }
 
-        self.user(Some(token))
-            .await
-            .map(|u| Box::new(u) as Box<dyn Principal>)
+        self.user(Some(token)).await.map(Principal::User)
     }
 
     pub async fn user(&self, _access_token: Option<String>) -> Result<User, Error> {

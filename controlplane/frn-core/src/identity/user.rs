@@ -1,10 +1,10 @@
-use async_trait::async_trait;
+use crate::Error;
+use crate::authorization::{Authorize, Principal};
+use crate::resourcemanager::Organization;
 use database::{Factory, Persistable, Repository};
 use frn_derive::Resource;
 use sqlx::{Pool, Postgres, types::chrono};
 use uuid::Uuid;
-
-use crate::{authorization::Principal, resourcemanager::Organization};
 
 #[derive(Debug, Default, Factory, Repository, Resource)]
 pub struct User {
@@ -52,7 +52,6 @@ impl User {
     }
 }
 
-#[async_trait]
 impl Principal for User {
     /// Returns all organizations this user has access to
     async fn organizations(
@@ -60,5 +59,42 @@ impl Principal for User {
         connection: &Pool<Postgres>,
     ) -> Result<Vec<Organization>, crate::Error> {
         Organization::list(connection).await.map_err(Into::into)
+    }
+}
+
+#[derive(Clone)]
+pub struct Users<Auth: Authorize> {
+    _auth: Auth,
+    db: Pool<Postgres>,
+}
+
+impl<Auth: Authorize> Users<Auth> {
+    pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
+        Self { _auth: auth, db }
+    }
+
+    pub async fn find_or_create<P: Principal>(
+        &self,
+        principal: &P,
+        email: String,
+    ) -> Result<User, Error> {
+        let maybe_user =
+            sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1 LIMIT 1", &email)
+                .fetch_optional(&self.db)
+                .await?;
+
+        match maybe_user {
+            Some(user) => Ok(user),
+            None => self.create(principal, email).await,
+        }
+    }
+
+    pub async fn create<P: Principal>(&self, _principal: &P, email: String) -> Result<User, Error> {
+        User::factory()
+            .email(email)
+            .is_admin(false)
+            .create(&self.db)
+            .await
+            .map_err(Into::into)
     }
 }

@@ -4,7 +4,7 @@
 //! and controlling compute instances with authorization checks.
 
 use crate::Error;
-use crate::authorization::{AuthorizationServer, Permission, Principal, Resource};
+use crate::authorization::{Authorize, Permission, Principal, Resource};
 use crate::compute::HypervisorFactory;
 use crate::resourcemanager::ProjectFactory;
 use chrono::{DateTime, Utc};
@@ -74,12 +74,12 @@ pub struct InstanceCreateRequest {
 }
 
 /// Service for managing compute instances.
-pub struct Instances<Auth: AuthorizationServer> {
+pub struct Instances<Auth: Authorize> {
     auth: Auth,
     _db: Pool<Postgres>,
 }
 
-impl<Auth: AuthorizationServer> Instances<Auth> {
+impl<Auth: Authorize> Instances<Auth> {
     /// Creates a new instances service.
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
         Self { auth, _db: db }
@@ -122,7 +122,7 @@ impl<Auth: AuthorizationServer> Instances<Auth> {
         self.auth
             .can(principal)
             .perform(Permission::Delete)
-            .over(&Instance::some(id))
+            .over::<Instance>(&id)
             .await?;
         todo!()
     }
@@ -136,7 +136,7 @@ impl<Auth: AuthorizationServer> Instances<Auth> {
         self.auth
             .can(principal)
             .perform(Permission::Start)
-            .over(&Instance::some(id))
+            .over::<Instance>(&id)
             .await?;
         todo!()
     }
@@ -150,7 +150,7 @@ impl<Auth: AuthorizationServer> Instances<Auth> {
         self.auth
             .can(principal)
             .perform(Permission::Stop)
-            .over(&Instance::some(id))
+            .over::<Instance>(&id)
             .await?;
         todo!()
     }

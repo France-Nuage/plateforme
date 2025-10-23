@@ -1,7 +1,6 @@
 use crate::Error;
-use crate::authorization::{AuthorizationServer, Principal, Resource};
+use crate::authorization::{Authorize, Principal, Resource};
 use crate::resourcemanager::Organization;
-use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use database::{Factory, Persistable, Repository};
 use sqlx::{FromRow, Pool, Postgres};
@@ -26,7 +25,6 @@ pub struct ServiceAccount {
     pub updated_at: DateTime<Utc>,
 }
 
-#[async_trait]
 impl Principal for ServiceAccount {
     /// Returns all organizations this service account has access to
     async fn organizations(
@@ -39,12 +37,12 @@ impl Principal for ServiceAccount {
 
 pub struct ServiceAccountCreateRequest {}
 
-pub struct ServiceAccounts<Auth: AuthorizationServer> {
+pub struct ServiceAccounts<Auth: Authorize> {
     _auth: Auth,
     _db: Pool<Postgres>,
 }
 
-impl<Auth: AuthorizationServer> ServiceAccounts<Auth> {
+impl<Auth: Authorize> ServiceAccounts<Auth> {
     /// Creates a new service accounts service.
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
         Self {

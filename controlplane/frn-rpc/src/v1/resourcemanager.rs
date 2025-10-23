@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::request::ExtractToken;
-use frn_core::authorization::AuthorizationServer;
+use frn_core::authorization::Authorize;
 use frn_core::identity::IAM;
 use sqlx::{Pool, Postgres, types::Uuid};
 use std::{marker::PhantomData, time::SystemTime};
@@ -33,13 +33,13 @@ impl From<frn_core::resourcemanager::Project> for Project {
     }
 }
 
-pub struct Organizations<Auth: AuthorizationServer> {
+pub struct Organizations<Auth: Authorize> {
     iam: IAM,
     pool: Pool<Postgres>,
     organizations: frn_core::resourcemanager::Organizations<Auth>,
 }
 
-impl<Auth: AuthorizationServer> Organizations<Auth> {
+impl<Auth: Authorize> Organizations<Auth> {
     pub fn new(
         iam: IAM,
         organizations: frn_core::resourcemanager::Organizations<Auth>,
@@ -54,9 +54,7 @@ impl<Auth: AuthorizationServer> Organizations<Auth> {
 }
 
 #[tonic::async_trait]
-impl<Auth: AuthorizationServer + 'static> organizations_server::Organizations
-    for Organizations<Auth>
-{
+impl<Auth: Authorize + 'static> organizations_server::Organizations for Organizations<Auth> {
     async fn list(
         &self,
         request: tonic::Request<ListOrganizationsRequest>,
@@ -98,13 +96,13 @@ impl<Auth: AuthorizationServer + 'static> organizations_server::Organizations
     }
 }
 
-pub struct Projects<Auth: AuthorizationServer> {
+pub struct Projects<Auth: Authorize> {
     _auth: PhantomData<Auth>,
     _iam: IAM,
     pool: Pool<Postgres>,
 }
 
-impl<Auth: AuthorizationServer> Projects<Auth> {
+impl<Auth: Authorize> Projects<Auth> {
     pub fn new(iam: IAM, pool: Pool<Postgres>) -> Self {
         Self {
             _iam: iam,
@@ -115,7 +113,7 @@ impl<Auth: AuthorizationServer> Projects<Auth> {
 }
 
 #[tonic::async_trait]
-impl<Auth: AuthorizationServer + 'static> projects_server::Projects for Projects<Auth> {
+impl<Auth: Authorize + 'static> projects_server::Projects for Projects<Auth> {
     async fn list(
         &self,
         _request: Request<ListProjectsRequest>,
