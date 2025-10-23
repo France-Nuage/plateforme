@@ -1,3 +1,12 @@
+# [1.41.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.40.2...v1.41.0) (2025-10-23)
+
+
+### Features
+
+* add invitations ([a1a3061](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a1a30613eb7ab02e64620fffcfae5d1c29183eb8))
+* add lookup ([80fd9b1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/80fd9b115702ec7a01faad857e3f8839f678e007))
+* genericize check method ([b631019](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b631019603eb622207d6f3afc52d20597247ab6b))
+
 ## [1.40.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.40.1...v1.40.2) (2025-10-17)
 
 
