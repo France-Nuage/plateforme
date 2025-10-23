@@ -12,7 +12,7 @@ use crate::{
     Config, Error,
     authorization::Authorize,
     compute::{Hypervisors, Zones},
-    identity::{IAM, Invitations, Users},
+    identity::{IAM, Invitations, ServiceAccounts, Users},
     resourcemanager::{Organizations, Projects},
 };
 use spicedb::SpiceDB;
@@ -25,6 +25,7 @@ use sqlx::{PgPool, Pool, Postgres};
 #[derive(Clone)]
 pub struct App<Auth: Authorize> {
     pub auth: Auth,
+    pub config: Config,
     pub db: Pool<Postgres>,
     pub iam: IAM,
 
@@ -33,6 +34,7 @@ pub struct App<Auth: Authorize> {
     pub invitations: Invitations<Auth>,
     pub organizations: Organizations<Auth>,
     pub projects: Projects<Auth>,
+    pub service_accounts: ServiceAccounts<Auth>,
     pub users: Users<Auth>,
     pub zones: Zones<Auth>,
 }
@@ -53,17 +55,20 @@ impl App<SpiceDB> {
         let invitations = Invitations::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
+        let service_accounts = ServiceAccounts::new(auth.clone(), db.clone());
         let users = Users::new(auth.clone(), db.clone());
         let zones = Zones::new(auth.clone(), db.clone());
 
         let app = Self {
             auth,
+            config,
             db,
             iam,
             hypervisors,
             invitations,
             organizations,
             projects,
+            service_accounts,
             users,
             zones,
         };
@@ -76,23 +81,27 @@ impl App<SpiceDB> {
     /// Uses the provided database pool and a mock SpiceDB server for testing.
     pub async fn test(db: Pool<Postgres>) -> Result<Self, Error> {
         let auth = SpiceDB::mock().await;
+        let config = Config::test();
         let iam = IAM::new(db.clone());
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
+        let service_accounts = ServiceAccounts::new(auth.clone(), db.clone());
         let users = Users::new(auth.clone(), db.clone());
         let zones = Zones::new(auth.clone(), db.clone());
 
         let app = Self {
             auth,
+            config,
             db,
             iam,
             hypervisors,
             invitations,
             organizations,
             projects,
+            service_accounts,
             users,
             zones,
         };

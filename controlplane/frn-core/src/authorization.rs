@@ -14,10 +14,12 @@ mod check;
 mod lookup;
 mod permission;
 mod principal;
+mod relationship;
 mod resource;
 
 pub use authorize::*;
 pub use frn_derive::*;
 pub use permission::*;
 pub use principal::*;
+pub use relationship::*;
 pub use resource::*;

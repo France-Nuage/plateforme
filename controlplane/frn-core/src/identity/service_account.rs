@@ -37,18 +37,16 @@ impl Principal for ServiceAccount {
 
 pub struct ServiceAccountCreateRequest {}
 
+#[derive(Clone)]
 pub struct ServiceAccounts<Auth: Authorize> {
     _auth: Auth,
-    _db: Pool<Postgres>,
+    db: Pool<Postgres>,
 }
 
 impl<Auth: Authorize> ServiceAccounts<Auth> {
     /// Creates a new service accounts service.
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
-        Self {
-            _auth: auth,
-            _db: db,
-        }
+        Self { _auth: auth, db }
     }
     /// Lists all service accounts accessible to the principal.
     pub async fn list<P: Principal>(
@@ -77,5 +75,41 @@ impl<Auth: Authorize> ServiceAccounts<Auth> {
         //     .check()
         //     .await?;
         todo!()
+    }
+
+    pub async fn initialize_root_service_account(
+        &self,
+        organization: &Organization,
+        name: String,
+        key: Option<String>,
+    ) -> Result<ServiceAccount, Error> {
+        let maybe_service_account = sqlx::query_as!(
+            ServiceAccount,
+            "
+            SELECT service_accounts.id, service_accounts.name, service_accounts.key, service_accounts.created_at, service_accounts.updated_at
+            FROM service_accounts
+            JOIN organization_service_account ON organization_service_account.service_account_id = service_accounts.id
+            JOIN organizations ON organization_service_account.organization_id = organizations.id
+            WHERE organizations.id = $1
+            AND service_accounts.name = $2
+            LIMIT 1
+            ",
+            organization.id,
+            name
+        ).fetch_optional(&self.db).await?;
+
+        let service_account = match maybe_service_account {
+            Some(service_account) => service_account,
+            None => {
+                let key = key.ok_or(Error::MissingEnvVar("ROOT_SERVICE_ACCOUNT_KEY".to_owned()))?;
+                ServiceAccount::factory()
+                    .name(name)
+                    .key(key)
+                    .create(&self.db)
+                    .await?
+            }
+        };
+
+        Ok(service_account)
     }
 }

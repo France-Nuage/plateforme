@@ -1,5 +1,6 @@
 use crate::Error;
-use crate::authorization::{Authorize, Permission, Principal, Resource};
+use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
+use crate::identity::ServiceAccount;
 use database::{Factory, Persistable, Repository};
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
@@ -30,10 +31,7 @@ impl<A: Authorize> Organizations<A> {
         Self { auth, db }
     }
 
-    pub async fn list_organizations<P: Principal>(
-        &mut self,
-        principal: &P,
-    ) -> Result<Vec<Organization>, Error> {
+    pub async fn list<P: Principal>(&mut self, principal: &P) -> Result<Vec<Organization>, Error> {
         self.auth
             .lookup::<Organization>()
             .on_behalf_of(principal)
@@ -59,5 +57,48 @@ impl<A: Authorize> Organizations<A> {
             .create(connection)
             .await
             .map_err(Into::into)
+    }
+
+    pub async fn add_service_account(
+        &mut self,
+        organization: &Organization,
+        service_account: &ServiceAccount,
+    ) -> Result<(), Error> {
+        // Create the associated in the relational database
+        sqlx::query!("INSERT INTO organization_service_account(organization_id, service_account_id) VALUES ($1, $2) ON CONFLICT (organization_id, service_account_id) DO NOTHING", organization.id(), service_account.id()).execute(&self.db).await?;
+
+        // Create the relation for dispatch in the authorization database
+        Relationship::new(service_account, Relation::Member, organization)
+            .publish(&self.db)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn initialize_root_organization(
+        &mut self,
+        organization_name: String,
+    ) -> Result<Organization, Error> {
+        // Attempt to retrieve the organization from the database
+        let maybe_organization = sqlx::query_as!(
+            Organization,
+            "SELECT * FROM organizations WHERE name = $1 LIMIT 1",
+            organization_name
+        )
+        .fetch_optional(&self.db)
+        .await?;
+
+        // Create the root organization if there is no database match
+        let organization = match maybe_organization {
+            Some(organization) => organization,
+            None => {
+                Organization::factory()
+                    .name(organization_name)
+                    .create(&self.db)
+                    .await?
+            }
+        };
+
+        Ok(organization)
     }
 }

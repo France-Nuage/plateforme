@@ -61,11 +61,7 @@ impl<Auth: Authorize + 'static> organizations_server::Organizations for Organiza
     ) -> Result<Response<ListOrganizationsResponse>, Status> {
         let principal = self.iam.user(request.access_token()).await?;
 
-        let organizations = self
-            .organizations
-            .clone()
-            .list_organizations(&principal)
-            .await?;
+        let organizations = self.organizations.clone().list(&principal).await?;
 
         Ok(tonic::Response::new(
             super::resourcemanager::ListOrganizationsResponse {

@@ -22,6 +22,9 @@ pub enum Error {
     #[error("authentication error: {0}")]
     Authentication(#[from] auth::Error),
 
+    #[error("core error: {0}")]
+    Core(#[from] frn_core::Error),
+
     /// Socket address parsing errors.
     ///
     /// This variant occurs when attempting to parse an invalid socket address
