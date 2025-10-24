@@ -1,3 +1,10 @@
+# [1.42.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.41.0...v1.42.0) (2025-10-24)
+
+
+### Features
+
+* add invitations to node-sdk ([2e6c50d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2e6c50d1ff75500f50efaf67a97f7d5623ff800e))
+
 # [1.41.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.40.2...v1.41.0) (2025-10-23)
 
 
