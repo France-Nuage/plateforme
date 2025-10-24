@@ -149,7 +149,7 @@ export interface ListZonesResponse {
   zones: Zone[];
 }
 /**
- * Zone represents a datacenter.
+ * Zone represents a zone.
  *
  * @generated from protobuf message francenuage.fr.v1.compute.Zone
  */

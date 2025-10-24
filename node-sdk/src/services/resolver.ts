@@ -3,6 +3,7 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 import {
   HypervisorService,
   InstanceService,
+  InvitationService,
   OrganizationService,
   ProjectService,
   ZeroTrustNetworkService,
@@ -12,6 +13,7 @@ import {
 import {
   hypervisorMockService,
   instanceMockService,
+  invitationMockService,
   organizationMockService,
   projectMockService,
   zeroTrustNetworkMockService,
@@ -21,6 +23,7 @@ import {
 import {
   HypervisorRpcService,
   InstanceRpcService,
+  InvitationRpcService,
   OrganizationRpcService,
   ProjectRpcService,
   ZeroTrustNetworkRpcService,
@@ -33,6 +36,7 @@ export type Services = {
   zone: ZoneService;
   hypervisor: HypervisorService;
   instance: InstanceService;
+  invitation: InvitationService;
   organization: OrganizationService;
   project: ProjectService;
   zeroTrustNetwork: ZeroTrustNetworkService;
@@ -55,6 +59,7 @@ export function configureResolver(
     [ServiceMode.Mock]: {
       hypervisor: hypervisorMockService,
       instance: instanceMockService,
+      invitation: invitationMockService,
       organization: organizationMockService,
       project: projectMockService,
       zeroTrustNetwork: zeroTrustNetworkMockService,
@@ -64,6 +69,7 @@ export function configureResolver(
     [ServiceMode.Rpc]: {
       hypervisor: new HypervisorRpcService(transport),
       instance: new InstanceRpcService(transport),
+      invitation: new InvitationRpcService(transport),
       organization: new OrganizationRpcService(transport),
       project: new ProjectRpcService(transport),
       zeroTrustNetwork: new ZeroTrustNetworkRpcService(transport),
