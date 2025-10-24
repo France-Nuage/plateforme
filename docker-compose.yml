@@ -28,8 +28,6 @@ services:
       POSTGRES_PASSWORD: postgres
     healthcheck:
       test: ["CMD", "pg_isready"]
-    profiles:
-      - donotstart
 
   authz-worker:
     build:
@@ -42,6 +40,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      postgres-migrate:
+        condition: service_completed_successfully
       spicedb:
         condition: service_healthy
     environment:
@@ -119,6 +119,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      postgres-migrate:
+        condition: service_completed_successfully
       spicedb:
         condition: service_healthy
       traefik:
@@ -242,6 +244,27 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./seed.sql:/home/seed.sql:ro
 
+  postgres-migrate:
+    # Pin a given, audited version of the latest-alpine tag.
+    image: arigaio/atlas@sha256:591872655a7758a60edcb6a23e60caee2fd3ae3fb08bceb8bc4e095f6d5013b5
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        atlas schema apply \
+          --url="$${DATABASE_URL}?sslmode=disable" \
+          --dev-url="postgres://postgres:postgres@atlas-dev-database:5432/postgres?sslmode=disable" \
+          --to=file://controlplane/migrations \
+          --auto-approve
+    depends_on:
+      atlas-dev-database:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+    volumes:
+      - ./controlplane/migrations:/controlplane/migrations:ro
+
   protocol:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}protocol:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     build:
@@ -321,6 +344,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      postgres-migrate:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
