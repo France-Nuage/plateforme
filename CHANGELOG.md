@@ -1,3 +1,15 @@
+# [1.44.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.43.0...v1.44.0) (2025-10-25)
+
+
+### Bug Fixes
+
+* principal is properly extracted from request ([aadf037](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/aadf0379a2671103cf699c59a8eab2a1937c74b4))
+
+
+### Features
+
+* add keycloak ([7fda42a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7fda42af1c825b1368e28ff6fe367648ec3f0035))
+
 # [1.43.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.42.0...v1.43.0) (2025-10-25)
 
 
