@@ -44,6 +44,8 @@ services:
         condition: service_completed_successfully
       spicedb:
         condition: service_healthy
+      zed:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
@@ -125,6 +127,8 @@ services:
         condition: service_healthy
       traefik:
         condition: service_started
+      zed:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:80"]
       interval: 5s
@@ -346,6 +350,10 @@ services:
         condition: service_healthy
       postgres-migrate:
         condition: service_completed_successfully
+      spicedb:
+        condition: service_healthy
+      zed:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
@@ -430,6 +438,11 @@ services:
   zed:
     image: authzed/zed:latest
     command: schema write /authz/schema.zed
+    depends_on:
+      spicedb:
+        condition: service_healthy
+      spicedb-migrate:
+        condition: service_completed_successfully
     environment:
       ZED_ENDPOINT: spicedb:50051
       ZED_INSECURE: true
