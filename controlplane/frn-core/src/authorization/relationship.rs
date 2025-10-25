@@ -11,6 +11,8 @@ pub const RELATIONSHIP_QUEUE_NAME: &str = "relationship_queue_event";
 #[derive(Debug, Default, Display, EnumString)]
 #[strum(serialize_all = "snake_case")]
 pub enum Relation {
+    #[strum(serialize = "project")]
+    BelongsToProject,
     Member,
     #[default]
     Unspecified,

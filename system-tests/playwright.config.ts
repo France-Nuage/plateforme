@@ -23,6 +23,12 @@ export default defineConfig({
     /* Whether to ignore HTTPS errors when sending network requests. Defaults to false. */
     ignoreHTTPSErrors: true,
 
+    /* Capture screenshot after each test failure. */
+    screenshot: 'only-on-failure',
+
+    /* Record video for each test, but remove all videos from successful test runs. */
+    video: 'retain-on-failure',
+
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },

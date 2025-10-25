@@ -1,4 +1,4 @@
-use crate::{error::Error, request::ExtractToken};
+use crate::error::Error;
 use frn_core::authorization::Authorize;
 use frn_core::compute::{HypervisorCreateRequest, Hypervisors as Service};
 use frn_core::identity::IAM;
@@ -42,7 +42,7 @@ impl<Auth: Authorize + 'static> hypervisors_server::Hypervisors for Hypervisors<
         &self,
         request: Request<DetachHypervisorRequest>,
     ) -> Result<Response<DetachHypervisorResponse>, Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
         let id = inner
             .id
@@ -58,7 +58,7 @@ impl<Auth: Authorize + 'static> hypervisors_server::Hypervisors for Hypervisors<
         &self,
         request: Request<ListHypervisorsRequest>,
     ) -> Result<Response<ListHypervisorsResponse>, Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
 
         let hypervisors = self.service.clone().list(&principal).await?;
 
@@ -71,7 +71,7 @@ impl<Auth: Authorize + 'static> hypervisors_server::Hypervisors for Hypervisors<
         &self,
         request: Request<RegisterHypervisorRequest>,
     ) -> Result<Response<RegisterHypervisorResponse>, Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
         let RegisterHypervisorRequest {
             authorization_token,
             organization_id,
@@ -131,7 +131,7 @@ impl<Auth: Authorize + 'static> zones_server::Zones for Zones<Auth> {
         &self,
         request: Request<ListZonesRequest>,
     ) -> Result<Response<ListZonesResponse>, Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
 
         let zones = self.zones.clone().list(&principal).await?;
 

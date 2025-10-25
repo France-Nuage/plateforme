@@ -13,7 +13,7 @@ use hypervisor::instance::Status;
 use sqlx::{FromRow, Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
+#[derive(Clone, Debug, Default, Factory, FromRow, Repository, Resource)]
 pub struct Instance {
     /// Unique identifier for the instance
     #[repository(primary)]

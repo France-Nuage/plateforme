@@ -60,8 +60,8 @@ services:
     build:
       args:
         VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-        VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
-        VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc.test}
+        VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-keycloak}
+        VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage}
         VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
         VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
       cache_from:
@@ -75,22 +75,22 @@ services:
         condition: service_healthy
       node-sdk:
         condition: service_completed_successfully
-      oidc:
+      keycloak:
         condition: service_healthy
       traefik:
         condition: service_started
     environment:
       NODE_EXTRA_CA_CERTS: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-      VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-mock}
-      VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc.test}
+      VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-keycloak}
+      VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage}
       VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
       VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
       PORT: 80
     expose:
       - "80"
     extra_hosts:
-      - "oidc.test:host-gateway"
+      - "keycloak.test:host-gateway"
       - "console.test:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost"]
@@ -117,7 +117,7 @@ services:
       context: controlplane
       target: ${TARGET:-development}
     depends_on:
-      oidc:
+      keycloak:
         condition: service_healthy
       postgres:
         condition: service_healthy
@@ -142,7 +142,7 @@ services:
       CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
-      OIDC_URL: ${OIDC_URL:-https://oidc.test/.well-known/openid-configuration}
+      OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
       ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:-qDOiI0B686hr0wN479q7jmOQ6nYtSUsq}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       RUST_LOG: ${RUST_LOG:-info}
@@ -156,7 +156,7 @@ services:
     ports:
       - "50052:80"
     extra_hosts:
-      - "oidc.test:host-gateway"
+      - "keycloak.test:host-gateway"
       - "console.test:host-gateway"
     labels:
       - "traefik.enable=true"
@@ -172,6 +172,62 @@ services:
         target: /mnt/pve/nfs-snippets
         volume:
           nocopy: true
+
+  keycloak-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD:-keycloak}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - postgres_keycloak_data:/var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev --import-realm
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+      traefik:
+        condition: service_started
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD:-keycloak}
+      KC_HOSTNAME: keycloak.test
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    expose:
+      - 8080
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e \"GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`keycloak.test`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.tls=true"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+    volumes:
+      - ./keycloak-realm.json:/opt/keycloak/data/import/francenuage-realm.json:ro
 
   markdown-lint:
     command: ["**/*.md"]
@@ -190,27 +246,6 @@ services:
       - ./node-sdk:/app
       - /app/node_modules
 
-  oidc:
-    build:
-      context: oidc-server
-    environment:
-      CONSOLE_URL: ${CONSOLE_URL:-https://console.test}
-      PORT: 80
-      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-    expose:
-      - 80
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 5s
-      timeout: 5s
-      retries: 24
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.oidc.rule=Host(`oidc.test`)"
-      - "traefik.http.routers.oidc.entrypoints=websecure"
-      - "traefik.http.routers.oidc.tls=true"
-      - "traefik.http.services.oidc.loadbalancer.server.port=80"
-
   playwright:
     image: mcr.microsoft.com/playwright:v1.51.1-noble
     command: /bin/sh -c "npx -y playwright@1.51.1 run-server --port 4444 --host 0.0.0.0"
@@ -218,7 +253,7 @@ services:
       - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/docker-compose-dev-ca.crt
     extra_hosts:
       - "console.test:host-gateway"
-      - "oidc.test:host-gateway"
+      - "keycloak.test:host-gateway"
       - "controlplane.test:host-gateway"
     ports:
       - "4444:4444"
@@ -385,9 +420,12 @@ services:
     environment:
       CONSOLE_URL: ${CONSOLE_URL:-https://console.test}
       CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-https://keycloak.test}
       NODE_EXTRA_CA_CERTS: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-      OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://oidc.test}
+      OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage}
       PRODUCTION_CONTROLPLANE_URL: ${PRODUCTION_CONTROLPLANE_URL:-https://controlplane.france-nuage.fr}
       PRODUCTION_CONTROLPLANE_TOKEN: ${PRODUCTION_CONTROLPLANE_TOKEN}
       PRODUCTION_DATACENTER_ID: ${PRODUCTION_DATACENTER_ID:-}
@@ -406,7 +444,7 @@ services:
     extra_hosts:
       - "console.test:host-gateway"
       - "controlplane.test:host-gateway"
-      - "oidc.test:host-gateway"
+      - "keycloak.test:host-gateway"
     ports:
       - "9000:9000"
     profiles:
@@ -459,5 +497,6 @@ volumes:
       o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
       device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
   postgres_data:
+  postgres_keycloak_data:
   postgres_spicedb_data:
   target:

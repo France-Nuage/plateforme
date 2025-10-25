@@ -28,6 +28,7 @@ impl IAM {
             .map(|value| value.to_owned())
             .ok_or(Error::Unauthenticated)?;
 
+        println!("token: {:?}", &token);
         if let Some(service_account) = sqlx::query_as!(
             ServiceAccount,
             "SELECT * from service_accounts WHERE key = $1",
@@ -42,7 +43,7 @@ impl IAM {
         self.user(Some(token)).await.map(Principal::User)
     }
 
-    pub async fn user(&self, _access_token: Option<String>) -> Result<User, Error> {
+    async fn user(&self, _access_token: Option<String>) -> Result<User, Error> {
         Ok(User::default())
     }
 }

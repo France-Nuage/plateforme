@@ -1,70 +1,57 @@
-use auth::mock::WithWellKnown;
+use crate::common::{Api, OnBehalfOf};
 use database::Persistable;
-use frn_core::{
-    compute::Hypervisor,
-    resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project},
-};
-use hypervisor::mock::{
-    WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCreateMock,
-};
-use instances::v1::{
-    CreateInstanceRequest, CreateInstanceResponse, instances_client::InstancesClient,
-};
-use mock_server::MockServer;
-use server::Config;
+use frn_core::compute::{Hypervisor, Instance};
+use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
+use instances::v1::{CreateInstanceRequest, CreateInstanceResponse};
 use sqlx::types::Uuid;
+use tonic::Request;
+
+mod common;
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_the_create_instance_procedure_works(
-    pool: sqlx::PgPool,
-) -> Result<(), Box<dyn std::error::Error>> {
-    // Arrange the grpc server and a client
-    let mock = MockServer::new()
+async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
+    // Arrange a test api and the required data
+    let mut api = Api::start(&pool).await.expect("count not start api");
+    let organization = Organization::factory()
+        .create(&pool)
         .await
-        .with_cluster_next_id()
-        .with_cluster_resource_list()
-        .with_task_status_read()
-        .with_vm_create()
-        .with_well_known();
-    let mock_url = mock.url();
-
-    let organization = Organization::factory().create(&pool).await?;
+        .expect("could not create organization");
 
     Hypervisor::factory()
-        .url(mock_url)
+        .url(api.mock_server.url())
         .for_default_zone()
         .organization_id(organization.id)
         .create(&pool)
-        .await?;
+        .await
+        .expect("could not create hypervisor");
 
     let project = Project::factory()
         .name(DEFAULT_PROJECT_NAME.into())
         .organization_id(organization.id)
         .create(&pool)
-        .await?;
+        .await
+        .expect("could not create project");
 
-    let config = Config::test(&pool, &mock).await?;
-    let server_url = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve(config).await?;
-    let mut client = InstancesClient::connect(server_url).await?;
-
-    // Act the request to the test_the_status_procedure_works
-    let response = client
-        .create_instance(CreateInstanceRequest {
-            image: String::from("debian.qcow2"),
-            cpu_cores: 1,
-            memory_bytes: 536870912,
-            name: String::from("acme-mgs"),
-            project_id: project.id.to_string(),
-            snippet: String::from("acme-snippet.yaml"),
-        })
-        .await;
+    // Act the call to the create rpc
+    let request = Request::new(CreateInstanceRequest {
+        image: String::from("debian.qcow2"),
+        cpu_cores: 1,
+        memory_bytes: 536870912,
+        name: String::from("acme-mgs"),
+        project_id: project.id.to_string(),
+        snippet: String::from("acme-snippet.yaml"),
+    })
+    .on_behalf_of(&api.service_account);
 
     // Assert the result
-    assert!(response.is_ok());
-    let instance = &instances::Instance::list(&pool).await.unwrap()[0];
+    let result = api.compute.instances.create_instance(request).await;
+    assert!(result.is_ok());
+    let instances = Instance::list(&pool)
+        .await
+        .expect("could not fetch instances");
+    let instance = &instances[0];
     assert_eq!(
-        response.unwrap().into_inner(),
+        result.unwrap().into_inner(),
         CreateInstanceResponse {
             instance: Some(instances::v1::Instance {
                 id: instance.id.to_string(),
@@ -80,8 +67,4 @@ async fn test_the_create_instance_procedure_works(
             })
         }
     );
-
-    // Shutdown the server
-    shutdown_tx.send(()).ok();
-    Ok(())
 }

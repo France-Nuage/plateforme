@@ -1,9 +1,8 @@
 use crate::{error::Error, model::Instance, repository};
-use auth::{Relation, Relationship};
 use database::Persistable;
-use frn_core::authorization::{Authorize, Principal, Resource};
+use frn_core::authorization::{Authorize, Principal, Relation, Relationship};
 use frn_core::compute::{Hypervisor, Hypervisors};
-use frn_core::resourcemanager::Projects;
+use frn_core::resourcemanager::{Project, Projects};
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor::instance::{InstanceCreateRequest, Instances};
 use sqlx::{PgPool, types::chrono};
@@ -118,9 +117,12 @@ impl<Auth: Authorize> InstancesService<Auth> {
 
         for instance in &instances {
             Relationship::new(
-                (Instance::NAME.to_owned(), instance.id().to_string()),
+                instance,
                 Relation::BelongsToProject,
-                ("project".to_owned(), instance.project_id.to_string()),
+                &Project {
+                    id: instance.project_id,
+                    ..Default::default()
+                },
             )
             .publish(&self.pool)
             .await?;

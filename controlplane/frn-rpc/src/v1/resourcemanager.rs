@@ -1,5 +1,4 @@
 use crate::error::Error;
-use crate::request::ExtractToken;
 use frn_core::authorization::Authorize;
 use frn_core::identity::IAM;
 use sqlx::{Pool, Postgres, types::Uuid};
@@ -59,7 +58,7 @@ impl<Auth: Authorize + 'static> organizations_server::Organizations for Organiza
         &self,
         request: tonic::Request<ListOrganizationsRequest>,
     ) -> Result<Response<ListOrganizationsResponse>, Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
 
         let organizations = self.organizations.clone().list(&principal).await?;
 
@@ -74,7 +73,7 @@ impl<Auth: Authorize + 'static> organizations_server::Organizations for Organiza
         &self,
         request: Request<CreateOrganizationRequest>,
     ) -> Result<Response<CreateOrganizationResponse>, Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
 
         let CreateOrganizationRequest { name } = request.into_inner();
 
