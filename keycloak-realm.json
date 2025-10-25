@@ -1,0 +1,77 @@
+{
+  "realm": "francenuage",
+  "enabled": true,
+  "displayName": "France Nuage",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
+  "accessTokenLifespan": 3600,
+  "ssoSessionIdleTimeout": 36000,
+  "ssoSessionMaxLifespan": 864000,
+  "offlineSessionIdleTimeout": 2592000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "clients": [
+    {
+      "clientId": "francenuage",
+      "name": "France Nuage Console",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [
+        "https://console.test/*",
+        "http://localhost:*",
+        "http://console.test/*"
+      ],
+      "webOrigins": [
+        "https://console.test",
+        "http://localhost:*",
+        "http://console.test"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "wile.coyote",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Wile E.",
+      "lastName": "Coyote",
+      "email": "wile.coyote@acme.org",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "anvil",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

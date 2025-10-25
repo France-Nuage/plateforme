@@ -172,16 +172,16 @@ subjectAltName = @alt_names
 
 [alt_names]
 DNS.1 = localhost
-DNS.2 = oidc
-DNS.3 = console
-DNS.4 = controlplane
-DNS.5 = traefik
+DNS.2 = console
+DNS.3 = controlplane
+DNS.4 = traefik
+DNS.5 = keycloak
 DNS.6 = *.test
 DNS.7 = host.docker.internal
-DNS.8 = oidc.test
-DNS.9 = console.test
-DNS.10 = controlplane.test
-DNS.11 = traefik.test
+DNS.8 = console.test
+DNS.9 = controlplane.test
+DNS.10 = traefik.test
+DNS.11 = keycloak.test
 IP.1 = 127.0.0.1
 IP.2 = ::1
 EOF
@@ -327,7 +327,7 @@ main() {
   echo "🚀 Next steps:"
   echo "  1. Trust the CA certificate using the instructions above"
   echo "  2. Start your Docker Compose stack: docker-compose up -d"
-  echo "  3. Test HTTPS access: curl https://oidc.test/.well-known/openid-configuration"
+  echo "  3. Test HTTPS access: curl https://keycloak.test/realms/francenuage/.well-known/openid-configuration"
   echo ""
   echo "💡 Tip: Certificates are valid for 1 year. Run this script again to regenerate them."
 }
