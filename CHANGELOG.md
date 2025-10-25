@@ -1,3 +1,10 @@
+# [1.43.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.42.0...v1.43.0) (2025-10-25)
+
+
+### Features
+
+* play zed migrations automatically ([1bc3447](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1bc3447e7adadbd9bd98f52934e737fc7302809d))
+
 # [1.42.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.41.0...v1.42.0) (2025-10-24)
 
 
