@@ -1,17 +1,13 @@
-use crate::{
-    error::Error,
-    service::InstancesService,
-    v1::{
-        CloneInstanceRequest, CreateInstanceRequest, CreateInstanceResponse, DeleteInstanceRequest,
-        DeleteInstanceResponse, Instance, ListInstancesRequest, ListInstancesResponse,
-        StartInstanceRequest, StartInstanceResponse, StopInstanceRequest, StopInstanceResponse,
-        instances_server::Instances,
-    },
+use crate::error::Error;
+use crate::service::InstancesService;
+use crate::v1::{
+    CloneInstanceRequest, CreateInstanceRequest, CreateInstanceResponse, DeleteInstanceRequest,
+    DeleteInstanceResponse, Instance, ListInstancesRequest, ListInstancesResponse,
+    StartInstanceRequest, StartInstanceResponse, StopInstanceRequest, StopInstanceResponse,
+    instances_server::Instances,
 };
-use frn_core::{
-    authorization::Authorize, compute::Hypervisors, identity::IAM, resourcemanager::Projects,
-};
-use frn_rpc::request::ExtractToken;
+use frn_core::authorization::Authorize;
+use frn_core::{compute::Hypervisors, identity::IAM, resourcemanager::Projects};
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
@@ -29,7 +25,7 @@ impl<Auth: Authorize + 'static> Instances for InstancesRpcService<Auth> {
         &self,
         request: tonic::Request<CreateInstanceRequest>,
     ) -> Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
 
         let request = request.into_inner();
         let project_id = Uuid::parse_str(&request.project_id)
@@ -52,7 +48,7 @@ impl<Auth: Authorize + 'static> Instances for InstancesRpcService<Auth> {
         &self,
         request: tonic::Request<DeleteInstanceRequest>,
     ) -> std::result::Result<tonic::Response<DeleteInstanceResponse>, tonic::Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedInstanceId(id))?;
         self.service.clone().delete(&principal, id).await?;
@@ -65,7 +61,7 @@ impl<Auth: Authorize + 'static> Instances for InstancesRpcService<Auth> {
         &self,
         request: tonic::Request<CloneInstanceRequest>,
     ) -> std::result::Result<tonic::Response<Instance>, tonic::Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedInstanceId(id))?;
 
@@ -93,7 +89,7 @@ impl<Auth: Authorize + 'static> Instances for InstancesRpcService<Auth> {
         &self,
         request: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedInstanceId(id))?;
 
@@ -107,7 +103,7 @@ impl<Auth: Authorize + 'static> Instances for InstancesRpcService<Auth> {
         &self,
         request: Request<StopInstanceRequest>,
     ) -> Result<Response<StopInstanceResponse>, Status> {
-        let principal = self.iam.user(request.access_token()).await?;
+        let principal = self.iam.principal(&request).await?;
         let id = request.into_inner().id;
         let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedInstanceId(id))?;
         self.service.stop(&principal, id).await?;

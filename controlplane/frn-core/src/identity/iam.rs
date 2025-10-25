@@ -42,7 +42,7 @@ impl IAM {
         self.user(Some(token)).await.map(Principal::User)
     }
 
-    pub async fn user(&self, _access_token: Option<String>) -> Result<User, Error> {
+    async fn user(&self, _access_token: Option<String>) -> Result<User, Error> {
         Ok(User::default())
     }
 }

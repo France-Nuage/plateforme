@@ -62,7 +62,7 @@ impl Authorize for SpiceDB {
         resource_type: String,
     ) -> Result<Vec<String>, Error> {
         tracing::info!(
-            "looking up permission '{}' over resource '{}' for principal '{}'&'{}'",
+            "looking up permission '{}' over resource '{}' for principal '{}'@'{}'",
             permission,
             resource_type,
             subject_type,

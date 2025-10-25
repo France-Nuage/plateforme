@@ -1,5 +1,6 @@
-use crate::{Authz, Error, Relation};
+use crate::{Authz, Error};
 use database::{Factory, Persistable, Repository};
+use frn_core::authorization::Relation;
 use sqlx::{FromRow, PgPool, Pool, Postgres, postgres::PgListener};
 use std::fmt::Display;
 use tracing::info;

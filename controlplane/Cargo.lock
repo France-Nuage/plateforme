@@ -1343,7 +1343,6 @@ dependencies = [
 name = "instances"
 version = "0.1.0"
 dependencies = [
- "auth",
  "database",
  "frn-core",
  "frn-rpc",
