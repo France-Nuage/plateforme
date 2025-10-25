@@ -1,55 +1,43 @@
-use auth::mock::WithWellKnown;
+use crate::common::{Api, OnBehalfOf};
 use frn_core::resourcemanager::Organization;
-use hypervisor::mock::{WithClusterResourceList, WithTaskStatusReadMock, WithVMStatusStopMock};
-use instances::{
-    Instance,
-    v1::{StopInstanceRequest, instances_client::InstancesClient},
-};
-use mock_server::MockServer;
-use server::Config;
+use instances::{Instance, v1::StopInstanceRequest};
+use sqlx::types::Uuid;
+use tonic::Request;
+
+mod common;
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_the_stop_instance_procedure_works(
-    pool: sqlx::PgPool,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn test_the_start_instance_procedure_works(pool: sqlx::PgPool) {
     // Arrange the grpc server and a client
-    let mock = MockServer::new()
-        .await
-        .with_cluster_resource_list()
-        .with_task_status_read()
-        .with_vm_status_stop()
-        .with_well_known();
-    let mock_url = mock.url();
+    let mut api = Api::start(&pool).await.expect("could not start api");
+    let mock_url = api.mock_server.url();
 
-    let organization = Organization::factory().create(&pool).await?;
+    let organization = Organization::factory()
+        .id(Uuid::new_v4())
+        .create(&pool)
+        .await
+        .expect("could not create organization");
     let instance = Instance::factory()
         .for_hypervisor_with(move |hypervisor| {
             hypervisor
                 .for_default_zone()
+                .for_default_organization()
                 .organization_id(organization.id)
                 .url(mock_url)
         })
         .for_project_with(move |project| project.organization_id(organization.id))
         .distant_id("100".into())
         .create(&pool)
-        .await?;
-
-    let config = Config::test(&pool, &mock).await?;
-    let server_url = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve(config).await?;
-    let mut client = InstancesClient::connect(server_url).await?;
+        .await
+        .expect("could not create instance");
 
     // Act the request to the test_the_status_procedure_works
-    let response = client
-        .stop_instance(StopInstanceRequest {
-            id: instance.id.to_string(),
-        })
-        .await;
+    let request = Request::new(StopInstanceRequest {
+        id: instance.id.to_string(),
+    })
+    .on_behalf_of(&api.service_account);
+    let response = api.compute.instances.stop_instance(request).await;
 
     // Assert the result
     assert!(response.is_ok());
-
-    // Shutdown the server
-    shutdown_tx.send(()).ok();
-    Ok(())
 }

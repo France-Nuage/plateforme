@@ -1,6 +1,15 @@
 use auth::mock::WithWellKnown;
 use frn_core::identity::ServiceAccount;
-use frn_rpc::v1::compute::hypervisors_client::HypervisorsClient;
+use frn_rpc::v1::{
+    compute::hypervisors_client::HypervisorsClient,
+    resourcemanager::{organizations_client::OrganizationsClient, projects_client::ProjectsClient},
+};
+use hypervisor::mock::{
+    WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
+    WithVMCreateMock, WithVMDeleteMock, WithVMStatusReadMock, WithVMStatusStartMock,
+    WithVMStatusStopMock,
+};
+use instances::v1::instances_client::InstancesClient;
 use mock_server::MockServer;
 use server::{Config, error::Error};
 use sqlx::{Pool, Postgres};
@@ -11,19 +20,43 @@ use tonic::{Request, metadata::MetadataValue, transport::Channel};
 /// gRPC clients for compute services.
 pub struct Compute {
     pub hypervisors: HypervisorsClient<Channel>,
+    pub instances: InstancesClient<Channel>,
 }
 
 impl Compute {
-    pub async fn create(dst: String) -> Result<Self, Error> {
-        let hypervisors = HypervisorsClient::connect(dst).await?;
+    pub async fn create(dst: &String) -> Result<Self, Error> {
+        let hypervisors = HypervisorsClient::connect(dst.clone()).await?;
+        let instances = InstancesClient::connect(dst.clone()).await?;
 
-        Ok(Self { hypervisors })
+        Ok(Self {
+            hypervisors,
+            instances,
+        })
+    }
+}
+
+pub struct ResourceManager {
+    pub organizations: OrganizationsClient<Channel>,
+    pub projects: ProjectsClient<Channel>,
+}
+
+impl ResourceManager {
+    pub async fn create(dst: &String) -> Result<Self, Error> {
+        let organizations = OrganizationsClient::connect(dst.clone()).await?;
+        let projects = ProjectsClient::connect(dst.clone()).await?;
+
+        Ok(Self {
+            organizations,
+            projects,
+        })
     }
 }
 
 /// Test API wrapper that manages a gRPC server lifecycle.
 pub struct Api {
     pub compute: Compute,
+    pub resourcemanager: ResourceManager,
+    pub mock_server: MockServer,
     pub service_account: ServiceAccount,
     shutdown: Option<oneshot::Sender<()>>,
 }
@@ -31,13 +64,26 @@ pub struct Api {
 impl Api {
     /// Starts a test server with an in-memory database and mock authentication.
     pub async fn start(pool: &Pool<Postgres>) -> Result<Self, Error> {
-        let mock = MockServer::new().await.with_well_known();
-        let config = Config::test(pool, &mock).await?;
+        let mock_server = MockServer::new()
+            .await
+            .with_cluster_next_id()
+            .with_cluster_resource_list()
+            .with_task_status_read()
+            .with_vm_clone()
+            .with_vm_create()
+            .with_vm_delete()
+            .with_vm_status_read()
+            .with_vm_status_start()
+            .with_vm_status_stop()
+            .with_well_known();
+        let config = Config::test(pool, &mock_server).await?;
         let server_url = format!("http://{}", config.addr);
         let shutdown = server::serve(config).await?;
 
         Ok(Self {
-            compute: Compute::create(server_url).await?,
+            compute: Compute::create(&server_url).await?,
+            resourcemanager: ResourceManager::create(&server_url).await?,
+            mock_server,
             service_account: ServiceAccount::default(),
             shutdown: Some(shutdown),
         })

@@ -1,29 +1,24 @@
-use auth::mock::WithWellKnown;
+use crate::common::{Api, OnBehalfOf};
 use database::Persistable;
 use frn_rpc::v1::resourcemanager::{
     CreateOrganizationRequest, CreateOrganizationResponse, Organization,
-    organizations_client::OrganizationsClient,
 };
-use mock_server::MockServer;
-use server::Config;
+use tonic::Request;
+
+mod common;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_create_organization_procedure_works(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mock = MockServer::new().await.with_well_known();
-
-    let config = Config::test(&pool, &mock).await?;
-    let server_url = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve(config).await?;
-    let mut client = OrganizationsClient::connect(server_url).await?;
+    let mut api = Api::start(&pool).await.expect("count not start api");
 
     // Act the request to the test_the_status_procedure_works
-    let response = client
-        .create(CreateOrganizationRequest {
-            name: String::from("ACME"),
-        })
-        .await;
+    let request = Request::new(CreateOrganizationRequest {
+        name: String::from("ACME"),
+    })
+    .on_behalf_of(&api.service_account);
+    let response = api.resourcemanager.organizations.create(request).await;
 
     // Get the instance generated in the database
     let organizations = frn_core::resourcemanager::Organization::list(&pool)
@@ -44,8 +39,5 @@ async fn test_the_create_organization_procedure_works(
             })
         }
     );
-
-    // Shutdown the server
-    shutdown_tx.send(()).ok();
     Ok(())
 }

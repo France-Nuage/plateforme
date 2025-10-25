@@ -3,7 +3,7 @@ use std::net::Ipv4Addr;
 use std::str::FromStr;
 use strum_macros::{Display, EnumString, IntoStaticStr};
 
-#[derive(Debug, Default, Display, EnumString, IntoStaticStr)]
+#[derive(Clone, Debug, Default, Display, EnumString, IntoStaticStr)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum Status {
     /// Instance is active and operational.

@@ -56,7 +56,8 @@ impl From<spicedb::Error> for Error {
 impl From<Error> for tonic::Status {
     fn from(value: Error) -> tonic::Status {
         match value {
-            Error::Forbidden => tonic::Status::permission_denied("access denied"),
+            Error::Unauthenticated => tonic::Status::unauthenticated(value.to_string()),
+            Error::Forbidden => tonic::Status::permission_denied(value.to_string()),
             err => {
                 tracing::error!("internal error: {}", err);
                 tonic::Status::internal("internal error")

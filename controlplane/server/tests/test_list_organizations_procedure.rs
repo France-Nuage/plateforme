@@ -1,184 +1,27 @@
-use std::str::FromStr;
+use crate::common::{Api, OnBehalfOf};
+use frn_core::resourcemanager::Organization;
+use frn_rpc::v1::resourcemanager::ListOrganizationsRequest;
+use tonic::Request;
 
-use auth::{
-    OpenID,
-    mock::{WithJwks, WithWellKnown},
-};
-use frn_core::{identity::User, resourcemanager::Organization};
-use frn_rpc::v1::resourcemanager::{
-    ListOrganizationsRequest, organizations_client::OrganizationsClient,
-};
-use mock_server::MockServer;
-use server::Config;
-use tonic::{Request, metadata::MetadataValue};
+mod common;
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_the_list_organizations_procedure_works(
-    pool: sqlx::PgPool,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn test_the_list_organizations_procedure_works(pool: sqlx::PgPool) {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
     // Arrange the grpc server and a client
-    let mock = MockServer::new().await.with_well_known().with_jwks();
-    Organization::factory().create(&pool).await?;
-    let user = User::factory()
-        .email("wile.coyote@acme.org".to_owned())
+    Organization::factory()
         .create(&pool)
         .await
-        .unwrap();
-    let token = OpenID::token(&user.email);
-    let config = Config::test(&pool, &mock).await?;
-    let server_url = format!("http://{}", config.addr);
-    let shutdown_tx = server::serve(config).await?;
-    let mut client = OrganizationsClient::connect(server_url).await?;
-
+        .expect("could not create organization");
     // Act the request to the test_the_status_procedure_works
-    let mut request = Request::new(ListOrganizationsRequest::default());
-    request.metadata_mut().insert(
-        "authorization",
-        MetadataValue::from_str(&format!("Bearer {}", &token)).unwrap(),
-    );
-    let response = client.list(request).await;
+    let request =
+        Request::new(ListOrganizationsRequest::default()).on_behalf_of(&api.service_account);
+
+    let response = api.resourcemanager.organizations.list(request).await;
 
     // Assert the result
     println!("response: {:#?}", &response);
     assert!(response.is_ok());
     assert_eq!(response.unwrap().into_inner().organizations.len(), 1);
-
-    // Shutdown the server
-    shutdown_tx.send(()).ok();
-    Ok(())
 }
-
-// #[sqlx::test(migrations = "../migrations")]
-// async fn test_the_list_organizations_procedure_rejects_unauthenticated_users(pool: Pool<Postgres>) {
-//     // Arrange the grpc server and a client
-//     let mock = MockServer::new().await.with_well_known().with_jwks();
-//     let config = Config::test(&pool, &mock).await.unwrap();
-//     let server_url = format!("http://{}", config.addr);
-//     let shutdown_tx = server::serve(config).await.unwrap();
-//     let mut client = ResourcesClient::connect(server_url).await.unwrap();
-//
-//     // Act the request to the test_the_status_procedure_works
-//     let request = Request::new(ListOrganizationsRequest::default());
-//     let response = client.list_organizations(request).await;
-//
-//     // Assert the result
-//     assert!(response.is_err());
-//     assert_eq!(response.unwrap_err().code(), Code::Unauthenticated);
-//
-//     // Shutdown the server
-//     shutdown_tx.send(()).ok();
-// }
-//
-// #[sqlx::test(migrations = "../migrations")]
-// async fn test_the_list_organizations_procedure_rejects_calls_with_an_invalid_token(
-//     pool: Pool<Postgres>,
-// ) {
-//     // Arrange the grpc server and a client
-//     let mock = MockServer::new().await.with_well_known().with_jwks();
-//     let config = Config::test(&pool, &mock).await.unwrap();
-//     let server_url = format!("http://{}", config.addr);
-//     let shutdown_tx = server::serve(config).await.unwrap();
-//     let mut client = ResourcesClient::connect(server_url).await.unwrap();
-//
-//     // Act the request to the test_the_status_procedure_works
-//     let mut request = Request::new(ListOrganizationsRequest::default());
-//     request.metadata_mut().insert(
-//         "authorization",
-//         MetadataValue::from_str("Bearer foobar").unwrap(),
-//     );
-//     let response = client.list_organizations(request).await;
-//
-//     // Assert the result
-//     assert!(response.is_err());
-//     assert_eq!(response.unwrap_err().code(), Code::Unauthenticated);
-//
-//     // Shutdown the server
-//     shutdown_tx.send(()).ok();
-// }
-//
-// #[sqlx::test(migrations = "../migrations")]
-// async fn test_the_list_organizations_procedure_only_returns_the_user_organization(
-//     pool: Pool<Postgres>,
-// ) {
-//     // Arrange the grpc server and a client
-//     let mock = MockServer::new().await.with_well_known().with_jwks();
-//     let _organization = Organization::factory()
-//         .id(Uuid::new_v4())
-//         .create(&pool)
-//         .await
-//         .unwrap();
-//     let _other_organization = Organization::factory()
-//         .id(Uuid::new_v4())
-//         .create(&pool)
-//         .await
-//         .unwrap();
-//     let user = User::factory()
-//         .email("wile.coyote@acme.org".to_owned())
-//         .create(&pool)
-//         .await
-//         .unwrap();
-//     let token = OpenID::token(&user.email);
-//     let config = Config::test(&pool, &mock).await.unwrap();
-//     let server_url = format!("http://{}", config.addr);
-//     let shutdown_tx = server::serve(config).await.unwrap();
-//     let mut client = ResourcesClient::connect(server_url).await.unwrap();
-//
-//     // Act the request to the test_the_status_procedure_works
-//     let mut request = Request::new(ListOrganizationsRequest::default());
-//     request.metadata_mut().insert(
-//         "authorization",
-//         MetadataValue::from_str(&format!("Bearer {}", &token)).unwrap(),
-//     );
-//     let response = client.list_organizations(request).await;
-//
-//     // Assert the result
-//     assert!(response.is_ok());
-//     assert_eq!(response.unwrap().into_inner().organizations.len(), 1);
-//
-//     // Shutdown the server
-//     shutdown_tx.send(()).ok();
-// }
-//
-// #[sqlx::test(migrations = "../migrations")]
-// async fn test_the_list_organizations_procedure_returns_all_organizations_for_an_admin(
-//     pool: Pool<Postgres>,
-// ) {
-//     // Arrange the grpc server and a client
-//     let mock = MockServer::new().await.with_well_known().with_jwks();
-//     let _organization = Organization::factory()
-//         .id(Uuid::new_v4())
-//         .create(&pool)
-//         .await
-//         .unwrap();
-//     let _other_organization = Organization::factory()
-//         .id(Uuid::new_v4())
-//         .create(&pool)
-//         .await
-//         .unwrap();
-//     let user = User::factory()
-//         .email("wile.coyote@acme.org".to_owned())
-//         .is_admin(true)
-//         .create(&pool)
-//         .await
-//         .unwrap();
-//     let token = OpenID::token(&user.email);
-//     let config = Config::test(&pool, &mock).await.unwrap();
-//     let server_url = format!("http://{}", config.addr);
-//     let shutdown_tx = server::serve(config).await.unwrap();
-//     let mut client = ResourcesClient::connect(server_url).await.unwrap();
-//
-//     // Act the request to the test_the_status_procedure_works
-//     let mut request = Request::new(ListOrganizationsRequest::default());
-//     request.metadata_mut().insert(
-//         "authorization",
-//         MetadataValue::from_str(&format!("Bearer {}", &token)).unwrap(),
-//     );
-//     let response = client.list_organizations(request).await;
-//
-//     // Assert the result
-//     assert!(response.is_ok());
-//     assert_eq!(response.unwrap().into_inner().organizations.len(), 2);
-//
-//     // Shutdown the server
-//     shutdown_tx.send(()).ok();
-// }
