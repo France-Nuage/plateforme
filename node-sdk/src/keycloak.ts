@@ -32,7 +32,7 @@ export class KeyCloakApi {
     data?: Partial<User>,
     realm?: string,
   ): Promise<TokenResponse> {
-    const token = (await this.getUserToken(this.admin, 'master')).access_token;
+    const token = (await this.getAdminToken()).access_token;
     const newUser = { ...user({ password: 'password' }), ...data };
 
     const response = await fetch(
@@ -73,21 +73,38 @@ export class KeyCloakApi {
       throw new Error('missing password for authentication');
     }
 
-    return await this.getUserToken(
-      { username: newUser.username, password: newUser.password },
-      realm,
-    );
+    return await this.getUserToken(newUser.username, newUser.password);
   }
 
   /**
-   * Get a user token from a set of credentials.
+   * Get an admin token for administrative operations.
+   * Uses the admin credentials against the master realm.
+   */
+  public async getAdminToken(): Promise<TokenResponse> {
+    return fetch(`${this.url}/realms/master/protocol/openid-connect/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'password',
+        client_id: 'admin-cli',
+        username: this.admin.username,
+        password: this.admin.password,
+      }),
+    }).then((data) => data.json());
+  }
+
+  /**
+   * Get a user token from username and password credentials.
+   * Uses the default realm for authentication.
    */
   public async getUserToken(
-    credentials: { username: string; password: string },
-    realm?: string,
+    username: string,
+    password: string,
   ): Promise<TokenResponse> {
     return fetch(
-      `${this.url}/realms/${realm ?? this.realm}/protocol/openid-connect/token`,
+      `${this.url}/realms/${this.realm}/protocol/openid-connect/token`,
       {
         method: 'POST',
         headers: {
@@ -95,9 +112,10 @@ export class KeyCloakApi {
         },
         body: new URLSearchParams({
           grant_type: 'password',
-          client_id: 'admin-cli',
-          username: credentials.username,
-          password: credentials.password,
+          client_id: 'francenuage',
+          username: username,
+          password: password,
+          scope: 'openid',
         }),
       },
     ).then((data) => data.json());

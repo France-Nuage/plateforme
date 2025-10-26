@@ -2,7 +2,7 @@ import { test, expect } from "../../base";
 
 test.describe('Keycloak', () => {
   test('I can generate an admin token through the http api', async ({ keycloak }) => {
-    const response = await keycloak.getUserToken(keycloak.admin, 'master');
+    const response = await keycloak.getAdminToken();
 
     expect(response).toEqual(expect.objectContaining({
       access_token: expect.any(String),

@@ -30,6 +30,7 @@ export function parseOidcUser(user: OIDCUser): { token: string; user: User } {
     !user.profile.given_name ||
     !user.profile.family_name
   ) {
+    console.log('in parseOidcUser', user);
     throw new Error('Error: user format is not valid.');
   }
   return {
