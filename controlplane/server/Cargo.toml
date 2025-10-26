@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-auth = { path = "../auth", features = ["mock"] }
 bytes = "1"
 frn-core = { path = "../frn-core" }
 frn-rpc = { path = "../frn-rpc" }
@@ -38,5 +37,6 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
+auth = { path = "../auth", features = ["mock"] }
 database = { path = "../database" }
 hypervisor = { path = "../hypervisor", features = ["mock"] }

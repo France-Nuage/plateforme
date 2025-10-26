@@ -1,4 +1,5 @@
-use auth::{Authz, Relationship};
+use frn_core::authorization::Relationship;
+use spicedb::SpiceDB;
 use sqlx::PgPool;
 use std::env;
 
@@ -7,7 +8,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // initialize tracing
     tracing_subscriber::fmt().init();
 
-    println!("coucou");
     tracing::info!("starting worker...");
 
     // retrieve environment variable
@@ -18,14 +18,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // instanciate the required services
     let pool = PgPool::connect(&database_url).await?;
-    let authz = Authz::connect(spicedb_url, spicedb_token).await?;
+    let mut auth = SpiceDB::connect(&spicedb_url, &spicedb_token).await?;
 
     // unwind pre-existing entries in the database
-    while let Some(relationship) = Relationship::consume(pool.clone(), authz.clone()).await? {
+    while let Some(relationship) = Relationship::consume(pool.clone(), &mut auth).await? {
         tracing::info!("processed relationship {}", &relationship);
     }
 
-    Relationship::subscribe(pool, authz, Relationship::consume).await?;
+    Relationship::subscribe(pool, &mut auth).await?;
 
     Ok(())
 }

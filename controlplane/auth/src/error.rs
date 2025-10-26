@@ -152,28 +152,6 @@ pub enum Error {
     UnreachableAuthzServer(String),
 
     /// Authorization check attempted without specifying a permission.
-    ///
-    /// This error occurs when `Authz::check()` is called without first
-    /// calling `perform()` to specify which permission should be checked.
-    /// All authorization requests must specify exactly one permission.
-    ///
-    /// # Example Fix
-    /// ```
-    /// # use auth::{Authz, Permission};
-    /// # use frn_core::identity::User;
-    /// # use uuid::Uuid;
-    /// # async fn example() -> Result<(), auth::Error> {
-    /// # let authz = Authz::mock().await;
-    /// # let user = User::default();
-    /// # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
-    /// // Wrong: missing permission
-    /// // authz.can(&user).on(("instance", &instance_id)).check().await; // Returns UnspecifiedPermission
-    ///
-    /// // Correct: specify permission
-    /// authz.can(&user).perform(Permission::Get).on(("instance", &instance_id)).check().await?;
-    /// # Ok(())
-    /// # }
-    /// ```
     #[error("no permission was specified for this authorization request")]
     UnspecifiedPermission,
 
@@ -181,54 +159,10 @@ pub enum Error {
     UnspecifedRelation,
 
     /// Authorization check attempted without specifying a target resource.
-    ///
-    /// This error occurs when `Authz::check()` is called without first
-    /// calling `on()` to specify which resource the permission check should
-    /// be performed against. All authorization requests must specify a target resource.
-    ///
-    /// # Example Fix
-    /// ```
-    /// # use auth::{Authz, Permission};
-    /// # use frn_core::identity::User;
-    /// # use uuid::Uuid;
-    /// # async fn example() -> Result<(), auth::Error> {
-    /// # let authz = Authz::mock().await;
-    /// # let user = User::default();
-    /// # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
-    /// // Wrong: missing resource
-    /// // authz.can(&user).perform(Permission::Get).check().await; // Returns UnspecifiedResource
-    ///
-    /// // Correct: specify resource
-    /// authz.can(&user).perform(Permission::Get).on(("instance", &instance_id)).check().await?;
-    /// # Ok(())
-    /// # }
-    /// ```
     #[error("no resource was specified for this authorization request")]
     UnspecifiedResource,
 
     /// Authorization check attempted without specifying a subject (user).
-    ///
-    /// This error occurs when `Authz::check()` is called without first
-    /// calling `can()` to specify which subject (user) the permission check
-    /// should be performed for. All authorization requests must specify a subject.
-    ///
-    /// # Example Fix
-    /// ```
-    /// # use auth::{Authz, Permission};
-    /// # use frn_core::identity::User;
-    /// # use uuid::Uuid;
-    /// # async fn example() -> Result<(), auth::Error> {
-    /// # let authz = Authz::mock().await;
-    /// # let user = User::default();
-    /// # let instance_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
-    /// // Wrong: missing subject
-    /// // authz.perform(Permission::Get).on(("instance", &instance_id)).check().await; // Returns UnspecifiedSubject
-    ///
-    /// // Correct: specify subject
-    /// authz.can(&user).perform(Permission::Get).on(("instance", &instance_id)).check().await?;
-    /// # Ok(())
-    /// # }
-    /// ```
     #[error("no subject was specified for this authorization request")]
     UnspecifiedSubject,
 

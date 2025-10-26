@@ -1,6 +1,9 @@
-use crate::authorization::Resource;
+use crate::{
+    Error,
+    authorization::{Authorize, Resource},
+};
 use database::{Factory, Persistable, Repository};
-use sqlx::{FromRow, Pool, Postgres};
+use sqlx::{FromRow, Pool, Postgres, postgres::PgListener};
 use std::fmt::Display;
 use std::str::FromStr;
 use strum_macros::{Display, EnumString};
@@ -75,6 +78,67 @@ impl Relationship {
         tracing::info!("relationship {} published", relationship.id);
 
         Ok(())
+    }
+
+    pub async fn subscribe<A>(pool: Pool<Postgres>, authz: &mut A) -> Result<(), Error>
+    where
+        A: Authorize,
+    {
+        // connect a postgresql listener with the pool
+        let mut listener = PgListener::connect_with(&pool).await?;
+
+        // start listening for notification on the relationship channel, which acts as a queue
+        listener.listen(RELATIONSHIP_QUEUE_NAME).await?;
+
+        loop {
+            listener.recv().await?;
+            Self::consume(pool.clone(), authz).await?;
+        }
+    }
+
+    pub async fn consume<A: Authorize>(
+        pool: Pool<Postgres>,
+        auth: &mut A,
+    ) -> Result<Option<Relationship>, Error> {
+        println!("received notification");
+
+        let mut tx = pool.begin().await?;
+        let relationship = sqlx::query_as!(
+            Relationship,
+            r#"
+            SELECT id, object_id, object_type, relation, subject_id, subject_type
+            FROM relationship_queue
+            ORDER BY created_at
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED;
+        "#
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        let relationship = match relationship {
+            Some(relationship) => relationship,
+            None => return Ok(None),
+        };
+
+        auth.write_relationship(&relationship).await?;
+
+        tracing::info!(
+            "relationship {} written into the authz server",
+            &relationship
+        );
+
+        sqlx::query!(
+            "DELETE FROM relationship_queue WHERE id = $1",
+            &relationship.id
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+        println!("committed");
+
+        Ok(Some(relationship))
     }
 }
 

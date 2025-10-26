@@ -14,14 +14,6 @@ use std::net::AddrParseError;
 /// error types.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    /// Authentication and authorization errors.
-    ///
-    /// This variant encapsulates errors from the authentication layer, including
-    /// JWT validation failures, OIDC discovery errors, and other authentication-related
-    /// issues that prevent successful request authorization.
-    #[error("authentication error: {0}")]
-    Authentication(#[from] auth::Error),
-
     #[error("core error: {0}")]
     Core(#[from] frn_core::Error),
 

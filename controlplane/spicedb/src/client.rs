@@ -5,11 +5,14 @@
 //! `SpiceDB::mock()` for testing with an in-memory server.
 
 use crate::Error;
-use crate::api::v1::LookupResourcesRequest;
 use crate::api::v1::check_permission_response::Permissionship;
+use crate::api::v1::relationship_update::Operation;
 use crate::api::v1::{
     CheckPermissionRequest, ObjectReference, SubjectReference,
     permissions_service_client::PermissionsServiceClient,
+};
+use crate::api::v1::{
+    LookupResourcesRequest, Relationship, RelationshipUpdate, WriteRelationshipsRequest,
 };
 use crate::mock::SpiceDBServer;
 use std::str::FromStr;
@@ -131,6 +134,43 @@ impl SpiceDB {
                 "Permissionship::ConditionalPermission is not implemented".to_owned(),
             )),
         }
+    }
+
+    pub async fn write_relationship(
+        &mut self,
+        subject_type: String,
+        subject_id: String,
+        relation: String,
+        object_type: String,
+        object_id: String,
+    ) -> Result<(), Error> {
+        let request = Request::new(WriteRelationshipsRequest {
+            optional_preconditions: vec![],
+            updates: vec![RelationshipUpdate {
+                operation: Operation::Touch as i32,
+                relationship: Some(Relationship {
+                    optional_caveat: None,
+                    resource: Some(ObjectReference {
+                        object_id,
+                        object_type,
+                    }),
+                    relation,
+                    subject: Some(SubjectReference {
+                        object: Some(ObjectReference {
+                            object_id: subject_id,
+                            object_type: subject_type,
+                        }),
+                        optional_relation: "".to_owned(),
+                    }),
+                }),
+            }],
+        });
+
+        self.client
+            .write_relationships(request)
+            .await
+            .map(|_| ())
+            .map_err(Into::into)
     }
 }
 

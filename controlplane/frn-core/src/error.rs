@@ -21,6 +21,9 @@ pub enum Error {
     #[error("forbidden")]
     Forbidden,
 
+    #[error("authentication: {0}")]
+    Identity(#[from] jsonwebtoken::errors::Error),
+
     #[error("other: {0}")]
     Other(String),
 

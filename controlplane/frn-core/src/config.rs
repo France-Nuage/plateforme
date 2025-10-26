@@ -13,6 +13,7 @@ pub struct Config {
     pub auth_server_url: String,
     pub auth_server_token: String,
     pub database_url: String,
+    pub oidc_url: String,
     pub root_organization: RootOrganization,
 }
 
@@ -29,6 +30,7 @@ impl Config {
             auth_server_url: read_env_var("SPICEDB_URL")?,
             auth_server_token: read_env_var("SPICEDB_GRPC_PRESHARED_KEY")?,
             database_url: read_env_var("DATABASE_URL")?,
+            oidc_url: read_env_var("OIDC_URL")?,
             root_organization: RootOrganization {
                 name: env::var("ROOT_ORGANIZATION_NAME").unwrap_or("acme".to_owned()),
                 service_account_key: env::var("ROOT_SERVICE_ACCOUNT_KEY").ok(),
@@ -43,6 +45,7 @@ impl Config {
             auth_server_url: "".to_owned(),
             auth_server_token: "".to_owned(),
             database_url: "".to_owned(),
+            oidc_url: "".to_owned(),
             root_organization: RootOrganization {
                 name: "".to_owned(),
                 service_account_key: None,

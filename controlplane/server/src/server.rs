@@ -6,7 +6,6 @@
 //! over the underlying transport layer while maintaining full compatibility
 //! with tonic's service ecosystem.
 
-use auth::{AuthenticationLayer, Authz, OpenID};
 use bytes::Bytes;
 use http::{Request, Response};
 use tokio_stream::wrappers::TcpListenerStream;
@@ -127,46 +126,6 @@ impl<L> Server<L> {
             .serve_with_incoming_shutdown(svc, stream, signal)
             .await
             .map_err(Into::into)
-    }
-
-    /// Adds JWT authentication middleware to the server.
-    ///
-    /// This method applies an [`AuthenticationLayer`] that validates JWT tokens
-    /// on all incoming requests and injects IAM context for downstream services.
-    /// The authentication middleware uses OIDC provider configuration to validate
-    /// JWT signatures and extract claims.
-    ///
-    /// # Parameters
-    ///
-    /// * `openid` - OpenID provider configured with OIDC information
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use server::server::Server;
-    /// # use auth::{Authz, OpenID};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let mock = mock_server::MockServer::new().await;
-    /// let openid = OpenID::discover(reqwest::Client::new(), &format!("{}/.well-known/openid-configuration", &mock.url())).await?;
-    /// let authz = Authz::mock().await;
-    /// let server = Server::new()
-    ///     .with_authentication(authz, openid);
-    /// # Ok(())
-    /// # }
-    /// ```
-    ///
-    /// This is equivalent to calling [`tonic::transport::Server::layer`] with
-    /// an [`AuthenticationLayer`] configured with the provided OpenID provider.
-    ///
-    /// [`tonic::transport::Server::layer`]: https://docs.rs/tonic/latest/tonic/transport/server/struct.Server.html#method.layer
-    pub fn with_authentication(
-        self,
-        authz: Authz,
-        openid: OpenID,
-    ) -> Server<Stack<AuthenticationLayer, L>> {
-        Server {
-            inner: self.inner.layer(AuthenticationLayer::new(authz, openid)),
-        }
     }
 
     /// Add distributed tracing support to the server.

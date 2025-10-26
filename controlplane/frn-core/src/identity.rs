@@ -1,9 +1,12 @@
+mod authentication;
+mod error;
 mod iam;
 mod invitation;
 mod principal;
 mod service_account;
 mod user;
 
+pub use error::*;
 pub use iam::*;
 pub use invitation::*;
 pub use principal::*;

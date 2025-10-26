@@ -1,4 +1,5 @@
 use crate::Error;
+use crate::authorization::Relationship;
 use crate::authorization::lookup::LookupWithResource;
 use crate::authorization::{Principal, Resource, check::CheckWithPrincipal};
 use database::Persistable;
@@ -24,6 +25,11 @@ pub trait Authorize: Clone + Send + Sync {
         permission: String,
         resource_type: String,
     ) -> impl Future<Output = Result<Vec<String>, Error>> + Send;
+
+    fn write_relationship(
+        &mut self,
+        relationship: &Relationship,
+    ) -> impl Future<Output = Result<(), Error>>;
 
     /// Start a permission check with a principal
     fn can<'a, P: Principal>(&self, principal: &'a P) -> CheckWithPrincipal<'a, Self, P> {
@@ -71,6 +77,18 @@ impl Authorize for SpiceDB {
         self.lookup((subject_type, subject_id), permission, resource_type)
             .await
             .map_err(Into::into)
+    }
+
+    async fn write_relationship(&mut self, relationship: &Relationship) -> Result<(), Error> {
+        self.write_relationship(
+            relationship.subject_type.clone(),
+            relationship.subject_id.clone(),
+            relationship.relation.to_string(),
+            relationship.object_type.clone(),
+            relationship.object_id.clone(),
+        )
+        .await
+        .map_err(Into::into)
     }
 }
 

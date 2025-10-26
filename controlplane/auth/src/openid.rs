@@ -41,32 +41,7 @@ impl OpenID {
 
     /// Retrieves a JWK decoding key from cache or fetches it from the provider.
     ///
-    /// This method implements the key retrieval strategy with automatic fallback:
-    /// 1. First, check the local cache for the requested key ID
-    /// 2. If not found, fetch the latest JWK Set from the provider
-    /// 3. Cache all keys from the fetched set
-    /// 4. Return the requested key if now available
-    ///
-    /// ## Arguments
-    ///
-    /// * `kid` - The Key ID from the JWT header
-    ///
-    /// ## Returns
-    ///
-    /// * `Ok(DecodingKey)` - The cryptographic key for signature verification
-    /// * `Err(Error)` - If the key cannot be retrieved or provider is unreachable
-    ///
-    /// ## Caching Behavior
-    ///
-    /// Keys are cached with a 1-hour TTL. If a key expires or is not found in cache,
-    /// this method will automatically refresh the entire JWK Set from the provider.
-    /// This ensures that key rotations by the provider are handled transparently.
-    ///
-    /// ## Error Conditions
-    ///
-    /// - [`Error::MissingKid`] - The requested key ID is not available from the provider
-    /// - [`Error::UnreachableOidcProvider`] - Network failure contacting JWK endpoint  
-    /// - [`Error::UnparsableJwks`] - JWK Set response is malformed
+    /// Keys are cached with a 1-hour TTL. Fetches from provider on cache miss.
     async fn get_or_fetch_key(&self, kid: &str) -> Result<DecodingKey, Error> {
         // attempt to get the key from cache
         let mut key = self.keys.get(kid).await;
@@ -83,38 +58,9 @@ impl OpenID {
         key.ok_or(Error::MissingKid)
     }
 
-    /// Fetches the complete JWK Set from the provider and caches all keys.
+    /// Fetches the JWK Set from the provider and returns all keys.
     ///
-    /// This method retrieves the provider's current JWK Set and caches all contained
-    /// keys for future use. It uses concurrent processing to efficiently handle
-    /// multiple keys with backpressure control.
-    ///
-    /// ## Network Behavior
-    ///
-    /// Makes a single HTTP GET request to the provider's `jwks_uri` endpoint.
-    /// The response is expected to be a valid JWK Set containing one or more
-    /// cryptographic keys.
-    ///
-    /// ## Processing Strategy
-    ///
-    /// - **Parallel Processing**: Keys are processed concurrently with a maximum
-    ///   concurrency of 4 to avoid overwhelming the system
-    /// - **Atomic Operation**: Either all keys are successfully cached, or the
-    ///   entire operation fails
-    /// - **Key Validation**: Each key must have a valid `kid` and be convertible
-    ///   to a `DecodingKey`
-    ///
-    /// ## Error Handling
-    ///
-    /// This method fails fast - if any individual key cannot be processed, the
-    /// entire operation is aborted. This ensures cache consistency and prevents
-    /// partial updates that could lead to unpredictable validation behavior.
-    ///
-    /// ## Cache Updates
-    ///
-    /// All successfully processed keys are inserted into the cache with the
-    /// configured TTL (1 hour). Existing cached keys are not removed, allowing
-    /// for overlapping key validity periods during key rotation.
+    /// Processes keys concurrently with max concurrency of 4.
     async fn fetch_keys(&self) -> Result<Vec<(String, DecodingKey)>, Error> {
         let jwks = self
             .client
@@ -415,18 +361,12 @@ pub struct OpenIDProviderConfiguration {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mock::WithWellKnown;
-    use mock_server::MockServer;
 
     #[tokio::test]
     async fn test_discovery_fails_when_server_is_unreachable() {
-        // Arrange an unreachable url
         let oidc_url = "https://anvil.acme/.well-known/openid-configuration".to_owned();
-
-        // Act the call to the OpenID discover method
         let result = OpenID::discover(reqwest::Client::new(), &oidc_url).await;
 
-        // Assert the result
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
@@ -434,16 +374,17 @@ mod tests {
         ));
     }
 
+    #[cfg(feature = "mock")]
     #[tokio::test]
     async fn test_discovery_fails_when_the_metadata_is_unparsable() {
-        // Arrange a mock server that ooesnt serve valid well-known configuration
+        use crate::mock::WithWellKnown;
+        use mock_server::MockServer;
+
         let server = MockServer::new().await;
         let url = format!("{}/.well-known/openid-configuration", &server.url());
 
-        // Act the call to the OpenID discover method
         let result = OpenID::discover(reqwest::Client::new(), &url).await;
 
-        // Assert the result
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
@@ -451,30 +392,28 @@ mod tests {
         ));
     }
 
+    #[cfg(feature = "mock")]
     #[tokio::test]
     async fn test_discovery_works_with_a_valid_server() {
-        // Arrange a mock oidc server that expose valid metadata
+        use crate::mock::WithWellKnown;
+        use mock_server::MockServer;
+
         let server = MockServer::new().await.with_well_known();
         let url = format!("{}/.well-known/openid-configuration", &server.url());
 
-        // Act the call to the OpenID discover method
         let result = OpenID::discover(reqwest::Client::new(), &url).await;
 
-        // Assert the result
         assert!(result.is_ok());
     }
 
     #[cfg(feature = "mock")]
     #[tokio::test]
     async fn test_validate_token() {
-        // Arrange a mock oidc server
         let openid = OpenID::mock().await;
         let token = OpenID::token("wile.coyote@acme.org");
 
-        // Act the call to the validate_token method
         let result = openid.validate_token(&token).await;
 
-        // Assert the result
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap().claims.email.unwrap(),

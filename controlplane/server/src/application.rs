@@ -13,7 +13,6 @@ use crate::config::Config;
 use crate::error::Error;
 use crate::router::Router;
 use crate::server::{Server, TraceLayer};
-use auth::AuthenticationLayer;
 use std::future::Future;
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic_web::GrpcWebLayer;
@@ -120,8 +119,7 @@ impl Application<Identity> {
 ///
 /// This represents the full middleware stack that will be applied to the
 /// server, composed on top of the existing layer `L`.
-type Middleware<L> =
-    Stack<AuthenticationLayer, Stack<GrpcWebLayer, Stack<CorsLayer, Stack<TraceLayer, L>>>>;
+type Middleware<L> = Stack<GrpcWebLayer, Stack<CorsLayer, Stack<TraceLayer, L>>>;
 
 impl<L> Application<L> {
     /// Adds the complete middleware stack to the application server.
@@ -174,8 +172,7 @@ impl<L> Application<L> {
                     self.config.allow_origin,
                     self.config.expose_headers,
                 )
-                .with_web()
-                .with_authentication(self.config.authz, self.config.openid),
+                .with_web(),
         }
     }
 
