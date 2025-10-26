@@ -1,7 +1,7 @@
 import { test as base } from "@playwright/test";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { minBy } from "lodash";
-import { configureResolver, instance, Instance, Organization, Project, ServiceMode, Services } from "@france-nuage/sdk";
+import { configureResolver, instance, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services } from "@france-nuage/sdk";
 import { createUser } from "@/oidc";
 import { User } from '@/types';
 import { ComputePage, HomePage, LoginPage, OidcPage } from "./pages";
@@ -37,6 +37,11 @@ type WorkerFixtures = {
    * The instance will then be destroyed on 
    */
   instance: (instance: Partial<Instance>) => Promise<Instance>;
+
+  /**
+   * Provides a `KeycloakApi` instance.
+   */
+  keycloak: KeyCloakApi;
 
   /**
    * Provides the test organization.
@@ -101,6 +106,19 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       ...instance(),
       projectId: project.id,
     }));
+  }, { scope: 'worker' }],
+
+  /**
+   * @inheritdoc
+   */
+  keycloak: [({ }, use) => {
+    const url = process.env["KEYCLOAK_URL"] || 'https://keycloak.test';
+    const admin = {
+      username: process.env["KEYCLOAK_ADMIN"] || 'admin',
+      password: process.env["KEYCLOAK_ADMIN_PASSWORD"] || 'admin',
+    };
+
+    use(new KeyCloakApi(url, admin));
   }, { scope: 'worker' }],
 
   /**
