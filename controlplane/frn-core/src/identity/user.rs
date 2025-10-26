@@ -50,6 +50,24 @@ impl User {
         .fetch_optional(pool)
         .await
     }
+
+    pub async fn find_or_create_one_by_email(
+        pool: &Pool<Postgres>,
+        email: &str,
+    ) -> Result<User, sqlx::Error> {
+        let maybe_user = User::find_one_by_email(pool, email).await?;
+
+        match maybe_user {
+            Some(user) => Ok(user),
+            None => {
+                User::factory()
+                    .id(Uuid::new_v4())
+                    .email(email.to_owned())
+                    .create(pool)
+                    .await
+            }
+        }
+    }
 }
 
 impl Principal for User {

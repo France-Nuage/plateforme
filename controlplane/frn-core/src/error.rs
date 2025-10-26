@@ -13,6 +13,9 @@ pub enum Error {
     #[error("internal: {0}")]
     AuthorizationServerError(spicedb::Error),
 
+    #[error("authentication error: {0}")]
+    AuthenticationServerError(#[from] auth::Error),
+
     /// Database operation failed.
     #[error("{0}")]
     Database(#[from] sqlx::Error),
@@ -20,9 +23,6 @@ pub enum Error {
     /// Authorization check failed - access denied.
     #[error("forbidden")]
     Forbidden,
-
-    #[error("authentication: {0}")]
-    Identity(#[from] jsonwebtoken::errors::Error),
 
     #[error("other: {0}")]
     Other(String),
