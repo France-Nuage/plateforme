@@ -22,12 +22,13 @@ export const logout = createAsyncThunk<void, void>(
 );
 
 // todo: OIDCUser is a class, not an object, which does not serialize, so we parse it to smth better for redux
-export function parseOidcUser(user: OIDCUser) {
+export function parseOidcUser(user: OIDCUser): { token: string; user: User } {
   if (
     !user.id_token ||
     !user.profile ||
     !user.profile.email ||
-    !user.profile.name
+    !user.profile.given_name ||
+    !user.profile.family_name
   ) {
     throw new Error('Error: user format is not valid.');
   }
@@ -35,7 +36,8 @@ export function parseOidcUser(user: OIDCUser) {
     token: user.id_token,
     user: {
       email: user.profile.email,
-      name: user.profile.name,
+      firstName: user.profile.given_name,
+      lastName: user.profile.family_name,
       picture: user.profile.picture,
     },
   };
@@ -72,7 +74,8 @@ export const authenticationSlice = createSlice({
 
       state.user = {
         email: action.payload.user.email,
-        name: action.payload.user.name,
+        firstName: action.payload.user.firstName,
+        lastName: action.payload.user.lastName,
         picture: action.payload.user.picture,
       };
     },
