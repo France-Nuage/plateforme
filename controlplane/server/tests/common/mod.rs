@@ -80,11 +80,17 @@ impl Api {
         let server_url = format!("http://{}", config.addr);
         let shutdown = server::serve(config).await?;
 
+        let service_account = ServiceAccount::factory()
+            .key("nvki8xsDG6lKng3jXrSX9p7Il3XKs9UBegqzdisT".to_owned())
+            .create(pool)
+            .await
+            .expect("could not create service account");
+
         Ok(Self {
             compute: Compute::create(&server_url).await?,
             resourcemanager: ResourceManager::create(&server_url).await?,
             mock_server,
-            service_account: ServiceAccount::default(),
+            service_account,
             shutdown: Some(shutdown),
         })
     }
