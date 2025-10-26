@@ -17,7 +17,7 @@ type TestFixtures = {
     login: LoginPage;
   };
 
-  actingAs: (user: Partial<User>) => Promise<void>;
+  actingAs: (user?: Partial<User>) => Promise<void>;
 }
 
 /**
@@ -75,13 +75,14 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   /**
    * @inheritdoc
    */
-  actingAs: async ({ page, organization }, use) => {
+  actingAs: async ({ keycloak, page }, use) => {
     await use(async (user) => {
       // compute key/value pair for session storage representation of the user
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
-      const value = await createUser(user);
+      const value = await keycloak.createUser(user);
       // define the session storage value in the context of the page
       await page.addInitScript(([key, value]) => {
+        console.log(`serializing under '${key}' ...`, value);
         sessionStorage.setItem(key, value)
       }, [key, JSON.stringify(value)]);
     });

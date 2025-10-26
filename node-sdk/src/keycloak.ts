@@ -35,28 +35,31 @@ export class KeyCloakApi {
     const token = (await this.getUserToken(this.admin, 'master')).access_token;
     const newUser = { ...user({ password: 'password' }), ...data };
 
-    const response = await fetch(`${this.url}/admin/realms/${this.realm}/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+    const response = await fetch(
+      `${this.url}/admin/realms/${realm ?? this.realm}/users`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username: newUser.username,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          enabled: true,
+          emailVerified: true,
+          credentials: [
+            {
+              type: 'password',
+              value: newUser.password,
+              temporary: false,
+            },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        username: newUser.username,
-        email: newUser.email,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        enabled: true,
-        emailVerified: true,
-        credentials: [
-          {
-            type: 'password',
-            value: newUser.password,
-            temporary: false,
-          },
-        ],
-      }),
-    });
+    );
 
     if (!response.ok) {
       throw new Error(`could not create user -- ${await response.text()}`);
