@@ -17,10 +17,16 @@ definition project {
 	permission get = parent->get
 }
 
-definition instance {
-	relation project: project
+definition hypervisor {
+  relation parent: organization
 
-	permission get = project->get
+  permission get = parent->get
+}
+
+definition instance {
+	relation parent: project
+
+	permission get = parent->get
   permission start = get
   permission stop = get
 }

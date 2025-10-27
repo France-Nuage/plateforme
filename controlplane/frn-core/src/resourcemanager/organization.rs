@@ -1,6 +1,6 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
-use crate::identity::ServiceAccount;
+use crate::identity::{ServiceAccount, User};
 use database::{Factory, Persistable, Repository};
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
@@ -75,6 +75,22 @@ impl<A: Authorize> Organizations<A> {
         Ok(())
     }
 
+    pub async fn add_user(
+        &mut self,
+        organization: &Organization,
+        user: &User,
+    ) -> Result<(), Error> {
+        // Create the associated in the relational database
+        sqlx::query!("INSERT INTO organization_user(organization_id, user_id) VALUES ($1, $2) ON CONFLICT (organization_id, user_id) DO NOTHING", organization.id(), user.id()).execute(&self.db).await?;
+
+        // Create the relation for dispatch in the authorization database
+        Relationship::new(user, Relation::Member, organization)
+            .publish(&self.db)
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn initialize_root_organization(
         &mut self,
         organization_name: String,
@@ -98,6 +114,21 @@ impl<A: Authorize> Organizations<A> {
                     .await?
             }
         };
+
+        // Create the default project for the root organization
+        sqlx::query!(
+            r#"
+            INSERT INTO projects (name, organization_id) 
+            SELECT 'unattributed', $1
+            WHERE NOT EXISTS (
+                SELECT 1 FROM projects 
+                WHERE name = 'unattributed' AND organization_id = $1
+            )
+            "#,
+            &organization.id
+        )
+        .execute(&self.db)
+        .await?;
 
         Ok(organization)
     }

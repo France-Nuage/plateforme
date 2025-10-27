@@ -107,7 +107,6 @@ mod tests {
         let result = vm_network_interfaces(&server.url(), &client, "", "pve-node1", 100).await;
 
         // Assert the result
-        println!("result: {:#?}", &result);
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),

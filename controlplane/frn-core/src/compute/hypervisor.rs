@@ -1,6 +1,7 @@
 use crate::Error;
-use crate::authorization::{Authorize, Permission, Principal, Resource};
+use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::compute::ZoneFactory;
+use crate::resourcemanager::Organization;
 use database::{Factory, Persistable, Repository};
 use frn_core::resourcemanager::OrganizationFactory;
 use sqlx::{FromRow, Pool, Postgres};
@@ -83,15 +84,27 @@ impl<Auth: Authorize> Hypervisors<Auth> {
         //     .check()
         //     .await?;
 
-        Hypervisor::factory()
+        let hypervisor = Hypervisor::factory()
             .storage_name(request.storage_name)
             .url(request.url)
             .authorization_token(request.authorization_token)
             .zone_id(request.zone_id)
             .organization_id(request.organization_id)
             .create(&self.db)
-            .await
-            .map_err(Into::into)
+            .await?;
+
+        Relationship::new(
+            &Organization {
+                id: request.organization_id,
+                ..Default::default()
+            },
+            Relation::Parent,
+            &hypervisor,
+        )
+        .publish(&self.db)
+        .await?;
+
+        Ok(hypervisor)
     }
 
     pub async fn read<P: Principal>(

@@ -1,6 +1,6 @@
 import { user } from './fixtures/user';
 import { User } from './models';
-import { TokenResponse } from './types';
+import { TokenResponse, UserInfoResponse } from './types';
 
 export class KeyCloakApi {
   /** The Keycloak admin credentials. */
@@ -93,6 +93,22 @@ export class KeyCloakApi {
         password: this.admin.password,
       }),
     }).then((data) => data.json());
+  }
+
+  /**
+   * Get the user info.
+   */
+  public async getUserInfo(token: string): Promise<UserInfoResponse> {
+    return fetch(
+      `${this.url}/realms/${this.realm}/protocol/openid-connect/userinfo`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    ).then((data) => data.json());
   }
 
   /**

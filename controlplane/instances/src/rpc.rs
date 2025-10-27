@@ -25,13 +25,7 @@ impl<Auth: Authorize + 'static> Instances for InstancesRpcService<Auth> {
         &self,
         request: tonic::Request<CreateInstanceRequest>,
     ) -> Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
-        println!("before fetching principal: {:?}", &request);
-        let principal = self
-            .iam
-            .principal(&request)
-            .await
-            .inspect_err(|e| println!("caught error: {:?}", &e))?;
-        println!("fetched principal: {:?}", &principal);
+        let principal = self.iam.principal(&request).await?;
 
         let request = request.into_inner();
         let project_id = Uuid::parse_str(&request.project_id)
