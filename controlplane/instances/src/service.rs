@@ -192,10 +192,13 @@ impl<Auth: Authorize> InstancesService<Auth> {
 
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
-        connector
-            .delete(&instance.distant_id)
-            .await
-            .map_err(Error::from)
+        connector.delete(&instance.distant_id).await?;
+
+        sqlx::query!("DELETE FROM instances WHERE id = $1", instance.id)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn start<P: Principal>(&self, principal: &P, id: Uuid) -> Result<(), Error> {
