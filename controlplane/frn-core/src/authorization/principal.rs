@@ -6,8 +6,9 @@
 
 use crate::{authorization::Resource, resourcemanager::Organization};
 use sqlx::{Pool, Postgres};
+use std::fmt::Debug;
 
-pub trait Principal: Resource + Send + Sync {
+pub trait Principal: Resource + Debug + Send + Sync {
     /// Retrieve all organizations associated with this principal
     fn organizations(
         &self,

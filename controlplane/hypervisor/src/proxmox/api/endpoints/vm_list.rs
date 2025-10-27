@@ -55,7 +55,6 @@ mod tests {
         let client = reqwest::Client::new();
         let server = MockServer::new().await.with_vm_list();
         let result = vm_list(&server.url(), &client, "", "pve-node1").await;
-        println!("{:?}", result);
 
         assert!(result.is_ok());
     }

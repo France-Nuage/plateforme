@@ -8,7 +8,7 @@ use crate::{
     Error,
     authorization::{Authorize, Permission, Principal, Resource},
     identity::User,
-    resourcemanager::Organization,
+    resourcemanager::{Organization, Organizations},
 };
 
 #[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
@@ -58,14 +58,19 @@ impl From<InvitationState> for String {
 }
 
 #[derive(Clone)]
-pub struct Invitations<Auth: Authorize> {
-    auth: Auth,
+pub struct Invitations<A: Authorize> {
+    auth: A,
     db: Pool<Postgres>,
+    organizations: Organizations<A>,
 }
 
-impl<Auth: Authorize> Invitations<Auth> {
-    pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
-        Self { auth, db }
+impl<A: Authorize> Invitations<A> {
+    pub fn new(auth: A, db: Pool<Postgres>, organizations: Organizations<A>) -> Self {
+        Self {
+            auth,
+            db,
+            organizations,
+        }
     }
 
     pub async fn list<P: Principal>(&mut self, principal: &P) -> Result<Vec<Invitation>, Error> {
@@ -89,12 +94,29 @@ impl<Auth: Authorize> Invitations<Auth> {
             .over::<Organization>(&organization_id)
             .await?;
 
-        Invitation::factory()
+        let organization = sqlx::query_as!(
+            Organization,
+            "SELECT * FROM organizations WHERE id = $1",
+            organization_id
+        )
+        .fetch_one(&self.db)
+        .await?;
+
+        let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", user_id)
+            .fetch_one(&self.db)
+            .await?;
+
+        // Create the invitation and mark it as accepted
+        let invitation = Invitation::factory()
             .state(InvitationState::Accepted)
-            .organization_id(organization_id)
-            .user_id(user_id)
+            .organization_id(*organization.id())
+            .user_id(*user.id())
             .create(&self.db)
-            .await
-            .map_err(Into::into)
+            .await?;
+
+        // Add the user to the organization
+        self.organizations.add_user(&organization, &user).await?;
+
+        Ok(invitation)
     }
 }

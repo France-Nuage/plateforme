@@ -2,7 +2,7 @@ schemaFile: "./schema.zed"
 relationships: |-
   folder:locomotion#parent@folder:innovation
   folder:innovation#parent@organization:acme
-  instance:anvil01#project@project:rocket-shoes
+  instance:anvil01#parent@project:rocket-shoes
   organization:acme#member@user:wile_coyote
   project:rocket-shoes#parent@folder:locomotion
 assertTrue: |-

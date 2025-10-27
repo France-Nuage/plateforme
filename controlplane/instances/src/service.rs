@@ -117,12 +117,12 @@ impl<Auth: Authorize> InstancesService<Auth> {
 
         for instance in &instances {
             Relationship::new(
-                instance,
-                Relation::BelongsToProject,
                 &Project {
                     id: instance.project_id,
                     ..Default::default()
                 },
+                Relation::Parent,
+                instance,
             )
             .publish(&self.pool)
             .await?;
@@ -187,8 +187,11 @@ impl<Auth: Authorize> InstancesService<Auth> {
         let hypervisor = self
             .hypervisors
             .read(principal, instance.hypervisor_id)
-            .await?;
+            .await
+            .inspect_err(|err| println!("received error from hp read: {:#?}", err))?;
+
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
+
         connector
             .delete(&instance.distant_id)
             .await

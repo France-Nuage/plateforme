@@ -73,7 +73,6 @@ impl<Auth: Authorize + 'static> invitations_server::Invitations for Invitations<
         request: Request<CreateInvitationRequest>,
     ) -> Result<Response<CreateInvitationResponse>, Status> {
         let principal = self.iam.principal(&request).await?;
-        println!("operating on behalf of principal {:?}", &principal);
 
         let CreateInvitationRequest {
             email,

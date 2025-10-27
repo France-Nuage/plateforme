@@ -381,6 +381,8 @@ services:
       dockerfile: Dockerfile.synchronizer
       target: ${TARGET:-development}
     depends_on:
+      keycloak:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       postgres-migrate:
@@ -390,13 +392,19 @@ services:
       zed:
         condition: service_completed_successfully
     environment:
+      CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
+      SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
+    extra_hosts:
+      - "keycloak.test:host-gateway"
     volumes:
       - ./controlplane:/app
       - /app/target
+      - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
 
   system-tests:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
@@ -407,6 +415,8 @@ services:
       context: .
       dockerfile: system-tests/Dockerfile
     depends_on:
+      authz-worker:
+        condition: service_started
       console:
         condition: service_healthy
       controlplane:
@@ -416,6 +426,8 @@ services:
       playwright:
         condition: service_started
       traefik:
+        condition: service_started
+      synchronizer:
         condition: service_started
     environment:
       CONSOLE_URL: ${CONSOLE_URL:-https://console.test}

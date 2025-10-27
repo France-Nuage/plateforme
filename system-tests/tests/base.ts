@@ -2,7 +2,6 @@ import { test as base } from "@playwright/test";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { minBy } from "lodash";
 import { configureResolver, instance, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services } from "@france-nuage/sdk";
-import { createUser } from "@/oidc";
 import { User } from '@/types';
 import { ComputePage, HomePage, LoginPage, OidcPage } from "./pages";
 
@@ -75,16 +74,19 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   /**
    * @inheritdoc
    */
-  actingAs: async ({ keycloak, page }, use) => {
+  actingAs: async ({ keycloak, organization, page, services }, use) => {
     await use(async (user) => {
       // compute key/value pair for session storage representation of the user
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
-      const value = await keycloak.createUser(user);
+      const payload = await keycloak.createUser(user);
+      const userinfo = await keycloak.getUserInfo(payload.access_token);
+      await services.invitation.create({ organizationId: organization.id, email: userinfo.email });
+
       // define the session storage value in the context of the page
       await page.addInitScript(([key, value]) => {
         console.log(`serializing under '${key}' ...`, value);
         sessionStorage.setItem(key, value)
-      }, [key, JSON.stringify(value)]);
+      }, [key, JSON.stringify(payload)]);
     });
   },
 
@@ -208,6 +210,10 @@ export { expect } from "@playwright/test";
 const elect = (instances: Instance[]) => {
   // extract templates from the instances list.
   const templates = instances.filter((instance) => /^pve\d+-test\d+-template$/.test(instance.name));
+
+  if (templates.length === 0) {
+    throw new Error('no electable templates');
+  }
 
   // create a dictionary of template-instance association
   const dictionary: Record<string, { template: Instance, instance?: Instance }> = templates.reduce((acc, curr) => ({

@@ -7,6 +7,9 @@ pub enum Error {
     #[error("Distant instance #{0} not found.")]
     DistantInstanceNotFound(String),
 
+    #[error("forbidden")]
+    Forbidden,
+
     #[error("Instance {0} not found.")]
     InstanceNotFound(Uuid),
 
@@ -51,7 +54,10 @@ impl From<sqlx::Error> for Error {
 /// Converts a `hypervisors::Problem` into a `instance::Problem`.
 impl From<frn_core::Error> for Error {
     fn from(value: frn_core::Error) -> Self {
-        Error::Other(Box::new(value))
+        match value {
+            frn_core::Error::Forbidden => Error::Forbidden,
+            _ => Error::Other(Box::new(value)),
+        }
     }
 }
 

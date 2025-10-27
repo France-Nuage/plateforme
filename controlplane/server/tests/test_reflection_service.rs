@@ -81,6 +81,12 @@ async fn test_reflection_service_lists_services(
             "Projects service should be discoverable via reflection. Found: {:?}",
             service_names
         );
+
+        assert!(
+            service_names.iter().any(|name| name.contains("Instances")),
+            "Instances service should be discoverable via reflection. Found: {:?}",
+            service_names
+        );
     } else {
         panic!("Expected ListServicesResponse, got: {:?}", response);
     }
@@ -208,6 +214,14 @@ async fn test_reflection_v1alpha_service_lists_services(
                 .iter()
                 .any(|name| name.contains("Organizations")),
             "Organizations service should be discoverable via v1alpha reflection. Found: {:?}",
+            service_names
+        );
+
+        assert!(
+            service_names
+                .iter()
+                .any(|name| name.contains("Instances")),
+            "Instances service should be discoverable via v1alpha reflection. Found: {:?}",
             service_names
         );
 
