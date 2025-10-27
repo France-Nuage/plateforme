@@ -15,6 +15,7 @@ use crate::{
     identity::{IAM, Invitations, ServiceAccounts, Users},
     resourcemanager::{Organizations, Projects},
 };
+use auth::OpenID;
 use spicedb::SpiceDB;
 use sqlx::{PgPool, Pool, Postgres};
 
@@ -28,6 +29,7 @@ pub struct App<Auth: Authorize> {
     pub config: Config,
     pub db: Pool<Postgres>,
     pub iam: IAM,
+    pub openid: OpenID,
 
     // services
     pub hypervisors: Hypervisors<Auth>,
@@ -49,7 +51,10 @@ impl App<SpiceDB> {
         let config = Config::from_env()?;
         let auth = SpiceDB::connect(&config.auth_server_url, &config.auth_server_token).await?;
         let db = PgPool::connect(&config.database_url).await?;
-        let iam = IAM::new(db.clone());
+        let openid = OpenID::discover(reqwest::Client::new(), &config.oidc_url)
+            .await
+            .map_err(|err| Error::Other(err.to_string()))?;
+        let iam = IAM::new(db.clone(), openid.clone());
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone());
@@ -64,6 +69,7 @@ impl App<SpiceDB> {
             config,
             db,
             iam,
+            openid,
             hypervisors,
             invitations,
             organizations,
@@ -82,7 +88,8 @@ impl App<SpiceDB> {
     pub async fn test(db: Pool<Postgres>) -> Result<Self, Error> {
         let auth = SpiceDB::mock().await;
         let config = Config::test();
-        let iam = IAM::new(db.clone());
+        let openid = OpenID::mock().await;
+        let iam = IAM::new(db.clone(), openid.clone());
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone());
@@ -97,6 +104,7 @@ impl App<SpiceDB> {
             config,
             db,
             iam,
+            openid,
             hypervisors,
             invitations,
             organizations,

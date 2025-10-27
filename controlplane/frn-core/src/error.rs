@@ -13,6 +13,9 @@ pub enum Error {
     #[error("internal: {0}")]
     AuthorizationServerError(spicedb::Error),
 
+    #[error("authentication error: {0}")]
+    AuthenticationServerError(#[from] auth::Error),
+
     /// Database operation failed.
     #[error("{0}")]
     Database(#[from] sqlx::Error),

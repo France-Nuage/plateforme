@@ -34,42 +34,51 @@ export const UserProvider: FunctionComponent<UserProviderProps> = ({
 
   // Attempt to retrieve the persisted user, then mark the app as loaded
   useEffect(() => {
-    userManager
-      .getUser()
-      .then(async (user) => {
-        // No user found: fresh state, user has never logged in or was previously cleared
-        if (!user) {
-          return dispatch(clearAuthenticationState());
-        }
-        // User exists and tokens are still valid: dispatch to store
-        if (user && !user.expired) {
-          return dispatch(setOIDCUser(parseOidcUser(user)));
-        }
-        // User exists but tokens are expired: attempt silent refresh (common after browser restart)
-        if (user && user.expired) {
-          return userManager
-            .signinSilent()
-            .then((user) => {
-              if (user) {
-                dispatch(setOIDCUser(parseOidcUser(user)));
-              } else {
-                // Silent refresh returned null - throw error to trigger centralized cleanup
-                throw new Error('Silent refresh returned null user');
-              }
-            })
-            .catch(() => {
-              // Centralized cleanup: Remove the expired user from storage and clear auth state
-              userManager.removeUser();
-              dispatch(clearAuthenticationState());
-            });
-        }
-        // todo: should never reach that point
-        throw new Error(`Unexpected user state: ${JSON.stringify(user)}`);
+    pickAction()
+      .then((action) => dispatch(action))
+      .catch((error) => {
+        console.error('[UserProvider] Failed to load user:', error);
+        toaster.create({
+          description: error?.message || String(error),
+          title: 'Authentication Error',
+          type: 'error',
+        });
       })
-      .catch((error) => toaster.create({ title: error }))
       .finally(() => setUserRetrieved(true));
   }, [dispatch]);
 
   // Render the remaining tree only after user retrieval
   return isUserStateRetrieved ? children : null;
 };
+
+async function pickAction() {
+  const user = await userManager.getUser();
+
+  // No user found: fresh state, user has never logged in or was previously cleared
+  if (!user) {
+    return clearAuthenticationState();
+  }
+
+  // Check if user needs refresh (expired or missing profile data)
+  const needsRefresh =
+    user.expired ||
+    !user.profile ||
+    !user.profile.email ||
+    !user.profile.given_name ||
+    !user.profile.family_name;
+
+  // User needs refresh (expired or missing profile): attempt silent signin
+  if (needsRefresh) {
+    const refreshedUser = await userManager.signinSilent();
+    if (refreshedUser) {
+      return setOIDCUser(parseOidcUser(refreshedUser));
+    } else {
+      // Cleanup: Remove the expired/incomplete user from storage and clear auth state
+      userManager.removeUser();
+      return clearAuthenticationState();
+    }
+  }
+
+  // User exists and is complete: dispatch to store
+  return setOIDCUser(parseOidcUser(user));
+}

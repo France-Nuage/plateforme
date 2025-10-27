@@ -6,22 +6,31 @@
 export type User = {
   /**
    * The user email.
-   *
-   * Requires the "email" scope.
    */
   email: string;
 
   /**
-   * The user name.
-   *
-   * Requires the "profile" scope.
+   * The user first name.
    */
-  name?: string;
+  firstName: string;
+
+  /**
+   * The user last name.
+   */
+  lastName: string;
+
+  /**
+   * The user password, can be set on edition.
+   */
+  password?: string;
 
   /**
    * The user profile picture.
-   *
-   * Requires the "profile" scope.
    */
   picture?: string;
+
+  /**
+   * The user username.
+   */
+  username?: string;
 };

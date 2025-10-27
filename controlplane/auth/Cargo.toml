@@ -17,7 +17,6 @@ mock = [
 [dependencies]
 base64 = { version = "0.22", optional = true }
 chrono = { version = "0.4", features = ["serde"] }
-frn-core = { path = "../frn-core" }
 derive-auth = { path = "../derive-auth" }
 database = { path = "../database" }
 futures = "0.3"

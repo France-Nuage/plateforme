@@ -7,7 +7,6 @@
 //! remaining flexible for production deployments.
 
 use crate::error::Error;
-use auth::{Authz, OpenID};
 use frn_core::App;
 use mock_server::MockServer;
 use spicedb::SpiceDB;
@@ -74,8 +73,6 @@ pub struct Config {
     /// [`AllowOrigin::any()`]: https://docs.rs/tower-http/latest/tower_http/cors/struct.AllowOrigin.html#method.any
     pub allow_origin: AllowOrigin,
 
-    pub authz: Authz,
-
     /// CORS configuration specifying which response headers are exposed to client scripts.
     ///
     /// This field controls the `Access-Control-Expose-Headers` header in HTTP responses.
@@ -89,8 +86,6 @@ pub struct Config {
     /// This field provides the PostgreSQL connection pool that will be shared across
     /// all services for performing persistent storage operations.
     pub pool: Pool<Postgres>,
-
-    pub openid: OpenID,
 }
 
 impl Config {
@@ -130,19 +125,14 @@ impl Config {
             .await
             .expect("could not bootstrap app");
 
-        let authz = Authz::mock().await;
-        let openid = OpenID::mock().await;
-
         Ok(Config {
             app,
             addr,
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
             allow_origin: AllowOrigin::any(),
-            authz,
             expose_headers: ExposeHeaders::any(),
             pool: pool.clone(),
-            openid,
         })
     }
 
@@ -172,22 +162,9 @@ impl Config {
     pub async fn from_env() -> Result<Self, Error> {
         let app = App::new().await.expect("could not bootstrap app");
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        let oidc_url = env::var("OIDC_URL").expect("OIDC_URL must be set");
         let pool = sqlx::PgPool::connect(&database_url)
             .await
             .expect("could not connect to database");
-
-        let client = reqwest::Client::new();
-        let openid = OpenID::discover(client, &oidc_url)
-            .await
-            .expect("could not fetch oidc configuration");
-
-        let spicedb_addr = env::var("SPICEDB_URL").expect("SPICEDB_URL must be set");
-        let spicedb_preshared_key =
-            env::var("SPICEDB_GRPC_PRESHARED_KEY").expect("SPICEDB_GRPC_PRESHARED_KEY must be set");
-        let authz = Authz::connect(spicedb_addr, spicedb_preshared_key)
-            .await
-            .expect("could not connect to authz server");
 
         Ok(Config {
             app,
@@ -195,10 +172,8 @@ impl Config {
             allow_headers: AllowHeaders::any(),
             allow_methods: AllowMethods::any(),
             allow_origin: AllowOrigin::any(),
-            authz,
             expose_headers: ExposeHeaders::any(),
             pool,
-            openid,
         })
     }
 

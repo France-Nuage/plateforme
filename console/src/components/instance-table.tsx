@@ -176,10 +176,7 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
     start: (
       <IconButton
         aria-label="start instance"
-        onClick={() => {
-          console.log('coucou');
-          dispatch(startInstance(row.original.id));
-        }}
+        onClick={() => dispatch(startInstance(row.original.id))}
       >
         <HiPlay />
       </IconButton>

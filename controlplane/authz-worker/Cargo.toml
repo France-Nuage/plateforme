@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-auth = { path = "../auth" }
+frn-core = { path = "../frn-core" }
+spicedb = { path = "../spicedb" }
 sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls"] }
 tokio = { version = "1.0", features = ["rt-multi-thread", "time", "macros"] }
 tracing = "0.1"

@@ -23,23 +23,6 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-
-      // Alphabetical sorting rules
-      'sort-keys': [
-        'error',
-        'asc',
-        {
-          caseSensitive: false,
-          natural: true,
-          minKeys: 2,
-        },
-      ],
-      'sort-vars': [
-        'error',
-        {
-          ignoreCase: true,
-        },
-      ],
       '@typescript-eslint/member-ordering': [
         'error',
         {

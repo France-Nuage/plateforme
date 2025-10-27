@@ -7,16 +7,18 @@ use crate::{
     Error,
     identity::{Principal, ServiceAccount, User},
 };
+use auth::OpenID;
 use sqlx::{Pool, Postgres};
 
 #[derive(Clone)]
 pub struct IAM {
     pub db: Pool<Postgres>,
+    pub identity: OpenID,
 }
 
 impl IAM {
-    pub fn new(db: Pool<Postgres>) -> Self {
-        Self { db }
+    pub fn new(db: Pool<Postgres>, identity: OpenID) -> Self {
+        Self { db, identity }
     }
 
     pub async fn principal<T>(&self, request: &tonic::Request<T>) -> Result<Principal, Error> {
@@ -40,10 +42,20 @@ impl IAM {
             return Ok(Principal::ServiceAccount(service_account));
         }
 
-        self.user(Some(token)).await.map(Principal::User)
+        self.user(token).await.map(Principal::User)
     }
 
-    async fn user(&self, _access_token: Option<String>) -> Result<User, Error> {
-        Ok(User::default())
+    async fn user(&self, access_token: String) -> Result<User, Error> {
+        let email = self
+            .identity
+            .validate_token(&access_token)
+            .await?
+            .claims
+            .email
+            .ok_or(auth::Error::MissingEmailClaim)?;
+
+        User::find_or_create_one_by_email(&self.db, &email)
+            .await
+            .map_err(Into::into)
     }
 }

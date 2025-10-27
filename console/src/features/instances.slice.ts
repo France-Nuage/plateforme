@@ -31,10 +31,9 @@ export const startInstance = createAsyncThunk<
   string,
   string,
   { extra: ExtraArgument }
->('instances/start', (id, { extra }) => {
-  console.log('start dispatched');
-  return extra.services.instance.start(id).then(() => id);
-});
+>('instances/start', (id, { extra }) =>
+  extra.services.instance.start(id).then(() => id),
+);
 
 export const stopInstance = createAsyncThunk<
   string,
