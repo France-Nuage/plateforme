@@ -1,6 +1,6 @@
 use crate::{error::Error, model::Instance, repository};
 use database::Persistable;
-use frn_core::authorization::{Authorize, Principal, Relation, Relationship};
+use frn_core::authorization::{Authorize, Principal, Relation, Relationship, Resource};
 use frn_core::compute::{Hypervisor, Hypervisors};
 use frn_core::resourcemanager::{Project, Projects};
 use futures::{StreamExt, TryStreamExt, stream};
@@ -117,10 +117,7 @@ impl<Auth: Authorize> InstancesService<Auth> {
 
         for instance in &instances {
             Relationship::new(
-                &Project {
-                    id: instance.project_id,
-                    ..Default::default()
-                },
+                &Project::some(instance.project_id),
                 Relation::Parent,
                 instance,
             )

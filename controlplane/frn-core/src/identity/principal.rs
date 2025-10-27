@@ -31,6 +31,11 @@ impl Resource for Principal {
             Self::User(_) => User::NAME,
         }
     }
+
+    #[allow(refining_impl_trait)]
+    fn some(_id: Self::Id) -> User {
+        panic!("`some()` should not be called on the `Principal` enum")
+    }
 }
 
 impl frn_core::authorization::Principal for Principal {

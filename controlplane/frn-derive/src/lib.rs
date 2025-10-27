@@ -14,6 +14,10 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
     let struct_ident = &input.ident;
     let resource_name = struct_ident.to_string().to_snake_case();
 
+    // Generate the companion struct name: [StructName]Resource
+    let companion_ident =
+        syn::Ident::new(&format!("{}Resource", struct_ident), struct_ident.span());
+
     // Extract the type of the `id` field
     let id_type = match &input.data {
         Data::Struct(data) => match &data.fields {
@@ -29,9 +33,36 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
     };
 
     quote! {
+        pub struct #companion_ident {
+            id: #id_type,
+        }
+
+        impl frn_core::authorization::Resource for #companion_ident {
+            type Id = #id_type;
+            const NAME: &'static str = #resource_name;
+
+            #[allow(refining_impl_trait)]
+            fn some(id: Self::Id) -> #companion_ident {
+                #companion_ident { id }
+            }
+
+            fn id(&self) -> &Self::Id {
+                &self.id
+            }
+
+            fn name(&self) -> &'static str {
+                Self::NAME
+            }
+        }
+
         impl frn_core::authorization::Resource for #struct_ident {
             type Id = #id_type;
             const NAME: &'static str = #resource_name;
+
+            #[allow(refining_impl_trait)]
+            fn some(id: Self::Id) -> #companion_ident {
+                #companion_ident::some(id)
+            }
 
             fn id(&self) -> &Self::Id {
                 &self.id
@@ -62,9 +93,18 @@ mod tests {
         let output = make_derive(input);
 
         let expected = quote! {
-            impl frn_core::authorization::Resource for Anvil {
+            pub struct AnvilResource {
+                id: String,
+            }
+
+            impl frn_core::authorization::Resource for AnvilResource {
                 type Id = String;
                 const NAME: &'static str = "anvil";
+
+                #[allow(refining_impl_trait)]
+                fn some(id: Self::Id) -> AnvilResource {
+                    AnvilResource { id }
+                }
 
                 fn id(&self) -> &Self::Id {
                     &self.id
@@ -73,7 +113,24 @@ mod tests {
                 fn name(&self) -> &'static str {
                     Self::NAME
                 }
+            }
 
+            impl frn_core::authorization::Resource for Anvil {
+                type Id = String;
+                const NAME: &'static str = "anvil";
+
+                #[allow(refining_impl_trait)]
+                fn some(id: Self::Id) -> AnvilResource {
+                    AnvilResource::some(id)
+                }
+
+                fn id(&self) -> &Self::Id {
+                    &self.id
+                }
+
+                fn name(&self) -> &'static str {
+                    Self::NAME
+                }
             }
         };
         assert_eq!(output.to_string(), expected.to_string());
