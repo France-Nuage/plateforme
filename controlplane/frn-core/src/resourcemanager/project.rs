@@ -58,6 +58,7 @@ impl<Auth: Authorize> Projects<Auth> {
         //     .await?;
 
         Project::factory()
+            .id(Uuid::new_v4())
             .name(request.name)
             .organization_id(request.organization_id)
             .create(&self.db)

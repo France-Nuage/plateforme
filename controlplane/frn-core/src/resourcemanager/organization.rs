@@ -53,6 +53,7 @@ impl<A: Authorize> Organizations<A> {
         //     .await?;
 
         Organization::factory()
+            .id(Uuid::new_v4())
             .name(name)
             .create(connection)
             .await
