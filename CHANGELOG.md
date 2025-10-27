@@ -1,3 +1,15 @@
+# [1.45.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.44.0...v1.45.0) (2025-10-27)
+
+
+### Bug Fixes
+
+* inviting a user creates a relationship ([3743a69](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3743a69a2572b71bb3f5e4e861bf285258bb69dc))
+
+
+### Features
+
+* controlplane can interface with keycloak ([b388cd7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b388cd78db10a5e2c03f0a00054e5b7c0530d74f))
+
 # [1.44.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.43.0...v1.44.0) (2025-10-25)
 
 
