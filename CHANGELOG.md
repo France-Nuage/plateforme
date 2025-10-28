@@ -1,3 +1,17 @@
+# [1.46.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.45.0...v1.46.0) (2025-10-28)
+
+
+### Bug Fixes
+
+* delete instance in database after dropping it from hypervisor ([4c26f57](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4c26f57d37c682167f0c7222bbf7655fc78deb2d))
+* organization and project are created with a random id ([177a2ed](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/177a2ed73c55742f00c05198b40f17c1f25d6027))
+
+
+### Features
+
+* add associated function `some` to the `Resource` trait ([e1fe4db](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/e1fe4db06c3e933b8bc4890902a7714bba50584a))
+* add parent_id relation ([283d1b8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/283d1b82e782987953faa0210791d78aa76c333a))
+
 # [1.45.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.44.0...v1.45.0) (2025-10-27)
 
 
