@@ -14,6 +14,8 @@ pub struct Organization {
     pub id: Uuid,
     /// The organization name
     pub name: String,
+    /// The organization parent, if any
+    pub parent_id: Option<Uuid>,
     /// Creation time of the organization
     pub created_at: chrono::DateTime<chrono::Utc>,
     /// Last update time of the organization
@@ -45,6 +47,7 @@ impl<A: Authorize> Organizations<A> {
         connection: &Pool<Postgres>,
         _principal: &P,
         name: String,
+        parent_id: Option<Uuid>,
     ) -> Result<Organization, Error> {
         // self.auth
         //     .can(principal)
@@ -55,6 +58,7 @@ impl<A: Authorize> Organizations<A> {
         Organization::factory()
             .id(Uuid::new_v4())
             .name(name)
+            .parent_id(parent_id)
             .create(connection)
             .await
             .map_err(Into::into)

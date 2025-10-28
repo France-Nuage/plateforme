@@ -73,6 +73,10 @@ export interface CreateOrganizationRequest {
    * @generated from protobuf field: string name = 1
    */
   name: string;
+  /**
+   * @generated from protobuf field: optional string parent_id = 2
+   */
+  parentId?: string;
 }
 /**
  * @generated from protobuf message francenuage.fr.resourcemanager.v1.CreateOrganizationResponse
@@ -251,6 +255,18 @@ class CreateOrganizationRequest$Type extends MessageType<CreateOrganizationReque
               maxLen: '64',
               pattern: '^[a-zA-Z0-9_\\- ]+$',
             },
+          },
+        },
+      },
+      {
+        no: 2,
+        name: 'parent_id',
+        kind: 'scalar',
+        opt: true,
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
           },
         },
       },

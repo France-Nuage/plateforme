@@ -11,9 +11,14 @@ export type Organization = {
    * The organization name.
    */
   name: string;
+
+  /**
+   * The organization parent id, if any.
+   */
+  parentId?: string;
 };
 
 /**
  * The organization form creation/update value.
  */
-export type OrganizationFormValue = Pick<Organization, 'name'>;
+export type OrganizationFormValue = Pick<Organization, 'name' | 'parentId'>;

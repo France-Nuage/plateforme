@@ -22,6 +22,11 @@
         "ordinal": 3,
         "name": "updated_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "parent_id",
+        "type_info": "Uuid"
       }
     ],
     "parameters": {
@@ -33,7 +38,8 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
   "hash": "824b286f84da55472eb3f6e2352312ad4b1fe79e530819fa629b4922676e81c0"

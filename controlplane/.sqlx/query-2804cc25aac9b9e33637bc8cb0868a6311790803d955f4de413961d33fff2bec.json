@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE organizations SET name = $2, created_at = $3, updated_at = $4 WHERE id = $1 RETURNING id, name, created_at, updated_at",
+  "query": "INSERT INTO organizations (id, name, parent_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, parent_id, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -15,11 +15,16 @@
       },
       {
         "ordinal": 2,
+        "name": "parent_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -28,6 +33,7 @@
       "Left": [
         "Uuid",
         "Text",
+        "Uuid",
         "Timestamptz",
         "Timestamptz"
       ]
@@ -35,9 +41,10 @@
     "nullable": [
       false,
       false,
+      true,
       false,
       false
     ]
   },
-  "hash": "9e2129f6e76f73c7dc03533749db36105356023e329278173463c2dc8f755f18"
+  "hash": "2804cc25aac9b9e33637bc8cb0868a6311790803d955f4de413961d33fff2bec"
 }

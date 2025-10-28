@@ -75,12 +75,16 @@ impl<Auth: Authorize + 'static> organizations_server::Organizations for Organiza
     ) -> Result<Response<CreateOrganizationResponse>, Status> {
         let principal = self.iam.principal(&request).await?;
 
-        let CreateOrganizationRequest { name } = request.into_inner();
+        let CreateOrganizationRequest { name, parent_id } = request.into_inner();
+
+        let parent_id = parent_id
+            .map(|value| Uuid::parse_str(&value).map_err(|_| Status::invalid_argument("")))
+            .transpose()?;
 
         let organization = self
             .organizations
             .clone()
-            .create_organization(&self.pool, &principal, name)
+            .create_organization(&self.pool, &principal, name, parent_id)
             .await?;
 
         Ok(tonic::Response::new(

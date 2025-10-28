@@ -201,6 +201,10 @@ table "organizations" {
     null = false
     type = text
   }
+  column "parent_id" {
+    null = true
+    type = uuid
+  }
   column "created_at" {
     null    = false
     type    = timestamptz
@@ -213,6 +217,12 @@ table "organizations" {
   }
   primary_key {
     columns = [column.id]
+  }
+    foreign_key "organizations_parent_id_fkey" {
+    columns     = [column.parent_id]
+    ref_columns = [table.organizations.column.id]
+    on_update   = NO_ACTION
+    on_delete   = SET_NULL
   }
 }
 table "organization_service_account" {
