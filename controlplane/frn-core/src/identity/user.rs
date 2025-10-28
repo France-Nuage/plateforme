@@ -109,6 +109,7 @@ impl<Auth: Authorize> Users<Auth> {
 
     pub async fn create<P: Principal>(&self, _principal: &P, email: String) -> Result<User, Error> {
         User::factory()
+            .id(Uuid::new_v4())
             .email(email)
             .is_admin(false)
             .create(&self.db)

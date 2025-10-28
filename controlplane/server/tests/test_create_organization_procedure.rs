@@ -16,6 +16,7 @@ async fn test_the_create_organization_procedure_works(
     // Act the request to the test_the_status_procedure_works
     let request = Request::new(CreateOrganizationRequest {
         name: String::from("ACME"),
+        parent_id: None,
     })
     .on_behalf_of(&api.service_account);
     let response = api.resourcemanager.organizations.create(request).await;

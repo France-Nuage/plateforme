@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, created_at, updated_at FROM organizations",
+  "query": "UPDATE organizations SET name = $2, parent_id = $3, created_at = $4, updated_at = $5 WHERE id = $1 RETURNING id, name, parent_id, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -15,24 +15,36 @@
       },
       {
         "ordinal": 2,
+        "name": "parent_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
     },
     "nullable": [
       false,
       false,
+      true,
       false,
       false
     ]
   },
-  "hash": "8d443162898a5ca1efd96dbf9c3f4a1f8b36ba3505850bc7320beb85030c0c39"
+  "hash": "d180fcf8a7a6870588b3a697168d1abaf111260df72ba5e91c6b3034bbf6641b"
 }

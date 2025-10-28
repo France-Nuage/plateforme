@@ -21,9 +21,7 @@ export class OrganizationRpcService implements OrganizationService {
   /** @inheritdoc */
   public create(data: OrganizationFormValue): Promise<Organization> {
     return this.client
-      .create({
-        name: data.name,
-      })
+      .create(data)
       .response.then(({ organization }) => fromRpcOrganization(organization!));
   }
 
