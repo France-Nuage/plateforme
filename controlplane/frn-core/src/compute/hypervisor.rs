@@ -94,10 +94,7 @@ impl<Auth: Authorize> Hypervisors<Auth> {
             .await?;
 
         Relationship::new(
-            &Organization {
-                id: request.organization_id,
-                ..Default::default()
-            },
+            &Organization::some(request.organization_id),
             Relation::Parent,
             &hypervisor,
         )

@@ -6,6 +6,9 @@ pub trait Resource {
     /// Resource type name used in authorization checks
     const NAME: &'static str;
 
+    /// Create a lightweight resource reference from an ID
+    fn some(id: Self::Id) -> impl Resource<Id = Self::Id>;
+
     /// Get the resource's identifier
     fn id(&self) -> &Self::Id;
 
