@@ -86,9 +86,6 @@ export const instancesSlice = createSlice({
         instance.status = InstanceStatus.Staging;
       }
     });
-    builder.addCase(startInstance.rejected, (state, action) => {
-      console.log('my action has been rejected', state, action);
-    });
     builder.addCase(stopInstance.fulfilled, (state, action) => {
       state.instances.find(
         (instance) => instance.id === action.payload,

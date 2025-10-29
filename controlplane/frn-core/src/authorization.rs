@@ -16,6 +16,7 @@ mod permission;
 mod principal;
 mod relationship;
 mod resource;
+mod zookie;
 
 pub use authorize::*;
 pub use frn_derive::*;
@@ -23,3 +24,4 @@ pub use permission::*;
 pub use principal::*;
 pub use relationship::*;
 pub use resource::*;
+pub use zookie::*;
