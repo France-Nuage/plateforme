@@ -1,4 +1,4 @@
-use database::{Factory, Persistable, Repository};
+use fabrique::{Factory, Persistable};
 use sqlx::{FromRow, Pool, Postgres};
 use std::str::FromStr;
 use strum_macros::{Display, EnumString, IntoStaticStr};
@@ -11,10 +11,10 @@ use crate::{
     resourcemanager::{Organization, Organizations},
 };
 
-#[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
+#[derive(Debug, Default, Factory, FromRow, Persistable, Resource)]
 pub struct Invitation {
     /// The invitation id
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
 
     /// The organization this invitation refers to

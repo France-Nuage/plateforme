@@ -8,6 +8,7 @@ async-trait = "0.1"
 auth = { path = "../auth", features = ["mock"] }
 chrono = "0.4"
 database = { path = "../database" }
+fabrique = { version = "0.1", path = "../../../../robinstraub/fabrique/fabrique" }
 frn-derive = { path = "../frn-derive" }
 futures = "0.3"
 http = "1.3"

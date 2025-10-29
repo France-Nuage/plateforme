@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 bytes = "1"
+fabrique = "0.1"
 frn-core = { path = "../frn-core" }
 frn-rpc = { path = "../frn-rpc" }
 http = "1"

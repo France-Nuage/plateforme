@@ -1,15 +1,15 @@
 use crate::Error;
 use crate::authorization::{Authorize, Principal};
 use crate::resourcemanager::Organization;
-use database::{Factory, Persistable, Repository};
+use fabrique::{Factory, Persistable};
 use frn_derive::Resource;
 use sqlx::{Pool, Postgres, types::chrono};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, Repository, Resource)]
+#[derive(Debug, Default, Factory, Persistable, Resource)]
 pub struct User {
     /// Unique identifier for the user
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
 
     /// The user email
@@ -76,7 +76,7 @@ impl Principal for User {
         &self,
         connection: &Pool<Postgres>,
     ) -> Result<Vec<Organization>, crate::Error> {
-        Organization::list(connection).await.map_err(Into::into)
+        Organization::all(connection).await.map_err(Into::into)
     }
 }
 

@@ -1,16 +1,16 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::identity::{ServiceAccount, User};
-use database::{Factory, Persistable, Repository};
+use fabrique::{Factory, Persistable};
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
+#[derive(Debug, Default, Factory, FromRow, Persistable, Resource)]
 pub struct Organization {
     /// The organization id
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
     /// The organization name
     pub name: String,

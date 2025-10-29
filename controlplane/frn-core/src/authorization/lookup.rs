@@ -1,15 +1,8 @@
-use std::{
-    future::{Future, IntoFuture},
-    marker::PhantomData,
-    pin::Pin,
-};
-
-use database::Persistable;
-
-use crate::{
-    Error,
-    authorization::{Authorize, Permission, Principal, Resource},
-};
+use crate::Error;
+use crate::authorization::{Authorize, Permission, Principal, Resource};
+use fabrique::Persistable;
+use std::future::{Future, IntoFuture};
+use std::{marker::PhantomData, pin::Pin};
 
 /// Typestate after specifying the resource type
 pub struct LookupWithResource<A: Authorize, R: Resource + Persistable> {
@@ -129,7 +122,7 @@ impl<'a, A: Authorize + 'a, P: Principal, R: Resource + Persistable> IntoFuture
                 )
                 .await?;
 
-            let models = R::list(self.connection)
+            let models = R::all(self.connection)
                 .await
                 .map_err(|_| Error::Other("persistence layer failure".to_owned()))?
                 .into_iter()
