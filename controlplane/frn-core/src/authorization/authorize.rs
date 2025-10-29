@@ -1,7 +1,7 @@
 use crate::Error;
-use crate::authorization::Relationship;
 use crate::authorization::lookup::LookupWithResource;
 use crate::authorization::{Principal, Resource, check::CheckWithPrincipal};
+use crate::authorization::{Relationship, Zookie};
 use database::Persistable;
 use spicedb::SpiceDB;
 
@@ -29,7 +29,7 @@ pub trait Authorize: Clone + Send + Sync {
     fn write_relationship(
         &mut self,
         relationship: &Relationship,
-    ) -> impl Future<Output = Result<(), Error>>;
+    ) -> impl Future<Output = Result<Option<Zookie>, Error>>;
 
     /// Start a permission check with a principal
     fn can<'a, P: Principal>(&self, principal: &'a P) -> CheckWithPrincipal<'a, Self, P> {
@@ -79,7 +79,10 @@ impl Authorize for SpiceDB {
             .map_err(Into::into)
     }
 
-    async fn write_relationship(&mut self, relationship: &Relationship) -> Result<(), Error> {
+    async fn write_relationship(
+        &mut self,
+        relationship: &Relationship,
+    ) -> Result<Option<Zookie>, Error> {
         self.write_relationship(
             relationship.subject_type.clone(),
             relationship.subject_id.clone(),
@@ -88,6 +91,7 @@ impl Authorize for SpiceDB {
             relationship.object_id.clone(),
         )
         .await
+        .map(|token| token.map(Into::into))
         .map_err(Into::into)
     }
 }

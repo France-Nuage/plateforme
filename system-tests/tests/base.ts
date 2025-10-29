@@ -1,7 +1,7 @@
 import { test as base } from "@playwright/test";
 import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { minBy } from "lodash";
-import { configureResolver, instance, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services } from "@france-nuage/sdk";
+import { configureResolver, instance, transport, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services } from "@france-nuage/sdk";
 import { User } from '@/types';
 import { ComputePage, HomePage, LoginPage, OidcPage } from "./pages";
 
@@ -16,7 +16,16 @@ type TestFixtures = {
     login: LoginPage;
   };
 
-  actingAs: (user?: Partial<User>) => Promise<void>;
+  /**
+   * Acts as the requested user.
+   *
+   * This function:
+   * 1. creates a user on the controlplane,
+   * 2. invites the created user to the test organization,
+   * 3. logs the created user in into the web console through session storage,
+   * 4. instantiates an authenticated `Services` and returns it.
+   */
+  actingAs: (user?: Partial<User>) => Promise<Services>;
 }
 
 /**
@@ -77,16 +86,16 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   actingAs: async ({ keycloak, organization, page, services }, use) => {
     await use(async (user) => {
       // compute key/value pair for session storage representation of the user
+      await new Promise(resolve => setTimeout(resolve, 3000));
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
       const payload = await keycloak.createUser(user);
       const userinfo = await keycloak.getUserInfo(payload.access_token);
       await services.invitation.create({ organizationId: organization.id, email: userinfo.email });
 
       // define the session storage value in the context of the page
-      await page.addInitScript(([key, value]) => {
-        console.log(`serializing under '${key}' ...`, value);
-        sessionStorage.setItem(key, value)
-      }, [key, JSON.stringify(payload)]);
+      await page.addInitScript(([key, value]) => sessionStorage.setItem(key, value), [key, JSON.stringify(payload)]);
+
+      return configureResolver(transport('https://controlplane.test', payload.access_token))[ServiceMode.Rpc];
     });
   },
 
@@ -128,30 +137,18 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   organization: [async ({ services }, use) => {
-    services.organization.create({ name: 'ACME' }).then(use)
+    const rootOrganization = (await services.organization.list()).find((organization) => organization.name === (process.env.ROOT_ORGANIZATION_NAME ?? 'acme'));
+    services.organization.create({ name: 'ACME', parentId: rootOrganization?.id }).then(use);
   }, { scope: 'worker' }],
 
   /**
    * @inheritdoc
    */
   production: [async ({ }, use) => {
-    const transport = new GrpcWebFetchTransport({
-      baseUrl: 'https://controlplane.france-nuage.fr', interceptors: [
-        {
-          interceptUnary(next, method, input, options) {
-            return next(method, input, {
-              ...options,
-              meta: {
-                ...options.meta,
-                'Authorization': `Bearer ${process.env.PRODUCTION_CONTROLPLANE_TOKEN}`,
-              }
-            });
-          }
-        }
-      ]
-    });
-    // @ts-ignore
-    const services = configureResolver(transport)[ServiceMode.Rpc];
+    if (!process.env.PRODUCTION_CONTROLPLANE_TOKEN) {
+      throw new Error('missing env var PRODUCTION_CONTROLPLANE_TOKEN');
+    }
+    const services = configureResolver(transport('https://controlplane.france-nuage.fr', process.env.PRODUCTION_CONTROLPLANE_TOKEN))[ServiceMode.Rpc];
 
     await use(services);
   }, { scope: 'worker' }],
@@ -170,6 +167,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   services: [async ({ production }, use) => {
+    if (!process.env.ROOT_SERVICE_ACCOUNT_KEY) {
+      throw new Error('missing env var ROOT_SERVICE_ACCOUNT_KEY');
+    }
     // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
     console.log('retrieving or registering dev hypervisor...');
 
@@ -192,16 +192,18 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     await production.instance.start(clone.id);
 
     console.log('registering the proxmox clone as a hypervisor...');
-    const transport = new GrpcWebFetchTransport({ baseUrl: 'https://controlplane.test' });
-    // @ts-ignore
-    const services = configureResolver(transport)[ServiceMode.Rpc];
+    const services = configureResolver(transport('https://controlplane.test', process.env.ROOT_SERVICE_ACCOUNT_KEY))[ServiceMode.Rpc];
 
     await use(services);
 
     // cleanup
     console.log('\n\ntests done, cleaning up...');
-    await services.instance.stop(clone.id);
-    await services.instance.remove(clone.id);
+    console.log('stopping test hypervisor...');
+    await production.instance.stop(clone.id);
+    console.log('removing test hypervisor...');
+    await production.instance.remove(clone.id);
+    console.log('cleanup done!');
+
   }, { scope: 'worker', timeout: 1200000 }],
 });
 
@@ -220,7 +222,7 @@ const elect = (instances: Instance[]) => {
     ...acc,
     [curr.name]: {
       template: curr,
-      instance: instances.find((instance) => instance.name === `Copy-of-VM-${curr.name}`),
+      instance: instances.find((instance) => instance.name === `Copy - of - VM - ${curr.name}`),
     }
   }), {});
 

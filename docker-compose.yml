@@ -143,6 +143,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
+      ROOT_ORGANIZATION_NAME: ${ROOT_ORGANIZATION_NAME:-acme}
       ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:-qDOiI0B686hr0wN479q7jmOQ6nYtSUsq}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       RUST_LOG: ${RUST_LOG:-info}
@@ -450,6 +451,8 @@ services:
       PROXMOX_TEST_URL: ${PROXMOX_TEST_URL:-https://pve01-test01.france-nuage.fr}
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
       PW_TEST_HTML_REPORT_OPEN: never
+      ROOT_ORGANIZATION_NAME: ${ROOT_ORGANIZATION_NAME:-acme}
+      ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:-qDOiI0B686hr0wN479q7jmOQ6nYtSUsq}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
       SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt

@@ -63,7 +63,6 @@ export function applyAuthenticationHeader(
 export function handleRpcError(error: RpcError, store: AppStore) {
   error.message = decodeURIComponent(error.message);
   error = mapUnregisteredErrorToAlphaVersionContextualError(error);
-  console.log(error.message);
   notify(error.code, error.message);
   switch (error.code) {
     case 'UNAUTHENTICATED':
@@ -111,7 +110,6 @@ function mapUnregisteredErrorToAlphaVersionContextualError(error: RpcError) {
     const email = match[1];
     error.code = 'ACCESS DENIED';
     error.message = `Email "${email}" is not registered. Contact support@france-nuage.fr for alpha access.`;
-    console.log(`found email: ${email}`);
   }
 
   return error;

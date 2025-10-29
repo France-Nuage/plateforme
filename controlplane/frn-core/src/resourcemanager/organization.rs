@@ -55,13 +55,36 @@ impl<A: Authorize> Organizations<A> {
         //     .over(&Organization::any())
         //     .await?;
 
-        Organization::factory()
+        tracing::info!(
+            "received request to create organization with name '{}' and parent id '{:?}'",
+            &name,
+            &parent_id
+        );
+
+        // Create the organization
+        let organization = Organization::factory()
             .id(Uuid::new_v4())
             .name(name)
             .parent_id(parent_id)
             .create(connection)
-            .await
-            .map_err(Into::into)
+            .await?;
+
+        // Create the parent relationship if specified
+        if let Some(parent_id) = parent_id {
+            let parent = sqlx::query_as!(
+                Organization,
+                "SELECT * FROM organizations WHERE id = $1",
+                parent_id
+            )
+            .fetch_one(&self.db)
+            .await?;
+
+            Relationship::new(&parent, Relation::Parent, &organization)
+                .publish(&self.db)
+                .await?;
+        }
+
+        Ok(organization)
     }
 
     pub async fn add_service_account(

@@ -12,7 +12,7 @@ use crate::api::v1::{
     permissions_service_client::PermissionsServiceClient,
 };
 use crate::api::v1::{
-    LookupResourcesRequest, Relationship, RelationshipUpdate, WriteRelationshipsRequest,
+    LookupResourcesRequest, Relationship, RelationshipUpdate, WriteRelationshipsRequest, ZedToken,
 };
 use crate::mock::SpiceDBServer;
 use std::str::FromStr;
@@ -143,7 +143,7 @@ impl SpiceDB {
         relation: String,
         object_type: String,
         object_id: String,
-    ) -> Result<(), Error> {
+    ) -> Result<Option<ZedToken>, Error> {
         let request = Request::new(WriteRelationshipsRequest {
             optional_preconditions: vec![],
             updates: vec![RelationshipUpdate {
@@ -169,7 +169,7 @@ impl SpiceDB {
         self.client
             .write_relationships(request)
             .await
-            .map(|_| ())
+            .map(|response| response.into_inner().written_at)
             .map_err(Into::into)
     }
 }

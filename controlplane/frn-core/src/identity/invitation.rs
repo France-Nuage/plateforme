@@ -108,6 +108,7 @@ impl<A: Authorize> Invitations<A> {
 
         // Create the invitation and mark it as accepted
         let invitation = Invitation::factory()
+            .id(Uuid::new_v4())
             .state(InvitationState::Accepted)
             .organization_id(*organization.id())
             .user_id(*user.id())
