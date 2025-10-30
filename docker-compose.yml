@@ -1,7 +1,7 @@
 services:
   atlas:
     # Pin a given, audited version of the latest-alpine tag.
-    image: arigaio/atlas@sha256:591872655a7758a60edcb6a23e60caee2fd3ae3fb08bceb8bc4e095f6d5013b5
+    image: arigaio/atlas@sha256:1cd365ce5aa02cf44479c48ab350a86c3604c4b88f0308bbe7eb52c77886cda9
     depends_on:
       atlas-dev-database:
         condition: service_healthy
@@ -286,7 +286,7 @@ services:
 
   postgres-migrate:
     # Pin a given, audited version of the latest-alpine tag.
-    image: arigaio/atlas@sha256:591872655a7758a60edcb6a23e60caee2fd3ae3fb08bceb8bc4e095f6d5013b5
+    image: arigaio/atlas@sha256:1cd365ce5aa02cf44479c48ab350a86c3604c4b88f0308bbe7eb52c77886cda9
     entrypoint: ["sh", "-c"]
     command:
       - |
