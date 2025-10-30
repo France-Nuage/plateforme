@@ -155,3 +155,65 @@ impl<Auth: Authorize> Instances<Auth> {
         todo!()
     }
 }
+
+impl Instance {
+    pub async fn upsert(
+        pool: &sqlx::PgPool,
+        instances: &[Instance],
+    ) -> Result<Vec<Instance>, sqlx::Error> {
+        // Extract the data into separate vectors
+        let ids: Vec<Uuid> = instances.iter().map(|i| i.id).collect();
+        let hypervisor_ids: Vec<Uuid> = instances.iter().map(|i| i.hypervisor_id).collect();
+        let project_ids: Vec<Uuid> = instances.iter().map(|i| i.project_id).collect();
+        let distant_ids: Vec<String> = instances.iter().map(|i| i.distant_id.clone()).collect();
+        let cpu_usage_percents: Vec<f64> = instances.iter().map(|i| i.cpu_usage_percent).collect();
+        let max_cpu_cores: Vec<i32> = instances.iter().map(|i| i.max_cpu_cores).collect();
+        let max_memory_bytes: Vec<i64> = instances.iter().map(|i| i.max_memory_bytes).collect();
+        let memory_usage_bytes: Vec<i64> = instances.iter().map(|i| i.memory_usage_bytes).collect();
+        let names: Vec<String> = instances.iter().map(|i| i.name.clone()).collect();
+        let statuses: Vec<String> = instances.iter().map(|i| i.status.to_string()).collect();
+        let ip_v4s: Vec<String> = instances.iter().map(|i| i.ip_v4.clone()).collect();
+        let disk_usage_bytes: Vec<i64> = instances.iter().map(|i| i.disk_usage_bytes).collect();
+        let max_disk_bytes: Vec<i64> = instances.iter().map(|i| i.max_disk_bytes).collect();
+
+        sqlx::query_as!(
+        Instance,
+        r#"
+        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
+        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes
+        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
+        ON CONFLICT (id) DO UPDATE
+        SET
+            hypervisor_id = EXCLUDED.hypervisor_id,
+            project_id = EXCLUDED.project_id,
+            distant_id = EXCLUDED.distant_id,
+            cpu_usage_percent = EXCLUDED.cpu_usage_percent,
+            max_cpu_cores = EXCLUDED.max_cpu_cores,
+            max_memory_bytes = EXCLUDED.max_memory_bytes,
+            memory_usage_bytes = EXCLUDED.memory_usage_bytes,
+            name = EXCLUDED.name,
+            status = EXCLUDED.status,
+            ip_v4 = EXCLUDED.ip_v4,
+            disk_usage_bytes = EXCLUDED.disk_usage_bytes,
+            max_disk_bytes = EXCLUDED.max_disk_bytes,
+            updated_at = NOW()
+        RETURNING *
+    "#,
+        &ids,
+        &hypervisor_ids,
+        &project_ids,
+        &distant_ids,
+        &cpu_usage_percents,
+        &max_cpu_cores,
+        &max_memory_bytes,
+        &memory_usage_bytes,
+        &names,
+        &statuses,
+        &ip_v4s,
+        &disk_usage_bytes,
+        &max_disk_bytes,
+    )
+    .fetch_all(pool)
+    .await
+    }
+}

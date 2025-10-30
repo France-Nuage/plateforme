@@ -1,5 +1,4 @@
 use frn_core::App;
-use instances::InstancesService;
 use std::{error::Error, sync::Arc, time::Duration};
 use synchronizer::{heartbeat, synchronize};
 use tokio::{sync::Mutex, time};
@@ -14,9 +13,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     info!("Starting synchronizer service...");
 
-    let app = App::new().await.expect("could not bootstrap app");
-
-    let mut instances_service = InstancesService::new(app.db, app.hypervisors, app.projects);
+    let mut app = App::new().await.expect("could not bootstrap app");
 
     // Setup ticker
     let tick = std::env::var("INTERVAL")
@@ -41,7 +38,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // Call the synchronization process
-        match synchronize(&mut instances_service).await {
+        match synchronize(&mut app).await {
             // If the synchronization worked, trigger a heartbeat if the url is defined
             Ok(_) => heartbeat(&client, &heartbeat_url).await,
             // Otherwise log an error

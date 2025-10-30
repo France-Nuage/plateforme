@@ -3142,9 +3142,13 @@ dependencies = [
 name = "synchronizer"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "frn-core",
- "instances",
+ "futures",
+ "hypervisor",
  "reqwest",
+ "sqlx",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-subscriber",

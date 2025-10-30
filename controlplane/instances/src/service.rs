@@ -139,7 +139,8 @@ impl<Auth: Authorize> InstancesService<Auth> {
             .read(principal, existing.hypervisor_id)
             .await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
-        let new_id = connector.clone(&existing.distant_id).await?;
+        let new_id =
+            hypervisor::instance::Instances::clone(&connector, &existing.distant_id).await?;
 
         let instance = Instance {
             id: Uuid::new_v4(),
