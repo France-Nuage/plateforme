@@ -11,7 +11,7 @@
 use crate::{
     Config, Error,
     authorization::Authorize,
-    compute::{Hypervisors, Zones},
+    compute::{Hypervisors, Instances, Zones},
     identity::{IAM, Invitations, ServiceAccounts, Users},
     resourcemanager::{Organizations, Projects},
 };
@@ -24,21 +24,22 @@ use sqlx::{PgPool, Pool, Postgres};
 /// Generic over `Auth` to support different authorization backends
 /// (SpiceDB in production, mock in tests).
 #[derive(Clone)]
-pub struct App<Auth: Authorize> {
-    pub auth: Auth,
+pub struct App<A: Authorize> {
+    pub auth: A,
     pub config: Config,
     pub db: Pool<Postgres>,
     pub iam: IAM,
     pub openid: OpenID,
 
     // services
-    pub hypervisors: Hypervisors<Auth>,
-    pub invitations: Invitations<Auth>,
-    pub organizations: Organizations<Auth>,
-    pub projects: Projects<Auth>,
-    pub service_accounts: ServiceAccounts<Auth>,
-    pub users: Users<Auth>,
-    pub zones: Zones<Auth>,
+    pub hypervisors: Hypervisors<A>,
+    pub instances: Instances<A>,
+    pub invitations: Invitations<A>,
+    pub organizations: Organizations<A>,
+    pub projects: Projects<A>,
+    pub service_accounts: ServiceAccounts<A>,
+    pub users: Users<A>,
+    pub zones: Zones<A>,
 }
 
 impl App<SpiceDB> {
@@ -58,6 +59,7 @@ impl App<SpiceDB> {
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
+        let instances = Instances::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone(), organizations.clone());
         let projects = Projects::new(auth.clone(), db.clone());
         let service_accounts = ServiceAccounts::new(auth.clone(), db.clone());
@@ -71,6 +73,7 @@ impl App<SpiceDB> {
             iam,
             openid,
             hypervisors,
+            instances,
             invitations,
             organizations,
             projects,
@@ -91,6 +94,7 @@ impl App<SpiceDB> {
         let openid = OpenID::mock().await;
         let iam = IAM::new(db.clone(), openid.clone());
 
+        let instances = Instances::new(auth.clone(), db.clone());
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone(), organizations.clone());
@@ -105,6 +109,7 @@ impl App<SpiceDB> {
             db,
             iam,
             openid,
+            instances,
             hypervisors,
             invitations,
             organizations,

@@ -1477,32 +1477,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "instances"
-version = "0.1.0"
-dependencies = [
- "database",
- "frn-core",
- "frn-rpc",
- "futures",
- "hypervisor",
- "infrastructure",
- "mock_server",
- "prost",
- "prost-types",
- "reqwest",
- "serde",
- "serde_plain",
- "sqlx",
- "thiserror",
- "tokio",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "ipnet"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2696,7 +2670,6 @@ dependencies = [
  "hyper",
  "hypervisor",
  "infrastructure",
- "instances",
  "jsonwebtoken 9.3.1",
  "mock_server",
  "prost",

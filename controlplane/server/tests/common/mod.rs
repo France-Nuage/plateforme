@@ -1,5 +1,6 @@
 use auth::mock::WithWellKnown;
 use frn_core::identity::ServiceAccount;
+use frn_rpc::v1::compute::instances_client::InstancesClient;
 use frn_rpc::v1::{
     compute::hypervisors_client::HypervisorsClient,
     resourcemanager::{organizations_client::OrganizationsClient, projects_client::ProjectsClient},
@@ -9,7 +10,6 @@ use hypervisor::mock::{
     WithVMCreateMock, WithVMDeleteMock, WithVMStatusReadMock, WithVMStatusStartMock,
     WithVMStatusStopMock,
 };
-use instances::v1::instances_client::InstancesClient;
 use mock_server::MockServer;
 use server::{Config, error::Error};
 use sqlx::{Pool, Postgres};
