@@ -4,11 +4,12 @@
 //! and controlling compute instances with authorization checks.
 
 use crate::Error;
-use crate::authorization::{Authorize, Permission, Principal, Resource};
-use crate::compute::HypervisorFactory;
-use crate::resourcemanager::ProjectFactory;
+use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
+use crate::compute::{Hypervisor, HypervisorFactory};
+use crate::resourcemanager::{Project, ProjectFactory};
 use chrono::{DateTime, Utc};
 use database::{Factory, Persistable, Repository};
+use hypervisor::instance::Instances as HypervisorInstancesTrait;
 use hypervisor::instance::Status;
 use sqlx::{FromRow, Pool, Postgres};
 use uuid::Uuid;
@@ -53,9 +54,21 @@ pub struct Instance {
     pub updated_at: DateTime<Utc>,
 }
 
+impl Instance {
+    pub async fn find_one_by_id(pool: &Pool<Postgres>, id: Uuid) -> Result<Instance, sqlx::Error> {
+        sqlx::query_as!(Instance, "SELECT * FROM instances WHERE id = $1", id)
+            .fetch_one(pool)
+            .await
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct InstanceCreateRequest {
     /// The instance unique id.
     pub id: String,
+
+    /// The project to attach the instance to.
+    pub project_id: Uuid,
 
     /// The number of cores per socket.
     pub cores: u8,
@@ -73,16 +86,30 @@ pub struct InstanceCreateRequest {
     pub snippet: String,
 }
 
-/// Service for managing compute instances.
-pub struct Instances<Auth: Authorize> {
-    auth: Auth,
-    _db: Pool<Postgres>,
+impl From<InstanceCreateRequest> for hypervisor::instance::InstanceCreateRequest {
+    fn from(value: InstanceCreateRequest) -> Self {
+        Self {
+            id: value.id,
+            cores: value.cores,
+            disk_image: value.disk_image,
+            memory: value.memory,
+            name: value.name,
+            snippet: value.snippet,
+        }
+    }
 }
 
-impl<Auth: Authorize> Instances<Auth> {
+/// Service for managing compute instances.
+#[derive(Clone, Debug)]
+pub struct Instances<A: Authorize> {
+    auth: A,
+    db: Pool<Postgres>,
+}
+
+impl<A: Authorize> Instances<A> {
     /// Creates a new instances service.
-    pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
-        Self { auth, _db: db }
+    pub fn new(auth: A, db: Pool<Postgres>) -> Self {
+        Self { auth, db }
     }
 
     /// Lists all instances accessible to the principal.
@@ -96,21 +123,57 @@ impl<Auth: Authorize> Instances<Auth> {
         //     .over(&Instance::any())
         //     .check()
         //     .await?;
-        todo!()
+
+        Instance::list(&self.db).await.map_err(Into::into)
     }
 
     /// Creates a new instance.
     pub async fn create<P: Principal + Sync>(
         &mut self,
-        _principal: &P,
-        _request: InstanceCreateRequest,
+        principal: &P,
+        request: InstanceCreateRequest,
     ) -> Result<Instance, Error> {
-        // self.auth
-        //     .can(principal)
-        //     .perform(Permission::Create)
-        //     .over(&Instance::any())
-        //     .await?;
-        todo!()
+        self.auth
+            .can(principal)
+            .perform(Permission::Create)
+            .over::<Project>(&request.project_id)
+            .await?;
+
+        // Select a hypervisor to deploy the instance on.
+        let hypervisors = Hypervisor::list(&self.db).await?;
+        let hypervisor = hypervisors
+            .first()
+            .ok_or_else(|| Error::NoHypervisorsAvailable)?;
+
+        // Create the instance.
+        let api = hypervisor::resolve(
+            hypervisor.url.clone(),
+            hypervisor.authorization_token.clone(),
+        );
+        api.create(request.clone().into()).await?;
+
+        // Save the created instance in database
+        let instance = Instance::factory()
+            .id(Uuid::new_v4())
+            .hypervisor_id(hypervisor.id)
+            .project_id(request.project_id)
+            .distant_id(request.id)
+            .max_cpu_cores(request.cores as i32)
+            .max_memory_bytes(request.memory as i64)
+            .name(request.name)
+            .create(&self.db)
+            .await?;
+
+        // Save the relations
+        Relationship::new(
+            &Project::some(request.project_id),
+            Relation::Parent,
+            &instance,
+        )
+        .publish(&self.db)
+        .await?;
+
+        Ok(instance)
     }
 
     /// Deletes an instance.
@@ -118,13 +181,21 @@ impl<Auth: Authorize> Instances<Auth> {
         &mut self,
         principal: &P,
         id: Uuid,
-    ) -> Result<Instance, Error> {
+    ) -> Result<(), Error> {
         self.auth
             .can(principal)
             .perform(Permission::Delete)
             .over::<Instance>(&id)
             .await?;
-        todo!()
+
+        let instance = Instance::find_one_by_id(&self.db, id).await?;
+        let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
+        let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
+
+        connector
+            .delete(&instance.distant_id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Starts a stopped instance.
@@ -132,13 +203,21 @@ impl<Auth: Authorize> Instances<Auth> {
         &mut self,
         principal: &P,
         id: Uuid,
-    ) -> Result<Instance, Error> {
+    ) -> Result<(), Error> {
         self.auth
             .can(principal)
             .perform(Permission::Start)
             .over::<Instance>(&id)
             .await?;
-        todo!()
+
+        let instance = Instance::find_one_by_id(&self.db, id).await?;
+        let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
+        let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
+
+        connector
+            .start(&instance.distant_id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Stops a running instance.
@@ -146,13 +225,49 @@ impl<Auth: Authorize> Instances<Auth> {
         &mut self,
         principal: &P,
         id: Uuid,
-    ) -> Result<Instance, Error> {
+    ) -> Result<(), Error> {
         self.auth
             .can(principal)
             .perform(Permission::Stop)
             .over::<Instance>(&id)
             .await?;
-        todo!()
+
+        let instance = Instance::find_one_by_id(&self.db, id).await?;
+        let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
+        let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
+
+        connector
+            .stop(&instance.distant_id)
+            .await
+            .map_err(Into::into)
+    }
+
+    /// Stops a running instance.
+    pub async fn clone_instance<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        id: Uuid,
+    ) -> Result<Instance, Error> {
+        self.auth
+            .can(principal)
+            .perform(Permission::Clone)
+            .over::<Instance>(&id)
+            .await?;
+
+        let existing = Instance::find_one_by_id(&self.db, id).await?;
+        let hypervisor = Hypervisor::find_one_by_id(&self.db, existing.hypervisor_id).await?;
+        let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
+
+        let new_id =
+            hypervisor::instance::Instances::clone(&connector, &existing.distant_id).await?;
+
+        let instance = Instance {
+            id: Uuid::new_v4(),
+            distant_id: new_id,
+            ..existing
+        };
+
+        instance.create(&self.db).await.map_err(Into::into)
     }
 }
 

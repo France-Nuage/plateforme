@@ -1,6 +1,8 @@
+use std::time::SystemTime;
+
 use crate::error::Error;
 use frn_core::authorization::Authorize;
-use frn_core::compute::{HypervisorCreateRequest, Hypervisors as Service};
+use frn_core::compute::{HypervisorCreateRequest, Hypervisors as Service, InstanceCreateRequest};
 use frn_core::identity::IAM;
 use sqlx::{Pool, Postgres, types::Uuid};
 use tonic::{Request, Response, Status};
@@ -102,6 +104,155 @@ impl<Auth: Authorize + 'static> hypervisors_server::Hypervisors for Hypervisors<
         Ok(Response::new(RegisterHypervisorResponse {
             hypervisor: Some(hypervisor.into()),
         }))
+    }
+}
+
+#[derive(Clone)]
+pub struct Instances<A: Authorize> {
+    iam: IAM,
+    _pool: Pool<Postgres>,
+    service: frn_core::compute::Instances<A>,
+}
+
+impl<A: Authorize> Instances<A> {
+    pub fn new(iam: IAM, pool: Pool<Postgres>, service: frn_core::compute::Instances<A>) -> Self {
+        Self {
+            iam,
+            _pool: pool,
+            service,
+        }
+    }
+}
+
+impl From<frn_core::compute::Instance> for Instance {
+    fn from(value: frn_core::compute::Instance) -> Self {
+        Self {
+            id: value.id.to_string(),
+            status: InstanceStatus::from(value.status) as i32,
+            max_cpu_cores: value.max_cpu_cores as u32,
+            cpu_usage_percent: value.cpu_usage_percent as f32,
+            max_memory_bytes: value.max_memory_bytes as u64,
+            memory_usage_bytes: value.memory_usage_bytes as u64,
+            max_disk_bytes: value.max_disk_bytes as u64,
+            disk_usage_bytes: value.disk_usage_bytes as u64,
+            name: value.name,
+            ip_v4: value.ip_v4,
+            hypervisor_id: value.hypervisor_id.to_string(),
+            project_id: value.project_id.to_string(),
+            zero_trust_network_id: value.zero_trust_network_id.map(Into::into),
+            created_at: Some(SystemTime::from(value.created_at).into()),
+            updated_at: Some(SystemTime::from(value.updated_at).into()),
+        }
+    }
+}
+
+impl From<hypervisor::instance::Status> for InstanceStatus {
+    fn from(value: hypervisor::instance::Status) -> Self {
+        match value {
+            hypervisor::instance::Status::Running => InstanceStatus::Running,
+            hypervisor::instance::Status::Stopped => InstanceStatus::Stopped,
+            hypervisor::instance::Status::Unknown => InstanceStatus::UndefinedInstanceStatus,
+        }
+    }
+}
+
+#[tonic::async_trait]
+impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> {
+    /// CreateInstance provisions a new instance based on the specified configuration.
+    /// Returns details of the newly created instance or a ProblemDetails on failure.
+    async fn create_instance(
+        &self,
+        request: tonic::Request<CreateInstanceRequest>,
+    ) -> Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
+        let principal = self.iam.principal(&request).await?;
+
+        let request = request.into_inner();
+
+        let request = InstanceCreateRequest {
+            cores: request.cpu_cores as u8,
+            id: "".to_owned(),
+            project_id: Uuid::parse_str(&request.project_id)
+                .map_err(|_| Error::MalformedId(request.project_id))?,
+            disk_image: request.image,
+            memory: request.memory_bytes as u32,
+            name: request.name,
+            snippet: request.snippet,
+        };
+
+        let instance = self.service.clone().create(&principal, request).await?;
+
+        Ok(Response::new(CreateInstanceResponse {
+            instance: Some(instance.into()),
+        }))
+    }
+
+    /// DeleteInstance deletes a given instance.
+    /// Returns an empty message or a ProblemDetails on failure.
+    async fn delete_instance(
+        &self,
+        request: tonic::Request<DeleteInstanceRequest>,
+    ) -> std::result::Result<tonic::Response<DeleteInstanceResponse>, tonic::Status> {
+        let principal = self.iam.principal(&request).await?;
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id))?;
+        self.service.clone().delete(&principal, id).await?;
+        Ok(Response::new(DeleteInstanceResponse {}))
+    }
+
+    /// CloneInstance provisions a new instance based on a given existing instance.
+    /// Returns the cloned instance.
+    async fn clone_instance(
+        &self,
+        request: tonic::Request<CloneInstanceRequest>,
+    ) -> std::result::Result<tonic::Response<Instance>, tonic::Status> {
+        let principal = self.iam.principal(&request).await?;
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id))?;
+
+        let instance = self.service.clone().clone_instance(&principal, id).await?;
+
+        Ok(Response::new(instance.into()))
+    }
+
+    /// ListInstances retrieves information about all available instances.
+    /// Returns a collection of instance details including their current status and resource usage.
+    async fn list_instances(
+        &self,
+        request: Request<ListInstancesRequest>,
+    ) -> Result<Response<ListInstancesResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let instances = self.service.clone().list(&principal).await?;
+
+        Ok(Response::new(ListInstancesResponse {
+            instances: instances.into_iter().map(Into::into).collect(),
+        }))
+    }
+
+    /// StartInstance initiates a specific instance identified by its unique ID.
+    /// Returns a response indicating success or a ProblemDetails on failure.
+    async fn start_instance(
+        &self,
+        request: Request<StartInstanceRequest>,
+    ) -> Result<Response<StartInstanceResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id))?;
+
+        self.service.clone().start(&principal, id).await?;
+        Ok(Response::new(StartInstanceResponse {}))
+    }
+
+    /// StopInstance halts a specific instance identified by its unique ID.
+    /// Returns a response indicating success or a ProblemDetails on failure.
+    async fn stop_instance(
+        &self,
+        request: Request<StopInstanceRequest>,
+    ) -> Result<Response<StopInstanceResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let id = request.into_inner().id;
+        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id))?;
+        self.service.clone().stop(&principal, id).await?;
+        Ok(Response::new(StopInstanceResponse {}))
     }
 }
 

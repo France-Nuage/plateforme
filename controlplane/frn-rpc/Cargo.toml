@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 auth = { path = "../auth" }
 frn-core = { path = "../frn-core" }
+hypervisor = { path = "../hypervisor" }
 http = "1"
 prost = "0.14"
 prost-types = "0.14"

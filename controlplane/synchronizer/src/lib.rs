@@ -82,8 +82,8 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
                         memory_usage_bytes: distant.memory_usage_bytes as i64,
                         name: distant.name,
                         status: distant.status,
-                        created_at: chrono::Utc::now(),
-                        updated_at: chrono::Utc::now(),
+                        created_at: existing.created_at,
+                        updated_at: existing.updated_at,
                     })
                 }
             })
@@ -102,8 +102,6 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
             .publish(&app.db)
             .await?;
         }
-
-        todo!()
     }
 
     Ok(())

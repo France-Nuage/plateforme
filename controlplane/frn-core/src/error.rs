@@ -24,6 +24,9 @@ pub enum Error {
     #[error("forbidden")]
     Forbidden,
 
+    #[error("hypervisor: {0}")]
+    Hypervisor(#[from] hypervisor::Error),
+
     #[error("other: {0}")]
     Other(String),
 
@@ -45,6 +48,9 @@ pub enum Error {
     /// Missing required environment variable.
     #[error("missing required environment variable: {0}")]
     MissingEnvVar(String),
+
+    #[error("no available hypervisors")]
+    NoHypervisorsAvailable,
 }
 
 impl From<spicedb::Error> for Error {

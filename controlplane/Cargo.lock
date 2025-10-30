@@ -865,6 +865,7 @@ dependencies = [
  "auth",
  "frn-core",
  "http",
+ "hypervisor",
  "prost",
  "prost-types",
  "sqlx",
