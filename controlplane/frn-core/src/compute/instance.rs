@@ -64,9 +64,6 @@ impl Instance {
 
 #[derive(Clone, Debug)]
 pub struct InstanceCreateRequest {
-    /// The instance unique id.
-    pub id: String,
-
     /// The project to attach the instance to.
     pub project_id: Uuid,
 
@@ -84,19 +81,6 @@ pub struct InstanceCreateRequest {
 
     /// The Cloud-Init snippet.
     pub snippet: String,
-}
-
-impl From<InstanceCreateRequest> for hypervisor::instance::InstanceCreateRequest {
-    fn from(value: InstanceCreateRequest) -> Self {
-        Self {
-            id: value.id,
-            cores: value.cores,
-            disk_image: value.disk_image,
-            memory: value.memory,
-            name: value.name,
-            snippet: value.snippet,
-        }
-    }
 }
 
 /// Service for managing compute instances.
@@ -150,14 +134,32 @@ impl<A: Authorize> Instances<A> {
             hypervisor.url.clone(),
             hypervisor.authorization_token.clone(),
         );
-        api.create(request.clone().into()).await?;
+        let next_id = ::hypervisor::proxmox::api::cluster_next_id(
+            &hypervisor.url,
+            &reqwest::Client::new(),
+            &hypervisor.authorization_token,
+        )
+        .await
+        .map_err(|_| Error::Other("could not get next id".to_owned()))?
+        .data
+        .to_string();
+
+        api.create(hypervisor::instance::InstanceCreateRequest {
+            id: next_id.clone(),
+            cores: request.cores,
+            disk_image: request.disk_image,
+            memory: request.memory,
+            name: request.name.clone(),
+            snippet: request.snippet,
+        })
+        .await?;
 
         // Save the created instance in database
         let instance = Instance::factory()
             .id(Uuid::new_v4())
             .hypervisor_id(hypervisor.id)
             .project_id(request.project_id)
-            .distant_id(request.id)
+            .distant_id(next_id)
             .max_cpu_cores(request.cores as i32)
             .max_memory_bytes(request.memory as i64)
             .name(request.name)

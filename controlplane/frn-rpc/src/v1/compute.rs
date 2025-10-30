@@ -170,7 +170,6 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
         let request = InstanceCreateRequest {
             cores: request.cpu_cores as u8,
-            id: "".to_owned(),
             project_id: Uuid::parse_str(&request.project_id)
                 .map_err(|_| Error::MalformedId(request.project_id))?,
             disk_image: request.image,
