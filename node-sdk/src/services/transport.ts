@@ -6,13 +6,19 @@ export function transport(url: string, token: string): GrpcWebFetchTransport {
     interceptors: [
       {
         interceptUnary(next, method, input, options) {
-          return next(method, input, {
+          const call = next(method, input, {
             ...options,
             meta: {
               ...options.meta,
               Authorization: `Bearer ${token}`,
             },
           });
+
+          call.response.catch((error) =>
+            console.error(`[RPC] ${method}: ${error}`),
+          );
+
+          return call;
         },
       },
     ],

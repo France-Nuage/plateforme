@@ -27,6 +27,7 @@ definition instance {
 	relation parent: project
 
 	permission get = parent->get
+  permission clone = get
   permission start = get
   permission stop = get
 }
