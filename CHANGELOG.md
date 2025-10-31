@@ -1,3 +1,10 @@
+## [1.46.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.46.0...v1.46.1) (2025-10-31)
+
+
+### Bug Fixes
+
+* define next id ([9c902b2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9c902b27bf98dca2c9cb2dfa5159c17fde91e27b))
+
 # [1.46.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.45.0...v1.46.0) (2025-10-28)
 
 
