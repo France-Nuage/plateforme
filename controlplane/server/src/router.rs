@@ -7,8 +7,10 @@
 
 use frn_core::identity::IAM;
 use frn_rpc::v1::compute::Hypervisors;
+use frn_rpc::v1::compute::Instances;
 use frn_rpc::v1::compute::Zones;
 use frn_rpc::v1::compute::hypervisors_server::HypervisorsServer;
+use frn_rpc::v1::compute::instances_server::InstancesServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::iam::Invitations;
 use frn_rpc::v1::iam::invitations_server::InvitationsServer;
@@ -20,7 +22,6 @@ use infrastructure::ZeroTrustNetworkRpcService;
 use infrastructure::ZeroTrustNetworkTypeRpcService;
 use infrastructure::v1::zero_trust_network_types_server::ZeroTrustNetworkTypesServer;
 use infrastructure::v1::zero_trust_networks_server::ZeroTrustNetworksServer;
-use instances::{InstancesRpcService, v1::instances_server::InstancesServer};
 use spicedb::SpiceDB;
 use sqlx::{Pool, Postgres};
 use tonic::service::Routes;
@@ -80,7 +81,7 @@ impl Router {
         tokio::spawn(async move {
             tokio::join!(
                 health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
-                health_reporter.set_serving::<InstancesServer<InstancesRpcService<SpiceDB>>>(),
+                health_reporter.set_serving::<InstancesServer<Instances<SpiceDB>>>(),
                 health_reporter.set_serving::<InvitationsServer<Invitations<SpiceDB>>>(),
                 health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
                 health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
@@ -133,18 +134,12 @@ impl Router {
         self,
         iam: IAM,
         pool: Pool<Postgres>,
-        hypervisors: frn_core::compute::Hypervisors<SpiceDB>,
-        projects: frn_core::resourcemanager::Projects<SpiceDB>,
+        instances: frn_core::compute::Instances<SpiceDB>,
     ) -> Self {
         Self {
             routes: self
                 .routes
-                .add_service(InstancesServer::new(InstancesRpcService::new(
-                    iam,
-                    pool,
-                    hypervisors,
-                    projects,
-                ))),
+                .add_service(InstancesServer::new(Instances::new(iam, pool, instances))),
         }
     }
 

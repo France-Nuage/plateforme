@@ -1,5 +1,5 @@
-use frn_core::resourcemanager::Organization;
-use instances::{Instance, v1::DeleteInstanceRequest};
+use frn_core::{compute::Instance, resourcemanager::Organization};
+use frn_rpc::v1::compute::DeleteInstanceRequest;
 use tonic::Request;
 
 use crate::common::{Api, OnBehalfOf};

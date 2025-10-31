@@ -12,7 +12,6 @@ members = [
   "derive_factory",
   "derive_repository",
   "infrastructure",
-  "instances",
   "mock_server",
   "server",
   "spicedb",

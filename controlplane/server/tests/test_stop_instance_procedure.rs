@@ -1,6 +1,6 @@
 use crate::common::{Api, OnBehalfOf};
-use frn_core::resourcemanager::Organization;
-use instances::{Instance, v1::StopInstanceRequest};
+use frn_core::{compute::Instance, resourcemanager::Organization};
+use frn_rpc::v1::compute::StopInstanceRequest;
 use sqlx::types::Uuid;
 use tonic::Request;
 

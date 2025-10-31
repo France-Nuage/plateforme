@@ -10,6 +10,19 @@ import type { RpcOptions } from '@protobuf-ts/runtime-rpc';
 import { Zones } from './compute';
 import type { ListZonesResponse } from './compute';
 import type { ListZonesRequest } from './compute';
+import { Instances } from './compute';
+import type { StopInstanceResponse } from './compute';
+import type { StopInstanceRequest } from './compute';
+import type { StartInstanceResponse } from './compute';
+import type { StartInstanceRequest } from './compute';
+import type { DeleteInstanceResponse } from './compute';
+import type { DeleteInstanceRequest } from './compute';
+import type { CreateInstanceResponse } from './compute';
+import type { CreateInstanceRequest } from './compute';
+import type { Instance } from './compute';
+import type { CloneInstanceRequest } from './compute';
+import type { ListInstancesResponse } from './compute';
+import type { ListInstancesRequest } from './compute';
 import { Hypervisors } from './compute';
 import type { DetachHypervisorResponse } from './compute';
 import type { DetachHypervisorRequest } from './compute';
@@ -109,6 +122,192 @@ export class HypervisorsClient implements IHypervisorsClient, ServiceInfo {
     const method = this.methods[2],
       opt = this._transport.mergeOptions(options);
     return stackIntercept<DetachHypervisorRequest, DetachHypervisorResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+}
+/**
+ * Instances service provides operations to manage instances.
+ *
+ * @generated from protobuf service francenuage.fr.v1.compute.Instances
+ */
+export interface IInstancesClient {
+  /**
+   * ListInstances retrieves information about all available instances.
+   *
+   * @generated from protobuf rpc: ListInstances
+   */
+  listInstances(
+    input: ListInstancesRequest,
+    options?: RpcOptions,
+  ): UnaryCall<ListInstancesRequest, ListInstancesResponse>;
+  /**
+   * CloneInstance provisions a new instance based on a given existing instance.
+   *
+   * @generated from protobuf rpc: CloneInstance
+   */
+  cloneInstance(
+    input: CloneInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<CloneInstanceRequest, Instance>;
+  /**
+   * CreateInstance provisions a new instance based on the specified configuration.
+   *
+   * @generated from protobuf rpc: CreateInstance
+   */
+  createInstance(
+    input: CreateInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<CreateInstanceRequest, CreateInstanceResponse>;
+  /**
+   * DeleteInstance deletes a given instance.
+   *
+   * @generated from protobuf rpc: DeleteInstance
+   */
+  deleteInstance(
+    input: DeleteInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<DeleteInstanceRequest, DeleteInstanceResponse>;
+  /**
+   * StartInstance initiates a specific instance identified by its unique ID.
+   *
+   * @generated from protobuf rpc: StartInstance
+   */
+  startInstance(
+    input: StartInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<StartInstanceRequest, StartInstanceResponse>;
+  /**
+   * StopInstance halts a specific instance identified by its unique ID.
+   *
+   * @generated from protobuf rpc: StopInstance
+   */
+  stopInstance(
+    input: StopInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<StopInstanceRequest, StopInstanceResponse>;
+}
+/**
+ * Instances service provides operations to manage instances.
+ *
+ * @generated from protobuf service francenuage.fr.v1.compute.Instances
+ */
+export class InstancesClient implements IInstancesClient, ServiceInfo {
+  typeName = Instances.typeName;
+  methods = Instances.methods;
+  options = Instances.options;
+  constructor(private readonly _transport: RpcTransport) {}
+  /**
+   * ListInstances retrieves information about all available instances.
+   *
+   * @generated from protobuf rpc: ListInstances
+   */
+  listInstances(
+    input: ListInstancesRequest,
+    options?: RpcOptions,
+  ): UnaryCall<ListInstancesRequest, ListInstancesResponse> {
+    const method = this.methods[0],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<ListInstancesRequest, ListInstancesResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * CloneInstance provisions a new instance based on a given existing instance.
+   *
+   * @generated from protobuf rpc: CloneInstance
+   */
+  cloneInstance(
+    input: CloneInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<CloneInstanceRequest, Instance> {
+    const method = this.methods[1],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<CloneInstanceRequest, Instance>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * CreateInstance provisions a new instance based on the specified configuration.
+   *
+   * @generated from protobuf rpc: CreateInstance
+   */
+  createInstance(
+    input: CreateInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<CreateInstanceRequest, CreateInstanceResponse> {
+    const method = this.methods[2],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<CreateInstanceRequest, CreateInstanceResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * DeleteInstance deletes a given instance.
+   *
+   * @generated from protobuf rpc: DeleteInstance
+   */
+  deleteInstance(
+    input: DeleteInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<DeleteInstanceRequest, DeleteInstanceResponse> {
+    const method = this.methods[3],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<DeleteInstanceRequest, DeleteInstanceResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * StartInstance initiates a specific instance identified by its unique ID.
+   *
+   * @generated from protobuf rpc: StartInstance
+   */
+  startInstance(
+    input: StartInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<StartInstanceRequest, StartInstanceResponse> {
+    const method = this.methods[4],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<StartInstanceRequest, StartInstanceResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * StopInstance halts a specific instance identified by its unique ID.
+   *
+   * @generated from protobuf rpc: StopInstance
+   */
+  stopInstance(
+    input: StopInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<StopInstanceRequest, StopInstanceResponse> {
+    const method = this.methods[5],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<StopInstanceRequest, StopInstanceResponse>(
       'unary',
       this._transport,
       method,

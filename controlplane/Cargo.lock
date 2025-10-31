@@ -865,6 +865,7 @@ dependencies = [
  "auth",
  "frn-core",
  "http",
+ "hypervisor",
  "prost",
  "prost-types",
  "sqlx",
@@ -1472,32 +1473,6 @@ dependencies = [
  "tonic",
  "tonic-prost",
  "tonic-prost-build",
- "uuid",
-]
-
-[[package]]
-name = "instances"
-version = "0.1.0"
-dependencies = [
- "database",
- "frn-core",
- "frn-rpc",
- "futures",
- "hypervisor",
- "infrastructure",
- "mock_server",
- "prost",
- "prost-types",
- "reqwest",
- "serde",
- "serde_plain",
- "sqlx",
- "thiserror",
- "tokio",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
- "tracing",
  "uuid",
 ]
 
@@ -2695,7 +2670,6 @@ dependencies = [
  "hyper",
  "hypervisor",
  "infrastructure",
- "instances",
  "jsonwebtoken 9.3.1",
  "mock_server",
  "prost",
@@ -3142,9 +3116,13 @@ dependencies = [
 name = "synchronizer"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "frn-core",
- "instances",
+ "futures",
+ "hypervisor",
  "reqwest",
+ "sqlx",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-subscriber",

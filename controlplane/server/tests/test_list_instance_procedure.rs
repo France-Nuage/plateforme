@@ -1,6 +1,7 @@
 use crate::common::{Api, OnBehalfOf};
+use frn_core::compute::Instance;
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization};
-use instances::{Instance, v1::ListInstancesRequest};
+use frn_rpc::v1::compute::ListInstancesRequest;
 use tonic::Request;
 mod common;
 

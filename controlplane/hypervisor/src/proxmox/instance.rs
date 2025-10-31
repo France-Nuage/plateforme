@@ -5,6 +5,8 @@ use crate::proxmox::api::{
     cluster_resources_list::ResourceType, helpers, vm_clone::VMCloneOptions, vm_create::VMConfig,
 };
 use std::net::Ipv4Addr;
+
+#[derive(Clone)]
 pub struct ProxmoxInstanceService {
     pub api_url: String,
     pub client: reqwest::Client,

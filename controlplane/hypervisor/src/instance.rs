@@ -78,7 +78,7 @@ pub struct InstanceCreateRequest {
     pub snippet: String,
 }
 
-pub trait Instances {
+pub trait Instances: Clone {
     /// Lists all instances.
     fn list(&self) -> impl Future<Output = Result<Vec<Instance>, Error>> + Send;
 

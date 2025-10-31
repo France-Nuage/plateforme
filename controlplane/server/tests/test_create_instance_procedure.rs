@@ -2,8 +2,7 @@ use crate::common::{Api, OnBehalfOf};
 use database::Persistable;
 use frn_core::compute::{Hypervisor, Instance};
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
-use instances::v1::{CreateInstanceRequest, CreateInstanceResponse};
-use sqlx::types::Uuid;
+use frn_rpc::v1::compute::{CreateInstanceRequest, CreateInstanceResponse};
 use tonic::Request;
 
 mod common;
@@ -17,7 +16,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
         .await
         .expect("could not create organization");
 
-    Hypervisor::factory()
+    let hypervisor = Hypervisor::factory()
         .url(api.mock_server.url())
         .for_default_zone()
         .organization_id(organization.id)
@@ -53,10 +52,13 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
     assert_eq!(
         result.unwrap().into_inner(),
         CreateInstanceResponse {
-            instance: Some(instances::v1::Instance {
+            instance: Some(frn_rpc::v1::compute::Instance {
                 id: instance.id.to_string(),
-                hypervisor_id: Uuid::default().to_string(),
-                project_id: Uuid::default().to_string(),
+                max_cpu_cores: 1,
+                max_memory_bytes: 536870912,
+                name: "acme-mgs".to_owned(),
+                hypervisor_id: hypervisor.id.to_string(),
+                project_id: project.id.to_string(),
                 created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
                     instance.created_at
                 ))),
