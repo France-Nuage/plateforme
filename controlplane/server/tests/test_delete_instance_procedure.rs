@@ -34,7 +34,7 @@ async fn test_the_delete_instance_procedure_works(pool: sqlx::PgPool) {
         id: instance.id.to_string(),
     })
     .on_behalf_of(&api.service_account);
-    let response = api.compute.instances.delete_instance(request).await;
+    let response = api.compute.instances.delete(request).await;
 
     // Assert the result
     assert!(response.is_ok());

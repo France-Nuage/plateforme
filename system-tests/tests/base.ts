@@ -1,7 +1,6 @@
 import { test as base } from "@playwright/test";
-import { GrpcWebFetchTransport } from "@protobuf-ts/grpcweb-transport";
 import { minBy } from "lodash";
-import { configureResolver, instance, transport, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services } from "@france-nuage/sdk";
+import { configureResolver, instance, transport, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services, Hypervisor, Zone } from "@france-nuage/sdk";
 import { User } from '@/types';
 import { ComputePage, HomePage, LoginPage, OidcPage } from "./pages";
 
@@ -35,9 +34,14 @@ type WorkerFixtures = {
   admin: string;
 
   /**
-   * Provides the controlplane services.
+   * Provides the test hypervisor.
    */
-  services: Services;
+  hypervisor: Hypervisor;
+
+  /**
+   * Provides a `KeycloakApi` instance.
+   */
+  keycloak: KeyCloakApi;
 
   /**
    * Create an instance matching the given data.
@@ -45,11 +49,6 @@ type WorkerFixtures = {
    * The instance will then be destroyed on 
    */
   instance: (instance: Partial<Instance>) => Promise<Instance>;
-
-  /**
-   * Provides a `KeycloakApi` instance.
-   */
-  keycloak: KeyCloakApi;
 
   /**
    * Provides the test organization.
@@ -77,6 +76,21 @@ type WorkerFixtures = {
    * This is a generated project to scope the relations for the test suite.
    */
   project: Project;
+
+  /**
+   * Generate a fresh proxmox instance to be used as a hypervisor.
+   */
+  proxmox: Instance;
+
+  /**
+   * Provides the controlplane services.
+   */
+  services: Services;
+
+  /**
+   * Provides a zone scoped for the test suite.
+   */
+  zone: Zone;
 };
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
@@ -108,6 +122,23 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     home: new HomePage(page),
     login: new LoginPage(page),
   }),
+
+  /**
+   * @inheritdoc
+   */
+  hypervisor: [async ({ organization, proxmox, services, zone }, use) => {
+    let { url, authorizationToken } = yoloficc[proxmox.name as keyof typeof yoloficc];
+
+    let hypervisor = await services.hypervisor.register({
+      url,
+      authorizationToken,
+      organizationId: organization.id,
+      storageName: 'local-lvm',
+      zoneId: zone.id,
+    });
+
+    use(hypervisor);
+  }, { scope: 'worker' }],
 
   /**
    * @inheritdoc
@@ -166,45 +197,58 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   /**
    * @inheritdoc
    */
-  services: [async ({ production }, use) => {
+  proxmox: [async ({ production }, use) => {
     if (!process.env.ROOT_SERVICE_ACCOUNT_KEY) {
       throw new Error('missing env var ROOT_SERVICE_ACCOUNT_KEY');
     }
     // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
-    console.log('retrieving or registering dev hypervisor...');
 
     // Elect a proxmox template to use an instantiated hypervisor
-    console.log('selecting a proxmox template to clone...');
     const instances = await production.instance.list();
     const { template, instance } = elect(instances);
 
     // If there is an associated instance with the template, stop and delete it
     if (!!instance) {
-      console.log('removing previous clone...');
       await production.instance.stop(instance!.id);
       await production.instance.remove(instance!.id);
     }
 
     // Clone, start and register the template as a hypervisor
-    console.log('cloning the proxmox template...');
-    const clone = await production.instance.clone(template.id);
-    console.log('starting the proxmox clone...');
-    await production.instance.start(clone.id);
+    const proxmox = await production.instance.clone(template.id);
+    await production.instance.start(proxmox.id);
 
-    console.log('registering the proxmox clone as a hypervisor...');
-    const services = configureResolver(transport('https://controlplane.test', process.env.ROOT_SERVICE_ACCOUNT_KEY))[ServiceMode.Rpc];
-
-    await use(services);
+    await use(proxmox);
 
     // cleanup
-    console.log('\n\ntests done, cleaning up...');
-    console.log('stopping test hypervisor...');
-    await production.instance.stop(clone.id);
-    console.log('removing test hypervisor...');
-    await production.instance.remove(clone.id);
-    console.log('cleanup done!');
-
+    await production.instance.stop(proxmox.id);
+    await production.instance.remove(proxmox.id);
   }, { scope: 'worker', timeout: 1200000 }],
+
+
+  /**
+   * @inheritdoc
+   */
+  services: [async ({ proxmox }, use) => {
+    if (!process.env.ROOT_SERVICE_ACCOUNT_KEY) {
+      throw new Error('missing env var ROOT_SERVICE_ACCOUNT_KEY');
+    }
+
+    if (!proxmox) {
+      throw new Error('proxmox hypervisor required to interface with the controlplane');
+    }
+
+    const services = configureResolver(transport('https://controlplane.test', process.env.ROOT_SERVICE_ACCOUNT_KEY))[ServiceMode.Rpc];
+
+    use(services);
+  }, { scope: 'worker', timeout: 1200000 }],
+
+  /**
+   * @inheritdoc
+   */
+  zone: [async ({ services }, use) => {
+    const zone = await services.zone.create({ name: 'ACME-Mesa' });
+    use(zone);
+  }, { scope: 'worker' }],
 });
 
 export { expect } from "@playwright/test";
@@ -235,4 +279,19 @@ const elect = (instances: Instance[]) => {
 
   // otherwise elect a template
   return minBy(Object.values(dictionary), ({ instance }) => instance!.updatedAt!)!
+}
+
+const yoloficc = {
+  'Copy-of-VM-pve01-test01-template': {
+    url: 'https://pve01-test01.france-nuage.fr',
+    authorizationToken: 'PVEAPIToken=root@pam!controlplane=a87c51cc-f02c-476a-9168-9504be1bed79',
+  },
+  'Copy-of-VM-pve02-test01-template': {
+    url: 'pve02-test01.france-nuage.fr',
+    authorizationToken: 'PVEAPIToken=root@pam!controlplane=3f6ea76f-6316-4b12-9812-a376f3cd9d16',
+  },
+  'Copy-of-VM-pve03-test01-template': {
+    url: 'pve03-test01.france-nuage.fr',
+    authorizationToken: 'PVEAPIToken=root@pam!controlplane=fdcd2d52-7f6c-4d46-b899-efa40baa4659',
+  }
 }

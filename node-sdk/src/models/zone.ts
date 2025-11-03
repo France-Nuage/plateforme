@@ -12,3 +12,5 @@ export type Zone = {
    */
   name: string;
 };
+
+export type ZoneFormValue = Pick<Zone, 'name'>;

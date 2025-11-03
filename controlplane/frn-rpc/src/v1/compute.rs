@@ -160,7 +160,7 @@ impl From<hypervisor::instance::Status> for InstanceStatus {
 impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> {
     /// CreateInstance provisions a new instance based on the specified configuration.
     /// Returns details of the newly created instance or a ProblemDetails on failure.
-    async fn create_instance(
+    async fn create(
         &self,
         request: tonic::Request<CreateInstanceRequest>,
     ) -> Result<tonic::Response<CreateInstanceResponse>, tonic::Status> {
@@ -187,7 +187,7 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
     /// DeleteInstance deletes a given instance.
     /// Returns an empty message or a ProblemDetails on failure.
-    async fn delete_instance(
+    async fn delete(
         &self,
         request: tonic::Request<DeleteInstanceRequest>,
     ) -> std::result::Result<tonic::Response<DeleteInstanceResponse>, tonic::Status> {
@@ -200,7 +200,7 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
     /// CloneInstance provisions a new instance based on a given existing instance.
     /// Returns the cloned instance.
-    async fn clone_instance(
+    async fn clone(
         &self,
         request: tonic::Request<CloneInstanceRequest>,
     ) -> std::result::Result<tonic::Response<Instance>, tonic::Status> {
@@ -215,10 +215,12 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
     /// ListInstances retrieves information about all available instances.
     /// Returns a collection of instance details including their current status and resource usage.
-    async fn list_instances(
+    async fn list(
         &self,
         request: Request<ListInstancesRequest>,
     ) -> Result<Response<ListInstancesResponse>, Status> {
+        tracing::info!("in rpc list...");
+
         let principal = self.iam.principal(&request).await?;
         let instances = self.service.clone().list(&principal).await?;
 
@@ -229,7 +231,7 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
     /// StartInstance initiates a specific instance identified by its unique ID.
     /// Returns a response indicating success or a ProblemDetails on failure.
-    async fn start_instance(
+    async fn start(
         &self,
         request: Request<StartInstanceRequest>,
     ) -> Result<Response<StartInstanceResponse>, Status> {
@@ -243,7 +245,7 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
     /// StopInstance halts a specific instance identified by its unique ID.
     /// Returns a response indicating success or a ProblemDetails on failure.
-    async fn stop_instance(
+    async fn stop(
         &self,
         request: Request<StopInstanceRequest>,
     ) -> Result<Response<StopInstanceResponse>, Status> {
@@ -261,6 +263,12 @@ impl From<frn_core::compute::Zone> for Zone {
             id: value.id.to_string(),
             name: value.name,
         }
+    }
+}
+
+impl From<CreateZoneRequest> for frn_core::compute::ZoneCreateRequest {
+    fn from(value: CreateZoneRequest) -> Self {
+        Self { name: value.name }
     }
 }
 
@@ -287,6 +295,23 @@ impl<Auth: Authorize + 'static> zones_server::Zones for Zones<Auth> {
 
         Ok(Response::new(ListZonesResponse {
             zones: zones.into_iter().map(Into::into).collect(),
+        }))
+    }
+
+    async fn create(
+        &self,
+        request: Request<CreateZoneRequest>,
+    ) -> Result<Response<CreateZoneResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+
+        let zone = self
+            .zones
+            .clone()
+            .create(&principal, request.into_inner().into())
+            .await?;
+
+        Ok(Response::new(CreateZoneResponse {
+            zone: Some(zone.into()),
         }))
     }
 }

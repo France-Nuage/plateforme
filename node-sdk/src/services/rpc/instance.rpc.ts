@@ -3,8 +3,8 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 import {
   Instance as RpcInstance,
   InstanceStatus as RpcInstanceStatus,
-} from '../../generated/rpc/instances';
-import { InstancesClient } from '../../generated/rpc/instances.client';
+} from '../../generated/rpc/compute';
+import { InstancesClient } from '../../generated/rpc/compute.client';
 import { Instance, InstanceFormValue, InstanceStatus } from '../../models';
 import { InstanceService } from '../api';
 
@@ -24,14 +24,14 @@ export class InstanceRpcService implements InstanceService {
   /** @inheritdoc */
   public clone(id: string) {
     return this.client
-      .cloneInstance({ id })
+      .clone({ id })
       .response.then((data) => fromRpcInstance(data));
   }
 
   /** @inheritdoc */
   public create(data: InstanceFormValue): Promise<Instance> {
     return this.client
-      .createInstance({
+      .create({
         cpuCores: data.maxCpuCores,
         image: '',
         memoryBytes: BigInt(data.maxMemoryBytes),
@@ -45,23 +45,23 @@ export class InstanceRpcService implements InstanceService {
   /** @inheritdoc */
   public list(): Promise<Instance[]> {
     return this.client
-      .listInstances({})
+      .list({})
       .response.then(({ instances }) => instances.map(fromRpcInstance));
   }
 
   /** @inheritdoc */
   public remove(id: string) {
-    return this.client.deleteInstance({ id }).response.then(() => {});
+    return this.client.delete({ id }).response.then(() => {});
   }
 
   /** @inheritdoc */
   public start(id: string) {
-    return this.client.startInstance({ id }).then(() => {});
+    return this.client.start({ id }).then(() => {});
   }
 
   /** @inheritdoc */
   public stop(id: string) {
-    return this.client.stopInstance({ id }).response.then(() => {});
+    return this.client.stop({ id }).response.then(() => {});
   }
 }
 

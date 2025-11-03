@@ -412,6 +412,32 @@ export interface ListZonesResponse {
   zones: Zone[];
 }
 /**
+ * CreateZoneRequest contains the new zone information.
+ *
+ * @generated from protobuf message francenuage.fr.v1.compute.CreateZoneRequest
+ */
+export interface CreateZoneRequest {
+  /**
+   * User-defined name for the instance
+   *
+   * @generated from protobuf field: string name = 4
+   */
+  name: string;
+}
+/**
+ * CreateZoneResponse contains the created zone information.
+ *
+ * @generated from protobuf message francenuage.fr.v1.compute.CreateZoneResponse
+ */
+export interface CreateZoneResponse {
+  /**
+   * The created zone.
+   *
+   * @generated from protobuf field: francenuage.fr.v1.compute.Zone zone = 1
+   */
+  zone?: Zone;
+}
+/**
  * Zone represents a zone.
  *
  * @generated from protobuf message francenuage.fr.v1.compute.Zone
@@ -1011,6 +1037,40 @@ class ListZonesResponse$Type extends MessageType<ListZonesResponse> {
  */
 export const ListZonesResponse = new ListZonesResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class CreateZoneRequest$Type extends MessageType<CreateZoneRequest> {
+  constructor() {
+    super('francenuage.fr.v1.compute.CreateZoneRequest', [
+      {
+        no: 4,
+        name: 'name',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '128', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.compute.CreateZoneRequest
+ */
+export const CreateZoneRequest = new CreateZoneRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateZoneResponse$Type extends MessageType<CreateZoneResponse> {
+  constructor() {
+    super('francenuage.fr.v1.compute.CreateZoneResponse', [
+      { no: 1, name: 'zone', kind: 'message', T: () => Zone },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.compute.CreateZoneResponse
+ */
+export const CreateZoneResponse = new CreateZoneResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Zone$Type extends MessageType<Zone> {
   constructor() {
     super('francenuage.fr.v1.compute.Zone', [
@@ -1056,37 +1116,32 @@ export const Instances = new ServiceType(
   'francenuage.fr.v1.compute.Instances',
   [
     {
-      name: 'ListInstances',
+      name: 'List',
       options: {},
       I: ListInstancesRequest,
       O: ListInstancesResponse,
     },
+    { name: 'Clone', options: {}, I: CloneInstanceRequest, O: Instance },
     {
-      name: 'CloneInstance',
-      options: {},
-      I: CloneInstanceRequest,
-      O: Instance,
-    },
-    {
-      name: 'CreateInstance',
+      name: 'Create',
       options: {},
       I: CreateInstanceRequest,
       O: CreateInstanceResponse,
     },
     {
-      name: 'DeleteInstance',
+      name: 'Delete',
       options: {},
       I: DeleteInstanceRequest,
       O: DeleteInstanceResponse,
     },
     {
-      name: 'StartInstance',
+      name: 'Start',
       options: {},
       I: StartInstanceRequest,
       O: StartInstanceResponse,
     },
     {
-      name: 'StopInstance',
+      name: 'Stop',
       options: {},
       I: StopInstanceRequest,
       O: StopInstanceResponse,
@@ -1098,4 +1153,5 @@ export const Instances = new ServiceType(
  */
 export const Zones = new ServiceType('francenuage.fr.v1.compute.Zones', [
   { name: 'List', options: {}, I: ListZonesRequest, O: ListZonesResponse },
+  { name: 'Create', options: {}, I: CreateZoneRequest, O: CreateZoneResponse },
 ]);

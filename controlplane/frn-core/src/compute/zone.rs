@@ -27,6 +27,10 @@ pub struct Zones<Auth: Authorize> {
     db: Pool<Postgres>,
 }
 
+pub struct ZoneCreateRequest {
+    pub name: String,
+}
+
 impl<Auth: Authorize> Zones<Auth> {
     /// Creates a new zones service.
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
@@ -42,5 +46,18 @@ impl<Auth: Authorize> Zones<Auth> {
         //     .await?;
 
         Zone::list(&self.db).await.map_err(Into::into)
+    }
+
+    pub async fn create<P: Principal>(
+        &mut self,
+        _principal: &P,
+        request: ZoneCreateRequest,
+    ) -> Result<Zone, Error> {
+        Zone::factory()
+            .id(Uuid::new_v4())
+            .name(request.name)
+            .create(&self.db)
+            .await
+            .map_err(Into::into)
     }
 }

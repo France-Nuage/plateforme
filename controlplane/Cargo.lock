@@ -874,6 +874,7 @@ dependencies = [
  "tonic-prost",
  "tonic-prost-build",
  "tonic-reflection",
+ "tracing",
  "uuid",
 ]
 

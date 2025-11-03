@@ -36,7 +36,7 @@ async fn test_the_start_instance_procedure_works(pool: sqlx::PgPool) {
         id: instance.id.to_string(),
     })
     .on_behalf_of(&api.service_account);
-    let response = api.compute.instances.start_instance(request).await;
+    let response = api.compute.instances.start(request).await;
 
     // Assert the result
     assert!(response.is_ok());
