@@ -2,7 +2,7 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
 import { Zone as RpcZone } from '../../generated/rpc/compute';
 import { ZonesClient } from '../../generated/rpc/compute.client';
-import { Zone } from '../../models';
+import { Zone, ZoneFormValue } from '../../models';
 import { ZoneService } from '../api';
 
 export class ZoneRpcService implements ZoneService {
@@ -16,6 +16,12 @@ export class ZoneRpcService implements ZoneService {
    */
   constructor(transport: GrpcWebFetchTransport) {
     this.client = new ZonesClient(transport);
+  }
+
+  /** @inheritdoc */
+  public async create(data: ZoneFormValue): Promise<Zone> {
+    const { zone } = await this.client.create(data).response;
+    return zone!;
   }
 
   /** @inheritdoc */

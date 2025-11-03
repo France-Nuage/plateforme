@@ -39,10 +39,10 @@ impl Resource for Principal {
 }
 
 impl frn_core::authorization::Principal for Principal {
-    async fn organizations(
-        &self,
-        _connection: &Pool<Postgres>,
-    ) -> Result<Vec<Organization>, Error> {
-        unimplemented!()
+    async fn organizations(&self, connection: &Pool<Postgres>) -> Result<Vec<Organization>, Error> {
+        match self {
+            Principal::ServiceAccount(principal) => principal.organizations(connection).await,
+            Principal::User(principal) => principal.organizations(connection).await,
+        }
     }
 }

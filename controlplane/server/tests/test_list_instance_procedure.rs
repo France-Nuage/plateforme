@@ -33,7 +33,7 @@ async fn test_the_list_instances_procedure_works(pool: sqlx::PgPool) {
 
     // Act the request to the test_the_status_procedure_works
     let request = Request::new(ListInstancesRequest::default()).on_behalf_of(&api.service_account);
-    let response = api.compute.instances.list_instances(request).await;
+    let response = api.compute.instances.list(request).await;
 
     // Assert the result
     assert!(response.is_ok());

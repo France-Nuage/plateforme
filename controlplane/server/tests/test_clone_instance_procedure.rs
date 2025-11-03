@@ -33,7 +33,9 @@ async fn test_the_clone_instance_procedure_works(pool: sqlx::PgPool) {
         id: instance.id.to_string(),
     })
     .on_behalf_of(&api.service_account);
-    let response = api.compute.instances.clone_instance(request).await;
+
+    let instances = &mut api.compute.instances;
+    let response = instances.clone(request).await;
 
     // Assert the result
     assert!(response.is_ok());

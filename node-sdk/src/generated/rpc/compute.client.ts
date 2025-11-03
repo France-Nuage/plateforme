@@ -8,6 +8,8 @@ import type { UnaryCall } from '@protobuf-ts/runtime-rpc';
 import type { RpcOptions } from '@protobuf-ts/runtime-rpc';
 
 import { Zones } from './compute';
+import type { CreateZoneResponse } from './compute';
+import type { CreateZoneRequest } from './compute';
 import type { ListZonesResponse } from './compute';
 import type { ListZonesRequest } from './compute';
 import { Instances } from './compute';
@@ -139,54 +141,54 @@ export interface IInstancesClient {
   /**
    * ListInstances retrieves information about all available instances.
    *
-   * @generated from protobuf rpc: ListInstances
+   * @generated from protobuf rpc: List
    */
-  listInstances(
+  list(
     input: ListInstancesRequest,
     options?: RpcOptions,
   ): UnaryCall<ListInstancesRequest, ListInstancesResponse>;
   /**
    * CloneInstance provisions a new instance based on a given existing instance.
    *
-   * @generated from protobuf rpc: CloneInstance
+   * @generated from protobuf rpc: Clone
    */
-  cloneInstance(
+  clone(
     input: CloneInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<CloneInstanceRequest, Instance>;
   /**
    * CreateInstance provisions a new instance based on the specified configuration.
    *
-   * @generated from protobuf rpc: CreateInstance
+   * @generated from protobuf rpc: Create
    */
-  createInstance(
+  create(
     input: CreateInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<CreateInstanceRequest, CreateInstanceResponse>;
   /**
    * DeleteInstance deletes a given instance.
    *
-   * @generated from protobuf rpc: DeleteInstance
+   * @generated from protobuf rpc: Delete
    */
-  deleteInstance(
+  delete(
     input: DeleteInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<DeleteInstanceRequest, DeleteInstanceResponse>;
   /**
    * StartInstance initiates a specific instance identified by its unique ID.
    *
-   * @generated from protobuf rpc: StartInstance
+   * @generated from protobuf rpc: Start
    */
-  startInstance(
+  start(
     input: StartInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<StartInstanceRequest, StartInstanceResponse>;
   /**
    * StopInstance halts a specific instance identified by its unique ID.
    *
-   * @generated from protobuf rpc: StopInstance
+   * @generated from protobuf rpc: Stop
    */
-  stopInstance(
+  stop(
     input: StopInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<StopInstanceRequest, StopInstanceResponse>;
@@ -204,9 +206,9 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
   /**
    * ListInstances retrieves information about all available instances.
    *
-   * @generated from protobuf rpc: ListInstances
+   * @generated from protobuf rpc: List
    */
-  listInstances(
+  list(
     input: ListInstancesRequest,
     options?: RpcOptions,
   ): UnaryCall<ListInstancesRequest, ListInstancesResponse> {
@@ -223,9 +225,9 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
   /**
    * CloneInstance provisions a new instance based on a given existing instance.
    *
-   * @generated from protobuf rpc: CloneInstance
+   * @generated from protobuf rpc: Clone
    */
-  cloneInstance(
+  clone(
     input: CloneInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<CloneInstanceRequest, Instance> {
@@ -242,9 +244,9 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
   /**
    * CreateInstance provisions a new instance based on the specified configuration.
    *
-   * @generated from protobuf rpc: CreateInstance
+   * @generated from protobuf rpc: Create
    */
-  createInstance(
+  create(
     input: CreateInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<CreateInstanceRequest, CreateInstanceResponse> {
@@ -261,9 +263,9 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
   /**
    * DeleteInstance deletes a given instance.
    *
-   * @generated from protobuf rpc: DeleteInstance
+   * @generated from protobuf rpc: Delete
    */
-  deleteInstance(
+  delete(
     input: DeleteInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<DeleteInstanceRequest, DeleteInstanceResponse> {
@@ -280,9 +282,9 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
   /**
    * StartInstance initiates a specific instance identified by its unique ID.
    *
-   * @generated from protobuf rpc: StartInstance
+   * @generated from protobuf rpc: Start
    */
-  startInstance(
+  start(
     input: StartInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<StartInstanceRequest, StartInstanceResponse> {
@@ -299,9 +301,9 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
   /**
    * StopInstance halts a specific instance identified by its unique ID.
    *
-   * @generated from protobuf rpc: StopInstance
+   * @generated from protobuf rpc: Stop
    */
-  stopInstance(
+  stop(
     input: StopInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<StopInstanceRequest, StopInstanceResponse> {
@@ -331,6 +333,15 @@ export interface IZonesClient {
     input: ListZonesRequest,
     options?: RpcOptions,
   ): UnaryCall<ListZonesRequest, ListZonesResponse>;
+  /**
+   * Create adds a new zone.
+   *
+   * @generated from protobuf rpc: Create
+   */
+  create(
+    input: CreateZoneRequest,
+    options?: RpcOptions,
+  ): UnaryCall<CreateZoneRequest, CreateZoneResponse>;
 }
 /**
  * Hypervisors service provides operations to manage zones.
@@ -354,6 +365,25 @@ export class ZonesClient implements IZonesClient, ServiceInfo {
     const method = this.methods[0],
       opt = this._transport.mergeOptions(options);
     return stackIntercept<ListZonesRequest, ListZonesResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * Create adds a new zone.
+   *
+   * @generated from protobuf rpc: Create
+   */
+  create(
+    input: CreateZoneRequest,
+    options?: RpcOptions,
+  ): UnaryCall<CreateZoneRequest, CreateZoneResponse> {
+    const method = this.methods[1],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<CreateZoneRequest, CreateZoneResponse>(
       'unary',
       this._transport,
       method,

@@ -43,7 +43,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
     .on_behalf_of(&api.service_account);
 
     // Assert the result
-    let result = api.compute.instances.create_instance(request).await;
+    let result = api.compute.instances.create(request).await;
     assert!(result.is_ok());
     let instances = Instance::list(&pool)
         .await

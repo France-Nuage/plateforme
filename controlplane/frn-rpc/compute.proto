@@ -20,28 +20,31 @@ service Hypervisors {
 // Instances service provides operations to manage instances.
 service Instances {
     // ListInstances retrieves information about all available instances.
-    rpc ListInstances (ListInstancesRequest) returns (ListInstancesResponse);
+    rpc List (ListInstancesRequest) returns (ListInstancesResponse);
 
     // CloneInstance provisions a new instance based on a given existing instance.
-    rpc CloneInstance (CloneInstanceRequest) returns (Instance);
+    rpc Clone (CloneInstanceRequest) returns (Instance);
   
     // CreateInstance provisions a new instance based on the specified configuration.
-    rpc CreateInstance (CreateInstanceRequest) returns (CreateInstanceResponse);
+    rpc Create (CreateInstanceRequest) returns (CreateInstanceResponse);
 
     // DeleteInstance deletes a given instance.
-    rpc DeleteInstance (DeleteInstanceRequest) returns (DeleteInstanceResponse);
+    rpc Delete (DeleteInstanceRequest) returns (DeleteInstanceResponse);
 
     // StartInstance initiates a specific instance identified by its unique ID.
-    rpc StartInstance (StartInstanceRequest) returns (StartInstanceResponse);
+    rpc Start (StartInstanceRequest) returns (StartInstanceResponse);
 
     // StopInstance halts a specific instance identified by its unique ID.
-    rpc StopInstance (StopInstanceRequest) returns (StopInstanceResponse);
+    rpc Stop (StopInstanceRequest) returns (StopInstanceResponse);
 }
 
 // Hypervisors service provides operations to manage zones.
 service Zones {
     // List retrieves information about all registered zones.
     rpc List (ListZonesRequest) returns (ListZonesResponse);
+
+    // Create adds a new zone.
+    rpc Create(CreateZoneRequest) returns (CreateZoneResponse);
 }
 
 // ListHypervisorsRequest is an empty message for listing hypervisors.
@@ -344,6 +347,22 @@ message ListZonesRequest {}
 message ListZonesResponse {
     // List of zone details
     repeated Zone zones = 1;
+}
+
+// CreateZoneRequest contains the new zone information.
+message CreateZoneRequest {
+    // User-defined name for the instance
+    string name = 4 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 128,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+// CreateZoneResponse contains the created zone information.
+message CreateZoneResponse {
+    // The created zone.
+     Zone zone = 1;
 }
 
 // Zone represents a zone.

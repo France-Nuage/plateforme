@@ -108,6 +108,8 @@ impl<A: Authorize> Instances<A> {
         //     .check()
         //     .await?;
 
+        tracing::info!("before fetching instances...");
+
         Instance::list(&self.db).await.map_err(Into::into)
     }
 
