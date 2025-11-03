@@ -1,3 +1,10 @@
+# [1.47.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.46.1...v1.47.0) (2025-11-03)
+
+
+### Features
+
+* add create zone rpc ([60d2cf2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/60d2cf2bbca08760d63ad87c44adbae6bbc09c9d))
+
 ## [1.46.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.46.0...v1.46.1) (2025-10-31)
 
 
