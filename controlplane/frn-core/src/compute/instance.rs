@@ -271,7 +271,17 @@ impl<A: Authorize> Instances<A> {
             ..existing
         };
 
-        instance.create(&self.db).await.map_err(Into::into)
+        let instance = instance.create(&self.db).await?;
+
+        Relationship::new(
+            &Project::some(instance.project_id),
+            Relation::Parent,
+            &instance,
+        )
+        .publish(&self.db)
+        .await?;
+
+        Ok(instance)
     }
 }
 
