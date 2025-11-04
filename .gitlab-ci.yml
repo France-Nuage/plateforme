@@ -113,21 +113,21 @@ gitleaks:
         coverage_format: cobertura
         path: controlplane/cobertura.xml
 
-# "system tests / console":
-#   stage: system-tests
-#   variables:
-#     TARGET: release
-#     VITE_APPLICATION_DEFAULT_MODE: rpc
-#   after_script:
-#     - docker compose logs > docker-compose-logs.txt
-#   script:
-#     - docker compose run --remove-orphans system-tests npm run test:ci
-#   artifacts:
-#     when: always
-#     paths:
-#       - system-tests/playwright-report/
-#       - docker-compose-logs.txt
-#     expire_in: 1 week
+"system tests / console":
+  stage: system-tests
+  variables:
+    TARGET: release
+    VITE_APPLICATION_DEFAULT_MODE: rpc
+  after_script:
+    - docker compose logs > docker-compose-logs.txt
+  script:
+    - docker compose run --remove-orphans system-tests npm run test:ci
+  artifacts:
+    when: always
+    paths:
+      - system-tests/playwright-report/
+      - docker-compose-logs.txt
+    expire_in: 1 week
 
 "deploy / console":
   stage: deploy
