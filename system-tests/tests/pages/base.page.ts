@@ -3,6 +3,11 @@ import { test, expect } from "@playwright/test";
 
 export default abstract class BasePage {
   /**
+   * The regular expression used to compare the page url.
+   */
+  protected readonly match: RegExp;
+
+  /**
    * The Playwright page object.
    */
   protected readonly page: Page;
@@ -17,9 +22,10 @@ export default abstract class BasePage {
    *
    * @see https://playwright.dev/docs/pom
    */
-  protected constructor(page: Page, url: string) {
+  protected constructor(page: Page, url: string, match?: RegExp) {
     this.page = page;
     this.url = url;
+    this.match = match ?? new RegExp(`^${process.env.CONSOLE_URL}${url}$`);
   }
 
   /**
@@ -31,7 +37,7 @@ export default abstract class BasePage {
    */
   public async assertLocation(): Promise<void> {
     await expect(this.page, `Unexpected URL, got ${this.page.url()}, expected ${this.url}`).toHaveURL(
-      this.url,
+      this.match,
     );
   }
 
@@ -40,7 +46,7 @@ export default abstract class BasePage {
    */
   public async assertRedirectedTo(): Promise<void> {
     await test.step(`I should be redirected to the ${this.url} page`, async () => {
-      await this.page.waitForURL(this.url);
+      await this.page.waitForURL(this.match);
     });
   }
 

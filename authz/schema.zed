@@ -28,6 +28,7 @@ definition instance {
 
 	permission get = parent->get
   permission clone = get
+  permission delete = get
   permission start = get
   permission stop = get
 }
