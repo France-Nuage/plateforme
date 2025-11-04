@@ -127,7 +127,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   hypervisor: [async ({ organization, proxmox, services, zone }, use) => {
-    let { url, authorizationToken } = yoloficc[proxmox.name as keyof typeof yoloficc];
+    let { url, authorizationToken } = templates[proxmox.name as keyof typeof templates];
 
     let hypervisor = await services.hypervisor.register({
       url,
@@ -215,6 +215,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
     // Clone, start and register the template as a hypervisor
     const proxmox = await production.instance.clone(template.id);
+    await new Promise(resolve => setTimeout(resolve, 10000));
     await production.instance.start(proxmox.id);
 
     await use(proxmox);
@@ -281,7 +282,7 @@ const elect = (instances: Instance[]) => {
   return minBy(Object.values(dictionary), ({ instance }) => instance!.updatedAt!)!
 }
 
-const yoloficc = {
+const templates = {
   'Copy-of-VM-pve01-test01-template': {
     url: 'https://pve01-test01.france-nuage.fr',
     authorizationToken: 'PVEAPIToken=root@pam!controlplane=a87c51cc-f02c-476a-9168-9504be1bed79',

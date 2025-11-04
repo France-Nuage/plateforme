@@ -100,6 +100,7 @@ services:
     environment:
       DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
       OIDC_URL: https://gitlab.com/.well-known/openid-configuration
+      ROOT_ORGANIZATION_NAME: France Nuage
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
     image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/synchronizer:release

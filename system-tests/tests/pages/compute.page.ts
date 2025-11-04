@@ -6,6 +6,6 @@ export class ComputePage extends BasePage {
    * @inheritdoc
    */
   public constructor(page: Page) {
-    super(page, "/compute/instances");
+    super(page, "/compute/instances", new RegExp(`^${process.env.CONSOLE_URL}/compute/instances(\\?.*)?`));
   }
 }
