@@ -1,3 +1,10 @@
+## [1.47.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.47.0...v1.47.1) (2025-11-04)
+
+
+### Bug Fixes
+
+* publish parent relationship on clone ([5341da2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/5341da28068f1a299888f22898f01d9810006e69))
+
 # [1.47.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.46.1...v1.47.0) (2025-11-03)
 
 
