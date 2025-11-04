@@ -1,3 +1,10 @@
+## [1.47.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.47.1...v1.47.2) (2025-11-04)
+
+
+### Bug Fixes
+
+* system tests are operational with the authorization system ([89d34d9](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/89d34d9aef981e04129843dc12a178c8aa7a24d6))
+
 ## [1.47.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.47.0...v1.47.1) (2025-11-04)
 
 
