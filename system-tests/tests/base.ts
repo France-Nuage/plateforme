@@ -107,6 +107,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
       const payload = await keycloak.createUser(user);
       const userinfo = await keycloak.getUserInfo(payload.access_token);
+      console.log(`attempting to invite user on organization ${organization.id}`)
       await services.invitation.create({ organizationId: organization.id, email: userinfo.email });
 
       // define the session storage value in the context of the page
@@ -224,6 +225,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     }
 
     // Clone, start and register the template as a hypervisor
+    console.log(`attempting to clone ${template.id}`);
     const proxmox = await production.instance.clone(template.id);
     await new Promise(resolve => setTimeout(resolve, 10000));
     await production.instance.start(proxmox.id);
