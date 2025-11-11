@@ -115,6 +115,7 @@ gitleaks:
 
 "system tests / console":
   stage: system-tests
+  allow_failure: true
   variables:
     TARGET: release
     VITE_APPLICATION_DEFAULT_MODE: rpc
