@@ -1,3 +1,15 @@
+# [1.48.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.47.2...v1.48.0) (2025-11-11)
+
+
+### Bug Fixes
+
+* prevent instance swap in synchronization ([4a982f8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4a982f83304ad48d43dffadb17cabdeb68e41d87))
+
+
+### Features
+
+* malformed token errors now provide qualified error context ([9f1db2e](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9f1db2e90f3bd965989b14678be3396eb072097b))
+
 ## [1.47.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.47.1...v1.47.2) (2025-11-04)
 
 
