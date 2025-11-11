@@ -1,6 +1,6 @@
 use crate::instance::Instance;
 use crate::proxmox::api::Error;
-use crate::proxmox::api::VMStatus;
+use crate::proxmox::api::ResourceStatus;
 use crate::proxmox::api::api_response::{ApiResponse, ApiResponseExt};
 use serde::Deserialize;
 use std::fmt::Display;
@@ -23,7 +23,7 @@ pub async fn cluster_resources_list(
         .await
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Resource {
     /// CPU utilization (for types 'node', 'qemu' and 'lxc').
     pub cpu: Option<f32>,
@@ -54,10 +54,10 @@ pub struct Resource {
     pub resource_type: ResourceType,
 
     /// Resource type dependent status.
-    pub status: VMStatus,
+    pub status: ResourceStatus,
 
     /// The numerical vmid (for types 'qemu' and 'lxc').
-    pub vmid: u32,
+    pub vmid: Option<u32>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -94,7 +94,10 @@ impl TryFrom<Resource> for Instance {
         let info = Instance {
             cpu_usage_percent: value.cpu.unwrap_or_default(),
             disk_usage_bytes: value.disk.unwrap_or_default(),
-            id: value.vmid.to_string(),
+            id: value
+                .vmid
+                .ok_or(Error::NotAnInstance(value.clone()))?
+                .to_string(),
             max_cpu_cores: value.maxcpu.unwrap_or_default(),
             max_disk_bytes: value.maxdisk.unwrap_or_default(),
             max_memory_bytes: value.maxmem.unwrap_or_default(),
@@ -157,8 +160,8 @@ mod tests {
                 name: Some(String::from("proxmox-dev")),
                 node: Some(String::from("pve-node1")),
                 resource_type: ResourceType::Qemu,
-                status: VMStatus::Running,
-                vmid: 100,
+                status: ResourceStatus::Running,
+                vmid: Some(100),
             }]
         );
     }

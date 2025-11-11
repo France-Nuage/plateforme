@@ -290,6 +290,12 @@ message CreateInstanceRequest {
         lte: 99  // Maximum 99 cores
     }];
 
+    // Amount of disk in bytes to allocate to the instance
+    uint64 disk_bytes = 8 [(validate.rules).uint64 = {
+        gt: 10737418240,  // Minimum 10GB (10 * 1024 * 1024 * 1024)
+        lte: 536870912000 // Maximum 500GB (500 * 1024 * 1024 * 1024)
+    }];
+
     // Amount of memory in bytes to allocate to the instance
     uint64 memory_bytes = 3 [(validate.rules).uint64 = {
         gt: 536870912,  // Minimum 512MB (512 * 1024 * 1024)

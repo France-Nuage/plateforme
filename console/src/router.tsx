@@ -3,7 +3,13 @@ import { HiDesktopComputer } from 'react-icons/hi';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { AppLayout, PageGuard } from '@/components';
-import { HomePage, InstancesPage, LoginPage, OidcRedirectPage } from '@/pages';
+import {
+  CreateInstancePage,
+  HomePage,
+  InstancesPage,
+  LoginPage,
+  OidcRedirectPage,
+} from '@/pages';
 import { Routes as RoutePath } from '@/types';
 
 const links = [
@@ -31,6 +37,10 @@ const Router = () => (
           <Route element={<AppLayout links={links} />}>
             <Route index element={<HomePage />} />
             <Route path={RoutePath.Instances} element={<InstancesPage />} />
+            <Route
+              path={RoutePath.CreateInstance}
+              element={<CreateInstancePage />}
+            />
           </Route>
         </Route>
       </Routes>

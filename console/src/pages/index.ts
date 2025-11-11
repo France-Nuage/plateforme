@@ -1,3 +1,4 @@
+export * from './create-instance.page';
 export * from './home.page';
 export * from './instances.page';
 export * from './login.page';

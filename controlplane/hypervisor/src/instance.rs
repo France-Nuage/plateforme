@@ -2,6 +2,7 @@ use crate::Error;
 use std::net::Ipv4Addr;
 use std::str::FromStr;
 use strum_macros::{Display, EnumString, IntoStaticStr};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Default, Display, EnumString, IntoStaticStr)]
 #[strum(serialize_all = "UPPERCASE")]
@@ -29,6 +30,7 @@ impl From<Status> for String {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Instance {
     /// Unique identifier for the instance
     pub id: String,
@@ -65,11 +67,14 @@ pub struct InstanceCreateRequest {
     /// The number of cores per socket.
     pub cores: u8,
 
+    /// The disk size.
+    pub disk_bytes: u32,
+
     /// The disk image to create the instance from.
     pub disk_image: String,
 
     /// Memory properties.
-    pub memory: u32,
+    pub memory_bytes: u32,
 
     /// The instance human-readable name.
     pub name: String,
@@ -89,7 +94,7 @@ pub trait Instances: Clone {
     fn create(
         &self,
         options: InstanceCreateRequest,
-    ) -> impl Future<Output = Result<String, Error>> + Send;
+    ) -> impl Future<Output = Result<Uuid, Error>> + Send;
 
     /// Gets the instance ip address.
     fn get_ip_address(

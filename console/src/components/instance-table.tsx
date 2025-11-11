@@ -20,6 +20,7 @@ import { HiPlay, HiStop } from 'react-icons/hi2';
 
 import { removeInstance, startInstance, stopInstance } from '@/features';
 import { useAppDispatch } from '@/hooks';
+import { bytesToGB } from '@/services';
 
 import { AppTable } from './app-table';
 
@@ -42,8 +43,9 @@ type InstanceData = Instance & {
 
 const columnHelper = createColumnHelper<InstanceData>();
 
-const bytesToGB = (cell: CellContext<InstanceData, number>) =>
-  `${(cell.getValue() / 1024 ** 3).toFixed(2)}GB`;
+const displayBytesColumn = (cell: CellContext<InstanceData, number>) =>
+  bytesToGB(cell.getValue());
+
 const date = (cell: CellContext<InstanceData, string>) =>
   new Date(cell.getValue()).toLocaleString();
 
@@ -81,22 +83,22 @@ const columns: ColumnDef<InstanceData, any>[] = [
     id: 'cpuUsagePercent',
   }),
   columnHelper.accessor('maxMemoryBytes', {
-    cell: bytesToGB,
+    cell: displayBytesColumn,
     header: 'Ram Max',
     id: 'maxMemoryBytes',
   }),
   columnHelper.accessor('memoryUsageBytes', {
-    cell: bytesToGB,
+    cell: displayBytesColumn,
     header: 'Ram Usage',
     id: 'memoryUsageBytes',
   }),
   columnHelper.accessor('maxDiskBytes', {
-    cell: bytesToGB,
+    cell: displayBytesColumn,
     header: 'Disk Max',
     id: 'maxDiskBytes',
   }),
   columnHelper.accessor('diskUsageBytes', {
-    cell: bytesToGB,
+    cell: displayBytesColumn,
     header: 'Disk Usage',
     id: 'diskUsageBytes',
   }),

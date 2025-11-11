@@ -1,8 +1,14 @@
 use crate::instance::Status;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Eq, PartialEq)]
-pub enum VMStatus {
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub enum ResourceStatus {
+    #[serde(rename = "offline")]
+    Offline,
+
+    #[serde(rename = "online")]
+    Online,
+
     #[serde(rename = "running")]
     Running,
 
@@ -13,12 +19,13 @@ pub enum VMStatus {
     Unknown,
 }
 
-impl From<VMStatus> for Status {
-    fn from(value: VMStatus) -> Self {
+impl From<ResourceStatus> for Status {
+    fn from(value: ResourceStatus) -> Self {
         match value {
-            VMStatus::Running => Status::Running,
-            VMStatus::Stopped => Status::Stopped,
-            VMStatus::Unknown => Status::Unknown,
+            ResourceStatus::Running => Status::Running,
+            ResourceStatus::Stopped => Status::Stopped,
+            ResourceStatus::Unknown => Status::Unknown,
+            other => panic!("attempting to cast {:?} as an instance status", other),
         }
     }
 }

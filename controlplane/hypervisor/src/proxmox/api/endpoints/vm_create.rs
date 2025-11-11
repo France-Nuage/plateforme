@@ -79,9 +79,9 @@ pub struct VMConfig {
 impl Default for VMConfig {
     fn default() -> Self {
         let snippets_storage =
-            std::env::var("PROXMOX_SNIPPETS_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
+            std::env::var("PROXMOX_SNIPPETS_STORAGE").unwrap_or_else(|_| String::from("local-lvm"));
         let image_storage =
-            std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
+            std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("local-lvm"));
         VMConfig {
             agent: Some(String::from("enabled=1")),
             boot: Some(String::from("c,order=scsi0")),
@@ -108,19 +108,30 @@ impl Default for VMConfig {
 }
 
 impl VMConfig {
-    pub fn from_instance_config(value: InstanceCreateRequest, vmid: u32) -> Self {
+    pub fn from_instance_config(
+        value: InstanceCreateRequest,
+        vmid: u32,
+        snippet_filename: String,
+    ) -> Self {
         let image_storage =
-            std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("CephPool"));
+            std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("local-lvm"));
+
+        let disk_size_gb = value.disk_bytes / (1024 * 1024 * 1024);
+        let memory_mb = value.memory_bytes / (1024 * 1024);
 
         let volume = format!(
-            "{}:0,import-from=local:0/{},discard=on,ssd=1",
-            image_storage, value.disk_image
+            "{}:0,import-from=local:0/{},size={}G,discard=on,ssd=1",
+            image_storage, value.disk_image, disk_size_gb
         );
 
         VMConfig {
-            cicustom: Some(format!("user=nfs-snippets:snippets/{}", value.snippet)),
+            cicustom: Some(format!(
+                "{}:{}",
+                crate::proxmox::VOLUME_NAMED_PATH,
+                snippet_filename
+            )),
             cores: Some(value.cores),
-            memory: Some(value.memory),
+            memory: Some(memory_mb),
             name: Some(value.name),
             scsi0: Some(volume),
             vmid,

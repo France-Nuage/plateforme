@@ -19,3 +19,7 @@ members = [
 ]
 
 resolver = "3"
+
+[workspace.dependencies]
+thiserror = "2"
+uuid = { version = "1", features = ["serde"] }

@@ -1,5 +1,5 @@
 use crate::proxmox::api::Error;
-use crate::proxmox::api::VMStatus;
+use crate::proxmox::api::ResourceStatus;
 use crate::proxmox::api::api_response::{ApiResponse, ApiResponseExt};
 use serde::Deserialize;
 
@@ -24,7 +24,7 @@ pub async fn vm_status_read(
 
 #[derive(Debug, Deserialize, Eq, PartialEq)]
 pub struct VMStatusResponse {
-    pub status: VMStatus,
+    pub status: ResourceStatus,
 }
 
 #[cfg(feature = "mock")]
@@ -71,7 +71,7 @@ mod tests {
             result.unwrap(),
             ApiResponse {
                 data: VMStatusResponse {
-                    status: VMStatus::Running
+                    status: ResourceStatus::Running
                 }
             }
         );

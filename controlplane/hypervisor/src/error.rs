@@ -13,4 +13,10 @@ pub enum Error {
 
     #[error("Other: {0}")]
     Other(Box<dyn std::error::Error + Send + Sync>),
+
+    #[error("The snippet file {0} already exists")]
+    SnippetFileExists(String),
+
+    #[error("Could not write to snippet file: {0}")]
+    UnwritableSnippetFile(#[from] tokio::io::Error),
 }

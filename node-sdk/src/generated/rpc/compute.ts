@@ -317,6 +317,12 @@ export interface CreateInstanceRequest {
    */
   cpuCores: number;
   /**
+   * Amount of disk in bytes to allocate to the instance
+   *
+   * @generated from protobuf field: uint64 disk_bytes = 8
+   */
+  diskBytes: bigint;
+  /**
    * Amount of memory in bytes to allocate to the instance
    *
    * @generated from protobuf field: uint64 memory_bytes = 3
@@ -911,6 +917,18 @@ class CreateInstanceRequest$Type extends MessageType<CreateInstanceRequest> {
         kind: 'scalar',
         T: 13 /*ScalarType.UINT32*/,
         options: { 'validate.rules': { uint32: { lte: 99, gt: 0 } } },
+      },
+      {
+        no: 8,
+        name: 'disk_bytes',
+        kind: 'scalar',
+        T: 4 /*ScalarType.UINT64*/,
+        L: 0 /*LongType.BIGINT*/,
+        options: {
+          'validate.rules': {
+            uint64: { lte: '536870912000', gt: '10737418240' },
+          },
+        },
       },
       {
         no: 3,

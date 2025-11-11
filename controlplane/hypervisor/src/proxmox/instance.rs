@@ -1,10 +1,15 @@
+use uuid::Uuid;
+
 use crate::Error;
 use crate::instance::{Instance, InstanceCreateRequest, Instances, Status};
-use crate::proxmox::api;
+use crate::proxmox::api::cluster_resources_list::Resource;
+use crate::proxmox::api::{self, ResourceStatus};
 use crate::proxmox::api::{
     cluster_resources_list::ResourceType, helpers, vm_clone::VMCloneOptions, vm_create::VMConfig,
 };
 use std::net::Ipv4Addr;
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 
 #[derive(Clone)]
 pub struct ProxmoxInstanceService {
@@ -69,23 +74,48 @@ impl Instances for ProxmoxInstanceService {
     }
 
     /// Creates the instance.
-    async fn create(&self, options: InstanceCreateRequest) -> Result<String, Error> {
+    async fn create(&self, options: InstanceCreateRequest) -> Result<Uuid, Error> {
+        // Write the value of options.snippet to a shared file
+        let instance_id = Uuid::new_v4();
+        let snippet_filename = format!("snippets/{}.yaml", &instance_id);
+        let mut snippet_file = File::create_new(format!(
+            "{}/{}",
+            crate::proxmox::VOLUME_ABSOLUTE_PATH,
+            &snippet_filename
+        ))
+        .await
+        .map_err(|err| {
+            tracing::error!("oopsie: {:?}", err);
+            Error::SnippetFileExists(snippet_filename.clone())
+        })?;
+        snippet_file.write_all(options.snippet.as_bytes()).await?;
+
+        tracing::info!("snippet written to file: {:?}", snippet_file);
+
+        // Get the next id to use
         let next_id = api::cluster_next_id(&self.api_url, &self.client, &self.authorization)
             .await?
             .data;
 
+        tracing::info!("before node fetch");
+
+        // Get the node id on which provision the instance
         let node_id =
             api::cluster_resources_list(&self.api_url, &self.client, &self.authorization, "node")
                 .await?
                 .data
+                .into_iter()
+                .filter(|resource| resource.status == ResourceStatus::Online)
+                .collect::<Vec<Resource>>()
                 .first()
                 .ok_or_else(|| api::Error::NoNodesAvailable)?
                 .node
                 .clone()
                 .expect("node should be defined for resource of type node");
 
-        let vm_config = VMConfig::from_instance_config(options, next_id);
+        let vm_config = VMConfig::from_instance_config(options, next_id, snippet_filename);
 
+        // Create the VM and wait for the task to complete
         let task_id = api::vm_create(
             &self.api_url,
             &self.client,
@@ -104,8 +134,9 @@ impl Instances for ProxmoxInstanceService {
             &task_id,
         )
         .await
-        .map(|result| result.id)
-        .map_err(Into::into)
+        .map(|result| result.id)?;
+
+        Ok(instance_id)
     }
 
     /// Gets the instance ip address.

@@ -4,6 +4,7 @@ import { AppStore } from '@/store';
 
 import { configureTransport } from './transport.rpc';
 
+export * from './conversion';
 export * from './user-manager';
 
 /**

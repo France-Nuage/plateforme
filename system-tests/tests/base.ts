@@ -2,14 +2,17 @@ import { test as base } from "@playwright/test";
 import { minBy } from "lodash";
 import { configureResolver, instance, transport, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services, Hypervisor, Zone } from "@france-nuage/sdk";
 import { User } from '@/types';
-import { ComputePage, HomePage, LoginPage, OidcPage } from "./pages";
+import { InstancesPage, CreateInstancePage, HomePage, LoginPage, OidcPage } from "./pages";
 
 /**
  * The fixtures exposed in the tests.
  */
 type TestFixtures = {
   pages: {
-    compute: ComputePage;
+    compute: {
+      createInstance: CreateInstancePage;
+      instances: InstancesPage;
+    };
     oidc: OidcPage;
     home: HomePage;
     login: LoginPage;
@@ -117,7 +120,10 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc 
    */
   pages: async ({ page }, use) => use({
-    compute: new ComputePage(page),
+    compute: {
+      createInstance: new CreateInstancePage(page),
+      instances: new InstancesPage(page),
+    },
     oidc: new OidcPage(page),
     home: new HomePage(page),
     login: new LoginPage(page),
@@ -147,6 +153,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     use((data: Partial<Instance>) => services.instance.create({
       ...data,
       ...instance(),
+      image: 'debian-12-genericcloud-amd64-20250316-2053.qcow2',
+      snippet: '',
       projectId: project.id,
     }));
   }, { scope: 'worker' }],
@@ -204,7 +212,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
 
     // Elect a proxmox template to use an instantiated hypervisor
+    console.log('before fetching instances');
     const instances = await production.instance.list();
+    console.log('after fetching instances');
     const { template, instance } = elect(instances);
 
     // If there is an associated instance with the template, stop and delete it

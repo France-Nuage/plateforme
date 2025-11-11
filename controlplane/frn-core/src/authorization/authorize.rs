@@ -109,7 +109,7 @@ mod tests {
 
         let result = auth
             .can(&principal)
-            .perform(crate::authorization::Permission::Create)
+            .perform(crate::authorization::Permission::CreateInstance)
             .over::<Organization>(&resource.id)
             .await;
 

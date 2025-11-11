@@ -70,6 +70,9 @@ pub struct InstanceCreateRequest {
     /// The number of cores per socket.
     pub cores: u8,
 
+    /// The disk size.
+    pub disk_size: u32,
+
     /// The disk image to create the instance from.
     pub disk_image: String,
 
@@ -121,7 +124,7 @@ impl<A: Authorize> Instances<A> {
     ) -> Result<Instance, Error> {
         self.auth
             .can(principal)
-            .perform(Permission::Create)
+            .perform(Permission::CreateInstance)
             .over::<Project>(&request.project_id)
             .await?;
 
@@ -146,19 +149,21 @@ impl<A: Authorize> Instances<A> {
         .data
         .to_string();
 
-        api.create(hypervisor::instance::InstanceCreateRequest {
-            id: next_id.clone(),
-            cores: request.cores,
-            disk_image: request.disk_image,
-            memory: request.memory,
-            name: request.name.clone(),
-            snippet: request.snippet,
-        })
-        .await?;
+        let instance_id = api
+            .create(hypervisor::instance::InstanceCreateRequest {
+                id: next_id.clone(),
+                cores: request.cores,
+                disk_bytes: request.disk_size,
+                disk_image: request.disk_image,
+                memory_bytes: request.memory,
+                name: request.name.clone(),
+                snippet: request.snippet,
+            })
+            .await?;
 
         // Save the created instance in database
         let instance = Instance::factory()
-            .id(Uuid::new_v4())
+            .id(instance_id)
             .hypervisor_id(hypervisor.id)
             .project_id(request.project_id)
             .distant_id(next_id)
