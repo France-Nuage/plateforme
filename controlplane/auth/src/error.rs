@@ -207,8 +207,8 @@ pub enum Error {
 /// This is particularly useful for JWT signature validation, token parsing, and
 /// cryptographic operations that may fail.
 impl From<jsonwebtoken::errors::Error> for Error {
-    fn from(value: jsonwebtoken::errors::Error) -> Self {
-        Error::Other(value.to_string())
+    fn from(_: jsonwebtoken::errors::Error) -> Self {
+        Error::MalformedBearerToken
     }
 }
 
