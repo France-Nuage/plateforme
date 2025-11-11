@@ -65,6 +65,9 @@ impl From<spicedb::Error> for Error {
 impl From<Error> for tonic::Status {
     fn from(value: Error) -> tonic::Status {
         match value {
+            Error::AuthenticationServerError(error) => {
+                tonic::Status::unauthenticated(error.to_string())
+            }
             Error::Unauthenticated => tonic::Status::unauthenticated(value.to_string()),
             Error::Forbidden => tonic::Status::permission_denied(value.to_string()),
             err => {

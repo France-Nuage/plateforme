@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM instances WHERE distant_id = $1",
+  "query": "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
   "describe": {
     "columns": [
       {
@@ -86,7 +86,8 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Text",
+        "Uuid"
       ]
     },
     "nullable": [
@@ -108,5 +109,5 @@
       true
     ]
   },
-  "hash": "a922d9467f728e0ad78b56862f31ddb4784435d756188ea2e9b6b12f5df95309"
+  "hash": "ffe303dcb8fa4fab32c696cfb22a9fd7ccfa3ebc90ffd6f044c31b0e85b5a7c6"
 }
