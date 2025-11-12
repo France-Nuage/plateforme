@@ -35,6 +35,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
     let request = Request::new(CreateInstanceRequest {
         image: String::from("debian.qcow2"),
         cpu_cores: 1,
+        disk_bytes: 10737418240,
         memory_bytes: 536870912,
         name: String::from("acme-mgs"),
         project_id: project.id.to_string(),

@@ -25,7 +25,7 @@ export default abstract class BasePage {
   protected constructor(page: Page, url: string, match?: RegExp) {
     this.page = page;
     this.url = url;
-    this.match = match ?? new RegExp(`^${process.env.CONSOLE_URL}${url}$`);
+    this.match = match ?? new RegExp(`^${process.env.CONSOLE_URL}${url}(\\?.*)?$`);
   }
 
   /**
@@ -35,18 +35,19 @@ export default abstract class BasePage {
    * just asserts the url. If you need to wait for the user to be redirected to
    * the current page, use the `assertRedirectedTo` method.
    */
-  public async assertLocation(): Promise<void> {
+  public async assertLocation(options?: { timeout?: number }): Promise<void> {
     await expect(this.page, `Unexpected URL, got ${this.page.url()}, expected ${this.url}`).toHaveURL(
       this.match,
+      options
     );
   }
 
   /**
    * Assert the user is redirected to this page.
    */
-  public async assertRedirectedTo(): Promise<void> {
+  public async assertRedirectedTo(options?: { timeout?: number }): Promise<void> {
     await test.step(`I should be redirected to the ${this.url} page`, async () => {
-      await this.page.waitForURL(this.match);
+      await this.page.waitForURL(this.match, options);
     });
   }
 

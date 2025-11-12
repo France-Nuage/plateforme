@@ -9,9 +9,9 @@ export class InstancesPage extends BasePage {
    * @inheritdoc
    */
   public constructor(page: Page) {
-    super(page, "/compute/instances", new RegExp(`^${process.env.CONSOLE_URL}/compute/instances(\\?.*)?`));
+    super(page, "/compute/instances");
     this.locators = {
-      createInstanceButton: page.getByRole('button', { name: 'Créer une nouvelle instance' }),
+      createInstanceButton: page.getByRole('link', { name: 'Créer une nouvelle instance' }),
     };
   }
 }

@@ -1,8 +1,8 @@
 use crate::error::Error;
-use frn_core::authorization::Authorize;
 use frn_core::identity::IAM;
+use frn_core::{authorization::Authorize, resourcemanager::ProjectCreateRequest};
 use sqlx::{Pool, Postgres, types::Uuid};
-use std::{marker::PhantomData, time::SystemTime};
+use std::time::SystemTime;
 use tonic::{Request, Response, Status};
 
 tonic::include_proto!("francenuage.fr.resourcemanager.v1");
@@ -95,18 +95,22 @@ impl<Auth: Authorize + 'static> organizations_server::Organizations for Organiza
     }
 }
 
-pub struct Projects<Auth: Authorize> {
-    _auth: PhantomData<Auth>,
-    _iam: IAM,
+pub struct Projects<A: Authorize> {
+    iam: IAM,
+    projects: frn_core::resourcemanager::Projects<A>,
     pool: Pool<Postgres>,
 }
 
 impl<Auth: Authorize> Projects<Auth> {
-    pub fn new(iam: IAM, pool: Pool<Postgres>) -> Self {
+    pub fn new(
+        iam: IAM,
+        pool: Pool<Postgres>,
+        projects: frn_core::resourcemanager::Projects<Auth>,
+    ) -> Self {
         Self {
-            _iam: iam,
+            iam,
             pool,
-            _auth: PhantomData,
+            projects,
         }
     }
 }
@@ -115,9 +119,13 @@ impl<Auth: Authorize> Projects<Auth> {
 impl<Auth: Authorize + 'static> projects_server::Projects for Projects<Auth> {
     async fn list(
         &self,
-        _request: Request<ListProjectsRequest>,
+        request: Request<ListProjectsRequest>,
     ) -> Result<Response<ListProjectsResponse>, Status> {
-        let projects = frn_core::resourcemanager::list_projects(&self.pool)
+        let principal = self.iam.principal(&request).await?;
+        let projects = self
+            .projects
+            .clone()
+            .list(&principal)
             .await
             .map_err(Error::convert)?;
 
@@ -130,6 +138,7 @@ impl<Auth: Authorize + 'static> projects_server::Projects for Projects<Auth> {
         &self,
         request: Request<CreateProjectRequest>,
     ) -> Result<Response<CreateProjectResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
         let CreateProjectRequest {
             name,
             organization_id,
@@ -137,7 +146,14 @@ impl<Auth: Authorize + 'static> projects_server::Projects for Projects<Auth> {
         let organization_id = Uuid::parse_str(&organization_id)
             .map_err(|_| Status::invalid_argument("invalid argument organization_id"))?;
 
-        let project = frn_core::resourcemanager::create_project(&self.pool, name, organization_id)
+        let request = ProjectCreateRequest {
+            name,
+            organization_id,
+        };
+        let project = self
+            .projects
+            .clone()
+            .create(&principal, request)
             .await
             .map_err(Error::convert)?;
 

@@ -1,6 +1,6 @@
 import { test as base } from "@playwright/test";
 import { minBy } from "lodash";
-import { configureResolver, instance, transport, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services, Hypervisor, Zone } from "@france-nuage/sdk";
+import { configureResolver, instance, transport, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services, Hypervisor, Zone, InstanceStatus } from "@france-nuage/sdk";
 import { User } from '@/types';
 import { InstancesPage, CreateInstancePage, HomePage, LoginPage, OidcPage } from "./pages";
 
@@ -103,12 +103,14 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   actingAs: async ({ keycloak, organization, page, services }, use) => {
     await use(async (user) => {
       // compute key/value pair for session storage representation of the user
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 5 * 1000));
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
       const payload = await keycloak.createUser(user);
       const userinfo = await keycloak.getUserInfo(payload.access_token);
-      console.log(`attempting to invite user on organization ${organization.id}`)
+      console.log(`attempting to invite user ${userinfo.email} on organization ${organization.id}`)
       await services.invitation.create({ organizationId: organization.id, email: userinfo.email });
+
+      await new Promise(resolve => setTimeout(resolve, 5 * 1000));
 
       // define the session storage value in the context of the page
       await page.addInitScript(([key, value]) => sessionStorage.setItem(key, value), [key, JSON.stringify(payload)]);
@@ -207,14 +209,27 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   proxmox: [async ({ production }, use) => {
+
+
     if (!process.env.ROOT_SERVICE_ACCOUNT_KEY) {
       throw new Error('missing env var ROOT_SERVICE_ACCOUNT_KEY');
     }
     // Retrieve or register the dev hypervisor, which holds the test hypervisor instance template
 
-    // Elect a proxmox template to use an instantiated hypervisor
     console.log('before fetching instances');
     const instances = await production.instance.list();
+
+    // Reuse an existing proxmox hypervisor if it exists and is running
+    if (process.env.PROXMOX_DIRTY_ID) {
+      const dirty = instances.find(instance => instance.id === process.env.PROXMOX_DIRTY_ID);
+      if (!!dirty && dirty.status === InstanceStatus.Running) {
+        await use(dirty);
+        return;
+      }
+    }
+
+
+    // Elect a proxmox template to use an instantiated hypervisor
     console.log('after fetching instances');
     const { template, instance } = elect(instances);
 
