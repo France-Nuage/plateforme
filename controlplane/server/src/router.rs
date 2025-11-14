@@ -175,6 +175,7 @@ impl Router {
         iam: IAM,
         organizations: frn_core::resourcemanager::Organizations<SpiceDB>,
         pool: Pool<Postgres>,
+        projects: frn_core::resourcemanager::Projects<SpiceDB>,
     ) -> Self {
         Self {
             routes: self
@@ -184,7 +185,9 @@ impl Router {
                     organizations.clone(),
                     pool.clone(),
                 )))
-                .add_service(ProjectsServer::new(Projects::<SpiceDB>::new(iam, pool))),
+                .add_service(ProjectsServer::new(Projects::<SpiceDB>::new(
+                    iam, pool, projects,
+                ))),
         }
     }
 

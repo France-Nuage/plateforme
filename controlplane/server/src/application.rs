@@ -218,6 +218,7 @@ impl<L> Application<L> {
         let instances = self.config.app.instances.clone();
         let invitations = self.config.app.invitations.clone();
         let organizations = self.config.app.organizations.clone();
+        let projects = self.config.app.projects.clone();
         let users = self.config.app.users.clone();
         let zones = self.config.app.zones.clone();
         Self {
@@ -229,7 +230,7 @@ impl<L> Application<L> {
                 .instances(iam.clone(), pool.clone(), instances.clone())
                 .invitations(iam.clone(), invitations.clone(), users.clone())
                 .reflection()
-                .resources(iam.clone(), organizations, pool.clone())
+                .resources(iam.clone(), organizations, pool.clone(), projects.clone())
                 .zero_trust_networks(pool.clone())
                 .zero_trust_network_types(pool.clone())
                 .zones(iam.clone(), zones.clone()),

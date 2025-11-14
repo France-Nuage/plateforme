@@ -48,4 +48,3 @@ tracing = "0.1"
 tokio = "1"
 tonic = "0.14"
 tower = "0.5"
-uuid = { version = "1", features = ["serde"] }

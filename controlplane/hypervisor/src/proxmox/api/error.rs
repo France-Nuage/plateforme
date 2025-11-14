@@ -1,3 +1,5 @@
+use crate::proxmox::api::cluster_resources_list::Resource;
+
 use super::{
     api_response::{ApiInternalErrorResponse, ApiInvalidResponse},
     cluster_resources_list::ResourceType,
@@ -24,6 +26,9 @@ pub enum Error {
 
     #[error("No nodes are available on the cluster.")]
     NoNodesAvailable,
+
+    #[error("The resource {0:?} is not an instance")]
+    NotAnInstance(Resource),
 
     #[error("Proxmox resource #{id} of type {resource_type} is missing field {field}")]
     ResourceMissingField {

@@ -3,7 +3,6 @@ import {
   Button,
   Checkbox,
   Flex,
-  Heading,
   Input,
   Portal,
   Select,
@@ -111,10 +110,6 @@ export const AppTable = <T, U>({
   return (
     <>
       <Flex direction="column" gap={4}>
-        <Heading flexGrow={1} whiteSpace="nowrap">
-          Instances de VM
-        </Heading>
-
         <Flex justifyContent="space-between">
           <Input
             placeholder="Rechercher dans toutes les colonnes..."

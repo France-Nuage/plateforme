@@ -3,6 +3,7 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 export function transport(url: string, token: string): GrpcWebFetchTransport {
   return new GrpcWebFetchTransport({
     baseUrl: url,
+    format: 'binary',
     interceptors: [
       {
         interceptUnary(next, method, input, options) {
@@ -14,9 +15,16 @@ export function transport(url: string, token: string): GrpcWebFetchTransport {
             },
           });
 
-          call.response.catch((error) =>
-            console.error(`[RPC] ${method}: ${error}`),
-          );
+          call.response.catch((error) => {
+            console.error(
+              `[${error.name}] ${error.serviceName}/${error.methodName}: ${error.code}`,
+            );
+            console.log('------------------------');
+            console.log(call.response);
+            console.log('------------------------');
+            console.log(input, options, token);
+            console.log('------------------------');
+          });
 
           return call;
         },

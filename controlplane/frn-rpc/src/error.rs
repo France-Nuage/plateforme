@@ -29,7 +29,7 @@ impl From<frn_core::Error> for Error {
 
 impl From<Error> for tonic::Status {
     fn from(value: Error) -> Self {
-        tracing::error!("oopsie from convert");
+        tracing::error!("oopsie from convert: {:?}", &value);
         match value {
             Error::MissingAuthorizationHeader => tonic::Status::unauthenticated(value.to_string()),
             _ => tonic::Status::internal(value.to_string()),

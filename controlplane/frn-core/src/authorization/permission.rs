@@ -6,7 +6,7 @@ use strum_macros::{Display, EnumString};
 #[strum(serialize_all = "snake_case")]
 pub enum Permission {
     Clone,
-    Create,
+    CreateInstance,
     Delete,
     Get,
     List,

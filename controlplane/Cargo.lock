@@ -146,7 +146,6 @@ dependencies = [
  "tonic",
  "tower",
  "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -855,7 +854,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
- "uuid",
 ]
 
 [[package]]
@@ -1268,7 +1266,9 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-retry",
+ "tracing",
  "url",
+ "uuid",
 ]
 
 [[package]]

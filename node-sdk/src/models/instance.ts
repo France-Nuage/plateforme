@@ -53,8 +53,11 @@ export type Instance = {
  */
 export type InstanceFormValue = Pick<
   Instance,
-  'maxCpuCores' | 'maxMemoryBytes' | 'name' | 'projectId'
->;
+  'maxCpuCores' | 'maxDiskBytes' | 'maxMemoryBytes' | 'name' | 'projectId'
+> & {
+  image: string;
+  snippet: string;
+};
 
 /**
  * Convenience enum for mapping usual amounts of GB to theyr  byte value.

@@ -13,7 +13,7 @@ export const instance = (preset?: Partial<Instance>): Instance => ({
   maxDiskBytes: faker.number.int({ max: 1073741824000, min: 10737418240 }),
   maxMemoryBytes: faker.number.int({ max: 68719476736, min: 1073741824 }),
   memoryUsageBytes: faker.number.int({ max: 68719476736, min: 1073741824 }),
-  name: faker.commerce.productName(),
+  name: faker.commerce.productName().replaceAll(' ', '-'),
   projectId: faker.string.uuid(),
   status: faker.helpers.arrayElement(Object.values(InstanceStatus)),
   updatedAt: faker.date.recent().toISOString(),

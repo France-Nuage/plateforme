@@ -1,6 +1,6 @@
 use crate::Error;
-use crate::authorization::{Authorize, Principal};
-use crate::resourcemanager::OrganizationFactory;
+use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship};
+use crate::resourcemanager::{Organization, OrganizationFactory};
 use database::{Factory, Persistable, Repository};
 use frn_core::authorization::Resource;
 use sqlx::prelude::FromRow;
@@ -31,19 +31,28 @@ pub struct Project {
 }
 
 pub struct ProjectCreateRequest {
-    name: String,
-    organization_id: Uuid,
+    pub name: String,
+    pub organization_id: Uuid,
 }
 
 #[derive(Clone)]
 pub struct Projects<Auth: Authorize> {
-    _auth: Auth,
+    auth: Auth,
     db: Pool<Postgres>,
 }
 
 impl<Auth: Authorize> Projects<Auth> {
     pub fn new(auth: Auth, db: Pool<Postgres>) -> Self {
-        Self { _auth: auth, db }
+        Self { auth, db }
+    }
+
+    pub async fn list<P: Principal>(&mut self, principal: &P) -> Result<Vec<Project>, Error> {
+        self.auth
+            .lookup::<Project>()
+            .on_behalf_of(principal)
+            .with(Permission::Get)
+            .against(&self.db)
+            .await
     }
 
     pub async fn create<P: Principal>(
@@ -51,19 +60,22 @@ impl<Auth: Authorize> Projects<Auth> {
         _principal: &P,
         request: ProjectCreateRequest,
     ) -> Result<Project, Error> {
-        // self.auth
-        //     .can(principal)
-        //     .perform(Permission::Create)
-        //     .over(&Project::any())
-        //     .await?;
-
-        Project::factory()
+        let project = Project::factory()
             .id(Uuid::new_v4())
             .name(request.name)
             .organization_id(request.organization_id)
             .create(&self.db)
-            .await
-            .map_err(Into::into)
+            .await?;
+
+        Relationship::new(
+            &Organization::some(request.organization_id),
+            Relation::Parent,
+            &project,
+        )
+        .publish(&self.db)
+        .await?;
+
+        Ok(project)
     }
 
     pub async fn get_default_project<P: Principal>(
@@ -87,21 +99,4 @@ impl<Auth: Authorize> Projects<Auth> {
         .await
         .map_err(Into::into)
     }
-}
-
-pub async fn create_project(
-    executor: &Pool<Postgres>,
-    name: String,
-    organization_id: Uuid,
-) -> Result<Project, Error> {
-    Project::factory()
-        .name(name)
-        .organization_id(organization_id)
-        .create(executor)
-        .await
-        .map_err(Into::into)
-}
-
-pub async fn list_projects(executor: &Pool<Postgres>) -> Result<Vec<Project>, Error> {
-    Project::list(executor).await.map_err(Into::into)
 }

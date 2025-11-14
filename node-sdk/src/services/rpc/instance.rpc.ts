@@ -33,11 +33,12 @@ export class InstanceRpcService implements InstanceService {
     return this.client
       .create({
         cpuCores: data.maxCpuCores,
-        image: '',
+        diskBytes: BigInt(data.maxDiskBytes),
+        image: data.image,
         memoryBytes: BigInt(data.maxMemoryBytes),
         name: data.name,
         projectId: data.projectId,
-        snippet: '',
+        snippet: data.snippet,
       })
       .response.then(({ instance }) => fromRpcInstance(instance!));
   }

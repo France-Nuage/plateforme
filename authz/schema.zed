@@ -15,6 +15,7 @@ definition project {
 	relation parent: folder | organization
 
 	permission get = parent->get
+  permission create_instance = get
 }
 
 definition hypervisor {

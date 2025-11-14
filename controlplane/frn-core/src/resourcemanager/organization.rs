@@ -1,6 +1,7 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::identity::{ServiceAccount, User};
+use crate::resourcemanager::{DEFAULT_PROJECT_NAME, Project};
 use database::{Factory, Persistable, Repository};
 use sqlx::prelude::FromRow;
 use sqlx::types::chrono;
@@ -83,6 +84,17 @@ impl<A: Authorize> Organizations<A> {
                 .publish(&self.db)
                 .await?;
         }
+
+        let project = Project::factory()
+            .id(Uuid::new_v4())
+            .name(DEFAULT_PROJECT_NAME.to_owned())
+            .organization_id(organization.id)
+            .create(&self.db)
+            .await?;
+
+        Relationship::new(&organization, Relation::Parent, &project)
+            .publish(&self.db)
+            .await?;
 
         Ok(organization)
     }
