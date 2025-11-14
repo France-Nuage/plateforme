@@ -139,6 +139,7 @@ impl<A: Authorize> Instances<A> {
             hypervisor.url.clone(),
             hypervisor.authorization_token.clone(),
         );
+
         let next_id = ::hypervisor::proxmox::api::cluster_next_id(
             &hypervisor.url,
             &reqwest::Client::new(),

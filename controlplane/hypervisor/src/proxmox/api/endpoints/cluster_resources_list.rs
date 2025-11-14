@@ -120,15 +120,28 @@ pub mod mock {
 
     impl WithClusterResourceList for MockServer {
         fn with_cluster_resource_list(mut self) -> Self {
-            let mock = self
+            // Mock for type=vm - returns only VM resources
+            let vm_mock = self
                 .server
                 .mock(
                     "GET",
-                    mockito::Matcher::Regex(r"^/api2/json/cluster/resources\?type=.*$".to_string()),
+                    "/api2/json/cluster/resources?type=vm",
                 )
                 .with_body(r#"{"data":[{"status":"running","maxmem":4294967296,"hastate":"started","diskread":1441248256,"diskwrite":218681344,"maxcpu":1,"netout":33288,"id":"qemu/100","mem":1395277824,"cpu":0.115798987285604,"template":0,"pool":"CephPool","vmid":100,"disk":0,"node":"pve-node1","uptime":20961,"type":"qemu","netin":321018,"maxdisk":53687091200,"name":"proxmox-dev"}]}"#)
                 .create();
-            self.mocks.push(mock);
+            self.mocks.push(vm_mock);
+
+            // Mock for type=node - returns only Node resources
+            let node_mock = self
+                .server
+                .mock(
+                    "GET",
+                    "/api2/json/cluster/resources?type=node",
+                )
+                .with_body(r#"{"data":[{"status":"online","maxmem":67396141056,"cpu":0.0153827020202199,"maxcpu":16,"mem":7849295872,"node":"pve-node1","type":"node","id":"node/pve-node1","disk":10737418240,"maxdisk":107374182400,"uptime":1234567}]}"#)
+                .create();
+            self.mocks.push(node_mock);
+
             self
         }
     }
