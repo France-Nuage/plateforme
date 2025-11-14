@@ -1,3 +1,16 @@
+# [1.49.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.48.0...v1.49.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* failing tests ([41a2d20](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/41a2d207639196a8186bca4f9fde681c32ed16df))
+* update compute instances location ([b11194a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b11194a9e3ddaae99e1a46d5b372ae488a93f7b9))
+
+
+### Features
+
+* add empty canvas for tests ([482ff9a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/482ff9a755be62d2e15346f0b458e8c2d3406e15))
+
 # [1.48.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.47.2...v1.48.0) (2025-11-11)
 
 
