@@ -43,8 +43,9 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
                 async move {
                     let mut existing = sqlx::query_as!(
                         Instance,
-                        "SELECT * FROM instances WHERE distant_id = $1",
-                        distant.id
+                        "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
+                        distant.id,
+                        hypervisor.id
                     )
                     .fetch_optional(&pool)
                     .await?
