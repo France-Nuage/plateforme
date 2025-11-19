@@ -27,7 +27,7 @@ services:
       CONSOLE_URL: https://console.france-nuage.fr
       CONTROLPLANE_ADDR: 0.0.0.0:80
       DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
-      OIDC_URL: https://gitlab.com/.well-known/openid-configuration
+      OIDC_URL: https://france-nuage.cloud-iam.com/realms/master/.well-known/openid-configuration
       ROOT_ORGANIZATION_NAME: France Nuage
       ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
@@ -99,7 +99,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
-      OIDC_URL: https://gitlab.com/.well-known/openid-configuration
+      OIDC_URL: https://france-nuage.cloud-iam.com/realms/master/.well-known/openid-configuration
       ROOT_ORGANIZATION_NAME: France Nuage
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
