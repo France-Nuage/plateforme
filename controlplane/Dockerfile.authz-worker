@@ -13,7 +13,7 @@ FROM base AS builder
 RUN SQLX_OFFLINE=true cargo build --package=authz-worker --release
 
 # Production Stage
-FROM alpine:3.21 AS release
+FROM alpine:3.23 AS release
 
 COPY --from=builder /app/target/release/authz-worker /usr/bin/authz-worker
 RUN chmod +x /usr/bin/authz-worker
