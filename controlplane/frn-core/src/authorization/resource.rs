@@ -4,7 +4,7 @@ pub trait Resource {
     type Id: ToString + Sync;
 
     /// Resource type name used in authorization checks
-    const NAME: &'static str;
+    const RESOURCE_NAME: &'static str;
 
     /// Create a lightweight resource reference from an ID
     fn some(id: Self::Id) -> impl Resource<Id = Self::Id>;

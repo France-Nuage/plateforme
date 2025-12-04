@@ -8,22 +8,22 @@ use crate::authorization::{Authorize, Permission, Principal, Relation, Relations
 use crate::compute::{Hypervisor, HypervisorFactory};
 use crate::resourcemanager::{Project, ProjectFactory};
 use chrono::{DateTime, Utc};
-use database::{Factory, Persistable, Repository};
+use fabrique::{Factory, Persistable};
 use hypervisor::instance::Instances as HypervisorInstancesTrait;
 use hypervisor::instance::Status;
-use sqlx::{FromRow, Pool, Postgres};
+use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Default, Factory, FromRow, Repository, Resource)]
+#[derive(Clone, Debug, Default, Factory, Persistable, Resource)]
 pub struct Instance {
     /// Unique identifier for the instance
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
     /// The hypervisor this instance is attached to
-    #[factory(relation = "HypervisorFactory")]
+    #[fabrique(relation = "Hypervisor", referenced_key = "id")]
     pub hypervisor_id: Uuid,
     /// The project this instance belongs to
-    #[factory(relation = "ProjectFactory")]
+    #[fabrique(relation = "Project", referenced_key = "id")]
     pub project_id: Uuid,
     /// The zero trust network this instance belongs to
     pub zero_trust_network_id: Option<Uuid>,
@@ -113,7 +113,7 @@ impl<A: Authorize> Instances<A> {
 
         tracing::info!("before fetching instances...");
 
-        Instance::list(&self.db).await.map_err(Into::into)
+        Instance::all(&self.db).await.map_err(Into::into)
     }
 
     /// Creates a new instance.
@@ -129,7 +129,7 @@ impl<A: Authorize> Instances<A> {
             .await?;
 
         // Select a hypervisor to deploy the instance on.
-        let hypervisors = Hypervisor::list(&self.db).await?;
+        let hypervisors = Hypervisor::all(&self.db).await?;
         let hypervisor = hypervisors
             .first()
             .ok_or_else(|| Error::NoHypervisorsAvailable)?;

@@ -2,14 +2,15 @@ use crate::Error;
 use crate::authorization::{Authorize, Principal, Resource};
 use crate::resourcemanager::Organization;
 use chrono::{DateTime, Utc};
-use database::{Factory, Persistable, Repository};
-use sqlx::{FromRow, Pool, Postgres};
+use fabrique::{Factory, Persistable};
+use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
 /// Non-human identity for programmatic access using API keys
-#[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
+#[derive(Debug, Default, Factory, Persistable, Resource)]
+#[fabrique(table = "service_accounts")]
 pub struct ServiceAccount {
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
 
     /// Human-readable name
@@ -31,7 +32,7 @@ impl Principal for ServiceAccount {
         &self,
         connection: &sqlx::Pool<sqlx::Postgres>,
     ) -> Result<Vec<crate::resourcemanager::Organization>, crate::Error> {
-        Organization::list(connection).await.map_err(Into::into)
+        Organization::all(connection).await.map_err(Into::into)
     }
 }
 

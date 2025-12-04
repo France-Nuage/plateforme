@@ -2,22 +2,22 @@ use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::compute::ZoneFactory;
 use crate::resourcemanager::Organization;
-use database::{Factory, Persistable, Repository};
+use fabrique::{Factory, Persistable};
 use frn_core::resourcemanager::OrganizationFactory;
-use sqlx::{FromRow, Pool, Postgres};
+use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
+#[derive(Debug, Default, Factory, Persistable, Resource)]
 pub struct Hypervisor {
     /// The hypervisor id
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
 
-    #[factory(relation = "ZoneFactory")]
+    #[fabrique(relation = "Zone", referenced_key = "id")]
     pub zone_id: Uuid,
 
     /// The id of the organization the hypervisor belongs to
-    #[factory(relation = "OrganizationFactory")]
+    #[fabrique(relation = "Organization", referenced_key = "id")]
     pub organization_id: Uuid,
 
     /// The hypervisor url
@@ -68,7 +68,7 @@ impl<Auth: Authorize> Hypervisors<Auth> {
         //     .check()
         //     .await?;
 
-        Hypervisor::list(&self.db).await.map_err(Into::into)
+        Hypervisor::all(&self.db).await.map_err(Into::into)
     }
 
     /// Creates a new hypervisor.

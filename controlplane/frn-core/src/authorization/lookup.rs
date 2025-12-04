@@ -1,14 +1,12 @@
+use crate::{
+    Error,
+    authorization::{Authorize, Permission, Principal, Resource},
+};
+use fabrique::Persistable;
 use std::{
     future::{Future, IntoFuture},
     marker::PhantomData,
     pin::Pin,
-};
-
-use database::Persistable;
-
-use crate::{
-    Error,
-    authorization::{Authorize, Permission, Principal, Resource},
 };
 
 /// Typestate after specifying the resource type
@@ -125,11 +123,11 @@ impl<'a, A: Authorize + 'a, P: Principal, R: Resource + Persistable> IntoFuture
                     self.subject_type.to_string(),
                     self.subject_id.to_string(),
                     self.permission.to_string(),
-                    R::NAME.to_string(),
+                    R::RESOURCE_NAME.to_string(),
                 )
                 .await?;
 
-            let models = R::list(self.connection)
+            let models = R::all(self.connection)
                 .await
                 .map_err(|_| Error::Other("persistence layer failure".to_owned()))?
                 .into_iter()

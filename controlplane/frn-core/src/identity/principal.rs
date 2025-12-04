@@ -16,7 +16,7 @@ pub enum Principal {
 
 impl Resource for Principal {
     type Id = Uuid;
-    const NAME: &'static str = "principal";
+    const RESOURCE_NAME: &'static str = "principal";
 
     fn id(&self) -> &Self::Id {
         match self {
@@ -27,8 +27,8 @@ impl Resource for Principal {
 
     fn name(&self) -> &'static str {
         match self {
-            Self::ServiceAccount(_) => ServiceAccount::NAME,
-            Self::User(_) => User::NAME,
+            Self::ServiceAccount(_) => ServiceAccount::RESOURCE_NAME,
+            Self::User(_) => User::RESOURCE_NAME,
         }
     }
 
