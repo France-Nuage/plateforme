@@ -13,7 +13,7 @@ FROM base AS builder
 RUN SQLX_OFFLINE=true cargo build --package=synchronizer --release
 
 # Production Stage
-FROM alpine:3.21 AS release
+FROM alpine:3.23 AS release
 
 COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer
 RUN chmod +x /usr/bin/synchronizer

@@ -23,7 +23,7 @@ FROM base AS builder
 RUN SQLX_OFFLINE=true cargo build --release
 
 # Production Stage
-FROM alpine:3.21 AS release
+FROM alpine:3.23 AS release
 RUN apk add --no-cache ca-certificates openssl
 
 RUN apk add --no-cache wget && \

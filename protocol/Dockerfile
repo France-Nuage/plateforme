@@ -1,4 +1,4 @@
-FROM alpine:3.22
+FROM alpine:3.23
 
 # Define a fixed version and sha256 to avoid supply chain attacks
 
