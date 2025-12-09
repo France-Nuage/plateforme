@@ -90,3 +90,34 @@ export enum InstanceStatus {
   Deprovisionning = 'deprovisionning',
   Repairing = 'repairing',
 }
+
+export const DEFAULT_IMAGE = 'debian-12-genericcloud-amd64-20250316-2053.qcow2';
+export const DEFAULT_SNIPPET = `users:
+  - name: \${OUR_VM_USER}
+    gecos: "\${OUR_VM_USER}"
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - \${OUR_SSH_PUBLIC_KEY}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+  - name: \${THEIR_VM_USER}
+    gecos: "\${THEIR_VM_USER}"
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - \${THEIR_SSH_PUBLIC_KEY}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+runcmd:
+  - apt-get update
+  - apt-get install -y ca-certificates curl gnupg lsb-release qemu-guest-agent
+  
+  # Configuration agent Qemu
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+
+  # Configuration de fstrim pour rendre du stockage au Proxmox
+  - sudo systemctl enable fstrim.timer
+  - systemctl start fstrim.timer
+
+  # Upgrade de l'image au démarrage de la VM, mais sans interaction utilisateur
+  - DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"`;

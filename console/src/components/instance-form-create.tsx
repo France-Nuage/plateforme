@@ -9,7 +9,12 @@ import {
   Switch,
   VStack,
 } from '@chakra-ui/react';
-import { InstanceFormValue, Project } from '@france-nuage/sdk';
+import {
+  DEFAULT_IMAGE,
+  DEFAULT_SNIPPET,
+  InstanceFormValue,
+  Project,
+} from '@france-nuage/sdk';
 import { FunctionComponent, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -62,13 +67,13 @@ export const InstanceForm: FunctionComponent<InstanceFormProps> = ({
   const [instanceType, setInstanceType] = useState<InstanceType>(choices[0]);
 
   const [formValue, setFormValue] = useState<InstanceFormValue>({
-    image: 'debian-12-genericcloud-amd64-20250316-2053.qcow2',
+    image: DEFAULT_IMAGE,
     maxCpuCores: instanceType.cpuCores,
     maxDiskBytes: instanceType.diskBytes,
     maxMemoryBytes: instanceType.memoryBytes,
     name: '',
     projectId: projects[0]?.id,
-    snippet: foo,
+    snippet: DEFAULT_SNIPPET,
   });
 
   const handleInstanceTypeChange = (newValue: InstanceType) => {
@@ -201,33 +206,3 @@ export const InstanceForm: FunctionComponent<InstanceFormProps> = ({
     </VStack>
   );
 };
-
-const foo = `users:
-  - name: \${OUR_VM_USER}
-    gecos: "\${OUR_VM_USER}"
-    shell: /bin/bash
-    ssh-authorized-keys:
-      - \${OUR_SSH_PUBLIC_KEY}
-    sudo: ALL=(ALL) NOPASSWD:ALL
-
-  - name: \${THEIR_VM_USER}
-    gecos: "\${THEIR_VM_USER}"
-    shell: /bin/bash
-    ssh-authorized-keys:
-      - \${THEIR_SSH_PUBLIC_KEY}
-    sudo: ALL=(ALL) NOPASSWD:ALL
-
-runcmd:
-  - apt-get update
-  - apt-get install -y ca-certificates curl gnupg lsb-release qemu-guest-agent
-  
-  # Configuration agent Qemu
-  - systemctl enable qemu-guest-agent
-  - systemctl start qemu-guest-agent
-
-  # Configuration de fstrim pour rendre du stockage au Proxmox
-  - sudo systemctl enable fstrim.timer
-  - systemctl start fstrim.timer
-
-  # Upgrade de l'image au démarrage de la VM, mais sans interaction utilisateur
-  - DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"`;

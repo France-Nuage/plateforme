@@ -1,4 +1,10 @@
-import { ButtonGroup, IconButton } from '@chakra-ui/react';
+import {
+  Button,
+  ButtonGroup,
+  Dialog,
+  IconButton,
+  Portal,
+} from '@chakra-ui/react';
 import {
   Hypervisor,
   Instance,
@@ -14,7 +20,7 @@ import {
   Row,
   createColumnHelper,
 } from '@tanstack/react-table';
-import { FunctionComponent, ReactNode, useMemo } from 'react';
+import { FunctionComponent, ReactNode, useMemo, useState } from 'react';
 import { HiTrash } from 'react-icons/hi';
 import { HiPlay, HiStop } from 'react-icons/hi2';
 
@@ -155,7 +161,11 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
     [zones, hypervisors, instances, organizations, projects, vpcs],
   );
 
-  return <AppTable columns={columns} data={data} />;
+  return (
+    <>
+      <AppTable columns={columns} data={data} />
+    </>
+  );
 };
 
 export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
@@ -163,15 +173,74 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
 
   const dispatch = useAppDispatch();
 
+  const [confirmation, setConfirmation] = useState<
+    | {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        action: () => Promise<any>;
+        description: string;
+        title: string;
+      }
+    | undefined
+  >(undefined);
+
+  const [actionPending, setActionPending] = useState(false);
+
   const actions: Record<Action, ReactNode> = {
     remove: (
       <IconButton
         aria-label="remove instance"
         bg={{ _hover: 'bg.error', base: 'transparent' }}
         color="fg.error"
-        disabled
-        onClick={() => dispatch(removeInstance(row.original.id))}
+        onClick={() =>
+          setConfirmation({
+            action: () => dispatch(removeInstance(row.original.id)),
+            description: `Êtes vous sûr de vouloir supprimer l'instance "${row.original.name}"`,
+            title: "Supprimer l'instance",
+          })
+        }
       >
+        <Dialog.Root
+          lazyMount
+          unmountOnExit={false}
+          open={!!confirmation}
+          onOpenChange={(e) => !e.open && setConfirmation(undefined)}
+        >
+          <Dialog.Trigger />
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content>
+                <Dialog.CloseTrigger />
+                <Dialog.Header>
+                  <Dialog.Title>{confirmation?.title}</Dialog.Title>
+                </Dialog.Header>
+                <Dialog.Body>{confirmation?.description}</Dialog.Body>
+                <Dialog.Footer>
+                  <Dialog.ActionTrigger asChild>
+                    <Button disabled={actionPending} variant="outline">
+                      Annuler
+                    </Button>
+                  </Dialog.ActionTrigger>
+                  <Button
+                    colorPalette="red"
+                    disabled={actionPending}
+                    loading={actionPending}
+                    loadingText="Suppression en cours..."
+                    onClick={async () => {
+                      setActionPending(true);
+                      await confirmation?.action();
+                      setActionPending(false);
+                      setConfirmation(undefined);
+                    }}
+                    variant="solid"
+                  >
+                    Supprimer
+                  </Button>
+                </Dialog.Footer>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+        </Dialog.Root>
         <HiTrash />
       </IconButton>
     ),
@@ -208,8 +277,10 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
   };
 
   return (
-    <ButtonGroup size="xs" variant="ghost">
-      {...matrix[row.original.status].map((status) => actions[status])}
-    </ButtonGroup>
+    <>
+      <ButtonGroup size="xs" variant="ghost">
+        {matrix[row.original.status].map((status) => actions[status])}
+      </ButtonGroup>
+    </>
   );
 };

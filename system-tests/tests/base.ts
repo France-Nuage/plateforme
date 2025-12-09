@@ -1,6 +1,6 @@
 import { test as base } from "@playwright/test";
 import { minBy } from "lodash";
-import { configureResolver, instance, transport, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services, Hypervisor, Zone, InstanceStatus } from "@france-nuage/sdk";
+import { configureResolver, instance, transport, Instance, KeyCloakApi, Organization, Project, ServiceMode, Services, Hypervisor, Zone, InstanceStatus, organization, projects } from "@france-nuage/sdk";
 import { User } from '@/types';
 import { InstancesPage, CreateInstancePage, HomePage, LoginPage, OidcPage } from "./pages";
 
@@ -180,7 +180,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    */
   organization: [async ({ services }, use) => {
     const rootOrganization = (await services.organization.list()).find((organization) => organization.name === (process.env.ROOT_ORGANIZATION_NAME ?? 'acme'));
-    services.organization.create({ name: 'ACME', parentId: rootOrganization?.id }).then(use);
+    const fixture = organization();
+    services.organization.create({ name: fixture.name, parentId: rootOrganization?.id }).then(use);
   }, { scope: 'worker' }],
 
   /**
@@ -199,10 +200,13 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   project: [async ({ organization, services }, use) => {
-    services.project.create({
-      name: 'Anvil Factory',
-      organizationId: organization.id
-    }).then(use);
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    const projects = await services.project.list();
+    const project = projects.find((project) => project.organizationId === organization.id);
+    if (!project) {
+      throw new Error(`could not find default project for organization ${organization.id}`);
+    }
+    use(project);
   }, { scope: 'worker' }],
 
   /**
@@ -225,6 +229,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       if (!!dirty && dirty.status === InstanceStatus.Running) {
         await use(dirty);
         return;
+      } else {
+        console.log(`dirty hypervisor specified but not usable`);
       }
     }
 
@@ -268,7 +274,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     const services = configureResolver(transport('https://controlplane.test', process.env.ROOT_SERVICE_ACCOUNT_KEY))[ServiceMode.Rpc];
 
     use(services);
-  }, { scope: 'worker', timeout: 1200000 }],
+  }, { scope: 'worker' }],
 
   /**
    * @inheritdoc

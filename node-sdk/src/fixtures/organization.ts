@@ -9,7 +9,7 @@ export const acmeOrganization: Organization = {
 
 export const organization = (): Organization => ({
   id: faker.string.uuid(),
-  name: faker.commerce.productName(),
+  name: faker.company.name(),
 });
 
 export const organizations = (count: number): Organization[] =>

@@ -162,17 +162,41 @@ impl<A: Authorize> Instances<A> {
             })
             .await?;
 
-        // Save the created instance in database
-        let instance = Instance::factory()
-            .id(instance_id)
-            .hypervisor_id(hypervisor.id)
-            .project_id(request.project_id)
-            .distant_id(next_id)
-            .max_cpu_cores(request.cores as i32)
-            .max_memory_bytes(request.memory as i64)
-            .name(request.name)
-            .create(&self.db)
-            .await?;
+        let maybe_instance = sqlx::query_as!(
+            Instance,
+            "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
+            next_id,
+            hypervisor.id
+        )
+        .fetch_optional(&self.db)
+        .await?;
+
+        let instance = match maybe_instance {
+            None => {
+                // Save the created instance in database
+                Instance::factory()
+                    .id(instance_id)
+                    .hypervisor_id(hypervisor.id)
+                    .project_id(request.project_id)
+                    .distant_id(next_id)
+                    .max_cpu_cores(request.cores as i32)
+                    .max_memory_bytes(request.memory as i64)
+                    .name(request.name)
+                    .create(&self.db)
+                    .await?
+            }
+            Some(instance) => {
+                sqlx::query!(
+                    "UPDATE instances SET project_id = $1 WHERE id = $2",
+                    request.project_id,
+                    instance.id
+                )
+                .execute(&self.db)
+                .await?;
+
+                instance
+            }
+        };
 
         // Save the relations
         Relationship::new(
@@ -202,10 +226,13 @@ impl<A: Authorize> Instances<A> {
         let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
-        connector
-            .delete(&instance.distant_id)
-            .await
-            .map_err(Into::into)
+        connector.delete(&instance.distant_id).await?;
+
+        sqlx::query!("DELETE FROM instances WHERE id = $1", instance.id)
+            .execute(&self.db)
+            .await?;
+
+        Ok(())
     }
 
     /// Starts a stopped instance.
