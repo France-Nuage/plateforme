@@ -51,6 +51,21 @@ export default abstract class BasePage {
     });
   }
 
+  public async assertSee(text: string): Promise<void> {
+    await test.step(`I should see the text "${text}"`, async () => {
+      await expect(this.page.getByText(text)).toBeVisible();
+    })
+  }
+
+  public async confirmDialog(confirm: string = 'Confirmer'): Promise<void> {
+    await test.step('I confirm the dialog', async () => {
+      const dialog = this.page.getByRole('dialog');
+      await dialog.waitFor();
+      await dialog.getByRole('button', { name: confirm }).click();
+      await dialog.waitFor({ state: 'detached' });
+    });
+  }
+
   /**
    * Navigate to the pom concrete page.
    */

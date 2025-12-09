@@ -21,7 +21,7 @@ test.describe('Compute / Instances', () => {
     await pages.compute.createInstance.locators.createInstanceButton.click();
 
     await pages.compute.instances.assertRedirectedTo({ timeout: 120 * 1000 });
-    await new Promise(resolve => setTimeout(resolve, 5 * 1000));
+    await pages.compute.instances.assertSee(fixture.name);
   });
 });
 

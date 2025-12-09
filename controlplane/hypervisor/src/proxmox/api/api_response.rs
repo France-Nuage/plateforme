@@ -37,6 +37,7 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
             reqwest::StatusCode::OK => response.json::<ApiResponse<T>>().await.map_err(Into::into),
             reqwest::StatusCode::BAD_REQUEST => {
                 let response = response.json::<ApiInvalidResponse>().await?;
+                tracing::error!("proxmox error: {:#?}", &response);
                 Err(super::error::Error::Invalid { response })
             }
             reqwest::StatusCode::INTERNAL_SERVER_ERROR => {

@@ -41,6 +41,8 @@ export function useControlplaneData() {
 
   // Stage 2: Load dependent resources once organizations are available
   useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+
     if (isAuthenticated && organizations.length > 0) {
       dispatch(fetchAllHypervisors());
       dispatch(fetchAllInstances());
@@ -48,6 +50,14 @@ export function useControlplaneData() {
       dispatch(fetchAllZeroTrustNetworks());
       dispatch(fetchAllZeroTrustNetworkTypes());
       dispatch(fetchAllZones());
+
+      interval = setInterval(() => {
+        dispatch(fetchAllInstances());
+      }, 5000);
     }
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [dispatch, isAuthenticated, organizations]);
 }
