@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "fabrique"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "fabrique-core",
  "fabrique-derive",
@@ -801,14 +801,14 @@ dependencies = [
 
 [[package]]
 name = "fabrique-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "sqlx",
 ]
 
 [[package]]
 name = "fabrique-derive"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aquamarine",
  "darling 0.21.3",

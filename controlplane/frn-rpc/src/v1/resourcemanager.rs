@@ -98,20 +98,11 @@ impl<Auth: Authorize + 'static> organizations_server::Organizations for Organiza
 pub struct Projects<A: Authorize> {
     iam: IAM,
     projects: frn_core::resourcemanager::Projects<A>,
-    pool: Pool<Postgres>,
 }
 
 impl<Auth: Authorize> Projects<Auth> {
-    pub fn new(
-        iam: IAM,
-        pool: Pool<Postgres>,
-        projects: frn_core::resourcemanager::Projects<Auth>,
-    ) -> Self {
-        Self {
-            iam,
-            pool,
-            projects,
-        }
+    pub fn new(iam: IAM, projects: frn_core::resourcemanager::Projects<Auth>) -> Self {
+        Self { iam, projects }
     }
 }
 

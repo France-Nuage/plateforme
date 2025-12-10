@@ -185,9 +185,7 @@ impl Router {
                     organizations.clone(),
                     pool.clone(),
                 )))
-                .add_service(ProjectsServer::new(Projects::<SpiceDB>::new(
-                    iam, pool, projects,
-                ))),
+                .add_service(ProjectsServer::new(Projects::<SpiceDB>::new(iam, projects))),
         }
     }
 
