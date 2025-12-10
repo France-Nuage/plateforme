@@ -1,8 +1,7 @@
+use crate::common::{Api, OnBehalfOf};
 use frn_core::resourcemanager::Project;
 use frn_rpc::v1::resourcemanager::ListProjectsRequest;
 use tonic::Request;
-
-use crate::common::{Api, OnBehalfOf};
 
 mod common;
 
@@ -12,7 +11,7 @@ async fn test_the_list_projects_procedure_works(pool: sqlx::PgPool) {
     let mut api = Api::start(&pool).await.expect("could not start api");
 
     Project::factory()
-        .for_organization_with(|organization| organization)
+        .for_organization(|organization| organization)
         .create(&pool)
         .await
         .expect("could not create project");

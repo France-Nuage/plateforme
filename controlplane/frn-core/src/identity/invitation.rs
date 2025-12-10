@@ -5,10 +5,12 @@ use crate::{
     resourcemanager::{Organization, Organizations},
 };
 use fabrique::{Factory, Persistable};
-use sqlx::{FromRow, Pool, Postgres, Type};
+use sqlx::{Pool, Postgres};
+use std::str::FromStr;
+use strum_macros::{Display, EnumString, IntoStaticStr};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, FromRow, Persistable, Resource)]
+#[derive(Debug, Default, Factory, Persistable, Resource)]
 pub struct Invitation {
     /// The invitation id
     #[fabrique(primary_key)]
@@ -21,7 +23,7 @@ pub struct Invitation {
     pub user_id: Uuid,
 
     /// The invitation state
-    #[fabrique(r#as = "String")]
+    #[fabrique(as = "String")]
     pub state: InvitationState,
 
     /// Creation time of the project
@@ -31,8 +33,8 @@ pub struct Invitation {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[derive(Debug, Default, Clone, Copy, Type)]
-#[sqlx(type_name = "TEXT", rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Debug, Default, Display, EnumString, IntoStaticStr)]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum InvitationState {
     #[default]
     Unspecified,
@@ -42,11 +44,16 @@ pub enum InvitationState {
     Expired,
 }
 
-fn foo(connection: Pool<Postgres>) {
-    sqlx::query_as!(
-        Invitation,
-        r#"SELECT id, organization_id, user_id, state as "state: InvitationState", created_at, updated_at FROM invitations"#
-    ).fetch_all(&connection);
+impl From<String> for InvitationState {
+    fn from(value: String) -> Self {
+        InvitationState::from_str(&value).expect("could not parse value to invitation state")
+    }
+}
+
+impl From<InvitationState> for String {
+    fn from(value: InvitationState) -> Self {
+        value.to_string()
+    }
 }
 
 #[derive(Clone)]

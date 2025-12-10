@@ -1,8 +1,7 @@
+use crate::common::{Api, OnBehalfOf};
 use frn_core::{compute::Instance, resourcemanager::Organization};
 use frn_rpc::v1::compute::DeleteInstanceRequest;
 use tonic::Request;
-
-use crate::common::{Api, OnBehalfOf};
 mod common;
 
 #[sqlx::test(migrations = "../migrations")]
@@ -18,13 +17,13 @@ async fn test_the_delete_instance_procedure_works(pool: sqlx::PgPool) {
 
     let instance = Instance::factory()
         .distant_id("100".into())
-        .for_hypervisor_with(move |hypervisor| {
+        .for_hypervisor(move |hypervisor| {
             hypervisor
-                .for_default_zone()
+                .for_zone(|zone| zone)
                 .organization_id(organization.id)
                 .url(mock_url)
         })
-        .for_project_with(move |project| project.organization_id(organization.id))
+        .for_project(move |project| project.organization_id(organization.id))
         .create(&pool)
         .await
         .expect("could not create instance");

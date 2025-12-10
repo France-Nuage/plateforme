@@ -18,14 +18,13 @@ async fn test_the_start_instance_procedure_works(pool: sqlx::PgPool) {
         .await
         .expect("could not create organization");
     let instance = Instance::factory()
-        .for_hypervisor_with(move |hypervisor| {
+        .for_hypervisor(move |hypervisor| {
             hypervisor
-                .for_default_zone()
-                .for_default_organization()
+                .for_zone(|zone| zone)
                 .organization_id(organization.id)
                 .url(mock_url)
         })
-        .for_project_with(move |project| project.organization_id(organization.id))
+        .for_project(move |project| project.organization_id(organization.id))
         .distant_id("100".into())
         .create(&pool)
         .await

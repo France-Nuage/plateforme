@@ -46,7 +46,7 @@ pub struct Instance {
     /// Human-readable name, defined on the instance
     pub name: String,
     /// Current operational status of the instance
-    #[sqlx(try_from = "String")]
+    #[fabrique(as = "String")]
     pub status: Status,
     // Creation time of the instance
     pub created_at: DateTime<Utc>,
