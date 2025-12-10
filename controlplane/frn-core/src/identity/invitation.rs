@@ -1,20 +1,19 @@
-use database::{Factory, Persistable, Repository};
-use sqlx::{FromRow, Pool, Postgres};
-use std::str::FromStr;
-use strum_macros::{Display, EnumString, IntoStaticStr};
-use uuid::Uuid;
-
 use crate::{
     Error,
     authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource},
     identity::User,
     resourcemanager::{Organization, Organizations},
 };
+use fabrique::{Factory, Persistable};
+use sqlx::{Pool, Postgres};
+use std::str::FromStr;
+use strum_macros::{Display, EnumString, IntoStaticStr};
+use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, FromRow, Repository, Resource)]
+#[derive(Debug, Default, Factory, Persistable, Resource)]
 pub struct Invitation {
     /// The invitation id
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
 
     /// The organization this invitation refers to
@@ -24,7 +23,7 @@ pub struct Invitation {
     pub user_id: Uuid,
 
     /// The invitation state
-    #[sqlx(try_from = "String")]
+    #[fabrique(as = "String")]
     pub state: InvitationState,
 
     /// Creation time of the project

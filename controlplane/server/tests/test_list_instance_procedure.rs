@@ -3,6 +3,7 @@ use frn_core::compute::Instance;
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization};
 use frn_rpc::v1::compute::ListInstancesRequest;
 use tonic::Request;
+
 mod common;
 
 #[sqlx::test(migrations = "../migrations")]
@@ -16,13 +17,13 @@ async fn test_the_list_instances_procedure_works(pool: sqlx::PgPool) {
         .await
         .expect("could not create organization");
     Instance::factory()
-        .for_hypervisor_with(move |hypervisor| {
+        .for_hypervisor(move |hypervisor| {
             hypervisor
-                .for_default_zone()
+                .for_zone(|zone| zone)
                 .organization_id(organization.id)
                 .url(mock_url)
         })
-        .for_project_with(move |project| {
+        .for_project(move |project| {
             project
                 .name(DEFAULT_PROJECT_NAME.into())
                 .organization_id(organization.id)

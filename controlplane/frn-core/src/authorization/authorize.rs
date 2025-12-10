@@ -2,7 +2,7 @@ use crate::Error;
 use crate::authorization::lookup::LookupWithResource;
 use crate::authorization::{Principal, Resource, check::CheckWithPrincipal};
 use crate::authorization::{Relationship, Zookie};
-use database::Persistable;
+use fabrique::Persistable;
 use spicedb::SpiceDB;
 
 /// Authorization backend trait for checking and looking up permissions

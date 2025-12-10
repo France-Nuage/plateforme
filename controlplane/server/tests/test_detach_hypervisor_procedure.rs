@@ -9,8 +9,8 @@ mod common;
 async fn test_the_detach_hypervisor_procedure_works(pool: sqlx::PgPool) {
     // Arrange the grpc server and a client
     let hypervisor = Hypervisor::factory()
-        .for_default_zone()
-        .for_organization_with(|organization| organization)
+        .for_zone(|zone| zone)
+        .for_organization(|organization| organization)
         .create(&pool)
         .await
         .expect("could not bootstrap data");

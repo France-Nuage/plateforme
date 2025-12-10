@@ -1,5 +1,5 @@
 use crate::common::{Api, OnBehalfOf};
-use database::Persistable;
+use fabrique::Persistable;
 use frn_core::compute::{Hypervisor, Instance};
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
 use frn_rpc::v1::compute::{CreateInstanceRequest, CreateInstanceResponse};
@@ -18,7 +18,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
 
     let hypervisor = Hypervisor::factory()
         .url(api.mock_server.url())
-        .for_default_zone()
+        .for_zone(|zone| zone)
         .organization_id(organization.id)
         .create(&pool)
         .await
@@ -46,7 +46,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
     // Assert the result
     let result = api.compute.instances.create(request).await;
     assert!(result.is_ok());
-    let instances = Instance::list(&pool)
+    let instances = Instance::all(&pool)
         .await
         .expect("could not fetch instances");
     let instance = &instances[0];

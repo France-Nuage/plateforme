@@ -39,7 +39,7 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
 
         impl frn_core::authorization::Resource for #companion_ident {
             type Id = #id_type;
-            const NAME: &'static str = #resource_name;
+            const RESOURCE_NAME: &'static str = #resource_name;
 
             #[allow(refining_impl_trait)]
             fn some(id: Self::Id) -> #companion_ident {
@@ -51,13 +51,13 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
             }
 
             fn name(&self) -> &'static str {
-                Self::NAME
+                Self::RESOURCE_NAME
             }
         }
 
         impl frn_core::authorization::Resource for #struct_ident {
             type Id = #id_type;
-            const NAME: &'static str = #resource_name;
+            const RESOURCE_NAME: &'static str = #resource_name;
 
             #[allow(refining_impl_trait)]
             fn some(id: Self::Id) -> #companion_ident {
@@ -69,7 +69,7 @@ fn make_derive(input: DeriveInput) -> proc_macro2::TokenStream {
             }
 
             fn name(&self) -> &'static str {
-                Self::NAME
+                Self::RESOURCE_NAME
             }
         }
     }
@@ -99,7 +99,7 @@ mod tests {
 
             impl frn_core::authorization::Resource for AnvilResource {
                 type Id = String;
-                const NAME: &'static str = "anvil";
+                const RESOURCE_NAME: &'static str = "anvil";
 
                 #[allow(refining_impl_trait)]
                 fn some(id: Self::Id) -> AnvilResource {
@@ -111,13 +111,13 @@ mod tests {
                 }
 
                 fn name(&self) -> &'static str {
-                    Self::NAME
+                    Self::RESOURCE_NAME
                 }
             }
 
             impl frn_core::authorization::Resource for Anvil {
                 type Id = String;
-                const NAME: &'static str = "anvil";
+                const RESOURCE_NAME: &'static str = "anvil";
 
                 #[allow(refining_impl_trait)]
                 fn some(id: Self::Id) -> AnvilResource {
@@ -129,7 +129,7 @@ mod tests {
                 }
 
                 fn name(&self) -> &'static str {
-                    Self::NAME
+                    Self::RESOURCE_NAME
                 }
             }
         };

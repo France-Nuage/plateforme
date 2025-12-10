@@ -77,7 +77,7 @@ impl<'a, A: Authorize + 'a, P: Principal, R: Resource> IntoFuture
                     self.subject_type.to_string(),
                     self.subject_id.to_string(),
                     self.permission.to_string(),
-                    R::NAME.to_string(),
+                    R::RESOURCE_NAME.to_string(),
                     self.resource_id.to_string(),
                 )
                 .await

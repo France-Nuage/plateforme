@@ -1,5 +1,5 @@
 use crate::common::{Api, OnBehalfOf};
-use database::Persistable;
+use fabrique::Persistable;
 use frn_rpc::v1::resourcemanager::{
     CreateOrganizationRequest, CreateOrganizationResponse, Organization,
 };
@@ -22,7 +22,7 @@ async fn test_the_create_organization_procedure_works(
     let response = api.resourcemanager.organizations.create(request).await;
 
     // Get the instance generated in the database
-    let organizations = frn_core::resourcemanager::Organization::list(&pool)
+    let organizations = frn_core::resourcemanager::Organization::all(&pool)
         .await
         .unwrap();
     println!("orgs: {:#?}", &organizations);

@@ -1,4 +1,4 @@
-use database::Persistable;
+use fabrique::Persistable;
 use frn_core::resourcemanager::Organization;
 use frn_rpc::v1::resourcemanager::{CreateProjectRequest, CreateProjectResponse, Project};
 mod common;
@@ -26,7 +26,7 @@ async fn test_the_create_project_procedure_works(pool: sqlx::PgPool) {
     let response = api.resourcemanager.projects.create(request).await;
 
     // Get the project generated in the database
-    let projects = frn_core::resourcemanager::Project::list(&pool)
+    let projects = frn_core::resourcemanager::Project::all(&pool)
         .await
         .unwrap();
 
