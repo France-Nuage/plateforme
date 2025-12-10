@@ -1,3 +1,10 @@
+# [1.50.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.49.0...v1.50.0) (2025-12-09)
+
+
+### Features
+
+* add delete instance feature ([b907cfc](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b907cfce682b16cf39b9d482e83f507f3f1d68c0))
+
 # [1.49.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.48.0...v1.49.0) (2025-11-14)
 
 
