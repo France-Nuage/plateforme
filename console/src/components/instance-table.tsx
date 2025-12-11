@@ -244,22 +244,8 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
         <HiTrash />
       </IconButton>
     ),
-    start: (
-      <IconButton
-        aria-label="start instance"
-        onClick={() => dispatch(startInstance(row.original.id))}
-      >
-        <HiPlay />
-      </IconButton>
-    ),
-    stop: (
-      <IconButton
-        aria-label="stop instance"
-        onClick={() => dispatch(stopInstance(row.original.id))}
-      >
-        <HiStop />
-      </IconButton>
-    ),
+    start: <StartInstanceButton instance={row.original} />,
+    stop: <StopInstanceButton instance={row.original} />,
   };
 
   const matrix: Record<InstanceStatus, Action[]> = {
@@ -282,5 +268,59 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
         {matrix[row.original.status].map((status) => actions[status])}
       </ButtonGroup>
     </>
+  );
+};
+
+/**
+ * Provides & button for starting the instance
+ */
+const StartInstanceButton: FunctionComponent<{ instance: Instance }> = ({
+  instance,
+}) => {
+  const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = () => {
+    setLoading(true);
+    dispatch(startInstance(instance.id))
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <IconButton
+      aria-label="start instance"
+      onClick={handleClick}
+      loading={loading}
+    >
+      <HiPlay />
+    </IconButton>
+  );
+};
+
+/**
+ * Provides & button for stopping the instance
+ */
+const StopInstanceButton: FunctionComponent<{ instance: Instance }> = ({
+  instance,
+}) => {
+  const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = () => {
+    setLoading(true);
+    dispatch(stopInstance(instance.id))
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <IconButton
+      aria-label="stop instance"
+      onClick={handleClick}
+      loading={loading}
+    >
+      <HiStop />
+    </IconButton>
   );
 };

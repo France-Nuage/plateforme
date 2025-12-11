@@ -251,10 +251,17 @@ impl<A: Authorize> Instances<A> {
         let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
-        connector
-            .start(&instance.distant_id)
-            .await
-            .map_err(Into::into)
+        connector.start(&instance.distant_id).await?;
+
+        sqlx::query!(
+            "UPDATE instances SET status = $1 WHERE id = $2",
+            Status::Running.to_string(),
+            instance.id
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(())
     }
 
     /// Stops a running instance.
@@ -273,10 +280,17 @@ impl<A: Authorize> Instances<A> {
         let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
-        connector
-            .stop(&instance.distant_id)
-            .await
-            .map_err(Into::into)
+        connector.stop(&instance.distant_id).await?;
+
+        sqlx::query!(
+            "UPDATE instances SET status = $1 WHERE id = $2",
+            Status::Stopped.to_string(),
+            instance.id
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok(())
     }
 
     /// Stops a running instance.
