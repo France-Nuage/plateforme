@@ -1,3 +1,16 @@
+# [1.51.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.50.0...v1.51.0) (2025-12-11)
+
+
+### Bug Fixes
+
+* set flag to [secure] ([f67d7bc](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f67d7bc9c99b22c7a67cd9f32123328dfb1868ba))
+* update param immediately ([f2e6324](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f2e6324652e50bea88fadebfe9314a514ebb6355))
+
+
+### Features
+
+* add start and stop actions ([a660248](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a6602482f0fcd399fcaf4b2a50273f174e08de84))
+
 # [1.50.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.49.0...v1.50.0) (2025-12-09)
 
 
