@@ -284,7 +284,7 @@ const StartInstanceButton: FunctionComponent<{ instance: Instance }> = ({
     setLoading(true);
     dispatch(startInstance(instance.id))
       .catch((error) => console.error(error))
-      .finally(() => setLoading(true));
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -311,7 +311,7 @@ const StopInstanceButton: FunctionComponent<{ instance: Instance }> = ({
     setLoading(true);
     dispatch(stopInstance(instance.id))
       .catch((error) => console.error(error))
-      .finally(() => setLoading(true));
+      .finally(() => setLoading(false));
   };
 
   return (
