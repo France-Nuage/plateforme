@@ -329,7 +329,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -794,6 +794,8 @@ dependencies = [
 [[package]]
 name = "fabrique"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55ca898931a8c4a941bb2270be1dd1f5ecd85579d4456e4705ead976fed860b8"
 dependencies = [
  "fabrique-core",
  "fabrique-derive",
@@ -802,6 +804,8 @@ dependencies = [
 [[package]]
 name = "fabrique-core"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b18426e3bd9ef9dab509652d5d8ddb04794b199d810f851b065b53ca99ff235d"
 dependencies = [
  "sqlx",
 ]
@@ -809,6 +813,8 @@ dependencies = [
 [[package]]
 name = "fabrique-derive"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45d03eead224ca337299abef8f7151a4c76ab35fb59a7c6e401473d002bde4a6"
 dependencies = [
  "aquamarine",
  "darling 0.21.3",
@@ -4015,7 +4021,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
