@@ -233,7 +233,7 @@ services:
   markdown-lint:
     command: ["**/*.md"]
     entrypoint: ["markdownlint-cli2"]
-    image: davidanson/markdownlint-cli2:v0.13.0
+    image: davidanson/markdownlint-cli2:v0.20.0
     profiles:
       - donotstart
     volumes:
