@@ -26,7 +26,7 @@ ARG VITE_OIDC_CLIENT_ID=france-nuage-console
 ENV VITE_OIDC_CLIENT_ID=${VITE_OIDC_CLIENT_ID}
 ARG VITE_OIDC_PROVIDER_NAME=france-nuage
 ENV VITE_OIDC_PROVIDER_NAME=${VITE_OIDC_PROVIDER_NAME}
-ARG VITE_OIDC_PROVIDER_URL=https://france-nuage.cloud-iam.com/realms/france-nuage
+ARG VITE_OIDC_PROVIDER_URL=https://auth.france-nuage.fr/realms/france-nuage
 ENV VITE_OIDC_PROVIDER_URL=${VITE_OIDC_PROVIDER_URL}
 RUN npm run build
 
