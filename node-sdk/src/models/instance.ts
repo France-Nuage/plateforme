@@ -107,10 +107,17 @@ export const DEFAULT_SNIPPET = `users:
       - \${THEIR_SSH_PUBLIC_KEY}
     sudo: ALL=(ALL) NOPASSWD:ALL
 
+  - name: francenuage
+    gecos: "France Nuage"
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - \${HOOP_SSH_PUBLIC_KEY}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
 runcmd:
   - apt-get update
   - apt-get install -y ca-certificates curl gnupg lsb-release qemu-guest-agent
-  
+
   # Configuration agent Qemu
   - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
@@ -120,4 +127,14 @@ runcmd:
   - systemctl start fstrim.timer
 
   # Upgrade de l'image au démarrage de la VM, mais sans interaction utilisateur
-  - DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"`;
+  - DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+
+  # Installation et configuration de l'agent Hoop SSH Bastion
+  - curl -sSL https://releases.hoop.dev/install.sh | sh
+  - |
+    mkdir -p /etc/hoop
+    cat > /etc/hoop/agent.toml <<EOF
+    token = "\${HOOP_AGENT_TOKEN}"
+    EOF
+  - systemctl enable hoop-agent
+  - systemctl start hoop-agent`;

@@ -15,7 +15,7 @@ members = [
   "mock_server",
   "server",
   "spicedb",
-  "synchronizer",
+  "synchronizer", "hoop",
 ]
 
 resolver = "3"
