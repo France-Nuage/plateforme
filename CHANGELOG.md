@@ -1,3 +1,16 @@
+# [1.52.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.51.0...v1.52.0) (2025-12-21)
+
+
+### Bug Fixes
+
+* run tests with --all-features to include hoop tests ([de3d025](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/de3d025dfae923a876392929b3d9c42f0488c999))
+* use agent UUID for create_connection instead of name ([ed5f9ff](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ed5f9ffb693d6bea7cf94e712f5c93e7e13d307e))
+
+
+### Features
+
+* add hoop ([19253b6](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/19253b640295be78f9d1510f903091bbfb52ddb8))
+
 # [1.51.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.50.0...v1.51.0) (2025-12-11)
 
 
