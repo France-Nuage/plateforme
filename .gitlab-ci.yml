@@ -102,7 +102,7 @@ gitleaks:
     RUSTFLAGS: "-Cinstrument-coverage"
     SQLX_OFFLINE: true
   script:
-    - docker compose run --remove-orphans controlplane cargo test --workspace
+    - docker compose run --remove-orphans controlplane cargo test --workspace --all-features
     - docker compose run --remove-orphans --no-deps controlplane grcov . --binary-path ./target/debug/deps/ -s . -t cobertura --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o cobertura.xml
     - >
       docker compose run --remove-orphans --no-deps controlplane sh -c "xmllint --xpath \"concat('Coverage: ', 100 * string(//coverage/@line-rate), '%')\" cobertura.xml"

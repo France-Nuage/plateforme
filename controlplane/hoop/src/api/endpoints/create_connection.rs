@@ -109,7 +109,7 @@ pub mod mock {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "mock"))]
 mod tests {
     use super::mock::WithCreateConnectionMock;
     use super::*;
