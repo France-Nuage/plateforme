@@ -291,13 +291,18 @@ impl<A: Authorize> Instances<A> {
                 .await
                 .map_err(|e| Error::Other(format!("Failed to create Hoop agent: {}", e)))?;
 
+        // Get agent UUID (required for creating connection)
+        let agent = hoop::api::get_agent(&hoop_api_url, &client, &hoop_api_key, instance_name)
+            .await
+            .map_err(|e| Error::Other(format!("Failed to get Hoop agent: {}", e)))?;
+
         // Create Hoop connection with SSH credentials
         hoop::api::create_connection(
             &hoop_api_url,
             &client,
             &hoop_api_key,
             instance_name,
-            instance_name,
+            &agent.id,
             "francenuage",
             &private_key_base64,
         )
