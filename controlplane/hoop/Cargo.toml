@@ -1,0 +1,17 @@
+[package]
+name = "hoop"
+version = "0.1.0"
+edition = "2024"
+description = "Client for Hoop.dev API - SSH bastion integration"
+
+[features]
+mock = ["dep:mockito", "dep:mock_server"]
+
+[dependencies]
+mockito = { version = "1.6.0", optional = true }
+mock_server = { path = "../mock_server", optional = true }
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+thiserror = "2.0"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tracing = "0.1"

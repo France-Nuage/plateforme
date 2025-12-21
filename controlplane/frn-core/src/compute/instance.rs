@@ -7,11 +7,13 @@ use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::compute::{Hypervisor, HypervisorFactory};
 use crate::resourcemanager::{Project, ProjectFactory};
+use base64::Engine;
 use chrono::{DateTime, Utc};
 use fabrique::{Factory, Persistable};
 use hypervisor::instance::Instances as HypervisorInstancesTrait;
 use hypervisor::instance::Status;
 use sqlx::{Pool, Postgres};
+use ssh_key::{Algorithm, LineEnding, PrivateKey};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Default, Factory, Persistable, Resource)]
@@ -150,6 +152,11 @@ impl<A: Authorize> Instances<A> {
         .data
         .to_string();
 
+        // Setup Hoop SSH bastion access
+        let snippet = self
+            .setup_hoop_access(&request.name, request.snippet)
+            .await?;
+
         let instance_id = api
             .create(hypervisor::instance::InstanceCreateRequest {
                 id: next_id.clone(),
@@ -158,7 +165,7 @@ impl<A: Authorize> Instances<A> {
                 disk_image: request.disk_image,
                 memory_bytes: request.memory,
                 name: request.name.clone(),
-                snippet: request.snippet,
+                snippet,
             })
             .await?;
 
@@ -226,6 +233,9 @@ impl<A: Authorize> Instances<A> {
         let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
+        // Cleanup Hoop SSH bastion access (best effort)
+        self.cleanup_hoop_access(&instance.name).await;
+
         connector.delete(&instance.distant_id).await?;
 
         sqlx::query!("DELETE FROM instances WHERE id = $1", instance.id)
@@ -233,6 +243,123 @@ impl<A: Authorize> Instances<A> {
             .await?;
 
         Ok(())
+    }
+
+    /// Sets up Hoop SSH bastion access for a new instance.
+    ///
+    /// Generates an SSH keypair, creates a Hoop agent and connection,
+    /// and injects the credentials into the cloud-init snippet.
+    async fn setup_hoop_access(
+        &self,
+        instance_name: &str,
+        snippet: String,
+    ) -> Result<String, Error> {
+        let hoop_api_url = match std::env::var("HOOP_API_URL") {
+            Ok(url) => url,
+            Err(_) => {
+                tracing::warn!("HOOP_API_URL not set, skipping Hoop setup");
+                return Ok(snippet);
+            }
+        };
+
+        let hoop_api_key = match std::env::var("HOOP_API_KEY") {
+            Ok(key) => key,
+            Err(_) => {
+                tracing::warn!("HOOP_API_KEY not set, skipping Hoop setup");
+                return Ok(snippet);
+            }
+        };
+
+        // Generate SSH keypair
+        let private_key = PrivateKey::random(&mut rand::thread_rng(), Algorithm::Ed25519)
+            .map_err(|e| Error::Other(format!("Failed to generate SSH key: {}", e)))?;
+        let public_key = private_key
+            .public_key()
+            .to_openssh()
+            .map_err(|e| Error::Other(format!("Failed to format public key: {}", e)))?;
+        let private_key_pem = private_key
+            .to_openssh(LineEnding::LF)
+            .map_err(|e| Error::Other(format!("Failed to format private key: {}", e)))?;
+        let private_key_base64 =
+            base64::engine::general_purpose::STANDARD.encode(private_key_pem.as_bytes());
+
+        let client = reqwest::Client::new();
+
+        // Create Hoop agent
+        let agent_token =
+            hoop::api::create_agent(&hoop_api_url, &client, &hoop_api_key, instance_name)
+                .await
+                .map_err(|e| Error::Other(format!("Failed to create Hoop agent: {}", e)))?;
+
+        // Get agent UUID (required for creating connection)
+        let agent = hoop::api::get_agent(&hoop_api_url, &client, &hoop_api_key, instance_name)
+            .await
+            .map_err(|e| Error::Other(format!("Failed to get Hoop agent: {}", e)))?;
+
+        // Create Hoop connection with SSH credentials
+        hoop::api::create_connection(
+            &hoop_api_url,
+            &client,
+            &hoop_api_key,
+            instance_name,
+            &agent.id,
+            "francenuage",
+            &private_key_base64,
+        )
+        .await
+        .map_err(|e| Error::Other(format!("Failed to create Hoop connection: {}", e)))?;
+
+        // Inject credentials into snippet
+        let snippet = snippet
+            .replace("${HOOP_AGENT_TOKEN}", &agent_token)
+            .replace("${HOOP_SSH_PUBLIC_KEY}", &public_key);
+
+        tracing::info!(
+            "Hoop SSH bastion access configured for instance {}",
+            instance_name
+        );
+
+        Ok(snippet)
+    }
+
+    /// Cleans up Hoop SSH bastion access for an instance.
+    ///
+    /// Best effort - errors are logged but don't fail the deletion.
+    async fn cleanup_hoop_access(&self, instance_name: &str) {
+        let hoop_api_url = match std::env::var("HOOP_API_URL") {
+            Ok(url) => url,
+            Err(_) => return,
+        };
+
+        let hoop_api_key = match std::env::var("HOOP_API_KEY") {
+            Ok(key) => key,
+            Err(_) => return,
+        };
+
+        let client = reqwest::Client::new();
+
+        // Delete connection first
+        if let Err(e) =
+            hoop::api::delete_connection(&hoop_api_url, &client, &hoop_api_key, instance_name).await
+        {
+            tracing::warn!(
+                "Failed to delete Hoop connection for {}: {}",
+                instance_name,
+                e
+            );
+        }
+
+        // Delete agent
+        if let Err(e) =
+            hoop::api::delete_agent(&hoop_api_url, &client, &hoop_api_key, instance_name).await
+        {
+            tracing::warn!("Failed to delete Hoop agent for {}: {}", instance_name, e);
+        }
+
+        tracing::info!(
+            "Hoop SSH bastion access cleaned up for instance {}",
+            instance_name
+        );
     }
 
     /// Starts a stopped instance.

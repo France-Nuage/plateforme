@@ -7,8 +7,8 @@ services:
       spicedb:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
-      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
+      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD:?POSTGRES_CONTROLPLANE_PASSWORD is required}@postgres:5432/controlplane
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
     image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/authz-worker:release
     labels:
@@ -26,11 +26,13 @@ services:
     environment:
       CONSOLE_URL: https://console.france-nuage.fr
       CONTROLPLANE_ADDR: 0.0.0.0:80
-      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
+      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD:?POSTGRES_CONTROLPLANE_PASSWORD is required}@postgres:5432/controlplane
+      HOOP_API_KEY: ${HOOP_API_KEY:?HOOP_API_KEY is required}
+      HOOP_API_URL: https://bastion.ssh.france-nuage.fr
       OIDC_URL: https://auth.france-nuage.fr/realms/france-nuage/.well-known/openid-configuration
       ROOT_ORGANIZATION_NAME: France Nuage
-      ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY}
-      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
+      ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:?ROOT_SERVICE_ACCOUNT_KEY is required}
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
     healthcheck:
       test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:80"]
@@ -55,7 +57,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: controlplane
-      POSTGRES_PASSWORD: ${POSTGRES_CONTROLPLANE_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_CONTROLPLANE_PASSWORD:?POSTGRES_CONTROLPLANE_PASSWORD is required}
       POSTGRES_DB: controlplane
     expose:
       - 5432
@@ -77,9 +79,9 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
       SPICEDB_DATASTORE_ENGINE: postgres
-      SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD}@postgres:5432/spicedb?sslmode=disable
+      SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD:?POSTGRES_SPICEDB_PASSWORD is required}@postgres:5432/spicedb?sslmode=disable
     expose:
       - 8443
       - 50051
@@ -98,10 +100,10 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD}@postgres:5432/controlplane
+      DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD:?POSTGRES_CONTROLPLANE_PASSWORD is required}@postgres:5432/controlplane
       OIDC_URL: https://auth.france-nuage.fr/realms/france-nuage/.well-known/openid-configuration
       ROOT_ORGANIZATION_NAME: France Nuage
-      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY}
+      SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
     image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/synchronizer:release
     labels:
