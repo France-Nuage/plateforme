@@ -274,7 +274,10 @@ mod tests {
 
     #[test]
     fn test_generate_slug_basic() {
-        assert_eq!(generate_slug("Mon Organisation").unwrap(), "mon-organisation");
+        assert_eq!(
+            generate_slug("Mon Organisation").unwrap(),
+            "mon-organisation"
+        );
         assert_eq!(generate_slug("Test Company").unwrap(), "test-company");
     }
 
@@ -353,8 +356,7 @@ mod tests {
     #[test]
     fn test_generate_slug_truncation_at_hyphen() {
         // Create a name that will result in a slug > 63 chars with hyphens
-        let long_name =
-            "this-is-a-very-long-organization-name-that-should-be-truncated-at-hyphen";
+        let long_name = "this-is-a-very-long-organization-name-that-should-be-truncated-at-hyphen";
         let result = generate_slug(long_name).unwrap();
         assert!(result.len() <= 63);
         assert!(!result.ends_with('-'));

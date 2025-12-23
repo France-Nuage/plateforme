@@ -13,7 +13,10 @@ export const organization = (): Organization => {
   return {
     id: faker.string.uuid(),
     name,
-    slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+    slug: name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, ''),
   };
 };
 
