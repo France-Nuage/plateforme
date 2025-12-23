@@ -93,13 +93,11 @@ impl<A: Authorize> Invitations<A> {
             .over::<Organization>(&organization_id)
             .await?;
 
-        let organization = sqlx::query_as!(
-            Organization,
-            "SELECT * FROM organizations WHERE id = $1",
-            organization_id
-        )
-        .fetch_one(&self.db)
-        .await?;
+        let organization: Organization =
+            sqlx::query_as("SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE id = $1")
+                .bind(organization_id)
+                .fetch_one(&self.db)
+                .await?;
 
         let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", user_id)
             .fetch_one(&self.db)
