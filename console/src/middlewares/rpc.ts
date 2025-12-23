@@ -69,8 +69,7 @@ export function handleRpcError(error: RpcError, store: AppStore) {
       store.dispatch(logout());
       break;
     default:
-      store.dispatch(logout());
-      console.log(
+      console.error(
         `unhandled error code: "${error.code}"`,
         JSON.stringify(error),
       );
