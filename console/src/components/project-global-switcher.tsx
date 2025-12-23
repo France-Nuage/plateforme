@@ -90,48 +90,57 @@ export const SwitcherMenu = <T,>({
   options,
   onChange,
   value,
-}: ProjectSwitcherMenuProps<T>) => (
-  <Menu.Root positioning={{ placement: 'bottom-start' }}>
-    <Menu.Trigger
-      borderWidth={1}
-      alignItems="center"
-      display="flex"
-      gap="2"
-      focusVisibleRing="outside"
-      _focusVisible={{ bg: 'bg.muted' }}
-      rounded="l2"
-      p={1}
-      height={8}
-      maxWidth={{ base: 40, md: 'full' }}
+}: ProjectSwitcherMenuProps<T>) => {
+  const handleSelect = (details: { value: string }) => {
+    const selectedIndex = parseInt(details.value, 10);
+    const selectedOption = options[selectedIndex];
+    if (selectedOption) {
+      onChange(selectedOption);
+    }
+  };
+
+  return (
+    <Menu.Root
+      positioning={{ placement: 'bottom-start' }}
+      onSelect={handleSelect}
     >
-      <Text
-        fontWeight="medium"
-        fontSize="sm"
-        ms="1"
-        overflow="hidden"
-        textOverflow="ellipsis"
-        textWrap="nowrap"
+      <Menu.Trigger
+        borderWidth={1}
+        alignItems="center"
+        display="flex"
+        gap="2"
+        focusVisibleRing="outside"
+        _focusVisible={{ bg: 'bg.muted' }}
+        rounded="l2"
+        p={1}
+        height={8}
+        maxWidth={{ base: 40, md: 'full' }}
       >
-        {format(value)}
-      </Text>
-      <Icon color="fg.muted">
-        <LuChevronsUpDown />
-      </Icon>
-    </Menu.Trigger>
-    <Portal>
-      <Menu.Positioner>
-        <Menu.Content minW={64}>
-          {options.map((option, index) => (
-            <Menu.Item
-              key={index}
-              onSelect={() => onChange(option)}
-              value={format(option)}
-            >
-              {format(option)}
-            </Menu.Item>
-          ))}
-        </Menu.Content>
-      </Menu.Positioner>
-    </Portal>
-  </Menu.Root>
-);
+        <Text
+          fontWeight="medium"
+          fontSize="sm"
+          ms="1"
+          overflow="hidden"
+          textOverflow="ellipsis"
+          textWrap="nowrap"
+        >
+          {format(value)}
+        </Text>
+        <Icon color="fg.muted">
+          <LuChevronsUpDown />
+        </Icon>
+      </Menu.Trigger>
+      <Portal>
+        <Menu.Positioner>
+          <Menu.Content minW={64}>
+            {options.map((option, index) => (
+              <Menu.Item key={index} value={String(index)}>
+                {format(option)}
+              </Menu.Item>
+            ))}
+          </Menu.Content>
+        </Menu.Positioner>
+      </Portal>
+    </Menu.Root>
+  );
+};
