@@ -162,9 +162,13 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   );
 
   return (
-    <>
-      <AppTable columns={columns} data={data} />
-    </>
+    <AppTable
+      columns={columns}
+      data={data}
+      bulkActions={(selectedInstances) => (
+        <InstanceBulkActions instances={selectedInstances} />
+      )}
+    />
   );
 };
 
@@ -299,7 +303,7 @@ const StartInstanceButton: FunctionComponent<{ instance: Instance }> = ({
 };
 
 /**
- * Provides & button for stopping the instance
+ * Provides a button for stopping the instance
  */
 const StopInstanceButton: FunctionComponent<{ instance: Instance }> = ({
   instance,
@@ -322,5 +326,126 @@ const StopInstanceButton: FunctionComponent<{ instance: Instance }> = ({
     >
       <HiStop />
     </IconButton>
+  );
+};
+
+/**
+ * Bulk actions component for selected instances.
+ *
+ * Displays action buttons with counts based on instance states:
+ * - Start: available for stopped instances
+ * - Stop: available for running instances
+ * - Delete: available for stopped instances (with confirmation dialog)
+ */
+const InstanceBulkActions: FunctionComponent<{ instances: InstanceData[] }> = ({
+  instances,
+}) => {
+  const dispatch = useAppDispatch();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const startableInstances = instances.filter(
+    (instance) => instance.status === InstanceStatus.Stopped,
+  );
+  const stoppableInstances = instances.filter(
+    (instance) => instance.status === InstanceStatus.Running,
+  );
+  const deletableInstances = instances.filter(
+    (instance) => instance.status === InstanceStatus.Stopped,
+  );
+
+  const handleStart = () => {
+    startableInstances.forEach((instance) =>
+      dispatch(startInstance(instance.id)),
+    );
+  };
+
+  const handleStop = () => {
+    stoppableInstances.forEach((instance) =>
+      dispatch(stopInstance(instance.id)),
+    );
+  };
+
+  const handleDelete = async () => {
+    setDeleteLoading(true);
+    await Promise.all(
+      deletableInstances.map((instance) =>
+        dispatch(removeInstance(instance.id)),
+      ),
+    );
+    setDeleteLoading(false);
+    setDeleteDialogOpen(false);
+  };
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleStart}
+        disabled={startableInstances.length === 0}
+      >
+        <HiPlay />
+        Start ({startableInstances.length})
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleStop}
+        disabled={stoppableInstances.length === 0}
+      >
+        <HiStop />
+        Stop ({stoppableInstances.length})
+      </Button>
+      <Dialog.Root
+        lazyMount
+        open={deleteDialogOpen}
+        onOpenChange={(e) => setDeleteDialogOpen(e.open)}
+      >
+        <Dialog.Trigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={deletableInstances.length === 0}
+            colorPalette="red"
+          >
+            <HiTrash />
+            Delete ({deletableInstances.length})
+          </Button>
+        </Dialog.Trigger>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.CloseTrigger />
+              <Dialog.Header>
+                <Dialog.Title>Supprimer les instances</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                Êtes-vous sûr de vouloir supprimer {deletableInstances.length}{' '}
+                instance{deletableInstances.length > 1 ? 's' : ''} ?
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger asChild>
+                  <Button disabled={deleteLoading} variant="outline">
+                    Annuler
+                  </Button>
+                </Dialog.ActionTrigger>
+                <Button
+                  colorPalette="red"
+                  disabled={deleteLoading}
+                  loading={deleteLoading}
+                  loadingText="Suppression en cours..."
+                  onClick={handleDelete}
+                  variant="solid"
+                >
+                  Supprimer
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+    </>
   );
 };
