@@ -1,3 +1,11 @@
+## [1.52.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.52.0...v1.52.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* global organization select cannot select an organization ([55ca4e3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/55ca4e3a571549e232d6c3e0450bc21c8155a216))
+* user is logged out on internal server error ([4c677c8](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/4c677c843859cedec047ce17b4fd5d26282f61e1))
+
 # [1.52.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.51.0...v1.52.0) (2025-12-21)
 
 
