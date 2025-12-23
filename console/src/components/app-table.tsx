@@ -50,11 +50,13 @@ import { useUrlState } from '@/hooks';
 export type AppTableProps<T, U> = {
   columns: ColumnDef<T, U>[];
   data: T[];
+  bulkActions?: (selectedRows: T[]) => ReactNode;
 };
 
 export const AppTable = <T, U>({
   columns,
   data,
+  bulkActions,
 }: AppTableProps<T, U>): ReactNode => {
   // Initialize with all columns displayed by default
   const allColumnIds = columns.map((column) => column.id!).join(',');
@@ -241,27 +243,27 @@ export const AppTable = <T, U>({
                 ))}
               </Table.Body>
             </Table.Root>
-            <ActionBar.Root open={table.getSelectedRowModel().rows.length > 0}>
-              <Portal>
-                <ActionBar.Positioner>
-                  <ActionBar.Content>
-                    <ActionBar.SelectionTrigger>
-                      {table.getSelectedRowModel().rows.length} selected
-                    </ActionBar.SelectionTrigger>
-                    <ActionBar.Separator />
-                    <Button variant="outline" size="sm">
-                      Start
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Stop
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Delete
-                    </Button>
-                  </ActionBar.Content>
-                </ActionBar.Positioner>
-              </Portal>
-            </ActionBar.Root>
+            {bulkActions && (
+              <ActionBar.Root
+                open={table.getSelectedRowModel().rows.length > 0}
+              >
+                <Portal>
+                  <ActionBar.Positioner>
+                    <ActionBar.Content>
+                      <ActionBar.SelectionTrigger>
+                        {table.getSelectedRowModel().rows.length} selected
+                      </ActionBar.SelectionTrigger>
+                      <ActionBar.Separator />
+                      {bulkActions(
+                        table
+                          .getSelectedRowModel()
+                          .rows.map((row) => row.original),
+                      )}
+                    </ActionBar.Content>
+                  </ActionBar.Positioner>
+                </Portal>
+              </ActionBar.Root>
+            )}
           </Table.ScrollArea>
         </DndContext>
       ) : (
