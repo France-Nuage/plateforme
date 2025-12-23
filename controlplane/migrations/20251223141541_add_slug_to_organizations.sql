@@ -22,12 +22,13 @@ UPDATE "public"."organizations"
 SET slug = TRIM(BOTH '-' FROM slug);
 
 -- Step 4: Handle potential duplicates by appending row number
+-- Pre-truncate slug to leave room for suffix (max 10 chars: '-' + up to 9 digits)
 WITH duplicates AS (
     SELECT id, slug, ROW_NUMBER() OVER (PARTITION BY slug ORDER BY created_at) as rn
     FROM "public"."organizations"
 )
 UPDATE "public"."organizations" o
-SET slug = d.slug || '-' || d.rn
+SET slug = SUBSTRING(d.slug, 1, 63 - LENGTH(d.rn::text) - 1) || '-' || d.rn
 FROM duplicates d
 WHERE o.id = d.id AND d.rn > 1;
 
@@ -40,6 +41,11 @@ WHERE slug IS NULL OR slug = '';
 UPDATE "public"."organizations"
 SET slug = SUBSTRING(slug, 1, 63)
 WHERE LENGTH(slug) > 63;
+
+-- Step 6b: Clean up any trailing hyphens created by truncation
+UPDATE "public"."organizations"
+SET slug = RTRIM(slug, '-')
+WHERE slug LIKE '%-';
 
 -- Step 7: Make column NOT NULL
 ALTER TABLE "public"."organizations" ALTER COLUMN "slug" SET NOT NULL;

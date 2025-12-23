@@ -1,4 +1,4 @@
-h1:ALHIg0P4FPTxNQsbUKe68v5P1moFjJmnByo0bw8qOVA=
+h1:GLRuhsq8qmMfInrn7VeF5EInn8ci9vYGzHr8Kyin7pU=
 20250901201631_initial.sql h1:I+fkuCn9NMpmL/AwF1y/wsmW2+IcPhAfSxGEH9Y2Seo=
 20250905065156_create_users.sql h1:tKKPDZycejUig1fxcYo+gDlLeZugn45InwitZubLDME=
 20250924143151_create_relationship_queue.sql h1:pjj8Bxl7ybKoq6/2j03x6WxdNODyBTp4dn1JXLnaXwY=
@@ -9,4 +9,4 @@ h1:ALHIg0P4FPTxNQsbUKe68v5P1moFjJmnByo0bw8qOVA=
 20251015083304_move_relationship_types_to_string.sql h1:UUXuLH4cfTdwdpHuWBg3y8+7rn2s3kA6awR+HFYL7eM=
 20251022063048_add_invitations.sql h1:HSP6AzVpxNhls9A+9LAwKjRMZd5FkPCyWVxBpe3sH9w=
 20251028133733_update_organizations_add_parent_id_column.sql h1:aU25Zfj8y6HX5ILSeVODLZ12Zz2VcL4b8OXzL03BBhc=
-20251223141541_add_slug_to_organizations.sql h1:HLUGFaANQgM99gfC4nUs5YjrWITOD1M0Z2SGOCLmbSI=
+20251223141541_add_slug_to_organizations.sql h1:2kxZnT2n7DJxx17PkDLuu0UV1W1MoViAaODXJfJezZ4=
