@@ -10,6 +10,8 @@ struct Organization {
 
     #[sqlx(try_from = "String")]
     pub name: OrganizationName,
+
+    pub slug: String,
 }
 
 #[derive(Debug, Default)]
