@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM organizations WHERE id = $1",
+  "query": "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -15,18 +15,23 @@
       },
       {
         "ordinal": 2,
+        "name": "slug",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "parent_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 3,
+        "ordinal": 5,
         "name": "updated_at",
         "type_info": "Timestamptz"
-      },
-      {
-        "ordinal": 4,
-        "name": "parent_id",
-        "type_info": "Uuid"
       }
     ],
     "parameters": {
@@ -38,9 +43,10 @@
       false,
       false,
       false,
+      true,
       false,
-      true
+      false
     ]
   },
-  "hash": "824b286f84da55472eb3f6e2352312ad4b1fe79e530819fa629b4922676e81c0"
+  "hash": "167bfb4ff80330982d630268a09f3f01d98305706042544e2c76c0d69f287e71"
 }
