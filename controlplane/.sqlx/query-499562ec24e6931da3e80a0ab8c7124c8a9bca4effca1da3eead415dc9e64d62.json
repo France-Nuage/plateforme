@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name FROM organizations",
+  "query": "SELECT id, name, slug FROM organizations",
   "describe": {
     "columns": [
       {
@@ -12,6 +12,11 @@
         "ordinal": 1,
         "name": "name",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "slug",
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -19,8 +24,9 @@
     },
     "nullable": [
       false,
+      false,
       false
     ]
   },
-  "hash": "6b44edc717a608ef01a584147d12ffab66e6a8a3a7d19b51c2ab6f9ae4aab30b"
+  "hash": "499562ec24e6931da3e80a0ab8c7124c8a9bca4effca1da3eead415dc9e64d62"
 }

@@ -17,8 +17,8 @@ service Projects {
 
 message Organization {
     string id = 1 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"
     }];
     string name = 2 [(validate.rules).string = {
@@ -28,6 +28,11 @@ message Organization {
     }];
     google.protobuf.Timestamp created_at = 3;
     google.protobuf.Timestamp updated_at = 4;
+    string slug = 5 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 63,
+        pattern: "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
+    }];
 }
 
 message Project {

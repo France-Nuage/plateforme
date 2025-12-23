@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE organizations SET name = $2 WHERE id = $1 RETURNING id, name",
+  "query": "UPDATE organizations SET name = $2, slug = $3 WHERE id = $1 RETURNING id, name, slug",
   "describe": {
     "columns": [
       {
@@ -12,18 +12,25 @@
         "ordinal": 1,
         "name": "name",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "slug",
+        "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
         "Uuid",
+        "Text",
         "Text"
       ]
     },
     "nullable": [
       false,
+      false,
       false
     ]
   },
-  "hash": "e3849c77b38af600d164469f05aa626f9db065dd28517522ef964a5517400c1c"
+  "hash": "2b1b34b7068d4e0d1f32bf2d3fc12e5fab6110354e638ea578afafcb3f04125d"
 }

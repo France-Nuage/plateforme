@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO projects (name, organization_id)\n            SELECT 'unattributed', $1\n            WHERE NOT EXISTS (\n                SELECT 1 FROM projects\n                WHERE name = 'unattributed' AND organization_id = $1\n            )\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5748ea3082af86a396376c5899d9d8e203273fbcd3e0d3d4d8addb970d355e00"
+}

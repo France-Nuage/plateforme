@@ -26,6 +26,10 @@ export interface Organization {
    * @generated from protobuf field: google.protobuf.Timestamp updated_at = 4
    */
   updatedAt?: Timestamp;
+  /**
+   * @generated from protobuf field: string slug = 5
+   */
+  slug: string;
 }
 /**
  * @generated from protobuf message francenuage.fr.resourcemanager.v1.Project
@@ -154,6 +158,21 @@ class Organization$Type extends MessageType<Organization> {
       },
       { no: 3, name: 'created_at', kind: 'message', T: () => Timestamp },
       { no: 4, name: 'updated_at', kind: 'message', T: () => Timestamp },
+      {
+        no: 5,
+        name: 'slug',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: {
+              minLen: '1',
+              maxLen: '63',
+              pattern: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?$',
+            },
+          },
+        },
+      },
     ]);
   }
 }
