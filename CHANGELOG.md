@@ -1,3 +1,10 @@
+# [1.53.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.52.1...v1.53.0) (2025-12-23)
+
+
+### Features
+
+* implement bulk actions ([31af496](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/31af4965de628aff2adacb10be9d86864c95c30d))
+
 ## [1.52.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.52.0...v1.52.1) (2025-12-23)
 
 
