@@ -41,12 +41,11 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
                 let service = Clone::clone(&service);
 
                 async move {
-                    let mut existing = sqlx::query_as!(
-                        Instance,
-                        "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
-                        distant.id,
-                        hypervisor.id
+                    let mut existing = sqlx::query_as::<_, Instance>(
+                        "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2"
                     )
+                    .bind(&distant.id)
+                    .bind(hypervisor.id)
                     .fetch_optional(&pool)
                     .await?
                     .unwrap_or(Instance {
@@ -73,6 +72,9 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
                         hypervisor_id: hypervisor.id,
                         project_id: existing.project_id,
                         zero_trust_network_id: existing.zero_trust_network_id,
+                        vpc_id: existing.vpc_id,
+                        vnet_id: existing.vnet_id,
+                        mac_address: existing.mac_address,
                         distant_id: distant.id,
                         cpu_usage_percent: distant.cpu_usage_percent as f64,
                         disk_usage_bytes: distant.disk_usage_bytes as i64,

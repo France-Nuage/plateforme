@@ -1,0 +1,657 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.network;
+
+import "validate.proto";
+import "google/protobuf/timestamp.proto";
+
+// ============================================================================
+// VPCs Service - Virtual Private Cloud management
+// ============================================================================
+
+// VPCs service provides operations to manage Virtual Private Clouds.
+// VPCs are isolated network environments using Proxmox SDN VXLAN zones.
+service VPCs {
+    // Create provisions a new VPC with an associated Proxmox SDN zone.
+    rpc Create(CreateVPCRequest) returns (VPC);
+
+    // Get retrieves a specific VPC by its ID.
+    rpc Get(GetVPCRequest) returns (VPC);
+
+    // List retrieves all VPCs accessible to the caller.
+    rpc List(ListVPCsRequest) returns (ListVPCsResponse);
+
+    // Update modifies an existing VPC's properties.
+    rpc Update(UpdateVPCRequest) returns (VPC);
+
+    // Delete removes a VPC and its associated SDN zone.
+    rpc Delete(DeleteVPCRequest) returns (DeleteVPCResponse);
+}
+
+// VPC represents a Virtual Private Cloud - an isolated network environment.
+message VPC {
+    // Unique identifier for the VPC
+    string id = 1 [(validate.rules).string = {min_len: 1, max_len: 36}];
+
+    // Human-readable name of the VPC
+    string name = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
+
+    // URL-friendly slug, unique worldwide
+    string slug = 3 [(validate.rules).string = {
+        min_len: 3,
+        max_len: 36,
+        pattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+    }];
+
+    // ID of the organization this VPC belongs to
+    string organization_id = 4;
+
+    // Region where the VPC is deployed
+    string region = 5;
+
+    // Proxmox SDN zone identifier
+    string sdn_zone_id = 6;
+
+    // VXLAN tag for network isolation (1-16777215)
+    int32 vxlan_tag = 7 [(validate.rules).int32 = {gte: 1, lte: 16777215}];
+
+    // Current state of the VPC
+    VPCState state = 8;
+
+    // Maximum Transmission Unit (1280-1500, default 1450 for VXLAN)
+    int32 mtu = 9 [(validate.rules).int32 = {gte: 1280, lte: 1500}];
+
+    // Creation timestamp
+    google.protobuf.Timestamp created_at = 997;
+
+    // Last update timestamp
+    google.protobuf.Timestamp updated_at = 998;
+}
+
+// VPCState represents the lifecycle state of a VPC.
+enum VPCState {
+    VPC_STATE_UNSPECIFIED = 0;
+    VPC_STATE_PENDING = 1;
+    VPC_STATE_CREATING = 2;
+    VPC_STATE_ACTIVE = 3;
+    VPC_STATE_ERROR = 4;
+    VPC_STATE_DELETING = 5;
+}
+
+// CreateVPCRequest contains the parameters for creating a new VPC.
+message CreateVPCRequest {
+    // Human-readable name for the VPC
+    string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+
+    // URL-friendly slug (must be globally unique)
+    string slug = 2 [(validate.rules).string = {
+        min_len: 3,
+        max_len: 36,
+        pattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+    }];
+
+    // ID of the organization to create the VPC in
+    string organization_id = 3 [(validate.rules).string.min_len = 1];
+
+    // Region for the VPC (optional, defaults to fr-paris-1)
+    string region = 4;
+
+    // MTU setting (optional, default 1450)
+    int32 mtu = 5;
+}
+
+// GetVPCRequest identifies which VPC to retrieve.
+message GetVPCRequest {
+    // ID of the VPC to retrieve
+    string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+// ListVPCsRequest contains filters for listing VPCs.
+message ListVPCsRequest {
+    // Filter by organization ID (optional)
+    string organization_id = 1;
+
+    // Maximum number of results to return
+    int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+
+    // Pagination token from previous response
+    string page_token = 3;
+}
+
+// ListVPCsResponse contains a page of VPC results.
+message ListVPCsResponse {
+    // List of VPCs
+    repeated VPC vpcs = 1;
+
+    // Token for retrieving the next page
+    string next_page_token = 2;
+}
+
+// UpdateVPCRequest contains fields to update on a VPC.
+message UpdateVPCRequest {
+    // ID of the VPC to update
+    string id = 1 [(validate.rules).string.min_len = 1];
+
+    // New name (optional)
+    optional string name = 2;
+
+    // New MTU setting (optional)
+    optional int32 mtu = 3;
+}
+
+// DeleteVPCRequest identifies which VPC to delete.
+message DeleteVPCRequest {
+    // ID of the VPC to delete
+    string id = 1 [(validate.rules).string.min_len = 1];
+}
+
+// DeleteVPCResponse is returned after a successful VPC deletion.
+message DeleteVPCResponse {}
+
+// ============================================================================
+// VNets Service - Virtual Network (subnet) management
+// ============================================================================
+
+// VNets service provides operations to manage Virtual Networks within VPCs.
+// VNets represent subnets with their own CIDR ranges and gateway configuration.
+service VNets {
+    // Create provisions a new VNet within a VPC.
+    rpc Create(CreateVNetRequest) returns (VNet);
+
+    // Get retrieves a specific VNet by its ID.
+    rpc Get(GetVNetRequest) returns (VNet);
+
+    // List retrieves all VNets in a VPC.
+    rpc List(ListVNetsRequest) returns (ListVNetsResponse);
+
+    // Update modifies an existing VNet's properties.
+    rpc Update(UpdateVNetRequest) returns (VNet);
+
+    // Delete removes a VNet from a VPC.
+    rpc Delete(DeleteVNetRequest) returns (DeleteVNetResponse);
+}
+
+// VNet represents a Virtual Network (subnet) within a VPC.
+message VNet {
+    // Unique identifier for the VNet
+    string id = 1;
+
+    // ID of the parent VPC
+    string vpc_id = 2;
+
+    // Human-readable name
+    string name = 3;
+
+    // Proxmox SDN VNet bridge identifier (e.g., vnet-myapp-prod)
+    string vnet_bridge_id = 4;
+
+    // CIDR notation for the subnet (e.g., 10.0.1.0/24)
+    string subnet = 5;
+
+    // Gateway IP address (e.g., 10.0.1.1)
+    string gateway = 6;
+
+    // Whether DHCP is enabled on this VNet
+    bool dhcp_enabled = 7;
+
+    // Comma-separated list of DNS servers (e.g., 1.1.1.1,8.8.8.8)
+    string dns_servers = 8;
+
+    // Current state of the VNet
+    VNetState state = 9;
+
+    // Creation timestamp
+    google.protobuf.Timestamp created_at = 997;
+
+    // Last update timestamp
+    google.protobuf.Timestamp updated_at = 998;
+}
+
+// VNetState represents the lifecycle state of a VNet.
+enum VNetState {
+    VNET_STATE_UNSPECIFIED = 0;
+    VNET_STATE_PENDING = 1;
+    VNET_STATE_ACTIVE = 2;
+    VNET_STATE_ERROR = 3;
+}
+
+// CreateVNetRequest contains the parameters for creating a new VNet.
+message CreateVNetRequest {
+    // ID of the parent VPC
+    string vpc_id = 1 [(validate.rules).string.min_len = 1];
+
+    // Human-readable name
+    string name = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
+
+    // Subnet in CIDR notation (e.g., 10.0.1.0/24)
+    string subnet = 3 [(validate.rules).string.min_len = 7];
+
+    // Gateway IP (optional, auto-calculated as first usable IP if empty)
+    string gateway = 4;
+
+    // Comma-separated DNS servers (optional)
+    string dns_servers = 5;
+}
+
+// GetVNetRequest identifies which VNet to retrieve.
+message GetVNetRequest {
+    // ID of the VNet to retrieve
+    string id = 1;
+}
+
+// ListVNetsRequest contains filters for listing VNets.
+message ListVNetsRequest {
+    // Filter by VPC ID (required)
+    string vpc_id = 1;
+
+    // Maximum number of results to return
+    int32 page_size = 2;
+
+    // Pagination token from previous response
+    string page_token = 3;
+}
+
+// ListVNetsResponse contains a page of VNet results.
+message ListVNetsResponse {
+    // List of VNets
+    repeated VNet vnets = 1;
+
+    // Token for retrieving the next page
+    string next_page_token = 2;
+}
+
+// UpdateVNetRequest contains fields to update on a VNet.
+message UpdateVNetRequest {
+    // ID of the VNet to update
+    string id = 1;
+
+    // New name (optional)
+    optional string name = 2;
+
+    // New DNS servers (optional)
+    optional string dns_servers = 3;
+}
+
+// DeleteVNetRequest identifies which VNet to delete.
+message DeleteVNetRequest {
+    // ID of the VNet to delete
+    string id = 1;
+}
+
+// DeleteVNetResponse is returned after a successful VNet deletion.
+message DeleteVNetResponse {}
+
+// ============================================================================
+// IPAM Service - IP Address Management
+// ============================================================================
+
+// IPAM service provides operations for IP address allocation and management.
+// This is the source of truth for IP addresses within VNets.
+service IPAM {
+    // AllocateIP assigns an IP address from a VNet's subnet.
+    rpc AllocateIP(AllocateIPRequest) returns (IPAllocation);
+
+    // ReleaseIP releases a previously allocated IP address.
+    rpc ReleaseIP(ReleaseIPRequest) returns (ReleaseIPResponse);
+
+    // ReserveIP reserves a specific IP address for maintenance or other purposes.
+    rpc ReserveIP(ReserveIPRequest) returns (IPAllocation);
+
+    // ListIPAllocations retrieves all IP allocations in a VNet.
+    rpc ListIPAllocations(ListIPAllocationsRequest) returns (ListIPAllocationsResponse);
+
+    // GenerateMAC generates a unique MAC address with France Nuage OUI prefix.
+    rpc GenerateMAC(GenerateMACRequest) returns (GenerateMACResponse);
+}
+
+// IPAllocation represents an allocated IP address.
+message IPAllocation {
+    // Unique identifier for the allocation
+    string id = 1;
+
+    // ID of the VNet this IP belongs to
+    string vnet_id = 2;
+
+    // The allocated IP address (e.g., 10.0.1.42)
+    string address = 3;
+
+    // Associated MAC address (e.g., BC:24:11:AA:BB:CC)
+    string mac_address = 4;
+
+    // ID of the instance interface using this IP (if any)
+    string instance_interface_id = 5;
+
+    // Type of allocation
+    AllocationType allocation_type = 6;
+
+    // Hostname for reverse DNS (e.g., web-01.myapp.internal)
+    string hostname = 7;
+
+    // When the IP was allocated
+    google.protobuf.Timestamp allocated_at = 8;
+
+    // Creation timestamp
+    google.protobuf.Timestamp created_at = 997;
+}
+
+// AllocationType represents how an IP address is being used.
+enum AllocationType {
+    ALLOCATION_TYPE_UNSPECIFIED = 0;
+    ALLOCATION_TYPE_STATIC = 1;     // Assigned to an instance
+    ALLOCATION_TYPE_DYNAMIC = 2;    // DHCP pool (future)
+    ALLOCATION_TYPE_RESERVED = 3;   // Reserved for maintenance
+    ALLOCATION_TYPE_GATEWAY = 4;    // Gateway IP
+}
+
+// AllocateIPRequest contains parameters for allocating an IP address.
+message AllocateIPRequest {
+    // ID of the VNet to allocate from
+    string vnet_id = 1 [(validate.rules).string.min_len = 1];
+
+    // Specific IP to allocate (optional, if empty the next available is assigned)
+    optional string requested_ip = 2;
+
+    // Hostname for reverse DNS
+    string hostname = 3;
+}
+
+// ReleaseIPRequest identifies which IP allocation to release.
+message ReleaseIPRequest {
+    // ID of the IP allocation to release
+    string allocation_id = 1;
+}
+
+// ReleaseIPResponse is returned after releasing an IP.
+message ReleaseIPResponse {
+    // The IP address that was released
+    string released_address = 1;
+}
+
+// ReserveIPRequest contains parameters for reserving a specific IP.
+message ReserveIPRequest {
+    // ID of the VNet containing the IP
+    string vnet_id = 1;
+
+    // Specific IP address to reserve
+    string address = 2;
+
+    // Reason for reservation
+    string reason = 3;
+}
+
+// ListIPAllocationsRequest contains filters for listing IP allocations.
+message ListIPAllocationsRequest {
+    // Filter by VNet ID
+    string vnet_id = 1;
+
+    // Filter by allocation type (optional)
+    optional AllocationType filter_type = 2;
+
+    // Maximum number of results
+    int32 page_size = 3;
+
+    // Pagination token
+    string page_token = 4;
+}
+
+// ListIPAllocationsResponse contains IP allocation results and statistics.
+message ListIPAllocationsResponse {
+    // List of IP allocations
+    repeated IPAllocation allocations = 1;
+
+    // Token for next page
+    string next_page_token = 2;
+
+    // Total number of allocations in the VNet
+    int32 total_count = 3;
+
+    // Number of available IPs remaining
+    int32 available_count = 4;
+}
+
+// GenerateMACRequest is empty - MAC generation has no parameters.
+message GenerateMACRequest {}
+
+// GenerateMACResponse contains a newly generated MAC address.
+message GenerateMACResponse {
+    // Generated MAC address with France Nuage OUI prefix (BC:24:11:xx:xx:xx)
+    string mac_address = 1;
+}
+
+// ============================================================================
+// SecurityGroups Service - Network access control
+// ============================================================================
+
+// SecurityGroups service provides operations for managing firewall rules.
+// Security groups implement Zero Trust - all traffic is denied by default.
+service SecurityGroups {
+    // Create creates a new security group in a VPC.
+    rpc Create(CreateSecurityGroupRequest) returns (SecurityGroup);
+
+    // Get retrieves a specific security group.
+    rpc Get(GetSecurityGroupRequest) returns (SecurityGroup);
+
+    // List retrieves all security groups in a VPC.
+    rpc List(ListSecurityGroupsRequest) returns (ListSecurityGroupsResponse);
+
+    // Update modifies a security group's metadata.
+    rpc Update(UpdateSecurityGroupRequest) returns (SecurityGroup);
+
+    // Delete removes a security group.
+    rpc Delete(DeleteSecurityGroupRequest) returns (DeleteSecurityGroupResponse);
+
+    // AddRule adds a firewall rule to a security group.
+    rpc AddRule(AddRuleRequest) returns (SecurityRule);
+
+    // RemoveRule removes a firewall rule from a security group.
+    rpc RemoveRule(RemoveRuleRequest) returns (RemoveRuleResponse);
+
+    // AttachToInterface attaches a security group to an instance interface.
+    rpc AttachToInterface(AttachToInterfaceRequest) returns (AttachToInterfaceResponse);
+
+    // DetachFromInterface detaches a security group from an instance interface.
+    rpc DetachFromInterface(DetachFromInterfaceRequest) returns (DetachFromInterfaceResponse);
+}
+
+// SecurityGroup represents a set of firewall rules that can be applied to instances.
+message SecurityGroup {
+    // Unique identifier
+    string id = 1;
+
+    // ID of the parent VPC
+    string vpc_id = 2;
+
+    // Human-readable name (unique within VPC)
+    string name = 3;
+
+    // Description of the security group's purpose
+    string description = 4;
+
+    // Whether this is the default security group for the VPC
+    bool is_default = 5;
+
+    // Firewall rules in this security group
+    repeated SecurityRule rules = 6;
+
+    // Creation timestamp
+    google.protobuf.Timestamp created_at = 997;
+
+    // Last update timestamp
+    google.protobuf.Timestamp updated_at = 998;
+}
+
+// SecurityRule represents a single firewall rule.
+message SecurityRule {
+    // Unique identifier
+    string id = 1;
+
+    // Traffic direction
+    Direction direction = 2;
+
+    // Network protocol
+    Protocol protocol = 3;
+
+    // Start of port range (optional for non-TCP/UDP)
+    optional int32 port_from = 4;
+
+    // End of port range (optional for non-TCP/UDP)
+    optional int32 port_to = 5;
+
+    // Source/destination CIDR (0.0.0.0/0 for any)
+    string source_cidr = 6;
+
+    // Action to take
+    Action action = 7;
+
+    // Rule priority (lower = higher priority, 1-65535)
+    int32 priority = 8;
+
+    // Description of the rule
+    string description = 9;
+}
+
+// Direction specifies whether a rule applies to incoming or outgoing traffic.
+enum Direction {
+    DIRECTION_UNSPECIFIED = 0;
+    DIRECTION_INBOUND = 1;
+    DIRECTION_OUTBOUND = 2;
+}
+
+// Protocol specifies the network protocol for a rule.
+enum Protocol {
+    PROTOCOL_UNSPECIFIED = 0;
+    PROTOCOL_TCP = 1;
+    PROTOCOL_UDP = 2;
+    PROTOCOL_ICMP = 3;
+    PROTOCOL_ALL = 4;
+}
+
+// Action specifies what to do when a rule matches.
+enum Action {
+    ACTION_UNSPECIFIED = 0;
+    ACTION_ALLOW = 1;
+    ACTION_DENY = 2;
+}
+
+// CreateSecurityGroupRequest contains parameters for creating a security group.
+message CreateSecurityGroupRequest {
+    // ID of the parent VPC
+    string vpc_id = 1 [(validate.rules).string.min_len = 1];
+
+    // Name for the security group (unique within VPC)
+    string name = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
+
+    // Description (optional)
+    string description = 3;
+}
+
+// GetSecurityGroupRequest identifies which security group to retrieve.
+message GetSecurityGroupRequest {
+    // ID of the security group
+    string id = 1;
+}
+
+// ListSecurityGroupsRequest contains filters for listing security groups.
+message ListSecurityGroupsRequest {
+    // Filter by VPC ID
+    string vpc_id = 1;
+
+    // Maximum number of results
+    int32 page_size = 2;
+
+    // Pagination token
+    string page_token = 3;
+}
+
+// ListSecurityGroupsResponse contains security group results.
+message ListSecurityGroupsResponse {
+    // List of security groups
+    repeated SecurityGroup security_groups = 1;
+
+    // Token for next page
+    string next_page_token = 2;
+}
+
+// UpdateSecurityGroupRequest contains fields to update.
+message UpdateSecurityGroupRequest {
+    // ID of the security group to update
+    string id = 1;
+
+    // New name (optional)
+    optional string name = 2;
+
+    // New description (optional)
+    optional string description = 3;
+}
+
+// DeleteSecurityGroupRequest identifies which security group to delete.
+message DeleteSecurityGroupRequest {
+    // ID of the security group to delete
+    string id = 1;
+}
+
+// DeleteSecurityGroupResponse is returned after deletion.
+message DeleteSecurityGroupResponse {}
+
+// AddRuleRequest contains parameters for adding a firewall rule.
+message AddRuleRequest {
+    // ID of the security group to add the rule to
+    string security_group_id = 1;
+
+    // Traffic direction
+    Direction direction = 2;
+
+    // Network protocol
+    Protocol protocol = 3;
+
+    // Start of port range (required for TCP/UDP)
+    optional int32 port_from = 4;
+
+    // End of port range (required for TCP/UDP)
+    optional int32 port_to = 5;
+
+    // Source/destination CIDR
+    string source_cidr = 6;
+
+    // Action to take
+    Action action = 7;
+
+    // Rule priority (1-65535, lower = higher priority)
+    int32 priority = 8;
+
+    // Description of the rule
+    string description = 9;
+}
+
+// RemoveRuleRequest identifies which rule to remove.
+message RemoveRuleRequest {
+    // ID of the rule to remove
+    string rule_id = 1;
+}
+
+// RemoveRuleResponse is returned after rule removal.
+message RemoveRuleResponse {}
+
+// AttachToInterfaceRequest attaches a security group to an instance interface.
+message AttachToInterfaceRequest {
+    // ID of the security group
+    string security_group_id = 1;
+
+    // ID of the instance interface
+    string instance_interface_id = 2;
+}
+
+// AttachToInterfaceResponse is returned after attachment.
+message AttachToInterfaceResponse {}
+
+// DetachFromInterfaceRequest detaches a security group from an instance interface.
+message DetachFromInterfaceRequest {
+    // ID of the security group
+    string security_group_id = 1;
+
+    // ID of the instance interface
+    string instance_interface_id = 2;
+}
+
+// DetachFromInterfaceResponse is returned after detachment.
+message DetachFromInterfaceResponse {}

@@ -16,8 +16,8 @@ serde_with = { version = "3.12" }
 strum = "0.27"
 strum_macros = "0.27"
 thiserror = "2.0"
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "fs"] }
 tokio-retry = "0.3"
 tracing = "0.1"
 url = "2.0"
-uuid = { workspace = true }
+uuid = { version = "1", features = ["serde", "v4"] }

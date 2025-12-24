@@ -13,6 +13,7 @@ use crate::{
     authorization::Authorize,
     compute::{Hypervisors, Instances, Zones},
     identity::{IAM, Invitations, ServiceAccounts, Users},
+    network::{IPAM, SecurityGroups, VNets, VPCs},
     resourcemanager::{Organizations, Projects},
 };
 use auth::OpenID;
@@ -35,10 +36,14 @@ pub struct App<A: Authorize> {
     pub hypervisors: Hypervisors<A>,
     pub instances: Instances<A>,
     pub invitations: Invitations<A>,
+    pub ipam: IPAM<A>,
     pub organizations: Organizations<A>,
     pub projects: Projects<A>,
+    pub security_groups: SecurityGroups<A>,
     pub service_accounts: ServiceAccounts<A>,
     pub users: Users<A>,
+    pub vnets: VNets<A>,
+    pub vpcs: VPCs<A>,
     pub zones: Zones<A>,
 }
 
@@ -61,9 +66,13 @@ impl App<SpiceDB> {
         let organizations = Organizations::new(auth.clone(), db.clone());
         let instances = Instances::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone(), organizations.clone());
+        let ipam = IPAM::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
+        let security_groups = SecurityGroups::new(auth.clone(), db.clone());
         let service_accounts = ServiceAccounts::new(auth.clone(), db.clone());
         let users = Users::new(auth.clone(), db.clone());
+        let vnets = VNets::new(auth.clone(), db.clone());
+        let vpcs = VPCs::new(auth.clone(), db.clone());
         let zones = Zones::new(auth.clone(), db.clone());
 
         let app = Self {
@@ -75,10 +84,14 @@ impl App<SpiceDB> {
             hypervisors,
             instances,
             invitations,
+            ipam,
             organizations,
             projects,
+            security_groups,
             service_accounts,
             users,
+            vnets,
+            vpcs,
             zones,
         };
 
@@ -98,9 +111,13 @@ impl App<SpiceDB> {
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone(), organizations.clone());
+        let ipam = IPAM::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
+        let security_groups = SecurityGroups::new(auth.clone(), db.clone());
         let service_accounts = ServiceAccounts::new(auth.clone(), db.clone());
         let users = Users::new(auth.clone(), db.clone());
+        let vnets = VNets::new(auth.clone(), db.clone());
+        let vpcs = VPCs::new(auth.clone(), db.clone());
         let zones = Zones::new(auth.clone(), db.clone());
 
         let app = Self {
@@ -112,10 +129,14 @@ impl App<SpiceDB> {
             instances,
             hypervisors,
             invitations,
+            ipam,
             organizations,
             projects,
+            security_groups,
             service_accounts,
             users,
+            vnets,
+            vpcs,
             zones,
         };
 

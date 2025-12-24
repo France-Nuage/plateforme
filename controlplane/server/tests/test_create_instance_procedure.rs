@@ -1,6 +1,7 @@
 use crate::common::{Api, OnBehalfOf};
 use fabrique::Persistable;
 use frn_core::compute::{Hypervisor, Instance};
+use frn_core::network::{VNet, VPC};
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
 use frn_rpc::v1::compute::{CreateInstanceRequest, CreateInstanceResponse};
 use tonic::Request;
@@ -31,6 +32,19 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
         .await
         .expect("could not create project");
 
+    // Create VPC and VNet for network configuration
+    let vpc = VPC::factory()
+        .organization_id(organization.id)
+        .create(&pool)
+        .await
+        .expect("could not create vpc");
+
+    let vnet = VNet::factory()
+        .vpc_id(vpc.id)
+        .create(&pool)
+        .await
+        .expect("could not create vnet");
+
     // Act the call to the create rpc
     let request = Request::new(CreateInstanceRequest {
         image: String::from("debian.qcow2"),
@@ -39,7 +53,11 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
         memory_bytes: 536870912,
         name: String::from("acme-mgs"),
         project_id: project.id.to_string(),
-        snippet: String::from("acme-snippet.yaml"),
+        snippet: Some(String::from("acme-snippet.yaml")),
+        vpc_id: vpc.id.to_string(),
+        vnet_id: vnet.id.to_string(),
+        requested_ip: None,
+        security_group_ids: vec![],
     })
     .on_behalf_of(&api.service_account);
 

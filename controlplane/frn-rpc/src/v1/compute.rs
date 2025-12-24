@@ -137,9 +137,13 @@ impl From<frn_core::compute::Instance> for Instance {
             disk_usage_bytes: value.disk_usage_bytes as u64,
             name: value.name,
             ip_v4: value.ip_v4,
+            mac_address: value.mac_address,
             hypervisor_id: value.hypervisor_id.to_string(),
             project_id: value.project_id.to_string(),
-            zero_trust_network_id: value.zero_trust_network_id.map(Into::into),
+            zero_trust_network_id: value.zero_trust_network_id.map(|id| id.to_string()),
+            vpc_id: value.vpc_id.map(|id| id.to_string()),
+            vnet_id: value.vnet_id.map(|id| id.to_string()),
+            security_group_ids: vec![], // TODO: Load from database if needed
             created_at: Some(SystemTime::from(value.created_at).into()),
             updated_at: Some(SystemTime::from(value.updated_at).into()),
         }
@@ -168,10 +172,27 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
         let request = request.into_inner();
 
+        let project_id = Uuid::parse_str(&request.project_id)
+            .map_err(|_| Error::MalformedId(request.project_id.clone()))?;
+        let vpc_id = Uuid::parse_str(&request.vpc_id)
+            .map_err(|_| Error::MalformedId(request.vpc_id.clone()))?;
+        let vnet_id = Uuid::parse_str(&request.vnet_id)
+            .map_err(|_| Error::MalformedId(request.vnet_id.clone()))?;
+
+        let security_group_ids: Result<Vec<Uuid>, _> = request
+            .security_group_ids
+            .iter()
+            .map(|id| Uuid::parse_str(id).map_err(|_| Error::MalformedId(id.clone())))
+            .collect();
+        let security_group_ids = security_group_ids?;
+
         let request = InstanceCreateRequest {
             cores: request.cpu_cores as u8,
-            project_id: Uuid::parse_str(&request.project_id)
-                .map_err(|_| Error::MalformedId(request.project_id))?,
+            project_id,
+            vpc_id,
+            vnet_id,
+            requested_ip: request.requested_ip,
+            security_group_ids,
             disk_image: request.image,
             disk_size: request.disk_bytes as u32,
             memory: request.memory_bytes as u32,

@@ -217,9 +217,13 @@ impl<L> Application<L> {
         let hypervisors = self.config.app.hypervisors.clone();
         let instances = self.config.app.instances.clone();
         let invitations = self.config.app.invitations.clone();
+        let ipam = self.config.app.ipam.clone();
         let organizations = self.config.app.organizations.clone();
         let projects = self.config.app.projects.clone();
+        let security_groups = self.config.app.security_groups.clone();
         let users = self.config.app.users.clone();
+        let vnets = self.config.app.vnets.clone();
+        let vpcs = self.config.app.vpcs.clone();
         let zones = self.config.app.zones.clone();
         Self {
             config: self.config,
@@ -229,8 +233,12 @@ impl<L> Application<L> {
                 .hypervisors(iam.clone(), pool.clone(), hypervisors.clone())
                 .instances(iam.clone(), pool.clone(), instances.clone())
                 .invitations(iam.clone(), invitations.clone(), users.clone())
+                .ipam(iam.clone(), ipam.clone())
                 .reflection()
                 .resources(iam.clone(), organizations, pool.clone(), projects.clone())
+                .security_groups(iam.clone(), security_groups.clone())
+                .vnets(iam.clone(), vnets.clone())
+                .vpcs(iam.clone(), vpcs.clone())
                 .zero_trust_networks(pool.clone())
                 .zero_trust_network_types(pool.clone())
                 .zones(iam.clone(), zones.clone()),

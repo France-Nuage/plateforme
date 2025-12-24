@@ -14,6 +14,14 @@ use frn_rpc::v1::compute::instances_server::InstancesServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::iam::Invitations;
 use frn_rpc::v1::iam::invitations_server::InvitationsServer;
+use frn_rpc::v1::network::Ipam;
+use frn_rpc::v1::network::SecurityGroups;
+use frn_rpc::v1::network::VNets;
+use frn_rpc::v1::network::VPCs;
+use frn_rpc::v1::network::ipam_server::IpamServer;
+use frn_rpc::v1::network::security_groups_server::SecurityGroupsServer;
+use frn_rpc::v1::network::v_nets_server::VNetsServer;
+use frn_rpc::v1::network::vp_cs_server::VpCsServer;
 use frn_rpc::v1::resourcemanager::Organizations;
 use frn_rpc::v1::resourcemanager::Projects;
 use frn_rpc::v1::resourcemanager::organizations_server::OrganizationsServer;
@@ -83,8 +91,12 @@ impl Router {
                 health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
                 health_reporter.set_serving::<InstancesServer<Instances<SpiceDB>>>(),
                 health_reporter.set_serving::<InvitationsServer<Invitations<SpiceDB>>>(),
+                health_reporter.set_serving::<IpamServer<Ipam<SpiceDB>>>(),
                 health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
                 health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
+                health_reporter.set_serving::<SecurityGroupsServer<SecurityGroups<SpiceDB>>>(),
+                health_reporter.set_serving::<VNetsServer<VNets<SpiceDB>>>(),
+                health_reporter.set_serving::<VpCsServer<VPCs<SpiceDB>>>(),
                 health_reporter
                     .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>(),
                 health_reporter
@@ -230,6 +242,85 @@ impl Router {
             routes: self
                 .routes
                 .add_service(ZonesServer::new(Zones::new(iam, zones))),
+        }
+    }
+
+    /// Registers the VPCs management service with the router.
+    ///
+    /// This method adds the VPCs gRPC service to the router, providing
+    /// endpoints for Virtual Private Cloud creation, management, and
+    /// configuration operations.
+    ///
+    /// # Parameters
+    ///
+    /// * `iam` - Identity and Access Management service for authentication
+    /// * `vpcs` - VPCs service for VPC operations
+    pub fn vpcs(self, iam: IAM, vpcs: frn_core::network::VPCs<SpiceDB>) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(VpCsServer::new(VPCs::new(iam, vpcs))),
+        }
+    }
+
+    /// Registers the VNets management service with the router.
+    ///
+    /// This method adds the VNets gRPC service to the router, providing
+    /// endpoints for Virtual Network creation, management, and
+    /// configuration operations within VPCs.
+    ///
+    /// # Parameters
+    ///
+    /// * `iam` - Identity and Access Management service for authentication
+    /// * `vnets` - VNets service for VNet operations
+    pub fn vnets(self, iam: IAM, vnets: frn_core::network::VNets<SpiceDB>) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(VNetsServer::new(VNets::new(iam, vnets))),
+        }
+    }
+
+    /// Registers the IPAM (IP Address Management) service with the router.
+    ///
+    /// This method adds the IPAM gRPC service to the router, providing
+    /// endpoints for IP address allocation, release, reservation, and
+    /// MAC address generation operations.
+    ///
+    /// # Parameters
+    ///
+    /// * `iam` - Identity and Access Management service for authentication
+    /// * `ipam` - IPAM service for IP address management operations
+    pub fn ipam(self, iam: IAM, ipam: frn_core::network::IPAM<SpiceDB>) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(IpamServer::new(Ipam::new(iam, ipam))),
+        }
+    }
+
+    /// Registers the Security Groups management service with the router.
+    ///
+    /// This method adds the Security Groups gRPC service to the router, providing
+    /// endpoints for security group creation, rule management, and interface
+    /// attachment operations.
+    ///
+    /// # Parameters
+    ///
+    /// * `iam` - Identity and Access Management service for authentication
+    /// * `security_groups` - Security Groups service for security operations
+    pub fn security_groups(
+        self,
+        iam: IAM,
+        security_groups: frn_core::network::SecurityGroups<SpiceDB>,
+    ) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(SecurityGroupsServer::new(SecurityGroups::new(
+                    iam,
+                    security_groups,
+                ))),
         }
     }
 

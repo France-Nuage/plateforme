@@ -128,34 +128,34 @@ message InstanceConfig {
 message Instance {
     // Unique identifier for the instance
     string id = 1 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
-    
+
     // Current operational status of the instance
     InstanceStatus status = 2 [(validate.rules).enum = {
         defined_only: true  // Must be a defined enum value
     }];
-    
+
     // Maximum CPU cores available to the instance (max 99)
     uint32 max_cpu_cores = 3 [(validate.rules).uint32 = {
         gt: 0,  // Must have at least 1 core
         lte: 99  // Maximum 99 cores
     }];
-    
+
     // Current CPU utilization as a percentage (0.0-100.0)
-    float cpu_usage_percent = 4 [(validate.rules).float = { 
-        gte: 0.0, 
-        lte: 100.0 
+    float cpu_usage_percent = 4 [(validate.rules).float = {
+        gte: 0.0,
+        lte: 100.0
     }];
-    
+
     // Maximum memory available to the instance (in bytes, max 64GB)
     uint64 max_memory_bytes = 5 [(validate.rules).uint64 = {
         gt: 0,  // Must have some memory
         lte: 68719476736,  // 64GB = 64 * 1024^3 = 68,719,476,736 bytes
     }];
-    
+
     // Current memory utilization (in bytes, cannot exceed max_memory_bytes)
     uint64 memory_usage_bytes = 6 [(validate.rules).uint64 = {
         gte: 0,  // Cannot be negative
@@ -182,26 +182,48 @@ message Instance {
         pattern: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
     }];
 
+    // MAC address of the primary network interface
+    optional string mac_address = 11 [(validate.rules).string = {
+        pattern: "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
+    }];
+
     // Unique identifier for the instance hypervisor
     string hypervisor_id = 100 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
 
     // Unique identifier for the instance project
     string project_id = 101 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
 
-    // Unique identifier for the instance zero trust network
+    // Unique identifier for the instance zero trust network (deprecated, use vpc_id)
     optional string zero_trust_network_id = 102 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
+
+    // Unique identifier for the VPC this instance belongs to
+    optional string vpc_id = 103 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+
+    // Unique identifier for the VNet this instance belongs to
+    optional string vnet_id = 104 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+
+    // Security group IDs attached to this instance
+    repeated string security_group_ids = 105;
 
     // Creation time of the instance
     google.protobuf.Timestamp created_at = 997;
@@ -309,15 +331,37 @@ message CreateInstanceRequest {
         pattern: "^[a-zA-Z0-9_-]+$"
     }];
 
-    // The snippet to use to bootstrap the instance
-    string snippet = 5;
+    // The snippet to use to bootstrap the instance (optional, auto-generated if not provided)
+    optional string snippet = 5;
 
     // The id of the project the instance belongs to
     string project_id = 7 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
+
+    // The VPC ID the instance belongs to (required for network configuration)
+    string vpc_id = 9 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+
+    // The VNet ID the instance belongs to (required for network configuration)
+    string vnet_id = 10 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+
+    // Optional specific IP address to assign within the VNet's subnet
+    optional string requested_ip = 11 [(validate.rules).string = {
+        pattern: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
+    }];
+
+    // Security group IDs to attach to this instance (if empty, default security group is attached)
+    repeated string security_group_ids = 12;
 }
 
 // CreateInstanceResponse contains the result of a create instance operation.
