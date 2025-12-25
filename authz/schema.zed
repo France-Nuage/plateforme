@@ -34,6 +34,31 @@ definition instance {
   permission stop = get
 }
 
+definition vpc {
+  relation parent: organization
+
+  permission get = parent->get
+  permission create_vnet = get
+  permission create_security_group = get
+}
+
+definition vnet {
+  relation parent: vpc
+
+  permission get = parent->get
+  permission allocate_ip = get
+}
+
+definition security_group {
+  relation parent: vpc
+
+  permission get = parent->get
+  permission add_rule = get
+  permission remove_rule = get
+  permission attach = get
+  permission detach = get
+}
+
 definition service_account {}
 
 definition user {}
