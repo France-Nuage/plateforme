@@ -1,11 +1,30 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::identity::{ServiceAccount, User};
+use crate::operations::{Operation, OperationType};
 use crate::resourcemanager::{DEFAULT_PROJECT_NAME, Project};
+use chrono::{DateTime, Utc};
 use fabrique::{Factory, Persistable};
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
+
+/// Represents a user's membership in an organization.
+#[derive(Debug)]
+pub struct OrganizationMember {
+    /// The user's ID
+    pub user_id: Uuid,
+    /// The organization ID
+    pub organization_id: Uuid,
+    /// The user's email
+    pub email: String,
+    /// The user's name
+    pub name: String,
+    /// Optional role ID assigned to the member
+    pub role_id: Option<Uuid>,
+    /// When the user joined the organization
+    pub joined_at: DateTime<Utc>,
+}
 
 #[derive(Debug, Default, Factory, Persistable, Resource)]
 pub struct Organization {
@@ -160,6 +179,134 @@ impl<A: Authorize> Organizations<A> {
             .await?;
 
         Ok(())
+    }
+
+    /// Lists all members of an organization.
+    ///
+    /// Returns users who are members of the organization.
+    pub async fn list_members<P: Principal + Sync>(
+        &self,
+        principal: &P,
+        organization_id: Uuid,
+    ) -> Result<Vec<OrganizationMember>, Error> {
+        // Check authorization - user must have Get permission on the organization
+        self.auth
+            .can(principal)
+            .perform(Permission::Get)
+            .over::<Organization>(&organization_id)
+            .await?;
+
+        // Fetch members with user details
+        let rows = sqlx::query(
+            r#"
+            SELECT u.id as user_id, u.email, u.name, ou.organization_id, ou.created_at as joined_at
+            FROM organization_user ou
+            JOIN users u ON ou.user_id = u.id
+            WHERE ou.organization_id = $1
+            "#,
+        )
+        .bind(organization_id)
+        .fetch_all(&self.db)
+        .await?;
+
+        let members = rows
+            .into_iter()
+            .map(|row| {
+                use sqlx::Row;
+                OrganizationMember {
+                    user_id: row.get("user_id"),
+                    organization_id: row.get("organization_id"),
+                    email: row.get("email"),
+                    name: row.get("name"),
+                    role_id: None, // Role support can be added later
+                    joined_at: row.get("joined_at"),
+                }
+            })
+            .collect();
+
+        Ok(members)
+    }
+
+    /// Removes a user from an organization.
+    ///
+    /// This method:
+    /// 1. Removes the user from the organization in the local database
+    /// 2. Creates a SpiceDB operation to delete the membership relationship
+    /// 3. Creates a Pangolin operation to remove the user from the organization
+    ///
+    /// # Arguments
+    /// * `principal` - The principal performing the removal (must have RemoveMember permission)
+    /// * `organization` - The organization to remove the user from
+    /// * `user` - The user to remove
+    ///
+    /// # Returns
+    /// A vector of Operations to be processed by the operations-worker:
+    /// - SpiceDB DeleteRelationship operation
+    /// - Pangolin RemoveUser operation
+    pub async fn remove_user<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        organization: &Organization,
+        user: &User,
+    ) -> Result<Vec<Operation>, Error> {
+        // Check authorization
+        self.auth
+            .can(principal)
+            .perform(Permission::RemoveMember)
+            .over::<Organization>(organization.id())
+            .await?;
+
+        // Remove from the local database
+        sqlx::query(
+            "DELETE FROM organization_user WHERE organization_id = $1 AND user_id = $2",
+        )
+        .bind(organization.id())
+        .bind(user.id())
+        .execute(&self.db)
+        .await?;
+
+        let mut operations = Vec::new();
+
+        // Create SpiceDB operation to delete the membership relationship
+        let spicedb_operation = Operation::new(
+            OperationType::SpiceDbDeleteRelationship,
+            "User",
+            *user.id(),
+            serde_json::json!({
+                "subject_type": "User",
+                "subject_id": user.id().to_string(),
+                "relation": "Member",
+                "object_type": "Organization",
+                "object_id": organization.id().to_string()
+            }),
+        )
+        .create(&self.db)
+        .await?;
+        operations.push(spicedb_operation);
+
+        // Create Pangolin operation to remove the user from the organization
+        let pangolin_operation = Operation::new(
+            OperationType::PangolinRemoveUser,
+            "User",
+            *user.id(),
+            serde_json::json!({
+                "org_id": organization.slug,
+                "user_id": user.id().to_string(),
+                "email": user.email
+            }),
+        )
+        .create(&self.db)
+        .await?;
+        operations.push(pangolin_operation);
+
+        tracing::info!(
+            organization_id = %organization.id(),
+            user_id = %user.id(),
+            user_email = %user.email,
+            "user removed from organization, operations created for sync"
+        );
+
+        Ok(operations)
     }
 
     pub async fn initialize_root_organization(

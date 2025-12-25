@@ -15,6 +15,16 @@ service Projects {
     rpc Create (CreateProjectRequest) returns (CreateProjectResponse);
 }
 
+// OrganizationMembers manages user membership within organizations.
+// Member creation is handled via the Invitations service.
+service OrganizationMembers {
+    // Lists all members of an organization.
+    rpc List (ListOrganizationMembersRequest) returns (ListOrganizationMembersResponse);
+    // Removes a member from an organization.
+    // This creates Operations for SpiceDB and Pangolin synchronization.
+    rpc Remove (RemoveOrganizationMemberRequest) returns (RemoveOrganizationMemberResponse);
+}
+
 message Organization {
     string id = 1 [(validate.rules).string = {
         min_len: 1,
@@ -99,4 +109,45 @@ message CreateProjectRequest {
 
 message CreateProjectResponse {
     Project project = 1;
+}
+
+// OrganizationMember represents a user's membership in an organization.
+message OrganizationMember {
+    string user_id = 1;
+    string organization_id = 2;
+    string email = 3;
+    string name = 4;
+    // Role assigned to the member (if any)
+    string role_id = 5;
+    google.protobuf.Timestamp joined_at = 6;
+}
+
+message ListOrganizationMembersRequest {
+    string organization_id = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+message ListOrganizationMembersResponse {
+    repeated OrganizationMember members = 1;
+}
+
+message RemoveOrganizationMemberRequest {
+    string organization_id = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+    string user_id = 2 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+message RemoveOrganizationMemberResponse {
+    // Operation names for tracking the removal progress
+    repeated string operation_names = 1;
 }

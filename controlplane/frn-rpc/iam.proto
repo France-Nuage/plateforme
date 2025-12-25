@@ -20,6 +20,10 @@ message ListInvitationsResponse {
 message CreateInvitationRequest {
   string organization_id = 1;
   string email = 2;
+  // Optional role ID to assign when the invitation is accepted
+  optional string role_id = 3;
+  // Optional validity duration in hours (default: 168 = 7 days)
+  optional int64 validity_hours = 4;
 }
 
 message CreateInvitationResponse {
@@ -38,9 +42,19 @@ message AnswerInvitationResponse {
 message Invitation {
   string id = 1;
   string organization_id = 2;
+  // User ID - empty for email-based invitations until accepted
   string user_id = 3;
   InvitationState state = 4;
+  // Email address the invitation was sent to
+  string email = 5;
+  // Role ID to assign when the invitation is accepted
+  string role_id = 6;
+  // Secure token for invitation URLs
+  string token = 7;
   google.protobuf.Timestamp created_at = 8;
+  // When the invitation expires
+  google.protobuf.Timestamp expires_at = 9;
+  // When the invitation was answered (accepted or declined)
   google.protobuf.Timestamp answered_at = 10;
 }
 

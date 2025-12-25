@@ -1,0 +1,17 @@
+[package]
+name = "operations-worker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = "0.1"
+frn-core = { path = "../frn-core" }
+hoop = { path = "../hoop" }
+pangolin = { path = "../pangolin" }
+reqwest = { version = "0.12", features = ["json"] }
+serde_json = "1.0"
+spicedb = { path = "../spicedb" }
+sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls"] }
+tokio = { version = "1.0", features = ["rt-multi-thread", "time", "macros"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

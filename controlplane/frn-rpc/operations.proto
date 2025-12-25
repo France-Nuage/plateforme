@@ -1,0 +1,204 @@
+syntax = "proto3";
+
+package francenuage.fr.operations.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// Operations service provides access to long-running operations.
+//
+// This service follows the GCP Long Running Operations pattern, providing
+// visibility into async operations that synchronize the Control Plane
+// with external systems (SpiceDB, Pangolin, Hoop, Kubernetes).
+service Operations {
+  // Gets the latest state of a long-running operation.
+  rpc Get(GetOperationRequest) returns (Operation);
+
+  // Lists operations that match the specified filter.
+  rpc List(ListOperationsRequest) returns (ListOperationsResponse);
+
+  // Cancels a long-running operation.
+  //
+  // This method indicates that the caller no longer cares about the outcome.
+  // It does not guarantee that the operation will be cancelled, but if the
+  // operation is still pending, it will be marked as CANCELLED.
+  rpc Cancel(CancelOperationRequest) returns (Operation);
+}
+
+// Request message for Operations.Get.
+message GetOperationRequest {
+  // The name of the operation resource.
+  // Format: operations/{operation_id}
+  string name = 1;
+}
+
+// Request message for Operations.List.
+message ListOperationsRequest {
+  // Filter by resource type (e.g., "User", "Invitation", "Organization").
+  optional string resource_type = 1;
+
+  // Filter by resource ID.
+  optional string resource_id = 2;
+
+  // Filter by operation status.
+  optional OperationStatus status = 3;
+
+  // Filter by target backend.
+  optional TargetBackend target_backend = 4;
+
+  // Maximum number of operations to return.
+  int32 page_size = 5;
+
+  // Page token for pagination.
+  string page_token = 6;
+}
+
+// Response message for Operations.List.
+message ListOperationsResponse {
+  // The list of operations matching the request.
+  repeated Operation operations = 1;
+
+  // Token to retrieve the next page of results.
+  string next_page_token = 2;
+}
+
+// Request message for Operations.Cancel.
+message CancelOperationRequest {
+  // The name of the operation to cancel.
+  // Format: operations/{operation_id}
+  string name = 1;
+}
+
+// Represents a long-running operation that synchronizes Control Plane
+// state with an external system.
+message Operation {
+  // The server-assigned name.
+  // Format: operations/{operation_id}
+  string name = 1;
+
+  // The type of operation.
+  OperationType operation_type = 2;
+
+  // The target backend this operation executes against.
+  TargetBackend target_backend = 3;
+
+  // The type of resource this operation affects.
+  string resource_type = 4;
+
+  // The ID of the resource this operation affects.
+  string resource_id = 5;
+
+  // Current status of the operation.
+  OperationStatus status = 6;
+
+  // Input payload for the operation.
+  google.protobuf.Struct input = 7;
+
+  // Output from successful execution.
+  google.protobuf.Struct output = 8;
+
+  // Error information if the operation failed.
+  OperationError error = 9;
+
+  // Number of execution attempts.
+  int32 attempt_count = 10;
+
+  // Maximum allowed attempts.
+  int32 max_attempts = 11;
+
+  // When the operation was created.
+  google.protobuf.Timestamp created_at = 12;
+
+  // When execution started.
+  google.protobuf.Timestamp started_at = 13;
+
+  // When execution completed.
+  google.protobuf.Timestamp completed_at = 14;
+
+  // Next scheduled retry time.
+  google.protobuf.Timestamp next_retry_at = 15;
+}
+
+// Error information for failed operations.
+message OperationError {
+  // Error code (e.g., "EXHAUSTED_RETRIES", "UNAUTHORIZED").
+  string code = 1;
+
+  // Human-readable error message.
+  string message = 2;
+}
+
+// Status of an operation.
+enum OperationStatus {
+  OPERATION_STATUS_UNSPECIFIED = 0;
+
+  // The operation is pending execution.
+  PENDING = 1;
+
+  // The operation is currently being executed.
+  RUNNING = 2;
+
+  // The operation completed successfully.
+  SUCCEEDED = 3;
+
+  // The operation failed after exhausting all retries.
+  FAILED = 4;
+
+  // The operation was cancelled by user request.
+  CANCELLED = 5;
+}
+
+// Type of operation to execute.
+enum OperationType {
+  OPERATION_TYPE_UNSPECIFIED = 0;
+
+  // SpiceDB: Write a relationship tuple.
+  SPICE_DB_WRITE_RELATIONSHIP = 1;
+
+  // SpiceDB: Delete a relationship tuple.
+  SPICE_DB_DELETE_RELATIONSHIP = 2;
+
+  // Pangolin: Invite a user to an organization.
+  PANGOLIN_INVITE_USER = 3;
+
+  // Pangolin: Remove a user from an organization.
+  PANGOLIN_REMOVE_USER = 4;
+
+  // Pangolin: Update user information.
+  PANGOLIN_UPDATE_USER = 5;
+
+  // Hoop: Create an SSH agent.
+  HOOP_CREATE_AGENT = 6;
+
+  // Hoop: Delete an SSH agent.
+  HOOP_DELETE_AGENT = 7;
+
+  // Hoop: Create an SSH connection.
+  HOOP_CREATE_CONNECTION = 8;
+
+  // Hoop: Delete an SSH connection.
+  HOOP_DELETE_CONNECTION = 9;
+
+  // Kubernetes: Create namespace access.
+  K8S_CREATE_NAMESPACE_ACCESS = 10;
+
+  // Kubernetes: Delete namespace access.
+  K8S_DELETE_NAMESPACE_ACCESS = 11;
+}
+
+// Target backend for an operation.
+enum TargetBackend {
+  TARGET_BACKEND_UNSPECIFIED = 0;
+
+  // SpiceDB authorization database.
+  SPICE_DB = 1;
+
+  // Pangolin Zero Trust VPN.
+  PANGOLIN = 2;
+
+  // Hoop SSH bastion.
+  HOOP = 3;
+
+  // Kubernetes cluster.
+  KUBERNETES = 4;
+}

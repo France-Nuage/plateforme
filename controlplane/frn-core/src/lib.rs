@@ -4,6 +4,7 @@ pub mod compute;
 mod config;
 mod error;
 pub mod identity;
+pub mod operations;
 pub mod resourcemanager;
 
 pub use app::App;

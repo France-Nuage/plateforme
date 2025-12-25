@@ -11,11 +11,14 @@ members = [
   "derive-auth",
   "derive_factory",
   "derive_repository",
+  "hoop",
   "infrastructure",
   "mock_server",
+  "operations-worker",
+  "pangolin",
   "server",
   "spicedb",
-  "synchronizer", "hoop",
+  "synchronizer",
 ]
 
 resolver = "3"

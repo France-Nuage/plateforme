@@ -1,11 +1,25 @@
 use crate::error::Error;
-use frn_core::identity::IAM;
+use frn_core::identity::{IAM, Users};
 use frn_core::{authorization::Authorize, resourcemanager::ProjectCreateRequest};
 use sqlx::{Pool, Postgres, types::Uuid};
 use std::time::SystemTime;
 use tonic::{Request, Response, Status};
 
 tonic::include_proto!("francenuage.fr.resourcemanager.v1");
+
+/// Convert between model and protobuf types for OrganizationMember
+impl From<frn_core::resourcemanager::OrganizationMember> for OrganizationMember {
+    fn from(member: frn_core::resourcemanager::OrganizationMember) -> Self {
+        Self {
+            user_id: member.user_id.to_string(),
+            organization_id: member.organization_id.to_string(),
+            email: member.email,
+            name: member.name,
+            role_id: member.role_id.map(|id| id.to_string()).unwrap_or_default(),
+            joined_at: Some(SystemTime::from(member.joined_at).into()),
+        }
+    }
+}
 
 /// Convert between model and protobuf types
 impl From<frn_core::resourcemanager::Organization> for Organization {
@@ -151,6 +165,103 @@ impl<Auth: Authorize + 'static> projects_server::Projects for Projects<Auth> {
 
         Ok(Response::new(CreateProjectResponse {
             project: Some(project.into()),
+        }))
+    }
+}
+
+/// OrganizationMembers service manages user membership within organizations.
+pub struct OrganizationMembers<Auth: Authorize> {
+    iam: IAM,
+    db: Pool<Postgres>,
+    organizations: frn_core::resourcemanager::Organizations<Auth>,
+    _users: Users<Auth>,
+}
+
+impl<Auth: Authorize> OrganizationMembers<Auth> {
+    pub fn new(
+        iam: IAM,
+        db: Pool<Postgres>,
+        organizations: frn_core::resourcemanager::Organizations<Auth>,
+        users: Users<Auth>,
+    ) -> Self {
+        Self {
+            iam,
+            db,
+            organizations,
+            _users: users,
+        }
+    }
+}
+
+#[tonic::async_trait]
+impl<Auth: Authorize + 'static> organization_members_server::OrganizationMembers
+    for OrganizationMembers<Auth>
+{
+    async fn list(
+        &self,
+        request: Request<ListOrganizationMembersRequest>,
+    ) -> Result<Response<ListOrganizationMembersResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+
+        let ListOrganizationMembersRequest { organization_id } = request.into_inner();
+
+        let organization_id = Uuid::parse_str(&organization_id)
+            .map_err(|_| Error::MalformedId(organization_id))?;
+
+        let members = self
+            .organizations
+            .clone()
+            .list_members(&principal, organization_id)
+            .await
+            .map_err(Error::convert)?;
+
+        Ok(Response::new(ListOrganizationMembersResponse {
+            members: members.into_iter().map(Into::into).collect(),
+        }))
+    }
+
+    async fn remove(
+        &self,
+        request: Request<RemoveOrganizationMemberRequest>,
+    ) -> Result<Response<RemoveOrganizationMemberResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+
+        let RemoveOrganizationMemberRequest {
+            organization_id,
+            user_id,
+        } = request.into_inner();
+
+        let organization_id =
+            Uuid::parse_str(&organization_id).map_err(|_| Error::MalformedId(organization_id))?;
+        let user_id = Uuid::parse_str(&user_id).map_err(|_| Error::MalformedId(user_id))?;
+
+        // Fetch the organization
+        let organization: frn_core::resourcemanager::Organization = sqlx::query_as!(
+            frn_core::resourcemanager::Organization,
+            "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE id = $1",
+            organization_id
+        )
+        .fetch_one(&self.db)
+        .await
+        .map_err(Error::sqlx_to_status)?;
+
+        // Fetch the user
+        let user: frn_core::identity::User =
+            sqlx::query_as!(frn_core::identity::User, "SELECT * FROM users WHERE id = $1", user_id)
+                .fetch_one(&self.db)
+                .await
+                .map_err(Error::sqlx_to_status)?;
+
+        // Remove the user from the organization - this creates operations for sync
+        let operations = self
+            .organizations
+            .clone()
+            .remove_user(&principal, &organization, &user)
+            .await
+            .map_err(Error::convert)?;
+
+        Ok(Response::new(RemoveOrganizationMemberResponse {
+            operation_names: operations.into_iter().map(|op| op.name).collect(),
         }))
     }
 }

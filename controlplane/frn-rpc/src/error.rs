@@ -10,6 +10,9 @@ pub enum Error {
 
     #[error("malformed id {0}, expected uuid")]
     MalformedId(String),
+
+    #[error("not found: {0}")]
+    NotFound(String),
 }
 
 impl Error {
@@ -32,6 +35,8 @@ impl From<Error> for tonic::Status {
         tracing::error!("oopsie from convert: {:?}", &value);
         match value {
             Error::MissingAuthorizationHeader => tonic::Status::unauthenticated(value.to_string()),
+            Error::NotFound(_) => tonic::Status::not_found(value.to_string()),
+            Error::MalformedId(_) => tonic::Status::invalid_argument(value.to_string()),
             _ => tonic::Status::internal(value.to_string()),
         }
     }

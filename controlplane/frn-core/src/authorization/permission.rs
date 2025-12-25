@@ -11,6 +11,7 @@ pub enum Permission {
     Get,
     List,
     InviteMember,
+    RemoveMember,
     Start,
     Stop,
     #[default]

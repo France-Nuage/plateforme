@@ -25,10 +25,14 @@ impl From<frn_core::identity::Invitation> for Invitation {
         Invitation {
             id: value.id.to_string(),
             organization_id: value.organization_id.to_string(),
-            user_id: value.user_id.to_string(),
+            user_id: value.user_id.map(|id| id.to_string()).unwrap_or_default(),
             state: InvitationState::from(value.state) as i32,
+            email: value.email.unwrap_or_default(),
+            role_id: value.role_id.map(|id| id.to_string()).unwrap_or_default(),
+            token: value.token.unwrap_or_default(),
             created_at: Some(SystemTime::from(value.created_at).into()),
-            answered_at: Some(SystemTime::from(value.updated_at).into()),
+            expires_at: value.expires_at.map(|t| SystemTime::from(t).into()),
+            answered_at: value.answered_at.map(|t| SystemTime::from(t).into()),
         }
     }
 }
@@ -36,7 +40,7 @@ impl From<frn_core::identity::Invitation> for Invitation {
 pub struct Invitations<Auth: Authorize> {
     iam: IAM,
     invitations: frn_core::identity::Invitations<Auth>,
-    users: frn_core::identity::Users<Auth>,
+    _users: frn_core::identity::Users<Auth>,
 }
 
 impl<Auth: Authorize> Invitations<Auth> {
@@ -48,7 +52,7 @@ impl<Auth: Authorize> Invitations<Auth> {
         Self {
             iam,
             invitations,
-            users,
+            _users: users,
         }
     }
 }
@@ -77,17 +81,24 @@ impl<Auth: Authorize + 'static> invitations_server::Invitations for Invitations<
         let CreateInvitationRequest {
             email,
             organization_id,
+            role_id,
+            validity_hours,
         } = request.into_inner();
 
         let organization_id =
             Uuid::parse_str(&organization_id).map_err(|_| Error::MalformedId(organization_id))?;
 
-        let user_id = self.users.find_or_create(&principal, email).await?.id;
+        // Parse optional role_id
+        let role_id = role_id
+            .filter(|s| !s.is_empty())
+            .map(|s| Uuid::parse_str(&s).map_err(|_| Error::MalformedId(s)))
+            .transpose()?;
 
-        let invitation = self
+        // Create the invitation by email - this returns the invitation and an operation
+        let (invitation, _operation) = self
             .invitations
             .clone()
-            .create(&principal, organization_id, user_id)
+            .create_by_email(&principal, organization_id, &email, role_id, validity_hours)
             .await?;
 
         Ok(Response::new(CreateInvitationResponse {
@@ -97,8 +108,37 @@ impl<Auth: Authorize + 'static> invitations_server::Invitations for Invitations<
 
     async fn answer(
         &self,
-        _: Request<AnswerInvitationRequest>,
+        request: Request<AnswerInvitationRequest>,
     ) -> Result<Response<AnswerInvitationResponse>, Status> {
-        unimplemented!()
+        let principal = self.iam.principal(&request).await?;
+
+        let AnswerInvitationRequest {
+            invitation_id,
+            accept,
+        } = request.into_inner();
+
+        let invitation_id =
+            Uuid::parse_str(&invitation_id).map_err(|_| Error::MalformedId(invitation_id))?;
+
+        // Extract user from principal - only users can answer invitations
+        let user = match principal {
+            frn_core::identity::Principal::User(user) => user,
+            frn_core::identity::Principal::ServiceAccount(_) => {
+                return Err(Status::permission_denied(
+                    "only users can answer invitations",
+                ));
+            }
+        };
+
+        // Answer the invitation - this returns the invitation and optionally an operation
+        let (invitation, _operation) = self
+            .invitations
+            .clone()
+            .answer(invitation_id, &user, accept)
+            .await?;
+
+        Ok(Response::new(AnswerInvitationResponse {
+            invitation: Some(invitation.into()),
+        }))
     }
 }
