@@ -205,8 +205,8 @@ impl<Auth: Authorize + 'static> organization_members_server::OrganizationMembers
 
         let ListOrganizationMembersRequest { organization_id } = request.into_inner();
 
-        let organization_id = Uuid::parse_str(&organization_id)
-            .map_err(|_| Error::MalformedId(organization_id))?;
+        let organization_id =
+            Uuid::parse_str(&organization_id).map_err(|_| Error::MalformedId(organization_id))?;
 
         let members = self
             .organizations
@@ -246,11 +246,14 @@ impl<Auth: Authorize + 'static> organization_members_server::OrganizationMembers
         .map_err(Error::sqlx_to_status)?;
 
         // Fetch the user
-        let user: frn_core::identity::User =
-            sqlx::query_as!(frn_core::identity::User, "SELECT * FROM users WHERE id = $1", user_id)
-                .fetch_one(&self.db)
-                .await
-                .map_err(Error::sqlx_to_status)?;
+        let user: frn_core::identity::User = sqlx::query_as!(
+            frn_core::identity::User,
+            "SELECT * FROM users WHERE id = $1",
+            user_id
+        )
+        .fetch_one(&self.db)
+        .await
+        .map_err(Error::sqlx_to_status)?;
 
         // Remove the user from the organization - this creates operations for sync
         let operations = self

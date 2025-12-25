@@ -154,8 +154,8 @@ impl OperationExecutor for CompositeExecutor {
 mod tests {
     use super::*;
     use serde_json::json;
-    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     struct TestExecutor {
         handled_types: Vec<OperationType>,

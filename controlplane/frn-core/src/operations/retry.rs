@@ -93,9 +93,9 @@ impl RetryPolicy {
     /// Calculates the delay in seconds for a given attempt.
     fn calculate_delay_secs(&self, attempt_count: i32) -> i64 {
         // Exponential backoff: base * 2^(attempt-1)
-        let exponential_delay = self.base_delay_secs.saturating_mul(
-            2_i64.saturating_pow((attempt_count.saturating_sub(1)) as u32),
-        );
+        let exponential_delay = self
+            .base_delay_secs
+            .saturating_mul(2_i64.saturating_pow((attempt_count.saturating_sub(1)) as u32));
 
         // Cap at maximum delay
         let capped_delay = exponential_delay.min(self.max_delay_secs);

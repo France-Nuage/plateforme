@@ -7,8 +7,7 @@
 //! and implements exponential backoff for retries.
 
 use frn_core::operations::{
-    CompositeExecutor, ExecutorError, Operation, OperationExecutor, OperationType,
-    RetryPolicy,
+    CompositeExecutor, ExecutorError, Operation, OperationExecutor, OperationType, RetryPolicy,
 };
 use serde_json::Value as JsonValue;
 use sqlx::PgPool;
@@ -175,12 +174,18 @@ impl OperationExecutor for PangolinExecutor {
                 )
                 .await
                 .map_err(|e| match e {
-                    pangolin::api::Error::Connectivity(e) => ExecutorError::Connectivity(e.to_string()),
-                    pangolin::api::Error::Unauthorized => ExecutorError::Unauthorized("invalid API key".into()),
+                    pangolin::api::Error::Connectivity(e) => {
+                        ExecutorError::Connectivity(e.to_string())
+                    }
+                    pangolin::api::Error::Unauthorized => {
+                        ExecutorError::Unauthorized("invalid API key".into())
+                    }
                     pangolin::api::Error::NotFound(msg) => ExecutorError::NotFound(msg),
                     pangolin::api::Error::BadRequest(msg) => ExecutorError::Rejected(msg),
                     pangolin::api::Error::Conflict(msg) => ExecutorError::Rejected(msg),
-                    pangolin::api::Error::Internal(msg) => ExecutorError::TemporarilyUnavailable(msg),
+                    pangolin::api::Error::Internal(msg) => {
+                        ExecutorError::TemporarilyUnavailable(msg)
+                    }
                     pangolin::api::Error::UnexpectedResponse(msg) => ExecutorError::Internal(msg),
                 })?;
 
@@ -198,17 +203,29 @@ impl OperationExecutor for PangolinExecutor {
                     .as_str()
                     .ok_or_else(|| ExecutorError::InvalidInput("missing user_id".into()))?;
 
-                pangolin::api::remove_user(&self.api_url, &self.client, &self.api_key, org_id, user_id)
-                    .await
-                    .map_err(|e| match e {
-                        pangolin::api::Error::Connectivity(e) => ExecutorError::Connectivity(e.to_string()),
-                        pangolin::api::Error::Unauthorized => ExecutorError::Unauthorized("invalid API key".into()),
-                        pangolin::api::Error::NotFound(msg) => ExecutorError::NotFound(msg),
-                        pangolin::api::Error::BadRequest(msg) => ExecutorError::Rejected(msg),
-                        pangolin::api::Error::Conflict(msg) => ExecutorError::Rejected(msg),
-                        pangolin::api::Error::Internal(msg) => ExecutorError::TemporarilyUnavailable(msg),
-                        pangolin::api::Error::UnexpectedResponse(msg) => ExecutorError::Internal(msg),
-                    })?;
+                pangolin::api::remove_user(
+                    &self.api_url,
+                    &self.client,
+                    &self.api_key,
+                    org_id,
+                    user_id,
+                )
+                .await
+                .map_err(|e| match e {
+                    pangolin::api::Error::Connectivity(e) => {
+                        ExecutorError::Connectivity(e.to_string())
+                    }
+                    pangolin::api::Error::Unauthorized => {
+                        ExecutorError::Unauthorized("invalid API key".into())
+                    }
+                    pangolin::api::Error::NotFound(msg) => ExecutorError::NotFound(msg),
+                    pangolin::api::Error::BadRequest(msg) => ExecutorError::Rejected(msg),
+                    pangolin::api::Error::Conflict(msg) => ExecutorError::Rejected(msg),
+                    pangolin::api::Error::Internal(msg) => {
+                        ExecutorError::TemporarilyUnavailable(msg)
+                    }
+                    pangolin::api::Error::UnexpectedResponse(msg) => ExecutorError::Internal(msg),
+                })?;
 
                 Ok(serde_json::json!({"removed": true}))
             }
@@ -233,12 +250,18 @@ impl OperationExecutor for PangolinExecutor {
                 )
                 .await
                 .map_err(|e| match e {
-                    pangolin::api::Error::Connectivity(e) => ExecutorError::Connectivity(e.to_string()),
-                    pangolin::api::Error::Unauthorized => ExecutorError::Unauthorized("invalid API key".into()),
+                    pangolin::api::Error::Connectivity(e) => {
+                        ExecutorError::Connectivity(e.to_string())
+                    }
+                    pangolin::api::Error::Unauthorized => {
+                        ExecutorError::Unauthorized("invalid API key".into())
+                    }
                     pangolin::api::Error::NotFound(msg) => ExecutorError::NotFound(msg),
                     pangolin::api::Error::BadRequest(msg) => ExecutorError::Rejected(msg),
                     pangolin::api::Error::Conflict(msg) => ExecutorError::Rejected(msg),
-                    pangolin::api::Error::Internal(msg) => ExecutorError::TemporarilyUnavailable(msg),
+                    pangolin::api::Error::Internal(msg) => {
+                        ExecutorError::TemporarilyUnavailable(msg)
+                    }
                     pangolin::api::Error::UnexpectedResponse(msg) => ExecutorError::Internal(msg),
                 })?;
 

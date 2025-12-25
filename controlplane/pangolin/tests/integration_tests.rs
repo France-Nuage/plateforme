@@ -74,8 +74,7 @@ mod list_users {
         let config = require_pangolin!();
         let client = reqwest::Client::new();
 
-        let result =
-            list_users(&config.api_url, &client, "invalid-api-key", &config.org_id).await;
+        let result = list_users(&config.api_url, &client, "invalid-api-key", &config.org_id).await;
 
         assert!(result.is_err(), "Should fail with invalid API key");
     }
@@ -116,7 +115,10 @@ mod create_invite {
             result.err()
         );
         let response = result.unwrap();
-        assert!(!response.invite_id.is_empty(), "Invite ID should not be empty");
+        assert!(
+            !response.invite_id.is_empty(),
+            "Invite ID should not be empty"
+        );
         assert!(!response.token.is_empty(), "Token should not be empty");
     }
 

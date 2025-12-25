@@ -78,8 +78,9 @@ impl OperationType {
             | OperationType::HoopDeleteAgent
             | OperationType::HoopCreateConnection
             | OperationType::HoopDeleteConnection => TargetBackend::Hoop,
-            OperationType::K8sCreateNamespaceAccess
-            | OperationType::K8sDeleteNamespaceAccess => TargetBackend::Kubernetes,
+            OperationType::K8sCreateNamespaceAccess | OperationType::K8sDeleteNamespaceAccess => {
+                TargetBackend::Kubernetes
+            }
         }
     }
 }

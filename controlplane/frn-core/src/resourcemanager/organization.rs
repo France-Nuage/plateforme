@@ -257,13 +257,11 @@ impl<A: Authorize> Organizations<A> {
             .await?;
 
         // Remove from the local database
-        sqlx::query(
-            "DELETE FROM organization_user WHERE organization_id = $1 AND user_id = $2",
-        )
-        .bind(organization.id())
-        .bind(user.id())
-        .execute(&self.db)
-        .await?;
+        sqlx::query("DELETE FROM organization_user WHERE organization_id = $1 AND user_id = $2")
+            .bind(organization.id())
+            .bind(user.id())
+            .execute(&self.db)
+            .await?;
 
         let mut operations = Vec::new();
 
