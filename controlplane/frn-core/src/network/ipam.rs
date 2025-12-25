@@ -5,7 +5,7 @@
 
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Resource};
-use crate::network::{VPC, VNet, VNetFactory};
+use crate::network::{VNet, VNetFactory, VPC};
 use chrono::{DateTime, Utc};
 use fabrique::{Factory, Persistable};
 use ipnetwork::IpNetwork;
@@ -72,7 +72,10 @@ pub struct IPAllocation {
 
 impl IPAllocation {
     /// Find an IP allocation by ID.
-    pub async fn find_one_by_id(pool: &Pool<Postgres>, id: Uuid) -> Result<IPAllocation, sqlx::Error> {
+    pub async fn find_one_by_id(
+        pool: &Pool<Postgres>,
+        id: Uuid,
+    ) -> Result<IPAllocation, sqlx::Error> {
         sqlx::query_as::<_, IPAllocation>("SELECT * FROM ip_addresses WHERE id = $1")
             .bind(id)
             .fetch_one(pool)
@@ -80,7 +83,10 @@ impl IPAllocation {
     }
 
     /// Find all IP allocations for a VNet.
-    pub async fn find_by_vnet_id(pool: &Pool<Postgres>, vnet_id: Uuid) -> Result<Vec<IPAllocation>, sqlx::Error> {
+    pub async fn find_by_vnet_id(
+        pool: &Pool<Postgres>,
+        vnet_id: Uuid,
+    ) -> Result<Vec<IPAllocation>, sqlx::Error> {
         sqlx::query_as::<_, IPAllocation>("SELECT * FROM ip_addresses WHERE vnet_id = $1")
             .bind(vnet_id)
             .fetch_all(pool)
@@ -88,25 +94,30 @@ impl IPAllocation {
     }
 
     /// Check if an IP address is already allocated in a VNet.
-    pub async fn is_allocated(pool: &Pool<Postgres>, vnet_id: Uuid, address: &str) -> Result<bool, sqlx::Error> {
-        let result: Option<(Uuid,)> = sqlx::query_as(
-            "SELECT id FROM ip_addresses WHERE vnet_id = $1 AND address = $2::inet"
-        )
-            .bind(vnet_id)
-            .bind(address)
-            .fetch_optional(pool)
-            .await?;
+    pub async fn is_allocated(
+        pool: &Pool<Postgres>,
+        vnet_id: Uuid,
+        address: &str,
+    ) -> Result<bool, sqlx::Error> {
+        let result: Option<(Uuid,)> =
+            sqlx::query_as("SELECT id FROM ip_addresses WHERE vnet_id = $1 AND address = $2::inet")
+                .bind(vnet_id)
+                .bind(address)
+                .fetch_optional(pool)
+                .await?;
         Ok(result.is_some())
     }
 
     /// Check if a MAC address is already in use.
-    pub async fn is_mac_used(pool: &Pool<Postgres>, mac_address: &str) -> Result<bool, sqlx::Error> {
-        let result: Option<(Uuid,)> = sqlx::query_as(
-            "SELECT id FROM ip_addresses WHERE mac_address = $1"
-        )
-            .bind(mac_address)
-            .fetch_optional(pool)
-            .await?;
+    pub async fn is_mac_used(
+        pool: &Pool<Postgres>,
+        mac_address: &str,
+    ) -> Result<bool, sqlx::Error> {
+        let result: Option<(Uuid,)> =
+            sqlx::query_as("SELECT id FROM ip_addresses WHERE mac_address = $1")
+                .bind(mac_address)
+                .fetch_optional(pool)
+                .await?;
         Ok(result.is_some())
     }
 }
@@ -174,7 +185,7 @@ impl<A: Authorize> IPAM<A> {
         let allocations = match filter_type {
             Some(alloc_type) => {
                 sqlx::query_as::<_, IPAllocation>(
-                    "SELECT * FROM ip_addresses WHERE vnet_id = $1 AND allocation_type = $2"
+                    "SELECT * FROM ip_addresses WHERE vnet_id = $1 AND allocation_type = $2",
                 )
                 .bind(vnet_id)
                 .bind(alloc_type.to_string())
@@ -191,8 +202,14 @@ impl<A: Authorize> IPAM<A> {
     }
 
     /// Calculates allocation statistics for a VNet.
-    fn calculate_stats(&self, vnet: &VNet, allocated_count: i32) -> Result<IPAllocationStats, Error> {
-        let network: IpNetwork = vnet.subnet.parse()
+    fn calculate_stats(
+        &self,
+        vnet: &VNet,
+        allocated_count: i32,
+    ) -> Result<IPAllocationStats, Error> {
+        let network: IpNetwork = vnet
+            .subnet
+            .parse()
             .map_err(|e| Error::Other(format!("Invalid subnet: {}", e)))?;
 
         // Total usable IPs (excluding network and broadcast)
@@ -238,7 +255,10 @@ impl<A: Authorize> IPAM<A> {
 
                 // Check if already allocated
                 if IPAllocation::is_allocated(&self.db, request.vnet_id, &ip).await? {
-                    return Err(Error::Other(format!("IP address {} is already allocated", ip)));
+                    return Err(Error::Other(format!(
+                        "IP address {} is already allocated",
+                        ip
+                    )));
                 }
                 ip
             }
@@ -267,26 +287,35 @@ impl<A: Authorize> IPAM<A> {
         .execute(&self.db)
         .await?;
 
-        IPAllocation::find_one_by_id(&self.db, alloc_id).await.map_err(Into::into)
+        IPAllocation::find_one_by_id(&self.db, alloc_id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Validates that an IP address is within a subnet.
     fn validate_ip_in_subnet(&self, ip: &str, subnet: &str) -> Result<(), Error> {
-        let network: IpNetwork = subnet.parse()
+        let network: IpNetwork = subnet
+            .parse()
             .map_err(|e| Error::Other(format!("Invalid subnet: {}", e)))?;
 
-        let addr: IpAddr = ip.parse()
+        let addr: IpAddr = ip
+            .parse()
             .map_err(|e| Error::Other(format!("Invalid IP address: {}", e)))?;
 
         if !network.contains(addr) {
-            return Err(Error::Other(format!("IP {} is not within subnet {}", ip, subnet)));
+            return Err(Error::Other(format!(
+                "IP {} is not within subnet {}",
+                ip, subnet
+            )));
         }
 
         // Check if it's the network or broadcast address
         if let IpNetwork::V4(net) = network {
             if let IpAddr::V4(v4) = addr {
                 if v4 == net.network() || v4 == net.broadcast() {
-                    return Err(Error::Other("Cannot allocate network or broadcast address".to_string()));
+                    return Err(Error::Other(
+                        "Cannot allocate network or broadcast address".to_string(),
+                    ));
                 }
             }
         }
@@ -296,15 +325,15 @@ impl<A: Authorize> IPAM<A> {
 
     /// Finds the next available IP address in a VNet.
     async fn find_next_available_ip(&self, vnet: &VNet) -> Result<String, Error> {
-        let network: IpNetwork = vnet.subnet.parse()
+        let network: IpNetwork = vnet
+            .subnet
+            .parse()
             .map_err(|e| Error::Other(format!("Invalid subnet: {}", e)))?;
 
         // Get all allocated IPs
         let allocations = IPAllocation::find_by_vnet_id(&self.db, vnet.id).await?;
-        let allocated_ips: std::collections::HashSet<String> = allocations
-            .into_iter()
-            .map(|a| a.address)
-            .collect();
+        let allocated_ips: std::collections::HashSet<String> =
+            allocations.into_iter().map(|a| a.address).collect();
 
         match network {
             IpNetwork::V4(net) => {
@@ -339,7 +368,9 @@ impl<A: Authorize> IPAM<A> {
             }
         }
 
-        Err(Error::Other("No available IP addresses in subnet".to_string()))
+        Err(Error::Other(
+            "No available IP addresses in subnet".to_string(),
+        ))
     }
 
     /// Generates a unique MAC address with France Nuage OUI prefix.
@@ -360,11 +391,16 @@ impl<A: Authorize> IPAM<A> {
             }
         }
 
-        Err(Error::Other("Failed to generate unique MAC address after 100 attempts".to_string()))
+        Err(Error::Other(
+            "Failed to generate unique MAC address after 100 attempts".to_string(),
+        ))
     }
 
     /// Generates a MAC address without database check (for external use).
-    pub async fn generate_mac<P: Principal + Sync>(&mut self, _principal: &P) -> Result<String, Error> {
+    pub async fn generate_mac<P: Principal + Sync>(
+        &mut self,
+        _principal: &P,
+    ) -> Result<String, Error> {
         self.generate_unique_mac().await
     }
 
@@ -385,7 +421,9 @@ impl<A: Authorize> IPAM<A> {
 
         // Cannot release gateway IPs
         if allocation.allocation_type == AllocationType::Gateway {
-            return Err(Error::Other("Cannot release gateway IP address".to_string()));
+            return Err(Error::Other(
+                "Cannot release gateway IP address".to_string(),
+            ));
         }
 
         let address = allocation.address.clone();
@@ -418,7 +456,10 @@ impl<A: Authorize> IPAM<A> {
 
         // Check if already allocated
         if IPAllocation::is_allocated(&self.db, request.vnet_id, &request.address).await? {
-            return Err(Error::Other(format!("IP address {} is already allocated", request.address)));
+            return Err(Error::Other(format!(
+                "IP address {} is already allocated",
+                request.address
+            )));
         }
 
         // Create reservation
@@ -427,7 +468,7 @@ impl<A: Authorize> IPAM<A> {
             r#"
             INSERT INTO ip_addresses (id, vnet_id, address, allocation_type, hostname, allocated_at)
             VALUES ($1, $2, $3::inet, 'RESERVED', $4, NOW())
-            "#
+            "#,
         )
         .bind(alloc_id)
         .bind(request.vnet_id)
@@ -436,6 +477,8 @@ impl<A: Authorize> IPAM<A> {
         .execute(&self.db)
         .await?;
 
-        IPAllocation::find_one_by_id(&self.db, alloc_id).await.map_err(Into::into)
+        IPAllocation::find_one_by_id(&self.db, alloc_id)
+            .await
+            .map_err(Into::into)
     }
 }

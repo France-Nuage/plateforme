@@ -9,10 +9,11 @@ use crate::error::Error;
 use frn_core::authorization::Authorize;
 use frn_core::identity::IAM;
 use frn_core::network::{
-    self as network_core, AllocateIPRequest, AllocationType as CoreAllocationType,
+    self as network_core, Action as CoreAction, AllocateIPRequest,
+    AllocationType as CoreAllocationType, Direction as CoreDirection, Protocol as CoreProtocol,
     ReserveIPRequest, SecurityGroupCreateRequest, SecurityGroupUpdateRequest,
     SecurityRuleCreateRequest, VNetCreateRequest, VNetUpdateRequest, VPCCreateRequest,
-    VPCUpdateRequest, Action as CoreAction, Direction as CoreDirection, Protocol as CoreProtocol,
+    VPCUpdateRequest,
 };
 use sqlx::types::Uuid;
 use tonic::{Request, Response, Status};
@@ -71,10 +72,7 @@ impl<A: Authorize> VPCs<A> {
 
 #[tonic::async_trait]
 impl<A: Authorize + 'static> vp_cs_server::VpCs for VPCs<A> {
-    async fn create(
-        &self,
-        request: Request<CreateVpcRequest>,
-    ) -> Result<Response<Vpc>, Status> {
+    async fn create(&self, request: Request<CreateVpcRequest>) -> Result<Response<Vpc>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
 
@@ -93,7 +91,11 @@ impl<A: Authorize + 'static> vp_cs_server::VpCs for VPCs<A> {
                     } else {
                         Some(inner.region)
                     },
-                    mtu: if inner.mtu == 0 { None } else { Some(inner.mtu) },
+                    mtu: if inner.mtu == 0 {
+                        None
+                    } else {
+                        Some(inner.mtu)
+                    },
                 },
             )
             .await?;
@@ -101,10 +103,7 @@ impl<A: Authorize + 'static> vp_cs_server::VpCs for VPCs<A> {
         Ok(Response::new(vpc.into()))
     }
 
-    async fn get(
-        &self,
-        request: Request<GetVpcRequest>,
-    ) -> Result<Response<Vpc>, Status> {
+    async fn get(&self, request: Request<GetVpcRequest>) -> Result<Response<Vpc>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
         let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
@@ -130,7 +129,11 @@ impl<A: Authorize + 'static> vp_cs_server::VpCs for VPCs<A> {
             )
         };
 
-        let vpcs = self.service.clone().list(&principal, organization_id).await?;
+        let vpcs = self
+            .service
+            .clone()
+            .list(&principal, organization_id)
+            .await?;
 
         Ok(Response::new(ListVpCsResponse {
             vpcs: vpcs.into_iter().map(Into::into).collect(),
@@ -138,10 +141,7 @@ impl<A: Authorize + 'static> vp_cs_server::VpCs for VPCs<A> {
         }))
     }
 
-    async fn update(
-        &self,
-        request: Request<UpdateVpcRequest>,
-    ) -> Result<Response<Vpc>, Status> {
+    async fn update(&self, request: Request<UpdateVpcRequest>) -> Result<Response<Vpc>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
         let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
@@ -226,10 +226,7 @@ impl<A: Authorize> VNets<A> {
 
 #[tonic::async_trait]
 impl<A: Authorize + 'static> v_nets_server::VNets for VNets<A> {
-    async fn create(
-        &self,
-        request: Request<CreateVNetRequest>,
-    ) -> Result<Response<VNet>, Status> {
+    async fn create(&self, request: Request<CreateVNetRequest>) -> Result<Response<VNet>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
 
@@ -260,10 +257,7 @@ impl<A: Authorize + 'static> v_nets_server::VNets for VNets<A> {
         Ok(Response::new(vnet.into()))
     }
 
-    async fn get(
-        &self,
-        request: Request<GetVNetRequest>,
-    ) -> Result<Response<VNet>, Status> {
+    async fn get(&self, request: Request<GetVNetRequest>) -> Result<Response<VNet>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
         let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
@@ -279,8 +273,8 @@ impl<A: Authorize + 'static> v_nets_server::VNets for VNets<A> {
     ) -> Result<Response<ListVNetsResponse>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
-        let vpc_id = Uuid::parse_str(&inner.vpc_id)
-            .map_err(|_| Error::MalformedId(inner.vpc_id))?;
+        let vpc_id =
+            Uuid::parse_str(&inner.vpc_id).map_err(|_| Error::MalformedId(inner.vpc_id))?;
 
         let vnets = self.service.clone().list(&principal, vpc_id).await?;
 
@@ -290,10 +284,7 @@ impl<A: Authorize + 'static> v_nets_server::VNets for VNets<A> {
         }))
     }
 
-    async fn update(
-        &self,
-        request: Request<UpdateVNetRequest>,
-    ) -> Result<Response<VNet>, Status> {
+    async fn update(&self, request: Request<UpdateVNetRequest>) -> Result<Response<VNet>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
         let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
@@ -426,7 +417,11 @@ impl<A: Authorize + 'static> ipam_server::Ipam for Ipam<A> {
         let allocation_id = Uuid::parse_str(&inner.allocation_id)
             .map_err(|_| Error::MalformedId(inner.allocation_id))?;
 
-        let released_address = self.service.clone().release(&principal, allocation_id).await?;
+        let released_address = self
+            .service
+            .clone()
+            .release(&principal, allocation_id)
+            .await?;
 
         Ok(Response::new(ReleaseIpResponse { released_address }))
     }
@@ -465,8 +460,8 @@ impl<A: Authorize + 'static> ipam_server::Ipam for Ipam<A> {
     ) -> Result<Response<ListIpAllocationsResponse>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
-        let vnet_id = Uuid::parse_str(&inner.vnet_id)
-            .map_err(|_| Error::MalformedId(inner.vnet_id))?;
+        let vnet_id =
+            Uuid::parse_str(&inner.vnet_id).map_err(|_| Error::MalformedId(inner.vnet_id))?;
 
         let filter_type = inner.filter_type.and_then(allocation_type_from_proto);
 
@@ -665,8 +660,8 @@ impl<A: Authorize + 'static> security_groups_server::SecurityGroups for Security
     ) -> Result<Response<ListSecurityGroupsResponse>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
-        let vpc_id = Uuid::parse_str(&inner.vpc_id)
-            .map_err(|_| Error::MalformedId(inner.vpc_id))?;
+        let vpc_id =
+            Uuid::parse_str(&inner.vpc_id).map_err(|_| Error::MalformedId(inner.vpc_id))?;
 
         let sgs = self.service.clone().list(&principal, vpc_id).await?;
 
@@ -753,10 +748,13 @@ impl<A: Authorize + 'static> security_groups_server::SecurityGroups for Security
     ) -> Result<Response<RemoveRuleResponse>, Status> {
         let principal = self.iam.principal(&request).await?;
         let inner = request.into_inner();
-        let rule_id = Uuid::parse_str(&inner.rule_id)
-            .map_err(|_| Error::MalformedId(inner.rule_id))?;
+        let rule_id =
+            Uuid::parse_str(&inner.rule_id).map_err(|_| Error::MalformedId(inner.rule_id))?;
 
-        self.service.clone().remove_rule(&principal, rule_id).await?;
+        self.service
+            .clone()
+            .remove_rule(&principal, rule_id)
+            .await?;
 
         Ok(Response::new(RemoveRuleResponse {}))
     }

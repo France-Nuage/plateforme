@@ -101,7 +101,10 @@ pub struct SecurityGroup {
 
 impl SecurityGroup {
     /// Find a security group by ID.
-    pub async fn find_one_by_id(pool: &Pool<Postgres>, id: Uuid) -> Result<SecurityGroup, sqlx::Error> {
+    pub async fn find_one_by_id(
+        pool: &Pool<Postgres>,
+        id: Uuid,
+    ) -> Result<SecurityGroup, sqlx::Error> {
         sqlx::query_as::<_, SecurityGroup>("SELECT * FROM security_groups WHERE id = $1")
             .bind(id)
             .fetch_one(pool)
@@ -109,7 +112,10 @@ impl SecurityGroup {
     }
 
     /// Find all security groups for a VPC.
-    pub async fn find_by_vpc_id(pool: &Pool<Postgres>, vpc_id: Uuid) -> Result<Vec<SecurityGroup>, sqlx::Error> {
+    pub async fn find_by_vpc_id(
+        pool: &Pool<Postgres>,
+        vpc_id: Uuid,
+    ) -> Result<Vec<SecurityGroup>, sqlx::Error> {
         sqlx::query_as::<_, SecurityGroup>("SELECT * FROM security_groups WHERE vpc_id = $1")
             .bind(vpc_id)
             .fetch_all(pool)
@@ -117,20 +123,31 @@ impl SecurityGroup {
     }
 
     /// Find the default security group for a VPC.
-    pub async fn find_default_for_vpc(pool: &Pool<Postgres>, vpc_id: Uuid) -> Result<Option<SecurityGroup>, sqlx::Error> {
-        sqlx::query_as::<_, SecurityGroup>("SELECT * FROM security_groups WHERE vpc_id = $1 AND is_default = true")
-            .bind(vpc_id)
-            .fetch_optional(pool)
-            .await
+    pub async fn find_default_for_vpc(
+        pool: &Pool<Postgres>,
+        vpc_id: Uuid,
+    ) -> Result<Option<SecurityGroup>, sqlx::Error> {
+        sqlx::query_as::<_, SecurityGroup>(
+            "SELECT * FROM security_groups WHERE vpc_id = $1 AND is_default = true",
+        )
+        .bind(vpc_id)
+        .fetch_optional(pool)
+        .await
     }
 
     /// Find a security group by name within a VPC.
-    pub async fn find_by_name(pool: &Pool<Postgres>, vpc_id: Uuid, name: &str) -> Result<Option<SecurityGroup>, sqlx::Error> {
-        sqlx::query_as::<_, SecurityGroup>("SELECT * FROM security_groups WHERE vpc_id = $1 AND name = $2")
-            .bind(vpc_id)
-            .bind(name)
-            .fetch_optional(pool)
-            .await
+    pub async fn find_by_name(
+        pool: &Pool<Postgres>,
+        vpc_id: Uuid,
+        name: &str,
+    ) -> Result<Option<SecurityGroup>, sqlx::Error> {
+        sqlx::query_as::<_, SecurityGroup>(
+            "SELECT * FROM security_groups WHERE vpc_id = $1 AND name = $2",
+        )
+        .bind(vpc_id)
+        .bind(name)
+        .fetch_optional(pool)
+        .await
     }
 }
 
@@ -166,7 +183,10 @@ pub struct SecurityRule {
 
 impl SecurityRule {
     /// Find a security rule by ID.
-    pub async fn find_one_by_id(pool: &Pool<Postgres>, id: Uuid) -> Result<SecurityRule, sqlx::Error> {
+    pub async fn find_one_by_id(
+        pool: &Pool<Postgres>,
+        id: Uuid,
+    ) -> Result<SecurityRule, sqlx::Error> {
         sqlx::query_as::<_, SecurityRule>("SELECT * FROM security_rules WHERE id = $1")
             .bind(id)
             .fetch_one(pool)
@@ -174,11 +194,16 @@ impl SecurityRule {
     }
 
     /// Find all rules for a security group.
-    pub async fn find_by_security_group_id(pool: &Pool<Postgres>, security_group_id: Uuid) -> Result<Vec<SecurityRule>, sqlx::Error> {
-        sqlx::query_as::<_, SecurityRule>("SELECT * FROM security_rules WHERE security_group_id = $1 ORDER BY priority")
-            .bind(security_group_id)
-            .fetch_all(pool)
-            .await
+    pub async fn find_by_security_group_id(
+        pool: &Pool<Postgres>,
+        security_group_id: Uuid,
+    ) -> Result<Vec<SecurityRule>, sqlx::Error> {
+        sqlx::query_as::<_, SecurityRule>(
+            "SELECT * FROM security_rules WHERE security_group_id = $1 ORDER BY priority",
+        )
+        .bind(security_group_id)
+        .fetch_all(pool)
+        .await
     }
 }
 
@@ -241,18 +266,28 @@ impl<A: Authorize> SecurityGroups<A> {
     }
 
     /// Lists all security groups in a VPC.
-    pub async fn list<P: Principal + Sync>(&mut self, principal: &P, vpc_id: Uuid) -> Result<Vec<SecurityGroup>, Error> {
+    pub async fn list<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        vpc_id: Uuid,
+    ) -> Result<Vec<SecurityGroup>, Error> {
         self.auth
             .can(principal)
             .perform(Permission::Get)
             .over::<VPC>(&vpc_id)
             .await?;
 
-        SecurityGroup::find_by_vpc_id(&self.db, vpc_id).await.map_err(Into::into)
+        SecurityGroup::find_by_vpc_id(&self.db, vpc_id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Gets a security group by ID with its rules.
-    pub async fn get<P: Principal + Sync>(&mut self, principal: &P, id: Uuid) -> Result<(SecurityGroup, Vec<SecurityRule>), Error> {
+    pub async fn get<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        id: Uuid,
+    ) -> Result<(SecurityGroup, Vec<SecurityRule>), Error> {
         let sg = SecurityGroup::find_one_by_id(&self.db, id).await?;
 
         self.auth
@@ -279,8 +314,14 @@ impl<A: Authorize> SecurityGroups<A> {
             .await?;
 
         // Check name uniqueness within VPC
-        if SecurityGroup::find_by_name(&self.db, request.vpc_id, &request.name).await?.is_some() {
-            return Err(Error::Other(format!("Security group '{}' already exists in this VPC", request.name)));
+        if SecurityGroup::find_by_name(&self.db, request.vpc_id, &request.name)
+            .await?
+            .is_some()
+        {
+            return Err(Error::Other(format!(
+                "Security group '{}' already exists in this VPC",
+                request.name
+            )));
         }
 
         let sg = SecurityGroup::factory()
@@ -317,7 +358,9 @@ impl<A: Authorize> SecurityGroups<A> {
 
         // Cannot rename default security group
         if sg.is_default && request.name.is_some() {
-            return Err(Error::Other("Cannot rename default security group".to_string()));
+            return Err(Error::Other(
+                "Cannot rename default security group".to_string(),
+            ));
         }
 
         // Build update query with parameterized values to prevent SQL injection
@@ -362,11 +405,17 @@ impl<A: Authorize> SecurityGroups<A> {
 
         query_builder.execute(&self.db).await?;
 
-        SecurityGroup::find_one_by_id(&self.db, request.id).await.map_err(Into::into)
+        SecurityGroup::find_one_by_id(&self.db, request.id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Deletes a security group.
-    pub async fn delete<P: Principal + Sync>(&mut self, principal: &P, id: Uuid) -> Result<(), Error> {
+    pub async fn delete<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        id: Uuid,
+    ) -> Result<(), Error> {
         let sg = SecurityGroup::find_one_by_id(&self.db, id).await?;
 
         self.auth
@@ -377,19 +426,23 @@ impl<A: Authorize> SecurityGroups<A> {
 
         // Cannot delete default security group
         if sg.is_default {
-            return Err(Error::Other("Cannot delete default security group".to_string()));
+            return Err(Error::Other(
+                "Cannot delete default security group".to_string(),
+            ));
         }
 
         // Check if attached to any interfaces
         let count: (i64,) = sqlx::query_as(
-            "SELECT COUNT(*) FROM sg_interface_associations WHERE security_group_id = $1"
+            "SELECT COUNT(*) FROM sg_interface_associations WHERE security_group_id = $1",
         )
-            .bind(id)
-            .fetch_one(&self.db)
-            .await?;
+        .bind(id)
+        .fetch_one(&self.db)
+        .await?;
 
         if count.0 > 0 {
-            return Err(Error::Other("Cannot delete security group attached to interfaces".to_string()));
+            return Err(Error::Other(
+                "Cannot delete security group attached to interfaces".to_string(),
+            ));
         }
 
         // Delete rules first
@@ -423,14 +476,18 @@ impl<A: Authorize> SecurityGroups<A> {
 
         // Validate priority
         if request.priority < 1 || request.priority > 65535 {
-            return Err(Error::Other("Priority must be between 1 and 65535".to_string()));
+            return Err(Error::Other(
+                "Priority must be between 1 and 65535".to_string(),
+            ));
         }
 
         // Validate port range for TCP/UDP
         if (request.protocol == Protocol::Tcp || request.protocol == Protocol::Udp)
             && (request.port_from.is_none() || request.port_to.is_none())
         {
-            return Err(Error::Other("Port range required for TCP/UDP protocols".to_string()));
+            return Err(Error::Other(
+                "Port range required for TCP/UDP protocols".to_string(),
+            ));
         }
 
         let rule = SecurityRule::factory()
@@ -457,7 +514,11 @@ impl<A: Authorize> SecurityGroups<A> {
     }
 
     /// Removes a rule from a security group.
-    pub async fn remove_rule<P: Principal + Sync>(&mut self, principal: &P, rule_id: Uuid) -> Result<(), Error> {
+    pub async fn remove_rule<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        rule_id: Uuid,
+    ) -> Result<(), Error> {
         let rule = SecurityRule::find_one_by_id(&self.db, rule_id).await?;
         let sg = SecurityGroup::find_one_by_id(&self.db, rule.security_group_id).await?;
 
@@ -502,7 +563,7 @@ impl<A: Authorize> SecurityGroups<A> {
             INSERT INTO sg_interface_associations (security_group_id, instance_interface_id)
             VALUES ($1, $2)
             ON CONFLICT (security_group_id, instance_interface_id) DO NOTHING
-            "#
+            "#,
         )
         .bind(security_group_id)
         .bind(interface_id)

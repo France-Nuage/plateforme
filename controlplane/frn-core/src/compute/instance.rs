@@ -6,7 +6,9 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::compute::{Hypervisor, HypervisorFactory};
-use crate::network::{AllocateIPRequest, IPAM, InstanceInterface, InterfaceState, SecurityGroup, VNet};
+use crate::network::{
+    AllocateIPRequest, IPAM, InstanceInterface, InterfaceState, SecurityGroup, VNet,
+};
 use crate::resourcemanager::{Project, ProjectFactory};
 use base64::Engine;
 use chrono::{DateTime, Utc};
@@ -189,19 +191,16 @@ impl<A: Authorize> Instances<A> {
         .to_string();
 
         // Generate network configuration for cloud-init
-        let network_config = self.generate_network_config(
-            &ip_allocation.address,
-            Some(&vnet.gateway),
-            &vnet.subnet,
-        );
+        let network_config =
+            self.generate_network_config(&ip_allocation.address, Some(&vnet.gateway), &vnet.subnet);
 
         // Use provided snippet or generate default one with network config
-        let base_snippet = request.snippet.unwrap_or_else(|| self.default_cloud_init_snippet());
+        let base_snippet = request
+            .snippet
+            .unwrap_or_else(|| self.default_cloud_init_snippet());
 
         // Setup Hoop SSH bastion access
-        let snippet = self
-            .setup_hoop_access(&request.name, base_snippet)
-            .await?;
+        let snippet = self.setup_hoop_access(&request.name, base_snippet).await?;
 
         // Inject network configuration into snippet
         let snippet_with_network = self.inject_network_config(&snippet, &network_config);
@@ -219,7 +218,7 @@ impl<A: Authorize> Instances<A> {
             .await?;
 
         let maybe_instance = sqlx::query_as::<_, Instance>(
-            "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2"
+            "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
         )
         .bind(&next_id)
         .bind(hypervisor.id)
@@ -324,12 +323,14 @@ impl<A: Authorize> Instances<A> {
     }
 
     /// Generates network configuration for cloud-init.
-    fn generate_network_config(&self, ip_address: &str, gateway: Option<&str>, subnet: &str) -> String {
+    fn generate_network_config(
+        &self,
+        ip_address: &str,
+        gateway: Option<&str>,
+        subnet: &str,
+    ) -> String {
         // Extract prefix length from subnet CIDR
-        let prefix = subnet
-            .split('/')
-            .nth(1)
-            .unwrap_or("24");
+        let prefix = subnet.split('/').nth(1).unwrap_or("24");
 
         let mut config = format!(
             r#"network:
@@ -631,7 +632,8 @@ impl Instance {
         let project_ids: Vec<Uuid> = instances.iter().map(|i| i.project_id).collect();
         let vpc_ids: Vec<Option<Uuid>> = instances.iter().map(|i| i.vpc_id).collect();
         let vnet_ids: Vec<Option<Uuid>> = instances.iter().map(|i| i.vnet_id).collect();
-        let mac_addresses: Vec<Option<String>> = instances.iter().map(|i| i.mac_address.clone()).collect();
+        let mac_addresses: Vec<Option<String>> =
+            instances.iter().map(|i| i.mac_address.clone()).collect();
         let distant_ids: Vec<String> = instances.iter().map(|i| i.distant_id.clone()).collect();
         let cpu_usage_percents: Vec<f64> = instances.iter().map(|i| i.cpu_usage_percent).collect();
         let max_cpu_cores: Vec<i32> = instances.iter().map(|i| i.max_cpu_cores).collect();

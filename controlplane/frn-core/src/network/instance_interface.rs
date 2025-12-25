@@ -68,7 +68,10 @@ pub struct InstanceInterface {
 
 impl InstanceInterface {
     /// Find an instance interface by ID.
-    pub async fn find_one_by_id(pool: &Pool<Postgres>, id: Uuid) -> Result<InstanceInterface, sqlx::Error> {
+    pub async fn find_one_by_id(
+        pool: &Pool<Postgres>,
+        id: Uuid,
+    ) -> Result<InstanceInterface, sqlx::Error> {
         sqlx::query_as::<_, InstanceInterface>("SELECT * FROM instance_interfaces WHERE id = $1")
             .bind(id)
             .fetch_one(pool)
@@ -76,23 +79,36 @@ impl InstanceInterface {
     }
 
     /// Find all interfaces for an instance.
-    pub async fn find_by_instance_id(pool: &Pool<Postgres>, instance_id: Uuid) -> Result<Vec<InstanceInterface>, sqlx::Error> {
-        sqlx::query_as::<_, InstanceInterface>("SELECT * FROM instance_interfaces WHERE instance_id = $1")
-            .bind(instance_id)
-            .fetch_all(pool)
-            .await
+    pub async fn find_by_instance_id(
+        pool: &Pool<Postgres>,
+        instance_id: Uuid,
+    ) -> Result<Vec<InstanceInterface>, sqlx::Error> {
+        sqlx::query_as::<_, InstanceInterface>(
+            "SELECT * FROM instance_interfaces WHERE instance_id = $1",
+        )
+        .bind(instance_id)
+        .fetch_all(pool)
+        .await
     }
 
     /// Find an interface by MAC address.
-    pub async fn find_by_mac_address(pool: &Pool<Postgres>, mac_address: &str) -> Result<Option<InstanceInterface>, sqlx::Error> {
-        sqlx::query_as::<_, InstanceInterface>("SELECT * FROM instance_interfaces WHERE mac_address = $1")
-            .bind(mac_address)
-            .fetch_optional(pool)
-            .await
+    pub async fn find_by_mac_address(
+        pool: &Pool<Postgres>,
+        mac_address: &str,
+    ) -> Result<Option<InstanceInterface>, sqlx::Error> {
+        sqlx::query_as::<_, InstanceInterface>(
+            "SELECT * FROM instance_interfaces WHERE mac_address = $1",
+        )
+        .bind(mac_address)
+        .fetch_optional(pool)
+        .await
     }
 
     /// Get security groups attached to this interface.
-    pub async fn get_security_group_ids(pool: &Pool<Postgres>, interface_id: Uuid) -> Result<Vec<Uuid>, sqlx::Error> {
+    pub async fn get_security_group_ids(
+        pool: &Pool<Postgres>,
+        interface_id: Uuid,
+    ) -> Result<Vec<Uuid>, sqlx::Error> {
         let result: Vec<(Uuid,)> = sqlx::query_as(
             "SELECT security_group_id FROM sg_interface_associations WHERE instance_interface_id = $1"
         )

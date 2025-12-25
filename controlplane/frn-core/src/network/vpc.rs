@@ -78,7 +78,10 @@ impl VPC {
     }
 
     /// Find a VPC by its slug.
-    pub async fn find_one_by_slug(pool: &Pool<Postgres>, slug: &str) -> Result<Option<VPC>, sqlx::Error> {
+    pub async fn find_one_by_slug(
+        pool: &Pool<Postgres>,
+        slug: &str,
+    ) -> Result<Option<VPC>, sqlx::Error> {
         sqlx::query_as::<_, VPC>("SELECT * FROM vpcs WHERE slug = $1")
             .bind(slug)
             .fetch_optional(pool)
@@ -86,7 +89,10 @@ impl VPC {
     }
 
     /// Find all VPCs for an organization.
-    pub async fn find_by_organization_id(pool: &Pool<Postgres>, organization_id: Uuid) -> Result<Vec<VPC>, sqlx::Error> {
+    pub async fn find_by_organization_id(
+        pool: &Pool<Postgres>,
+        organization_id: Uuid,
+    ) -> Result<Vec<VPC>, sqlx::Error> {
         sqlx::query_as::<_, VPC>("SELECT * FROM vpcs WHERE organization_id = $1")
             .bind(organization_id)
             .fetch_all(pool)
@@ -134,9 +140,14 @@ impl<A: Authorize> VPCs<A> {
     }
 
     /// Lists all VPCs accessible to the principal.
-    pub async fn list<P: Principal>(&mut self, principal: &P, organization_id: Option<Uuid>) -> Result<Vec<VPC>, Error> {
+    pub async fn list<P: Principal>(
+        &mut self,
+        principal: &P,
+        organization_id: Option<Uuid>,
+    ) -> Result<Vec<VPC>, Error> {
         // Use lookup to find VPCs the principal has access to
-        let vpcs = self.auth
+        let vpcs = self
+            .auth
             .lookup::<VPC>()
             .on_behalf_of(principal)
             .with(Permission::Get)
@@ -145,13 +156,20 @@ impl<A: Authorize> VPCs<A> {
 
         // Filter by organization if specified
         match organization_id {
-            Some(org_id) => Ok(vpcs.into_iter().filter(|v| v.organization_id == org_id).collect()),
+            Some(org_id) => Ok(vpcs
+                .into_iter()
+                .filter(|v| v.organization_id == org_id)
+                .collect()),
             None => Ok(vpcs),
         }
     }
 
     /// Gets a VPC by ID.
-    pub async fn get<P: Principal + Sync>(&mut self, principal: &P, id: Uuid) -> Result<VPC, Error> {
+    pub async fn get<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        id: Uuid,
+    ) -> Result<VPC, Error> {
         self.auth
             .can(principal)
             .perform(Permission::Get)
@@ -226,7 +244,9 @@ impl<A: Authorize> VPCs<A> {
             .await?;
 
         // Fetch updated VPC
-        VPC::find_one_by_id(&self.db, vpc.id).await.map_err(Into::into)
+        VPC::find_one_by_id(&self.db, vpc.id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Creates the default security group for a VPC with DENY ALL rules.
@@ -238,7 +258,7 @@ impl<A: Authorize> VPCs<A> {
             r#"
             INSERT INTO security_groups (id, vpc_id, name, description, is_default)
             VALUES ($1, $2, 'default', 'Default security group - DENY ALL', true)
-            "#
+            "#,
         )
         .bind(sg_id)
         .bind(vpc.id)
@@ -270,7 +290,9 @@ impl<A: Authorize> VPCs<A> {
         .await?;
 
         // Fetch and return the created security group
-        SecurityGroup::find_one_by_id(&self.db, sg_id).await.map_err(Into::into)
+        SecurityGroup::find_one_by_id(&self.db, sg_id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Updates an existing VPC.
@@ -299,14 +321,13 @@ impl<A: Authorize> VPCs<A> {
         }
 
         if set_clauses.is_empty() {
-            return VPC::find_one_by_id(&self.db, request.id).await.map_err(Into::into);
+            return VPC::find_one_by_id(&self.db, request.id)
+                .await
+                .map_err(Into::into);
         }
 
         set_clauses.push("updated_at = NOW()".to_string());
-        let query = format!(
-            "UPDATE vpcs SET {} WHERE id = $1",
-            set_clauses.join(", ")
-        );
+        let query = format!("UPDATE vpcs SET {} WHERE id = $1", set_clauses.join(", "));
 
         let mut query_builder = sqlx::query(&query).bind(request.id);
         if let Some(ref name) = request.name {
@@ -318,11 +339,17 @@ impl<A: Authorize> VPCs<A> {
 
         query_builder.execute(&self.db).await?;
 
-        VPC::find_one_by_id(&self.db, request.id).await.map_err(Into::into)
+        VPC::find_one_by_id(&self.db, request.id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Deletes a VPC.
-    pub async fn delete<P: Principal + Sync>(&mut self, principal: &P, id: Uuid) -> Result<(), Error> {
+    pub async fn delete<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        id: Uuid,
+    ) -> Result<(), Error> {
         self.auth
             .can(principal)
             .perform(Permission::Delete)
@@ -339,7 +366,9 @@ impl<A: Authorize> VPCs<A> {
             .await?;
 
         if vnet_count.0 > 0 {
-            return Err(Error::Other("Cannot delete VPC with existing VNets".to_string()));
+            return Err(Error::Other(
+                "Cannot delete VPC with existing VNets".to_string(),
+            ));
         }
 
         // Update state to DELETING

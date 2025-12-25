@@ -303,8 +303,7 @@ mod tests {
     async fn test_firewall_rule_create() {
         let client = reqwest::Client::new();
         let server = MockServer::new().await.with_firewall_rule_create();
-        let rule = FirewallRule::accept_in(Some("tcp"), Some("22"), None)
-            .with_comment("Allow SSH");
+        let rule = FirewallRule::accept_in(Some("tcp"), Some("22"), None).with_comment("Allow SSH");
         let result =
             firewall_rule_create(&server.url(), &client, "", "pve-node1", 100, &rule).await;
 

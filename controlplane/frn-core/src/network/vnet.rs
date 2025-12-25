@@ -5,7 +5,7 @@
 
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
-use crate::network::{VPC, VPCFactory, IPAllocation};
+use crate::network::{IPAllocation, VPC, VPCFactory};
 use chrono::{DateTime, Utc};
 use fabrique::{Factory, Persistable};
 use ipnetwork::IpNetwork;
@@ -76,7 +76,10 @@ impl VNet {
     }
 
     /// Find all VNets for a VPC.
-    pub async fn find_by_vpc_id(pool: &Pool<Postgres>, vpc_id: Uuid) -> Result<Vec<VNet>, sqlx::Error> {
+    pub async fn find_by_vpc_id(
+        pool: &Pool<Postgres>,
+        vpc_id: Uuid,
+    ) -> Result<Vec<VNet>, sqlx::Error> {
         sqlx::query_as::<_, VNet>("SELECT * FROM vnets WHERE vpc_id = $1")
             .bind(vpc_id)
             .fetch_all(pool)
@@ -84,7 +87,10 @@ impl VNet {
     }
 
     /// Find a VNet by its bridge ID.
-    pub async fn find_by_bridge_id(pool: &Pool<Postgres>, bridge_id: &str) -> Result<Option<VNet>, sqlx::Error> {
+    pub async fn find_by_bridge_id(
+        pool: &Pool<Postgres>,
+        bridge_id: &str,
+    ) -> Result<Option<VNet>, sqlx::Error> {
         sqlx::query_as::<_, VNet>("SELECT * FROM vnets WHERE vnet_bridge_id = $1")
             .bind(bridge_id)
             .fetch_optional(pool)
@@ -93,12 +99,14 @@ impl VNet {
 
     /// Calculates the first usable IP address in a subnet (the gateway).
     pub fn calculate_gateway(subnet: &str) -> Result<String, Error> {
-        let network: IpNetwork = subnet.parse()
+        let network: IpNetwork = subnet
+            .parse()
             .map_err(|e| Error::Other(format!("Invalid subnet CIDR: {}", e)))?;
 
         match network {
             IpNetwork::V4(net) => {
-                let first_ip = net.nth(1)
+                let first_ip = net
+                    .nth(1)
                     .ok_or_else(|| Error::Other("Subnet too small for gateway".to_string()))?;
                 Ok(first_ip.to_string())
             }
@@ -106,7 +114,8 @@ impl VNet {
                 // For IPv6, we iterate manually
                 let mut iter = net.iter();
                 iter.next(); // Skip network address
-                let first_ip = iter.next()
+                let first_ip = iter
+                    .next()
                     .ok_or_else(|| Error::Other("Subnet too small for gateway".to_string()))?;
                 Ok(first_ip.to_string())
             }
@@ -159,7 +168,11 @@ impl<A: Authorize> VNets<A> {
     }
 
     /// Lists all VNets in a VPC.
-    pub async fn list<P: Principal + Sync>(&mut self, principal: &P, vpc_id: Uuid) -> Result<Vec<VNet>, Error> {
+    pub async fn list<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        vpc_id: Uuid,
+    ) -> Result<Vec<VNet>, Error> {
         // First check access to the VPC
         self.auth
             .can(principal)
@@ -167,11 +180,17 @@ impl<A: Authorize> VNets<A> {
             .over::<VPC>(&vpc_id)
             .await?;
 
-        VNet::find_by_vpc_id(&self.db, vpc_id).await.map_err(Into::into)
+        VNet::find_by_vpc_id(&self.db, vpc_id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Gets a VNet by ID.
-    pub async fn get<P: Principal + Sync>(&mut self, principal: &P, id: Uuid) -> Result<VNet, Error> {
+    pub async fn get<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        id: Uuid,
+    ) -> Result<VNet, Error> {
         let vnet = VNet::find_one_by_id(&self.db, id).await?;
 
         // Check access to the parent VPC
@@ -201,7 +220,9 @@ impl<A: Authorize> VNets<A> {
         let vpc = VPC::find_one_by_id(&self.db, request.vpc_id).await?;
 
         // Validate subnet CIDR
-        let _network: IpNetwork = request.subnet.parse()
+        let _network: IpNetwork = request
+            .subnet
+            .parse()
             .map_err(|e| Error::Other(format!("Invalid subnet CIDR: {}", e)))?;
 
         // Calculate gateway if not provided
@@ -214,12 +235,20 @@ impl<A: Authorize> VNets<A> {
         let vnet_bridge_id = VNet::generate_bridge_id(&vpc.slug);
 
         // Check bridge ID uniqueness
-        if VNet::find_by_bridge_id(&self.db, &vnet_bridge_id).await?.is_some() {
-            return Err(Error::Other(format!("VNet bridge ID already exists: {}", vnet_bridge_id)));
+        if VNet::find_by_bridge_id(&self.db, &vnet_bridge_id)
+            .await?
+            .is_some()
+        {
+            return Err(Error::Other(format!(
+                "VNet bridge ID already exists: {}",
+                vnet_bridge_id
+            )));
         }
 
         // Default DNS servers
-        let dns_servers = request.dns_servers.unwrap_or_else(|| "1.1.1.1,8.8.8.8".to_string());
+        let dns_servers = request
+            .dns_servers
+            .unwrap_or_else(|| "1.1.1.1,8.8.8.8".to_string());
 
         // Create VNet
         let vnet = VNet::factory()
@@ -261,7 +290,9 @@ impl<A: Authorize> VNets<A> {
         .execute(&self.db)
         .await?;
 
-        IPAllocation::find_one_by_id(&self.db, alloc_id).await.map_err(Into::into)
+        IPAllocation::find_one_by_id(&self.db, alloc_id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Updates an existing VNet.
@@ -297,10 +328,7 @@ impl<A: Authorize> VNets<A> {
         }
 
         set_clauses.push("updated_at = NOW()".to_string());
-        let query = format!(
-            "UPDATE vnets SET {} WHERE id = $1",
-            set_clauses.join(", ")
-        );
+        let query = format!("UPDATE vnets SET {} WHERE id = $1", set_clauses.join(", "));
 
         let mut query_builder = sqlx::query(&query).bind(request.id);
         if let Some(ref name) = request.name {
@@ -312,11 +340,17 @@ impl<A: Authorize> VNets<A> {
 
         query_builder.execute(&self.db).await?;
 
-        VNet::find_one_by_id(&self.db, request.id).await.map_err(Into::into)
+        VNet::find_one_by_id(&self.db, request.id)
+            .await
+            .map_err(Into::into)
     }
 
     /// Deletes a VNet.
-    pub async fn delete<P: Principal + Sync>(&mut self, principal: &P, id: Uuid) -> Result<(), Error> {
+    pub async fn delete<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        id: Uuid,
+    ) -> Result<(), Error> {
         let vnet = VNet::find_one_by_id(&self.db, id).await?;
 
         // Check access to the parent VPC
@@ -328,14 +362,16 @@ impl<A: Authorize> VNets<A> {
 
         // Check for allocated IP addresses (excluding gateway)
         let ip_count: (i64,) = sqlx::query_as(
-            "SELECT COUNT(*) FROM ip_addresses WHERE vnet_id = $1 AND allocation_type != 'GATEWAY'"
+            "SELECT COUNT(*) FROM ip_addresses WHERE vnet_id = $1 AND allocation_type != 'GATEWAY'",
         )
-            .bind(id)
-            .fetch_one(&self.db)
-            .await?;
+        .bind(id)
+        .fetch_one(&self.db)
+        .await?;
 
         if ip_count.0 > 0 {
-            return Err(Error::Other("Cannot delete VNet with allocated IP addresses".to_string()));
+            return Err(Error::Other(
+                "Cannot delete VNet with allocated IP addresses".to_string(),
+            ));
         }
 
         // Delete IP allocations (including gateway)
