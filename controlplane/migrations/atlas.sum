@@ -1,4 +1,4 @@
-h1:TC7FrOl9q7hmd28PX5B6dGjaZspMFTIPd8wuOOHsHAM=
+h1:dZXhklXc4F5s/dsOvzCTkW1fqa4L4jfhyamQ9XtE9Iw=
 20250901201631_initial.sql h1:I+fkuCn9NMpmL/AwF1y/wsmW2+IcPhAfSxGEH9Y2Seo=
 20250905065156_create_users.sql h1:tKKPDZycejUig1fxcYo+gDlLeZugn45InwitZubLDME=
 20250924143151_create_relationship_queue.sql h1:pjj8Bxl7ybKoq6/2j03x6WxdNODyBTp4dn1JXLnaXwY=
@@ -13,3 +13,4 @@ h1:TC7FrOl9q7hmd28PX5B6dGjaZspMFTIPd8wuOOHsHAM=
 20251224152138_create_network_tables.sql h1:4t88pyXQGruUAiJYCtWvWJFa2pQSYMgybi6fXdw6No8=
 20251224152139_add_vpc_to_instances.sql h1:v/cuhop9/M40V0ywt5Pqm9lndmXkna+Ep59iZUN4NWg=
 20251224152140_migrate_ztn_to_vpc.sql h1:TvTEWhn1x7PijPKvyVhSB7NNuOW6jy6SQAt5tvwru58=
+20251225141422_fix_mac_address_column_type.sql h1:SHdkHmTPzOtJycDSsP2XmACsVxBpSIkjup8Q2Trmmqo=
