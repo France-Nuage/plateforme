@@ -1,0 +1,49 @@
+# Pangolin Configuration for Integration Testing
+# This configuration enables test-friendly settings
+
+app:
+  dashboard_url: "http://pangolin:3000"
+  log_level: "debug"
+  save_logs: false
+  log_failed_attempts: true
+  telemetry:
+    anonymous_usage: false
+
+server:
+  secret: "test-secret-key-for-integration-testing-32chars!"
+  external_port: 3000
+  internal_port: 3001
+  next_port: 3002
+  integration_port: 3003
+  session_cookie_name: "pangolin_session"
+  trust_proxy: 1
+
+# Use PostgreSQL for persistent storage
+postgres:
+  connection_string: "postgres://pangolin:pangolin@pangolin-db:5432/pangolin?sslmode=disable"
+  pool:
+    max_connections: 10
+    max_replica_connections: 5
+    idle_timeout_ms: 30000
+
+# Test-friendly flags
+flags:
+  require_email_verification: false
+  disable_signup_without_invite: false
+  disable_user_create_org: false
+  enable_integration_api: true
+  allow_raw_resources: true
+
+# Domains configuration (for local testing)
+domains:
+  local:
+    base_domain: "pangolin.test"
+    prefer_wildcard_cert: false
+
+# Email disabled for testing (no SMTP)
+# email:
+#   smtp_host: ""
+#   smtp_port: 587
+#   smtp_user: ""
+#   smtp_pass: ""
+#   no_reply: "noreply@test.local"

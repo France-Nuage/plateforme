@@ -4,6 +4,3 @@
 //! user invitations and organization membership for Zero Trust VPN access.
 
 pub mod api;
-
-#[cfg(feature = "mock")]
-pub mod mock;

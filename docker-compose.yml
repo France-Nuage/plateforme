@@ -240,6 +240,44 @@ services:
       - .:/app
     working_dir: /app
 
+  pangolin-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: pangolin
+      POSTGRES_USER: pangolin
+      POSTGRES_PASSWORD: ${POSTGRES_PANGOLIN_PASSWORD:-pangolin}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pangolin -d pangolin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_pangolin_data:/var/lib/postgresql/data
+
+  pangolin:
+    image: "fosrl/pangolin:latest"
+    depends_on:
+      pangolin-db:
+        condition: service_healthy
+    environment:
+      POSTGRES_CONNECTION_STRING: postgres://pangolin:${POSTGRES_PANGOLIN_PASSWORD:-pangolin}@pangolin-db:5432/pangolin?sslmode=disable
+      SERVER_SECRET: ${PANGOLIN_SERVER_SECRET:-test-secret-key-for-integration-testing-32chars!}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+      - "3003:3003"
+    volumes:
+      - ./pangolin-config:/app/config:ro
+
   node-sdk:
     build:
       context: node-sdk
@@ -514,5 +552,6 @@ volumes:
       device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
   postgres_data:
   postgres_keycloak_data:
+  postgres_pangolin_data:
   postgres_spicedb_data:
   target:
