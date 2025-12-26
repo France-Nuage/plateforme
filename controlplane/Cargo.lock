@@ -2052,6 +2052,7 @@ name = "operations-worker"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "chrono",
  "frn-core",
  "hoop",
  "pangolin",
@@ -2062,6 +2063,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
