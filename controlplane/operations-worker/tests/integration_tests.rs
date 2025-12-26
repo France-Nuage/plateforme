@@ -46,17 +46,21 @@ struct PangolinTestConfig {
 }
 
 impl PangolinTestConfig {
-    /// Attempts to load test configuration from environment variables.
-    fn from_env() -> Option<Self> {
-        let api_url = env::var("PANGOLIN_API_URL").ok()?;
-        let api_key = env::var("PANGOLIN_API_KEY").ok()?;
-        let org_id = env::var("PANGOLIN_ORG_ID").ok()?;
+    /// Loads test configuration from environment variables.
+    /// Panics if any required environment variable is not set.
+    fn from_env() -> Self {
+        let api_url = env::var("PANGOLIN_API_URL")
+            .expect("PANGOLIN_API_URL environment variable must be set");
+        let api_key = env::var("PANGOLIN_API_KEY")
+            .expect("PANGOLIN_API_KEY environment variable must be set");
+        let org_id =
+            env::var("PANGOLIN_ORG_ID").expect("PANGOLIN_ORG_ID environment variable must be set");
 
-        Some(Self {
+        Self {
             api_url,
             api_key,
             org_id,
-        })
+        }
     }
 }
 
@@ -66,49 +70,37 @@ struct DatabaseTestConfig {
 }
 
 impl DatabaseTestConfig {
-    /// Attempts to load test configuration from environment variables
-    /// and connect to the database.
-    async fn try_connect() -> Option<Self> {
-        let database_url = env::var("DATABASE_URL").ok()?;
-        // Skip if URL is empty or placeholder
-        if database_url.is_empty() || database_url.contains("placeholder") {
-            return None;
+    /// Connects to the database using DATABASE_URL environment variable.
+    /// Panics if DATABASE_URL is not set or connection fails.
+    async fn connect() -> Self {
+        let database_url =
+            env::var("DATABASE_URL").expect("DATABASE_URL environment variable must be set");
+
+        if database_url.is_empty() {
+            panic!("DATABASE_URL environment variable is empty");
         }
-        // Try to connect with a short timeout
-        let pool = sqlx::PgPool::connect(&database_url).await.ok()?;
-        Some(Self { pool })
+
+        let pool = sqlx::PgPool::connect(&database_url)
+            .await
+            .expect("Failed to connect to database");
+
+        Self { pool }
     }
 }
 
-/// Helper to skip tests when Pangolin is not configured.
+/// Helper macro to require Pangolin configuration.
+/// Fails the test if environment variables are not set.
 macro_rules! require_pangolin {
     () => {
-        match PangolinTestConfig::from_env() {
-            Some(config) => config,
-            None => {
-                eprintln!(
-                    "Skipping test: Pangolin not configured. \
-                     Set PANGOLIN_API_URL, PANGOLIN_API_KEY, and PANGOLIN_ORG_ID."
-                );
-                return;
-            }
-        }
+        PangolinTestConfig::from_env()
     };
 }
 
-/// Helper to skip tests when database is not configured or unreachable.
+/// Helper macro to require database connection.
+/// Fails the test if DATABASE_URL is not set or connection fails.
 macro_rules! require_database {
     () => {
-        match DatabaseTestConfig::try_connect().await {
-            Some(config) => config.pool,
-            None => {
-                eprintln!(
-                    "Skipping test: Database not configured or unreachable. \
-                     Set DATABASE_URL and ensure the database is running."
-                );
-                return;
-            }
-        }
+        DatabaseTestConfig::connect().await.pool
     };
 }
 
