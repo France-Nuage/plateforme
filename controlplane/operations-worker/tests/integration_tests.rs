@@ -47,11 +47,16 @@ struct PangolinTestConfig {
 
 impl PangolinTestConfig {
     /// Attempts to load test configuration from environment variables.
-    /// Returns None if any required variable is not set.
+    /// Returns None if any required variable is not set or is empty.
     fn from_env() -> Option<Self> {
         let api_url = env::var("PANGOLIN_API_URL").ok()?;
         let api_key = env::var("PANGOLIN_API_KEY").ok()?;
         let org_id = env::var("PANGOLIN_ORG_ID").ok()?;
+
+        // Return None if any of the values are empty strings
+        if api_url.is_empty() || api_key.is_empty() || org_id.is_empty() {
+            return None;
+        }
 
         Some(Self {
             api_url,
