@@ -13,6 +13,7 @@ use serde_json::Value as JsonValue;
 use sqlx::PgPool;
 use std::env;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::sync::Mutex;
 
@@ -134,6 +135,19 @@ impl PangolinExecutor {
     }
 }
 
+/// Converts a Pangolin API error to an `ExecutorError`.
+fn pangolin_error_to_executor_error(e: pangolin::api::Error) -> ExecutorError {
+    match e {
+        pangolin::api::Error::Connectivity(e) => ExecutorError::Connectivity(e.to_string()),
+        pangolin::api::Error::Unauthorized => ExecutorError::Unauthorized("invalid API key".into()),
+        pangolin::api::Error::NotFound(msg) => ExecutorError::NotFound(msg),
+        pangolin::api::Error::BadRequest(msg) => ExecutorError::Rejected(msg),
+        pangolin::api::Error::Conflict(msg) => ExecutorError::Rejected(msg),
+        pangolin::api::Error::Internal(msg) => ExecutorError::TemporarilyUnavailable(msg),
+        pangolin::api::Error::UnexpectedResponse(msg) => ExecutorError::Internal(msg),
+    }
+}
+
 #[async_trait::async_trait]
 impl OperationExecutor for PangolinExecutor {
     fn handles(&self, operation_type: &OperationType) -> bool {
@@ -173,21 +187,7 @@ impl OperationExecutor for PangolinExecutor {
                     valid_for_hours,
                 )
                 .await
-                .map_err(|e| match e {
-                    pangolin::api::Error::Connectivity(e) => {
-                        ExecutorError::Connectivity(e.to_string())
-                    }
-                    pangolin::api::Error::Unauthorized => {
-                        ExecutorError::Unauthorized("invalid API key".into())
-                    }
-                    pangolin::api::Error::NotFound(msg) => ExecutorError::NotFound(msg),
-                    pangolin::api::Error::BadRequest(msg) => ExecutorError::Rejected(msg),
-                    pangolin::api::Error::Conflict(msg) => ExecutorError::Rejected(msg),
-                    pangolin::api::Error::Internal(msg) => {
-                        ExecutorError::TemporarilyUnavailable(msg)
-                    }
-                    pangolin::api::Error::UnexpectedResponse(msg) => ExecutorError::Internal(msg),
-                })?;
+                .map_err(pangolin_error_to_executor_error)?;
 
                 Ok(serde_json::json!({
                     "invite_id": response.invite_id,
@@ -211,21 +211,7 @@ impl OperationExecutor for PangolinExecutor {
                     user_id,
                 )
                 .await
-                .map_err(|e| match e {
-                    pangolin::api::Error::Connectivity(e) => {
-                        ExecutorError::Connectivity(e.to_string())
-                    }
-                    pangolin::api::Error::Unauthorized => {
-                        ExecutorError::Unauthorized("invalid API key".into())
-                    }
-                    pangolin::api::Error::NotFound(msg) => ExecutorError::NotFound(msg),
-                    pangolin::api::Error::BadRequest(msg) => ExecutorError::Rejected(msg),
-                    pangolin::api::Error::Conflict(msg) => ExecutorError::Rejected(msg),
-                    pangolin::api::Error::Internal(msg) => {
-                        ExecutorError::TemporarilyUnavailable(msg)
-                    }
-                    pangolin::api::Error::UnexpectedResponse(msg) => ExecutorError::Internal(msg),
-                })?;
+                .map_err(pangolin_error_to_executor_error)?;
 
                 Ok(serde_json::json!({"removed": true}))
             }
@@ -249,21 +235,7 @@ impl OperationExecutor for PangolinExecutor {
                     disabled,
                 )
                 .await
-                .map_err(|e| match e {
-                    pangolin::api::Error::Connectivity(e) => {
-                        ExecutorError::Connectivity(e.to_string())
-                    }
-                    pangolin::api::Error::Unauthorized => {
-                        ExecutorError::Unauthorized("invalid API key".into())
-                    }
-                    pangolin::api::Error::NotFound(msg) => ExecutorError::NotFound(msg),
-                    pangolin::api::Error::BadRequest(msg) => ExecutorError::Rejected(msg),
-                    pangolin::api::Error::Conflict(msg) => ExecutorError::Rejected(msg),
-                    pangolin::api::Error::Internal(msg) => {
-                        ExecutorError::TemporarilyUnavailable(msg)
-                    }
-                    pangolin::api::Error::UnexpectedResponse(msg) => ExecutorError::Internal(msg),
-                })?;
+                .map_err(pangolin_error_to_executor_error)?;
 
                 Ok(serde_json::json!({"updated": true}))
             }
@@ -402,14 +374,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "starting polling loop"
     );
 
+    // Set up graceful shutdown signal handling
+    let shutdown = Arc::new(AtomicBool::new(false));
+    let shutdown_clone = Arc::clone(&shutdown);
+
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to listen for ctrl+c");
+        tracing::info!("received shutdown signal, finishing current operations...");
+        shutdown_clone.store(true, Ordering::SeqCst);
+    });
+
     // Main polling loop
-    loop {
+    while !shutdown.load(Ordering::SeqCst) {
         // Process all pending operations
         while let Some(operation) = Operation::fetch_next(&pool).await? {
+            if shutdown.load(Ordering::SeqCst) {
+                tracing::info!("shutdown requested, skipping remaining operations");
+                break;
+            }
             process_operation(&pool, operation, &executor, &retry_policy).await;
         }
 
-        // Wait before next poll
-        tokio::time::sleep(poll_interval).await;
+        // Wait before next poll, but allow interruption for shutdown
+        tokio::select! {
+            _ = tokio::time::sleep(poll_interval) => {}
+            _ = async {
+                while !shutdown.load(Ordering::SeqCst) {
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                }
+            } => {}
+        }
     }
+
+    tracing::info!("operations-worker shutdown complete");
+    Ok(())
 }

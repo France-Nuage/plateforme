@@ -144,33 +144,15 @@ impl SpiceDB {
         object_type: String,
         object_id: String,
     ) -> Result<Option<ZedToken>, Error> {
-        let request = Request::new(WriteRelationshipsRequest {
-            optional_preconditions: vec![],
-            updates: vec![RelationshipUpdate {
-                operation: Operation::Touch as i32,
-                relationship: Some(Relationship {
-                    optional_caveat: None,
-                    resource: Some(ObjectReference {
-                        object_id,
-                        object_type,
-                    }),
-                    relation,
-                    subject: Some(SubjectReference {
-                        object: Some(ObjectReference {
-                            object_id: subject_id,
-                            object_type: subject_type,
-                        }),
-                        optional_relation: "".to_owned(),
-                    }),
-                }),
-            }],
-        });
-
-        self.client
-            .write_relationships(request)
-            .await
-            .map(|response| response.into_inner().written_at)
-            .map_err(Into::into)
+        self.update_relationship(
+            Operation::Touch,
+            subject_type,
+            subject_id,
+            relation,
+            object_type,
+            object_id,
+        )
+        .await
     }
 
     pub async fn delete_relationship(
@@ -181,10 +163,30 @@ impl SpiceDB {
         object_type: String,
         object_id: String,
     ) -> Result<Option<ZedToken>, Error> {
+        self.update_relationship(
+            Operation::Delete,
+            subject_type,
+            subject_id,
+            relation,
+            object_type,
+            object_id,
+        )
+        .await
+    }
+
+    async fn update_relationship(
+        &mut self,
+        operation: Operation,
+        subject_type: String,
+        subject_id: String,
+        relation: String,
+        object_type: String,
+        object_id: String,
+    ) -> Result<Option<ZedToken>, Error> {
         let request = Request::new(WriteRelationshipsRequest {
             optional_preconditions: vec![],
             updates: vec![RelationshipUpdate {
-                operation: Operation::Delete as i32,
+                operation: operation as i32,
                 relationship: Some(Relationship {
                     optional_caveat: None,
                     resource: Some(ObjectReference {

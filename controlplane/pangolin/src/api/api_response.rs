@@ -65,6 +65,10 @@ impl ApiResponseExt for Result<reqwest::Response, reqwest::Error> {
                 let body = response.text().await.unwrap_or_default();
                 Err(Error::NotFound(body))
             }
+            reqwest::StatusCode::BAD_REQUEST => {
+                let body = response.text().await.unwrap_or_default();
+                Err(Error::BadRequest(body))
+            }
             reqwest::StatusCode::CONFLICT => {
                 let body = response.text().await.unwrap_or_default();
                 Err(Error::Conflict(body))
