@@ -35,6 +35,8 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
     // Create VPC and VNet for network configuration
     let vpc = VPC::factory()
         .organization_id(organization.id)
+        .mtu(1450)
+        .vxlan_tag(100)
         .create(&pool)
         .await
         .expect("could not create vpc");
