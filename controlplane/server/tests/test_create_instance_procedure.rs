@@ -4,7 +4,6 @@ use frn_core::compute::{Hypervisor, Instance};
 use frn_core::network::{VNet, VPC};
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
 use frn_rpc::v1::compute::{CreateInstanceRequest, CreateInstanceResponse};
-use sqlx::types::Uuid;
 use tonic::Request;
 
 mod common;
@@ -42,24 +41,13 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
         .await
         .expect("could not create vpc");
 
-    // Create VNet using raw SQL to properly handle cidr/inet type casting
-    // (fabrique's Persistable doesn't support PostgreSQL cidr/inet type casting)
-    let vnet_id = Uuid::new_v4();
-    sqlx::query(
-        r#"
-        INSERT INTO vnets (id, vpc_id, name, vnet_bridge_id, subnet, gateway, dhcp_enabled, dns_servers, state)
-        VALUES ($1, $2, 'test-vnet', 'vnet-test', '10.0.1.0/24'::cidr, '10.0.1.1'::inet, false, '1.1.1.1,8.8.8.8', 'ACTIVE')
-        "#
-    )
-    .bind(vnet_id)
-    .bind(vpc.id)
-    .execute(&pool)
-    .await
-    .expect("could not create vnet");
-
-    let vnet = VNet::find_one_by_id(&pool, vnet_id)
+    let vnet = VNet::factory()
+        .vpc_id(vpc.id)
+        .subnet("10.0.1.0/24".to_string())
+        .gateway("10.0.1.1".to_string())
+        .create(&pool)
         .await
-        .expect("could not fetch vnet");
+        .expect("could not create vnet");
 
     // Act the call to the create rpc
     let request = Request::new(CreateInstanceRequest {
