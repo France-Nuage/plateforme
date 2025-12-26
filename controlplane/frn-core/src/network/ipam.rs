@@ -44,6 +44,7 @@ impl From<String> for AllocationType {
 
 /// IP address allocation record.
 #[derive(Clone, Debug, Default, Factory, Persistable, Resource)]
+#[fabrique(table = "ip_addresses")]
 pub struct IPAllocation {
     /// Unique identifier for the allocation
     #[fabrique(primary_key)]
@@ -57,9 +58,8 @@ pub struct IPAllocation {
     pub mac_address: Option<String>,
     /// ID of the instance interface using this IP (if any)
     pub instance_interface_id: Option<Uuid>,
-    /// Type of allocation
-    #[fabrique(as = "String")]
-    pub allocation_type: AllocationType,
+    /// Type of allocation (stored as String for sqlx compatibility)
+    pub allocation_type: String,
     /// Hostname for reverse DNS
     pub hostname: Option<String>,
     /// When the IP was allocated
@@ -100,7 +100,7 @@ impl IPAllocation {
         address: &str,
     ) -> Result<bool, sqlx::Error> {
         let result: Option<(Uuid,)> =
-            sqlx::query_as("SELECT id FROM ip_addresses WHERE vnet_id = $1 AND address = $2::inet")
+            sqlx::query_as("SELECT id FROM ip_addresses WHERE vnet_id = $1 AND address = $2")
                 .bind(vnet_id)
                 .bind(address)
                 .fetch_optional(pool)
@@ -276,7 +276,7 @@ impl<A: Authorize> IPAM<A> {
         sqlx::query(
             r#"
             INSERT INTO ip_addresses (id, vnet_id, address, mac_address, allocation_type, hostname, allocated_at)
-            VALUES ($1, $2, $3::inet, $4, 'STATIC', $5, NOW())
+            VALUES ($1, $2, $3, $4, 'STATIC', $5, NOW())
             "#
         )
         .bind(alloc_id)
@@ -310,14 +310,13 @@ impl<A: Authorize> IPAM<A> {
         }
 
         // Check if it's the network or broadcast address
-        if let IpNetwork::V4(net) = network {
-            if let IpAddr::V4(v4) = addr {
-                if v4 == net.network() || v4 == net.broadcast() {
-                    return Err(Error::Other(
-                        "Cannot allocate network or broadcast address".to_string(),
-                    ));
-                }
-            }
+        if let IpNetwork::V4(net) = network
+            && let IpAddr::V4(v4) = addr
+            && (v4 == net.network() || v4 == net.broadcast())
+        {
+            return Err(Error::Other(
+                "Cannot allocate network or broadcast address".to_string(),
+            ));
         }
 
         Ok(())
@@ -420,7 +419,7 @@ impl<A: Authorize> IPAM<A> {
             .await?;
 
         // Cannot release gateway IPs
-        if allocation.allocation_type == AllocationType::Gateway {
+        if allocation.allocation_type == AllocationType::Gateway.to_string() {
             return Err(Error::Other(
                 "Cannot release gateway IP address".to_string(),
             ));
@@ -467,7 +466,7 @@ impl<A: Authorize> IPAM<A> {
         sqlx::query(
             r#"
             INSERT INTO ip_addresses (id, vnet_id, address, allocation_type, hostname, allocated_at)
-            VALUES ($1, $2, $3::inet, 'RESERVED', $4, NOW())
+            VALUES ($1, $2, $3, 'RESERVED', $4, NOW())
             "#,
         )
         .bind(alloc_id)

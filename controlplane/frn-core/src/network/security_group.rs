@@ -369,13 +369,13 @@ impl<A: Authorize> SecurityGroups<A> {
 
         if let Some(ref name) = request.name {
             // Check uniqueness
-            if let Some(existing) = SecurityGroup::find_by_name(&self.db, sg.vpc_id, name).await? {
-                if existing.id != request.id {
-                    return Err(Error::Other(format!(
-                        "Security group '{}' already exists in this VPC",
-                        name
-                    )));
-                }
+            if let Some(existing) = SecurityGroup::find_by_name(&self.db, sg.vpc_id, name).await?
+                && existing.id != request.id
+            {
+                return Err(Error::Other(format!(
+                    "Security group '{}' already exists in this VPC",
+                    name
+                )));
             }
             set_clauses.push(format!("name = ${}", param_index));
             param_index += 1;

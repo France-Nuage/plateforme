@@ -278,7 +278,7 @@ impl<A: Authorize> Instances<A> {
             .device_name("net0".to_string())
             .driver("virtio".to_string())
             .firewall_enabled(true)
-            .state(InterfaceState::Active)
+            .state(InterfaceState::Attached)
             .create(&self.db)
             .await?;
 

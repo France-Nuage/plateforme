@@ -1,9 +1,9 @@
 use crate::common::{Api, OnBehalfOf};
 use fabrique::Persistable;
 use frn_core::compute::{Hypervisor, Instance};
-use frn_core::network::{VNet, VPC};
+use frn_core::network::{AllocationType, IPAllocation, VNet, VPC};
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
-use frn_rpc::v1::compute::{CreateInstanceRequest, CreateInstanceResponse};
+use frn_rpc::v1::compute::CreateInstanceRequest;
 use tonic::Request;
 
 mod common;
@@ -49,6 +49,16 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
         .await
         .expect("could not create vnet");
 
+    // Reserve gateway IP in IPAM (normally done by VNets::create service)
+    IPAllocation::factory()
+        .vnet_id(vnet.id)
+        .address("10.0.1.1".to_string())
+        .allocation_type(AllocationType::Gateway.to_string())
+        .hostname(Some("gateway".to_string()))
+        .create(&pool)
+        .await
+        .expect("could not reserve gateway IP");
+
     // Act the call to the create rpc
     let request = Request::new(CreateInstanceRequest {
         image: String::from("debian.qcow2"),
@@ -67,29 +77,36 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
 
     // Assert the result
     let result = api.compute.instances.create(request).await;
-    assert!(result.is_ok());
+    assert!(result.is_ok(), "create instance failed: {:?}", result.err());
     let instances = Instance::all(&pool)
         .await
         .expect("could not fetch instances");
     let instance = &instances[0];
-    assert_eq!(
-        result.unwrap().into_inner(),
-        CreateInstanceResponse {
-            instance: Some(frn_rpc::v1::compute::Instance {
-                id: instance.id.to_string(),
-                max_cpu_cores: 1,
-                max_memory_bytes: 536870912,
-                name: "acme-mgs".to_owned(),
-                hypervisor_id: hypervisor.id.to_string(),
-                project_id: project.id.to_string(),
-                created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
-                    instance.created_at
-                ))),
-                updated_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
-                    instance.updated_at
-                ))),
-                ..Default::default()
-            })
-        }
+    let response = result.unwrap().into_inner();
+    let response_instance = response.instance.expect("response should contain instance");
+
+    // Verify basic instance properties
+    assert_eq!(response_instance.id, instance.id.to_string());
+    assert_eq!(response_instance.name, "acme-mgs");
+    assert_eq!(response_instance.max_cpu_cores, 1);
+    assert_eq!(response_instance.max_memory_bytes, 536870912);
+    assert_eq!(response_instance.hypervisor_id, hypervisor.id.to_string());
+    assert_eq!(response_instance.project_id, project.id.to_string());
+
+    // Verify network configuration from VPC/VNet
+    assert_eq!(response_instance.ip_v4, "10.0.1.2"); // First available IP after gateway
+    assert!(
+        response_instance.mac_address.is_some(),
+        "MAC address should be present"
     );
+    assert!(
+        response_instance
+            .mac_address
+            .as_ref()
+            .unwrap()
+            .starts_with("BC:24:11"),
+        "MAC address should use France Nuage OUI prefix"
+    );
+    assert_eq!(response_instance.vpc_id, Some(vpc.id.to_string()));
+    assert_eq!(response_instance.vnet_id, Some(vnet.id.to_string()));
 }

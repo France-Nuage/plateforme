@@ -281,7 +281,7 @@ impl<A: Authorize> VNets<A> {
         sqlx::query(
             r#"
             INSERT INTO ip_addresses (id, vnet_id, address, mac_address, allocation_type, hostname, allocated_at)
-            VALUES ($1, $2, $3::inet, NULL, 'GATEWAY', 'gateway', NOW())
+            VALUES ($1, $2, $3, NULL, 'GATEWAY', 'gateway', NOW())
             "#
         )
         .bind(alloc_id)

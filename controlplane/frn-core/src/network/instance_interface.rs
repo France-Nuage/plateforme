@@ -17,9 +17,8 @@ use uuid::Uuid;
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 pub enum InterfaceState {
     #[default]
-    Pending,
-    Active,
-    Error,
+    Attached,
+    Detached,
 }
 
 impl From<InterfaceState> for String {
@@ -36,6 +35,7 @@ impl From<String> for InterfaceState {
 
 /// InstanceInterface represents a network interface attached to an instance.
 #[derive(Clone, Debug, Default, Factory, Persistable, Resource)]
+#[fabrique(table = "instance_interfaces")]
 pub struct InstanceInterface {
     /// Unique identifier
     #[fabrique(primary_key)]
@@ -55,15 +55,13 @@ pub struct InstanceInterface {
     pub driver: String,
     /// Whether firewall is enabled on this interface
     pub firewall_enabled: bool,
-    /// Rate limit in Mbps (0 = unlimited)
-    pub rate_limit_mbps: i32,
+    /// Rate limit in Mbps (None = unlimited)
+    pub rate_limit_mbps: Option<i32>,
     /// Current state
     #[fabrique(as = "String")]
     pub state: InterfaceState,
     /// Creation timestamp
     pub created_at: DateTime<Utc>,
-    /// Last update timestamp
-    pub updated_at: DateTime<Utc>,
 }
 
 impl InstanceInterface {
@@ -156,8 +154,8 @@ impl InstanceInterface {
             .device_name(request.device_name)
             .driver(request.driver.unwrap_or_else(|| "virtio".to_string()))
             .firewall_enabled(request.firewall_enabled)
-            .rate_limit_mbps(request.rate_limit_mbps.unwrap_or(0))
-            .state(InterfaceState::Active)
+            .rate_limit_mbps(request.rate_limit_mbps)
+            .state(InterfaceState::Attached)
             .create(pool)
             .await?;
 
@@ -197,8 +195,10 @@ impl InstanceInterface {
         }
 
         // Rate limit
-        if self.rate_limit_mbps > 0 {
-            config_parts.push(format!("rate={}", self.rate_limit_mbps));
+        if let Some(rate) = self.rate_limit_mbps
+            && rate > 0
+        {
+            config_parts.push(format!("rate={}", rate));
         }
 
         config_parts.join(",")

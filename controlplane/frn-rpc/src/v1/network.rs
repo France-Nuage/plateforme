@@ -335,7 +335,9 @@ impl From<network_core::IPAllocation> for IpAllocation {
                 .instance_interface_id
                 .map(|id| id.to_string())
                 .unwrap_or_default(),
-            allocation_type: allocation_type_to_proto(value.allocation_type) as i32,
+            allocation_type: allocation_type_to_proto(CoreAllocationType::from(
+                value.allocation_type,
+            )) as i32,
             hostname: value.hostname.unwrap_or_default(),
             allocated_at: value.allocated_at.map(|dt| SystemTime::from(dt).into()),
             created_at: Some(SystemTime::from(value.created_at).into()),

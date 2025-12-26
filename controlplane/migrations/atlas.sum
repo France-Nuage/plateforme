@@ -1,4 +1,4 @@
-h1:5LyO4bPifwotcbrmMlT3gpPiP4bfvgZjSl4rKjnvjTQ=
+h1:kg7figCyF7yPIpIr1aO3sCMkergZ5VIKEu7hJh/SeaM=
 20250901201631_initial.sql h1:I+fkuCn9NMpmL/AwF1y/wsmW2+IcPhAfSxGEH9Y2Seo=
 20250905065156_create_users.sql h1:tKKPDZycejUig1fxcYo+gDlLeZugn45InwitZubLDME=
 20250924143151_create_relationship_queue.sql h1:pjj8Bxl7ybKoq6/2j03x6WxdNODyBTp4dn1JXLnaXwY=
@@ -15,3 +15,6 @@ h1:5LyO4bPifwotcbrmMlT3gpPiP4bfvgZjSl4rKjnvjTQ=
 20251224152140_migrate_ztn_to_vpc.sql h1:TvTEWhn1x7PijPKvyVhSB7NNuOW6jy6SQAt5tvwru58=
 20251225141422_fix_mac_address_column_type.sql h1:SHdkHmTPzOtJycDSsP2XmACsVxBpSIkjup8Q2Trmmqo=
 20251226133936_set_vpc_defaults.sql h1:KoyHZWA1o9+KVsUQxSSU6q1E086wx89FxM5MxCy9qcA=
+20251226153000_change_vnet_cidr_inet_to_text.sql h1:T9qYVaWKwN3AuUL2qs4lJRXj7xBo1QfS+I1iVBPjoh8=
+20251226210000_fix_network_mac_address_types.sql h1:YpgwUIBj2WmNHGHvauWyVFmnGBGwMdsr/KC0C3a11KM=
+20251226215000_fix_ip_addresses_address_type.sql h1:JrwBao2Awg9EyFUbe92Kbb96+MaXvpphco8uTDGN7EE=
