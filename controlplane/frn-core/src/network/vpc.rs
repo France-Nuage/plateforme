@@ -39,7 +39,7 @@ impl From<String> for VPCState {
 }
 
 /// VPC represents a Virtual Private Cloud - an isolated network environment.
-#[derive(Clone, Debug, Default, Factory, Persistable, Resource)]
+#[derive(Clone, Debug, Factory, Persistable, Resource)]
 pub struct VPC {
     /// Unique identifier for the VPC
     #[fabrique(primary_key)]
@@ -66,6 +66,24 @@ pub struct VPC {
     pub created_at: DateTime<Utc>,
     /// Last update timestamp
     pub updated_at: DateTime<Utc>,
+}
+
+impl Default for VPC {
+    fn default() -> Self {
+        Self {
+            id: Uuid::default(),
+            name: String::default(),
+            slug: String::default(),
+            organization_id: Uuid::default(),
+            region: String::default(),
+            sdn_zone_id: String::default(),
+            vxlan_tag: 1, // Minimum valid value per DB constraint (>= 1)
+            state: VPCState::default(),
+            mtu: 1450, // Default for VXLAN, within DB constraint (1280-1500)
+            created_at: DateTime::default(),
+            updated_at: DateTime::default(),
+        }
+    }
 }
 
 impl VPC {
