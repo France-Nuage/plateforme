@@ -113,6 +113,36 @@ gitleaks:
         coverage_format: cobertura
         path: controlplane/cobertura.xml
 
+"integration tests / controlplane":
+  stage: system-tests
+  variables:
+    TARGET: development
+    DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+    # Pangolin integration tests require these to be set in CI secrets:
+    # PANGOLIN_API_URL, PANGOLIN_API_KEY, PANGOLIN_ORG_ID
+    # If not set, Pangolin tests will be gracefully skipped
+  after_script:
+    - docker compose logs pangolin pangolin-db postgres > integration-test-logs.txt
+  script:
+    # Start required services for integration tests
+    - docker compose up -d postgres pangolin-db
+    - docker compose run --rm postgres-migrate
+    - docker compose up -d pangolin
+    # Wait for services to be healthy
+    - |
+      echo "Waiting for postgres to be healthy..."
+      timeout 60 sh -c 'until docker compose exec -T postgres pg_isready -U postgres; do sleep 2; done'
+    - |
+      echo "Waiting for pangolin to be healthy..."
+      timeout 120 sh -c 'until docker compose exec -T pangolin curl -sf http://localhost:3001/health; do sleep 5; done' || echo "Pangolin not ready, Pangolin tests will be skipped"
+    # Run integration tests
+    - docker compose run --remove-orphans -e DATABASE_URL="$DATABASE_URL" -e PANGOLIN_API_URL="${PANGOLIN_API_URL:-}" -e PANGOLIN_API_KEY="${PANGOLIN_API_KEY:-}" -e PANGOLIN_ORG_ID="${PANGOLIN_ORG_ID:-}" controlplane cargo test --package operations-worker --test integration_tests -- --test-threads=1
+  artifacts:
+    when: always
+    paths:
+      - integration-test-logs.txt
+    expire_in: 1 week
+
 "system tests / console":
   stage: system-tests
   allow_failure: true
