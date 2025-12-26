@@ -484,6 +484,7 @@ mod pangolin_executor {
     }
 
     #[tokio::test]
+    #[ignore = "Requires Pangolin: set PANGOLIN_API_URL, PANGOLIN_API_KEY, PANGOLIN_ORG_ID"]
     async fn test_pangolin_invite_user_success() {
         let config = require_pangolin!();
         let executor = PangolinExecutor::new(&config.api_url, &config.api_key);
@@ -515,6 +516,7 @@ mod pangolin_executor {
     }
 
     #[tokio::test]
+    #[ignore = "Requires Pangolin: set PANGOLIN_API_URL, PANGOLIN_API_KEY, PANGOLIN_ORG_ID"]
     async fn test_pangolin_invite_user_unauthorized() {
         let config = require_pangolin!();
         let executor = PangolinExecutor::new(&config.api_url, "invalid-api-key");
@@ -539,6 +541,7 @@ mod pangolin_executor {
     }
 
     #[tokio::test]
+    #[ignore = "Requires Pangolin: set PANGOLIN_API_URL, PANGOLIN_API_KEY, PANGOLIN_ORG_ID"]
     async fn test_pangolin_remove_nonexistent_user() {
         let config = require_pangolin!();
         let executor = PangolinExecutor::new(&config.api_url, &config.api_key);
@@ -557,6 +560,7 @@ mod pangolin_executor {
     }
 
     #[tokio::test]
+    #[ignore = "Requires Pangolin: set PANGOLIN_API_URL, PANGOLIN_API_KEY, PANGOLIN_ORG_ID"]
     async fn test_pangolin_update_nonexistent_user() {
         let config = require_pangolin!();
         let executor = PangolinExecutor::new(&config.api_url, &config.api_key);
@@ -576,6 +580,7 @@ mod pangolin_executor {
     }
 
     #[tokio::test]
+    #[ignore = "Requires Pangolin: set PANGOLIN_API_URL, PANGOLIN_API_KEY, PANGOLIN_ORG_ID"]
     async fn test_pangolin_invite_missing_input() {
         let config = require_pangolin!();
         let executor = PangolinExecutor::new(&config.api_url, &config.api_key);
@@ -732,6 +737,7 @@ mod database {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "Requires PostgreSQL: set DATABASE_URL and run migrations"]
     async fn test_operation_create_and_fetch() {
         let pool = require_database!();
 
@@ -781,6 +787,7 @@ mod database {
     }
 
     #[tokio::test]
+    #[ignore = "Requires PostgreSQL: set DATABASE_URL and run migrations"]
     async fn test_operation_lifecycle() {
         let pool = require_database!();
 
@@ -842,6 +849,7 @@ mod database {
     }
 
     #[tokio::test]
+    #[ignore = "Requires PostgreSQL: set DATABASE_URL and run migrations"]
     async fn test_operation_retry_lifecycle() {
         let pool = require_database!();
 
@@ -899,6 +907,7 @@ mod database {
     }
 
     #[tokio::test]
+    #[ignore = "Requires PostgreSQL: set DATABASE_URL and run migrations"]
     async fn test_operation_fetch_next_with_skip_locked() {
         let pool = require_database!();
 
@@ -944,6 +953,7 @@ mod database {
     }
 
     #[tokio::test]
+    #[ignore = "Requires PostgreSQL: set DATABASE_URL and run migrations"]
     async fn test_operation_cancel() {
         let pool = require_database!();
 
