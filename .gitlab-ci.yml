@@ -141,11 +141,11 @@ gitleaks:
       echo "Bootstrapping Pangolin with Playwright..."
       docker compose run --rm -e PANGOLIN_SETUP_TOKEN="$PANGOLIN_SETUP_TOKEN" pangolin-bootstrap > /tmp/pangolin-credentials.txt
       cat /tmp/pangolin-credentials.txt
-      export $(cat /tmp/pangolin-credentials.txt | xargs)
+      export $(grep '^PANGOLIN_' /tmp/pangolin-credentials.txt | xargs)
       echo "Pangolin bootstrapped - API URL: $PANGOLIN_API_URL, Org: $PANGOLIN_ORG_ID"
     # Run integration tests with Pangolin credentials
     - |
-      export $(cat /tmp/pangolin-credentials.txt | xargs)
+      export $(grep '^PANGOLIN_' /tmp/pangolin-credentials.txt | xargs)
       docker compose run --remove-orphans \
         -e DATABASE_URL="$DATABASE_URL" \
         -e PANGOLIN_API_URL="$PANGOLIN_API_URL" \
