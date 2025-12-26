@@ -6,3 +6,8 @@ gitleaks-report.json
 
 # node dependencies
 node_modules
+# Pangolin runtime files
+pangolin-config/db/
+pangolin-config/bootstrap-debug/
+pangolin-config/openapi.yaml
+

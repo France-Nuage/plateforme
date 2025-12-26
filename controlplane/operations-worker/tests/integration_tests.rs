@@ -47,16 +47,11 @@ struct PangolinTestConfig {
 
 impl PangolinTestConfig {
     /// Attempts to load test configuration from environment variables.
-    /// Returns None if any required variable is not set or is empty.
+    /// Returns None if any required variable is not set.
     fn from_env() -> Option<Self> {
         let api_url = env::var("PANGOLIN_API_URL").ok()?;
         let api_key = env::var("PANGOLIN_API_KEY").ok()?;
         let org_id = env::var("PANGOLIN_ORG_ID").ok()?;
-
-        // Return None if any of the values are empty strings
-        if api_url.is_empty() || api_key.is_empty() || org_id.is_empty() {
-            return None;
-        }
 
         Some(Self {
             api_url,
@@ -76,11 +71,6 @@ impl DatabaseTestConfig {
     /// Returns None if DATABASE_URL is not set or connection fails.
     async fn connect() -> Option<Self> {
         let database_url = env::var("DATABASE_URL").ok()?;
-
-        if database_url.is_empty() {
-            return None;
-        }
-
         let pool = sqlx::PgPool::connect(&database_url).await.ok()?;
 
         Some(Self { pool })

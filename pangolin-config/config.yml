@@ -26,6 +26,14 @@ postgres:
     max_replica_connections: 5
     idle_timeout_ms: 30000
 
+# Gerbil (WireGuard tunnel) configuration - disabled for integration testing
+gerbil:
+  base_endpoint: "localhost"
+  start_port: 51820
+  block_size: 24
+  site_block_size: 30
+  subnet_group: "100.89.137.0/20"
+
 # Test-friendly flags
 flags:
   require_email_verification: false

@@ -266,7 +266,7 @@ services:
       POSTGRES_CONNECTION_STRING: postgres://pangolin:${POSTGRES_PANGOLIN_PASSWORD:-pangolin}@pangolin-db:5432/pangolin?sslmode=disable
       SERVER_SECRET: ${PANGOLIN_SERVER_SECRET:-test-secret-key-for-integration-testing-32chars!}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
       interval: 5s
       timeout: 5s
       retries: 24
@@ -274,9 +274,26 @@ services:
     ports:
       - "3000:3000"
       - "3001:3001"
+      - "3002:3002"
       - "3003:3003"
     volumes:
-      - ./pangolin-config:/app/config:ro
+      - ./pangolin-config:/app/config
+
+  pangolin-bootstrap:
+    image: mcr.microsoft.com/playwright:v1.51.1-noble
+    working_dir: /app
+    command: sh -c "npm install playwright@1.51.1 && node scripts/pangolin-bootstrap.js"
+    environment:
+      - PANGOLIN_SETUP_TOKEN
+      - PANGOLIN_DASHBOARD_URL=http://pangolin:3002
+    volumes:
+      - ./scripts:/app/scripts:ro
+      - ./pangolin-config/bootstrap-debug:/tmp
+    depends_on:
+      pangolin:
+        condition: service_healthy
+    profiles:
+      - donotstart
 
   node-sdk:
     build:
