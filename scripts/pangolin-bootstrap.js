@@ -233,8 +233,9 @@ async function main() {
         const apiKey = await generateApiKey(page);
 
         // Determine API URL based on dashboard URL
+        // External API is on port 3000 (not 3001 which is internal, not 3002 which is Next.js dashboard)
         // Note: Don't add /v1 suffix - the Rust client already adds /api/v1/ to the base URL
-        const apiUrl = PANGOLIN_DASHBOARD_URL.replace(':3002', ':3003');
+        const apiUrl = PANGOLIN_DASHBOARD_URL.replace(':3002', ':3000');
 
         // Output credentials for CI (to stdout for parsing)
         console.log(`PANGOLIN_API_URL=${apiUrl}`);
