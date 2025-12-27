@@ -195,19 +195,57 @@ async function generateApiKey(page) {
     const submitButton = page.getByRole('button', { name: /^générer$|^generate$/i });
     await submitButton.click();
 
-    // Wait for the API key to be shown
-    await page.waitForTimeout(3000);
+    // Wait for redirect to API key detail page or for key display
+    // The URL pattern after creation typically includes the key ID
+    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle');
 
-    // Extract the API key from the code element
-    const apiKeyElement = page.locator('code');
-    const apiKey = await apiKeyElement.textContent();
+    // Take debug screenshot before extraction
+    await page.screenshot({ path: '/tmp/pangolin-bootstrap-apikey-page.png', fullPage: true });
 
-    if (!apiKey) {
-        throw new Error('Failed to extract API key');
+    // Look for code elements and find the one that looks like an API key
+    // Pangolin API keys typically start with 'pk_' prefix
+    const codeElements = page.locator('code');
+    const count = await codeElements.count();
+    console.error(`Found ${count} code elements on the page`);
+
+    let apiKey = null;
+    for (let i = 0; i < count; i++) {
+        const text = await codeElements.nth(i).textContent();
+        console.error(`Code element ${i}: "${text?.substring(0, 20)}..."`);
+        // Pangolin API keys start with 'pk_' and are alphanumeric
+        if (text && text.startsWith('pk_')) {
+            apiKey = text.trim();
+            console.error(`Found API key at element ${i}`);
+            break;
+        }
     }
 
-    console.error('API key generated');
-    return apiKey.trim();
+    // Fallback: if no pk_ prefix found, try to find a long alphanumeric string
+    if (!apiKey) {
+        for (let i = 0; i < count; i++) {
+            const text = await codeElements.nth(i).textContent();
+            // API keys are typically 32+ characters, alphanumeric with possible underscores
+            if (text && text.length > 30 && /^[a-zA-Z0-9_-]+$/.test(text.trim())) {
+                apiKey = text.trim();
+                console.error(`Found API key (fallback) at element ${i}: ${apiKey.substring(0, 10)}...`);
+                break;
+            }
+        }
+    }
+
+    if (!apiKey) {
+        // Log all code elements for debugging
+        console.error('Failed to find API key. All code elements:');
+        for (let i = 0; i < count; i++) {
+            const text = await codeElements.nth(i).textContent();
+            console.error(`  ${i}: "${text}"`);
+        }
+        throw new Error('Failed to extract API key - no valid key format found');
+    }
+
+    console.error(`API key generated: ${apiKey.substring(0, 10)}...`);
+    return apiKey;
 }
 
 async function main() {
