@@ -233,7 +233,8 @@ async function main() {
         const apiKey = await generateApiKey(page);
 
         // Determine API URL based on dashboard URL
-        const apiUrl = PANGOLIN_DASHBOARD_URL.replace(':3002', ':3003') + '/v1';
+        // Note: Don't add /v1 suffix - the Rust client already adds /api/v1/ to the base URL
+        const apiUrl = PANGOLIN_DASHBOARD_URL.replace(':3002', ':3003');
 
         // Output credentials for CI (to stdout for parsing)
         console.log(`PANGOLIN_API_URL=${apiUrl}`);
