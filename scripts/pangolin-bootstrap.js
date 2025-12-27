@@ -204,7 +204,7 @@ async function generateApiKey(page) {
     await page.screenshot({ path: '/tmp/pangolin-bootstrap-apikey-page.png', fullPage: true });
 
     // Look for code elements and find the one that looks like an API key
-    // Pangolin API keys typically start with 'pk_' prefix
+    // Pangolin API keys have format: {prefix}.{secret} (e.g., "5vxg5vp31mbr7vp.wk2eeesscmm242w3uzplu6prke4ojby5ecryn2n5")
     const codeElements = page.locator('code');
     const count = await codeElements.count();
     console.error(`Found ${count} code elements on the page`);
@@ -213,20 +213,21 @@ async function generateApiKey(page) {
     for (let i = 0; i < count; i++) {
         const text = await codeElements.nth(i).textContent();
         console.error(`Code element ${i}: "${text?.substring(0, 20)}..."`);
-        // Pangolin API keys start with 'pk_' and are alphanumeric
-        if (text && text.startsWith('pk_')) {
+        // Pangolin API keys contain a dot separator and are 40+ characters
+        // Format: {prefix}.{secret} where both parts are alphanumeric
+        if (text && text.includes('.') && text.length > 40 && /^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/.test(text.trim())) {
             apiKey = text.trim();
             console.error(`Found API key at element ${i}`);
             break;
         }
     }
 
-    // Fallback: if no pk_ prefix found, try to find a long alphanumeric string
+    // Fallback: if no dot-separated format found, try any long alphanumeric string with dots
     if (!apiKey) {
         for (let i = 0; i < count; i++) {
             const text = await codeElements.nth(i).textContent();
-            // API keys are typically 32+ characters, alphanumeric with possible underscores
-            if (text && text.length > 30 && /^[a-zA-Z0-9_-]+$/.test(text.trim())) {
+            // API keys are typically 32+ characters, alphanumeric with possible dots/underscores
+            if (text && text.length > 30 && /^[a-zA-Z0-9._-]+$/.test(text.trim())) {
                 apiKey = text.trim();
                 console.error(`Found API key (fallback) at element ${i}: ${apiKey.substring(0, 10)}...`);
                 break;
