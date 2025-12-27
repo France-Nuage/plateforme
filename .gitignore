@@ -11,3 +11,4 @@ pangolin-config/db/
 pangolin-config/bootstrap-debug/
 pangolin-config/openapi.yaml
 
+.claude/tsc-cache/*

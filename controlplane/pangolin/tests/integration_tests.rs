@@ -103,7 +103,7 @@ mod create_invite {
             &config.api_key,
             &config.org_id,
             &test_email,
-            "member", // Default role
+            2,        // Role ID 2 = Member
             false,    // Don't send email in tests
             Some(24), // 24 hour validity
         )
@@ -133,7 +133,7 @@ mod create_invite {
             "invalid-api-key",
             &config.org_id,
             "test@example.com",
-            "member",
+            2, // Role ID 2 = Member
             false,
             None,
         )
@@ -257,7 +257,7 @@ mod lifecycle {
             &config.api_key,
             &config.org_id,
             &test_email,
-            "member",
+            2, // Role ID 2 = Member
             false,
             Some(1), // 1 hour validity
         )

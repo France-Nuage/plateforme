@@ -22,7 +22,7 @@ pub struct UpdateUserRequest {
 /// Updates a user in an organization in Pangolin.
 ///
 /// # Arguments
-/// * `api_url` - The Pangolin API base URL
+/// * `api_url` - The Pangolin Integration API base URL (port 3003)
 /// * `client` - HTTP client
 /// * `api_key` - Pangolin API key for authorization
 /// * `org_id` - The organization slug/ID in Pangolin
@@ -43,11 +43,9 @@ pub async fn update_user(
         disabled,
     };
 
+    // Integration API uses /v1/ prefix (not /api/v1/) and bypasses CSRF protection
     client
-        .patch(format!(
-            "{}/api/v1/org/{}/user/{}",
-            api_url, org_id, user_id
-        ))
+        .patch(format!("{}/v1/org/{}/user/{}", api_url, org_id, user_id))
         .header("Authorization", format!("Bearer {}", api_key))
         .json(&request)
         .send()

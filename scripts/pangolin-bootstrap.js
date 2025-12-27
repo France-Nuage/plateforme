@@ -3,11 +3,12 @@
  * Pangolin Bootstrap Script
  *
  * This script automates the initial setup of Pangolin for CI testing.
- * It uses Playwright to interact with the Pangolin UI to:
+ * It uses direct API calls to:
  * 1. Complete the initial setup with the setup token
- * 2. Create a test organization
- * 3. Create a local site
- * 4. Generate an API key
+ * 2. Login and obtain session
+ * 3. Create a test organization
+ * 4. Create a local site
+ * 5. Generate an API key with all permissions
  *
  * Usage: node scripts/pangolin-bootstrap.js
  *
@@ -19,8 +20,6 @@
  * - PANGOLIN_API_URL, PANGOLIN_API_KEY, PANGOLIN_ORG_ID to stdout for CI consumption
  */
 
-const { chromium } = require('playwright');
-
 const PANGOLIN_DASHBOARD_URL = process.env.PANGOLIN_DASHBOARD_URL || 'http://localhost:3002';
 const PANGOLIN_SETUP_TOKEN = process.env.PANGOLIN_SETUP_TOKEN;
 
@@ -30,222 +29,341 @@ const TEST_ORG_ID = 'integration-test-org';
 const TEST_ORG_NAME = 'Integration Test Org';
 const TEST_SITE_NAME = 'integration-test-site';
 
-async function waitForPangolin(page, maxAttempts = 60) {
+// Session cookies storage
+let sessionCookies = '';
+
+/**
+ * Make an HTTP request to the Pangolin API
+ */
+async function apiRequest(method, path, body = null, options = {}) {
+    const url = `${PANGOLIN_DASHBOARD_URL}/api/v1${path}`;
+    const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    };
+
+    if (sessionCookies) {
+        headers['Cookie'] = sessionCookies;
+    }
+
+    if (options.headers) {
+        Object.assign(headers, options.headers);
+    }
+
+    const fetchOptions = {
+        method,
+        headers,
+        redirect: 'manual',
+    };
+
+    if (body) {
+        fetchOptions.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, fetchOptions);
+
+    // Capture Set-Cookie headers for session management
+    const setCookie = response.headers.get('set-cookie');
+    if (setCookie) {
+        // Parse and store cookies
+        const cookies = setCookie.split(',').map(c => c.split(';')[0].trim()).join('; ');
+        if (cookies) {
+            sessionCookies = cookies;
+        }
+    }
+
+    return response;
+}
+
+/**
+ * Wait for Pangolin to be ready
+ */
+async function waitForPangolin(maxAttempts = 60) {
     for (let i = 0; i < maxAttempts; i++) {
         try {
-            const response = await page.goto(`${PANGOLIN_DASHBOARD_URL}/setup`, {
-                timeout: 5000,
-                waitUntil: 'domcontentloaded'
+            const response = await fetch(`${PANGOLIN_DASHBOARD_URL}/api/v1/auth/initial-setup-complete`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
             });
-            if (response && response.ok()) {
-                console.error('Pangolin dashboard is ready');
+            if (response.ok) {
+                console.error('Pangolin API is ready');
                 return true;
             }
         } catch (e) {
-            console.error(`Waiting for Pangolin dashboard... (${i + 1}/${maxAttempts})`);
-            await new Promise(r => setTimeout(r, 2000));
+            console.error(`Waiting for Pangolin API... (${i + 1}/${maxAttempts})`);
         }
+        await new Promise(r => setTimeout(r, 2000));
     }
-    throw new Error('Pangolin dashboard did not become ready in time');
+    throw new Error('Pangolin API did not become ready in time');
 }
 
-async function completeInitialSetup(page) {
+/**
+ * Check if initial setup is already complete
+ */
+async function isSetupComplete() {
+    const response = await apiRequest('GET', '/auth/initial-setup-complete');
+    if (!response.ok) {
+        throw new Error(`Failed to check setup status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.data === true;
+}
+
+/**
+ * Complete the initial server admin setup
+ */
+async function completeInitialSetup() {
     console.error('Starting initial setup...');
 
-    // Navigate to setup page - it should redirect to /auth/initial-setup
-    await page.goto(`${PANGOLIN_DASHBOARD_URL}/setup`);
-    await page.waitForLoadState('networkidle');
+    const setupComplete = await isSetupComplete();
+    if (setupComplete) {
+        console.error('Initial setup already complete, skipping');
+        return;
+    }
 
-    // Wait for the setup form
-    await page.waitForTimeout(2000);
+    const response = await apiRequest('PUT', '/auth/set-server-admin', {
+        email: TEST_ADMIN_EMAIL,
+        password: TEST_ADMIN_PASSWORD,
+        setupToken: PANGOLIN_SETUP_TOKEN,
+    });
 
-    // Fill setup token
-    const tokenInput = page.getByRole('textbox', { name: /token|jeton/i });
-    await tokenInput.fill(PANGOLIN_SETUP_TOKEN);
-
-    // Fill email
-    const emailInput = page.getByRole('textbox', { name: /email|mail/i });
-    await emailInput.fill(TEST_ADMIN_EMAIL);
-
-    // Fill password (first password field)
-    const passwordInputs = page.getByRole('textbox', { name: /password|mot de passe/i });
-    const passwordInput = passwordInputs.first();
-    await passwordInput.fill(TEST_ADMIN_PASSWORD);
-
-    // Fill confirm password
-    const confirmPasswordInput = page.getByRole('textbox', { name: /confirm/i });
-    await confirmPasswordInput.fill(TEST_ADMIN_PASSWORD);
-
-    // Submit setup - look for create admin button
-    const createButton = page.getByRole('button', { name: /create|créer/i });
-    await createButton.click();
-
-    // Wait for redirect to login page
-    await page.waitForURL(/\/auth\/login/, { timeout: 30000 });
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to complete initial setup: ${response.status} - ${text}`);
+    }
 
     console.error('Initial setup completed');
 }
 
-async function login(page) {
+/**
+ * Login with admin credentials
+ */
+async function login() {
     console.error('Logging in...');
 
-    // Wait for login page to be fully loaded
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    const response = await apiRequest('POST', '/auth/login', {
+        email: TEST_ADMIN_EMAIL,
+        password: TEST_ADMIN_PASSWORD,
+    });
 
-    // Wait for login button to be visible before proceeding
-    // Note: UI can be French ("Se connecter") or English ("Log in" with space)
-    const loginButton = page.getByRole('button', { name: /se connecter|log\s*in|sign\s*in/i });
-    await loginButton.waitFor({ state: 'visible', timeout: 30000 });
-    console.error('Login page loaded, filling credentials...');
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to login: ${response.status} - ${text}`);
+    }
 
-    // Fill email - supports both French ("Adresse mail") and English ("Email")
-    const emailInput = page.getByRole('textbox', { name: /adresse.*mail|e-?mail/i });
-    await emailInput.fill(TEST_ADMIN_EMAIL);
-
-    // Fill password - supports both French ("Mot de passe") and English ("Password")
-    const passwordInput = page.getByRole('textbox', { name: /mot de passe|password/i });
-    await passwordInput.fill(TEST_ADMIN_PASSWORD);
-
-    // Click login button
-    await loginButton.click();
-
-    // Wait for redirect to setup/org creation
-    await page.waitForURL(/\/setup/, { timeout: 30000 });
+    // Check for 2FA or other requirements
+    const data = await response.json();
+    if (data.data?.codeRequested || data.data?.twoFactorSetupRequired) {
+        throw new Error('Two-factor authentication required - not supported in bootstrap');
+    }
 
     console.error('Logged in successfully');
 }
 
-async function createOrganization(page) {
+/**
+ * Get organization creation defaults (subnets)
+ */
+async function getOrgDefaults() {
+    console.error('Getting organization defaults...');
+
+    const response = await apiRequest('GET', '/pick-org-defaults');
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to get org defaults: ${response.status} - ${text}`);
+    }
+
+    const data = await response.json();
+    return data.data;
+}
+
+/**
+ * Check if organization already exists
+ */
+async function orgExists(orgId) {
+    const response = await apiRequest('GET', `/org/${orgId}`);
+    return response.ok;
+}
+
+/**
+ * Create the test organization
+ */
+async function createOrganization() {
     console.error('Creating organization...');
 
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    // Check if org already exists
+    if (await orgExists(TEST_ORG_ID)) {
+        console.error('Organization already exists, skipping creation');
+        return;
+    }
 
-    // Fill org name - French: "Nom de l'organisation", English: "Organization Name"
-    const orgNameInput = page.getByRole('textbox', { name: /nom.*organisation|organization\s*name/i });
-    await orgNameInput.fill(TEST_ORG_NAME);
+    // Get default subnets
+    const defaults = await getOrgDefaults();
 
-    // Fill org ID - French: "ID de l'organisation", English: "Organization ID"
-    const orgIdInput = page.getByRole('textbox', { name: /id.*organisation|organization\s*id/i });
-    await orgIdInput.fill(TEST_ORG_ID);
+    const response = await apiRequest('PUT', '/org', {
+        orgId: TEST_ORG_ID,
+        name: TEST_ORG_NAME,
+        subnet: defaults.subnet,
+        utilitySubnet: defaults.utilitySubnet,
+    });
 
-    // Click create organization - French: "Créer une organisation", English: "Create Organization"
-    const createOrgButton = page.getByRole('button', { name: /créer.*organisation|create\s*org/i });
-    await createOrgButton.click();
-
-    // Wait for redirect to site creation
-    await page.waitForURL(/\/settings\/sites\/create/, { timeout: 30000 });
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to create organization: ${response.status} - ${text}`);
+    }
 
     console.error('Organization created');
 }
 
-async function createSite(page) {
-    console.error('Creating local site...');
+/**
+ * Get site creation defaults
+ */
+async function getSiteDefaults() {
+    console.error('Getting site defaults...');
 
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    const response = await apiRequest('GET', `/org/${TEST_ORG_ID}/pick-site-defaults`);
 
-    // The "Local" option should already be selected, but click it to be sure
-    const localRadio = page.getByRole('radio', { name: /locale|local/i });
-    if (await localRadio.isVisible()) {
-        await localRadio.click();
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to get site defaults: ${response.status} - ${text}`);
     }
 
-    // Fill site name - French: "Nom", English: "Name"
-    const siteNameInput = page.getByRole('textbox', { name: /^nom$|^name$/i });
-    await siteNameInput.fill(TEST_SITE_NAME);
+    const data = await response.json();
+    return data.data;
+}
 
-    // Click create site - French: "Créer un nœud", English: "Create Site/Node"
-    const createSiteButton = page.getByRole('button', { name: /créer.*nœud|create\s*(site|node)/i });
-    await createSiteButton.click();
+/**
+ * Check if a site with given name already exists
+ */
+async function siteExists(siteName) {
+    const response = await apiRequest('GET', `/org/${TEST_ORG_ID}/sites`);
+    if (!response.ok) {
+        return false;
+    }
+    const data = await response.json();
+    const sites = data.data || [];
+    return sites.some(s => s.name === siteName);
+}
 
-    // Wait for redirect to site settings
-    await page.waitForURL(/\/settings\/sites\/.*\/general/, { timeout: 30000 });
+/**
+ * Create a local site
+ */
+async function createSite() {
+    console.error('Creating local site...');
+
+    // Check if site already exists
+    if (await siteExists(TEST_SITE_NAME)) {
+        console.error('Site already exists, skipping creation');
+        return;
+    }
+
+    const response = await apiRequest('PUT', `/org/${TEST_ORG_ID}/site`, {
+        name: TEST_SITE_NAME,
+        type: 'local',
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to create site: ${response.status} - ${text}`);
+    }
 
     console.error('Site created');
 }
 
-async function generateApiKey(page) {
+/**
+ * List existing API keys
+ */
+async function listApiKeys() {
+    const response = await apiRequest('GET', `/org/${TEST_ORG_ID}/api-keys`);
+    if (!response.ok) {
+        return [];
+    }
+    const data = await response.json();
+    return data.data || [];
+}
+
+/**
+ * Get all available API key actions/permissions
+ */
+async function getAvailableActions() {
+    // The actions are defined in the Pangolin codebase
+    // These are the standard actions available for org-level API keys
+    return [
+        'getOrg', 'updateOrg', 'deleteOrg',
+        'listSites', 'getSite', 'createSite', 'updateSite', 'deleteSite',
+        'listResources', 'getResource', 'createResource', 'updateResource', 'deleteResource',
+        'listTargets', 'getTarget', 'createTarget', 'updateTarget', 'deleteTarget',
+        'listRoles', 'getRole', 'createRole', 'updateRole', 'deleteRole',
+        'listUsers', 'getUser', 'createUser', 'updateUser', 'deleteUser',
+        'listInvitations', 'createInvitation', 'deleteInvitation',
+        'listApiKeys', 'getApiKey', 'deleteApiKey',
+        'listDomains', 'getDomain', 'createDomain', 'updateDomain', 'deleteDomain',
+        'listClients', 'getClient', 'createClient', 'updateClient', 'deleteClient',
+        'listAccessTokens', 'getAccessToken', 'createAccessToken', 'deleteAccessToken',
+    ];
+}
+
+/**
+ * Set API key permissions
+ */
+async function setApiKeyPermissions(apiKeyId, actions) {
+    console.error(`Setting API key permissions (${actions.length} actions)...`);
+
+    const response = await apiRequest('POST', `/org/${TEST_ORG_ID}/api-key/${apiKeyId}/actions`, {
+        actionIds: actions,
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to set API key permissions: ${response.status} - ${text}`);
+    }
+
+    console.error('API key permissions set');
+}
+
+/**
+ * Generate an API key with all permissions
+ */
+async function generateApiKey() {
     console.error('Generating API key...');
 
-    // Navigate to API keys page
-    await page.goto(`${PANGOLIN_DASHBOARD_URL}/${TEST_ORG_ID}/settings/api-keys`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
-
-    // Click generate API key button - French: "Générer une clé d'API", English: "Generate API Key"
-    const generateButton = page.getByRole('button', { name: /générer.*clé.*api|generate\s*api\s*key/i });
-    await generateButton.click();
-
-    // Wait for form to load
-    await page.waitForURL(/\/api-keys\/create/, { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
-
-    // Fill API key name - French: "Nom", English: "Name"
-    const nameInput = page.getByRole('textbox', { name: /^nom$|^name$/i });
-    await nameInput.fill('integration-test-key');
-
-    // Check "Allow all permissions" - use the specific checkbox id to avoid matching category toggles
-    const allPermissionsCheckbox = page.locator('#toggle-all-permissions');
-    await allPermissionsCheckbox.click();
-
-    // Click generate - French: "Générer", English: "Generate"
-    const submitButton = page.getByRole('button', { name: /^générer$|^generate$/i });
-    await submitButton.click();
-
-    // Wait for redirect to API key detail page or for key display
-    // The URL pattern after creation typically includes the key ID
-    await page.waitForTimeout(2000);
-    await page.waitForLoadState('networkidle');
-
-    // Take debug screenshot before extraction
-    await page.screenshot({ path: '/tmp/pangolin-bootstrap-apikey-page.png', fullPage: true });
-
-    // Look for code elements and find the one that looks like an API key
-    // Pangolin API keys have format: {prefix}.{secret} (e.g., "5vxg5vp31mbr7vp.wk2eeesscmm242w3uzplu6prke4ojby5ecryn2n5")
-    const codeElements = page.locator('code');
-    const count = await codeElements.count();
-    console.error(`Found ${count} code elements on the page`);
-
-    let apiKey = null;
-    for (let i = 0; i < count; i++) {
-        const text = await codeElements.nth(i).textContent();
-        console.error(`Code element ${i}: "${text?.substring(0, 20)}..."`);
-        // Pangolin API keys contain a dot separator and are 40+ characters
-        // Format: {prefix}.{secret} where both parts are alphanumeric
-        if (text && text.includes('.') && text.length > 40 && /^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/.test(text.trim())) {
-            apiKey = text.trim();
-            console.error(`Found API key at element ${i}`);
-            break;
-        }
+    // Check if we already have an integration-test-key
+    const existingKeys = await listApiKeys();
+    const existingKey = existingKeys.find(k => k.name === 'integration-test-key');
+    if (existingKey) {
+        console.error('API key already exists but we cannot retrieve the secret.');
+        console.error('Creating a new API key with different name...');
     }
 
-    // Fallback: if no dot-separated format found, try any long alphanumeric string with dots
-    if (!apiKey) {
-        for (let i = 0; i < count; i++) {
-            const text = await codeElements.nth(i).textContent();
-            // API keys are typically 32+ characters, alphanumeric with possible dots/underscores
-            if (text && text.length > 30 && /^[a-zA-Z0-9._-]+$/.test(text.trim())) {
-                apiKey = text.trim();
-                console.error(`Found API key (fallback) at element ${i}: ${apiKey.substring(0, 10)}...`);
-                break;
-            }
-        }
+    const keyName = existingKey
+        ? `integration-test-key-${Date.now()}`
+        : 'integration-test-key';
+
+    const response = await apiRequest('PUT', `/org/${TEST_ORG_ID}/api-key`, {
+        name: keyName,
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to create API key: ${response.status} - ${text}`);
     }
 
-    if (!apiKey) {
-        // Log all code elements for debugging
-        console.error('Failed to find API key. All code elements:');
-        for (let i = 0; i < count; i++) {
-            const text = await codeElements.nth(i).textContent();
-            console.error(`  ${i}: "${text}"`);
-        }
-        throw new Error('Failed to extract API key - no valid key format found');
+    const data = await response.json();
+    const apiKeyData = data.data;
+
+    if (!apiKeyData || !apiKeyData.apiKey) {
+        throw new Error('API key response did not contain the key');
     }
+
+    const apiKey = apiKeyData.apiKey;
+    const apiKeyId = apiKeyData.apiKeyId;
 
     console.error(`API key generated: ${apiKey.substring(0, 10)}...`);
+
+    // Set all permissions on the API key
+    const actions = await getAvailableActions();
+    await setApiKeyPermissions(apiKeyId, actions);
+
     return apiKey;
 }
 
@@ -256,25 +374,20 @@ async function main() {
         process.exit(1);
     }
 
-    const browser = await chromium.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
     try {
-        await waitForPangolin(page);
-        await completeInitialSetup(page);
-        await login(page);
-        await createOrganization(page);
-        await createSite(page);
-        const apiKey = await generateApiKey(page);
+        await waitForPangolin();
+        await completeInitialSetup();
+        await login();
+        await createOrganization();
+        await createSite();
+        const apiKey = await generateApiKey();
 
         // Determine API URL based on dashboard URL
-        // External API is on port 3000 (not 3001 which is internal, not 3002 which is Next.js dashboard)
-        // Note: Don't add /v1 suffix - the Rust client already adds /api/v1/ to the base URL
-        const apiUrl = PANGOLIN_DASHBOARD_URL.replace(':3002', ':3000');
+        // Integration API is on port 3003 with /v1/ prefix (bypasses CSRF protection)
+        // Port 3000 (external) has CSRF protection that requires browser session
+        // Port 3001 is internal API without full endpoints
+        // Port 3002 is Next.js dashboard
+        const apiUrl = PANGOLIN_DASHBOARD_URL.replace(':3002', ':3003');
 
         // Output credentials for CI (to stdout for parsing)
         console.log(`PANGOLIN_API_URL=${apiUrl}`);
@@ -285,18 +398,7 @@ async function main() {
 
     } catch (error) {
         console.error('Bootstrap failed:', error.message);
-
-        // Take screenshot for debugging
-        try {
-            await page.screenshot({ path: '/tmp/pangolin-bootstrap-error.png', fullPage: true });
-            console.error('Error screenshot saved to /tmp/pangolin-bootstrap-error.png');
-        } catch (e) {
-            console.error('Could not save error screenshot');
-        }
-
         process.exit(1);
-    } finally {
-        await browser.close();
     }
 }
 

@@ -280,15 +280,14 @@ services:
       - ./pangolin-config:/app/config
 
   pangolin-bootstrap:
-    image: mcr.microsoft.com/playwright:v1.51.1-noble
+    image: node:22-alpine
     working_dir: /app
-    command: sh -c "npm install playwright@1.51.1 && node scripts/pangolin-bootstrap.js"
+    command: node scripts/pangolin-bootstrap.js
     environment:
       - PANGOLIN_SETUP_TOKEN
       - PANGOLIN_DASHBOARD_URL=http://pangolin:3002
     volumes:
       - ./scripts:/app/scripts:ro
-      - ./pangolin-config/bootstrap-debug:/tmp
     depends_on:
       pangolin:
         condition: service_healthy

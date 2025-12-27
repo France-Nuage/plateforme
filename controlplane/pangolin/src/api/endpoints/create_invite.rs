@@ -13,13 +13,13 @@ use crate::api::api_response::ApiResponseExt;
 pub struct CreateInviteRequest {
     /// Email address of the user to invite.
     pub email: String,
-    /// Role ID to assign to the user.
-    pub role_id: String,
+    /// Role ID to assign to the user (must be a number for the integration API).
+    pub role_id: i64,
     /// Whether to send an email notification.
     pub send_email: bool,
-    /// Validity duration for the invitation (e.g., "24h", "7d").
+    /// Validity duration for the invitation in hours.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub valid_for_hours: Option<i64>,
+    pub valid_hours: Option<i64>,
 }
 
 /// Response from creating an invite.
@@ -37,14 +37,14 @@ pub struct CreateInviteResponse {
 /// Creates a new invitation in Pangolin.
 ///
 /// # Arguments
-/// * `api_url` - The Pangolin API base URL
+/// * `api_url` - The Pangolin Integration API base URL (port 3003)
 /// * `client` - HTTP client
 /// * `api_key` - Pangolin API key for authorization
 /// * `org_id` - The organization slug/ID in Pangolin
 /// * `email` - Email address of the user to invite
-/// * `role_id` - Role ID to assign
+/// * `role_id` - Role ID to assign (numeric)
 /// * `send_email` - Whether Pangolin should send the invitation email
-/// * `valid_for_hours` - Optional validity duration in hours
+/// * `valid_hours` - Optional validity duration in hours
 ///
 /// # Returns
 /// The invite response containing the invite ID and token.
@@ -54,19 +54,20 @@ pub async fn create_invite(
     api_key: &str,
     org_id: &str,
     email: &str,
-    role_id: &str,
+    role_id: i64,
     send_email: bool,
-    valid_for_hours: Option<i64>,
+    valid_hours: Option<i64>,
 ) -> Result<CreateInviteResponse, Error> {
     let request = CreateInviteRequest {
         email: email.to_string(),
-        role_id: role_id.to_string(),
+        role_id,
         send_email,
-        valid_for_hours,
+        valid_hours,
     };
 
+    // Integration API uses /v1/ prefix (not /api/v1/) and bypasses CSRF protection
     client
-        .post(format!("{}/api/v1/org/{}/create-invite", api_url, org_id))
+        .post(format!("{}/v1/org/{}/create-invite", api_url, org_id))
         .header("Authorization", format!("Bearer {}", api_key))
         .json(&request)
         .send()

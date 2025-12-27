@@ -330,7 +330,7 @@ mod spicedb_executor {
             json!({
                 "org_id": "org-123",
                 "email": "test@example.com",
-                "role_id": "member"
+                "role_id": 2
             }),
         );
 
@@ -405,11 +405,13 @@ mod pangolin_executor {
                     let email = input["email"]
                         .as_str()
                         .ok_or_else(|| ExecutorError::InvalidInput("missing email".into()))?;
-                    let role_id = input["role_id"]
-                        .as_str()
-                        .ok_or_else(|| ExecutorError::InvalidInput("missing role_id".into()))?;
+                    let role_id = input["role_id"].as_i64().ok_or_else(|| {
+                        ExecutorError::InvalidInput(
+                            "missing or invalid role_id (must be a number)".into(),
+                        )
+                    })?;
                     let send_email = input["send_email"].as_bool().unwrap_or(true);
-                    let valid_for_hours = input["valid_for_hours"].as_i64();
+                    let valid_hours = input["valid_hours"].as_i64();
 
                     let response = pangolin::api::create_invite(
                         &self.api_url,
@@ -419,7 +421,7 @@ mod pangolin_executor {
                         email,
                         role_id,
                         send_email,
-                        valid_for_hours,
+                        valid_hours,
                     )
                     .await
                     .map_err(pangolin_error_to_executor_error)?;
@@ -507,9 +509,9 @@ mod pangolin_executor {
             json!({
                 "org_id": config.org_id,
                 "email": test_email,
-                "role_id": "member",
+                "role_id": 2,
                 "send_email": false,
-                "valid_for_hours": 1
+                "valid_hours": 1
             }),
         );
 
@@ -531,7 +533,7 @@ mod pangolin_executor {
             json!({
                 "org_id": config.org_id,
                 "email": "test@example.com",
-                "role_id": "member",
+                "role_id": 2,
                 "send_email": false
             }),
         );
@@ -592,7 +594,7 @@ mod pangolin_executor {
             json!({
                 "org_id": config.org_id,
                 // Missing email
-                "role_id": "member"
+                "role_id": 2
             }),
         );
 
@@ -799,7 +801,7 @@ mod database {
             json!({
                 "org_id": "test-org",
                 "email": "test@example.com",
-                "role_id": "member"
+                "role_id": 2
             }),
         )
         .create(&pool)

@@ -138,7 +138,7 @@ gitleaks:
       export PANGOLIN_SETUP_TOKEN=$(docker compose logs pangolin 2>&1 | grep -A1 "SETUP TOKEN" | grep "Token:" | sed 's/.*Token: //')
       echo "Setup token extracted: ${PANGOLIN_SETUP_TOKEN:0:8}..."
     - |
-      echo "Bootstrapping Pangolin with Playwright..."
+      echo "Bootstrapping Pangolin..."
       docker compose run --rm -e PANGOLIN_SETUP_TOKEN="$PANGOLIN_SETUP_TOKEN" pangolin-bootstrap > /tmp/pangolin-credentials.txt
       cat /tmp/pangolin-credentials.txt
       export $(grep '^PANGOLIN_' /tmp/pangolin-credentials.txt | xargs)
