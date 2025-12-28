@@ -31,8 +31,8 @@ variables:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
   BUILDKIT_PROGRESS: plain
-  GIT_DEPTH: 0
-  GIT_STRATEGY: clone
+  GIT_DEPTH: 10
+  GIT_STRATEGY: fetch
 
 gitleaks:
   stage: security
@@ -54,69 +54,147 @@ gitleaks:
     when: always
     expire_in: 1 week
 
-"build / development":
+# Shared build script template
+.build_template: &build_template
   stage: build
   variables:
     TARGET: development
     BUILDKIT_INLINE_CACHE: "1"
+
+"build / controlplane":
+  <<: *build_template
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
   script:
     - |
-      set -e  # Exit on error
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:master-development \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:buildcache,mode=max \
+        --target development \
+        --tag ${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
 
-      # Helper function to build a service
-      build_service() {
-        local service=$1
-        local context=$2
-        local dockerfile=$3
-        local extra_args=$4
+"build / authz-worker":
+  <<: *build_template
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-development \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:buildcache,mode=max \
+        --target development \
+        --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile.authz-worker \
+        controlplane
 
-        echo "Building ${service}..."
-        local image_tag="${CI_REGISTRY_IMAGE}/${service}:${CI_COMMIT_REF_SLUG}-${TARGET}"
-        local cache_ref="${CI_REGISTRY_IMAGE}/${service}:buildcache"
+"build / synchronizer":
+  <<: *build_template
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:master-development \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:buildcache,mode=max \
+        --target development \
+        --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile.synchronizer \
+        controlplane
 
-        docker buildx build \
-          --cache-from type=registry,ref=${cache_ref} \
-          --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/${service}:${CI_COMMIT_REF_SLUG}-${TARGET} \
-          --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/${service}:master-${TARGET} \
-          --cache-to type=registry,ref=${cache_ref},mode=max \
-          ${extra_args} \
-          --target ${TARGET} \
-          --tag ${image_tag} \
-          --push \
-          --file ${context}/${dockerfile} \
-          ${context}
-      }
+"build / console":
+  <<: *build_template
+  rules:
+    - changes:
+        - console/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:master-development \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache,mode=max \
+        --build-arg VITE_OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-francenuage} \
+        --build-arg VITE_OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-keycloak} \
+        --build-arg VITE_OIDC_PROVIDER_URL=${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage} \
+        --build-arg VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE:-rpc} \
+        --build-arg VITE_CONTROLPLANE_URL=${CONTROLPLANE_URL:-https://controlplane.test} \
+        --target development \
+        --tag ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file console/Dockerfile \
+        .
 
-      # Build services with target stages
-      build_service "controlplane" "controlplane" "Dockerfile" ""
-      build_service "authz-worker" "controlplane" "Dockerfile.authz-worker" ""
-      build_service "synchronizer" "controlplane" "Dockerfile.synchronizer" ""
-      build_service "console" "." "console/Dockerfile" "--build-arg VITE_OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-francenuage} --build-arg VITE_OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-keycloak} --build-arg VITE_OIDC_PROVIDER_URL=${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage} --build-arg VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE:-rpc} --build-arg VITE_CONTROLPLANE_URL=${CONTROLPLANE_URL:-https://controlplane.test}"
-
-      # Services without target stages
-      echo "Building node-sdk..."
+"build / node-sdk":
+  <<: *build_template
+  rules:
+    - changes:
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-${TARGET} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:master-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:master-development \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache,mode=max \
-        --tag ${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --tag ${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-development \
         --push \
         --file node-sdk/Dockerfile \
         node-sdk
 
-      echo "Building system-tests..."
+"build / system-tests":
+  <<: *build_template
+  rules:
+    - changes:
+        - system-tests/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-${TARGET} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master-development \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
-        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-development \
         --push \
         --file system-tests/Dockerfile \
         .
 
-      echo "Building protocol..."
+"build / protocol":
+  <<: *build_template
+  rules:
+    - changes:
+        - protocol/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \

@@ -1,5 +1,5 @@
-# Base Stage
-FROM rust:1.90-alpine AS base
+# Chef Stage - Install cargo-chef
+FROM rust:1.90-alpine AS chef
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -9,7 +9,29 @@ RUN apk add --no-cache \
   protobuf-dev \
   protoc
 
+# Enable Cargo sparse protocol for faster dependency fetching
+ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
+
+# Install cargo-chef for dependency caching
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+  cargo install cargo-chef
+
 WORKDIR /app
+
+# Planner Stage - Generate recipe for dependencies
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json --bin synchronizer
+
+# Base Stage - Build dependencies
+FROM chef AS base
+
+# Build dependencies (cached layer - only rebuilds when dependencies change)
+COPY --from=planner /app/recipe.json recipe.json
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/usr/local/cargo/git \
+  --mount=type=cache,target=/app/target \
+  SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json --bin synchronizer
 
 # Copy source code
 COPY . .
