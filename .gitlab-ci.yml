@@ -61,6 +61,8 @@ gitleaks:
     BUILDKIT_INLINE_CACHE: "1"
   script:
     - |
+      set -e  # Exit on error
+
       # Helper function to build a service
       build_service() {
         local service=$1
@@ -77,7 +79,6 @@ gitleaks:
           --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/${service}:${CI_COMMIT_REF_SLUG}-${TARGET} \
           --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/${service}:master-${TARGET} \
           --cache-to type=registry,ref=${cache_ref},mode=max \
-          --build-arg BUILDKIT_INLINE_CACHE=1 \
           ${extra_args} \
           --target ${TARGET} \
           --tag ${image_tag} \
@@ -99,7 +100,6 @@ gitleaks:
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:master-${TARGET} \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache,mode=max \
-        --build-arg BUILDKIT_INLINE_CACHE=1 \
         --tag ${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
         --file node-sdk/Dockerfile \
@@ -111,7 +111,6 @@ gitleaks:
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master-${TARGET} \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
-        --build-arg BUILDKIT_INLINE_CACHE=1 \
         --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
         --file system-tests/Dockerfile \
@@ -123,7 +122,6 @@ gitleaks:
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:master \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache,mode=max \
-        --build-arg BUILDKIT_INLINE_CACHE=1 \
         --tag ${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
         --push \
         --file protocol/Dockerfile \
@@ -136,6 +134,8 @@ gitleaks:
     BUILDKIT_INLINE_CACHE: "1"
   script:
     - |
+      set -e  # Exit on error
+
       # Helper function to build a service
       build_service() {
         local service=$1
@@ -152,7 +152,6 @@ gitleaks:
           --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/${service}:${CI_COMMIT_REF_SLUG}-${TARGET} \
           --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/${service}:master-${TARGET} \
           --cache-to type=registry,ref=${cache_ref},mode=max \
-          --build-arg BUILDKIT_INLINE_CACHE=1 \
           ${extra_args} \
           --target ${TARGET} \
           --tag ${image_tag} \
@@ -174,7 +173,6 @@ gitleaks:
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master-${TARGET} \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
-        --build-arg BUILDKIT_INLINE_CACHE=1 \
         --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
         --file system-tests/Dockerfile \
@@ -186,7 +184,6 @@ gitleaks:
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:master \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache,mode=max \
-        --build-arg BUILDKIT_INLINE_CACHE=1 \
         --tag ${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
         --push \
         --file protocol/Dockerfile \
