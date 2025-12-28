@@ -51,6 +51,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 # Production Stage
 FROM alpine:3.23 AS release
+RUN apk add --no-cache ca-certificates openssl
 
 COPY --from=builder /app/synchronizer /usr/bin/synchronizer
 RUN chmod +x /usr/bin/synchronizer

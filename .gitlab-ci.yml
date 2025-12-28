@@ -158,10 +158,10 @@ gitleaks:
       set -e
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-development \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:master-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:master \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache,mode=max \
-        --tag ${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-development \
+        --tag ${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG} \
         --push \
         --file node-sdk/Dockerfile \
         node-sdk
@@ -178,10 +178,10 @@ gitleaks:
       set -e
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-development \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
-        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-development \
+        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
         --push \
         --file system-tests/Dockerfile \
         .

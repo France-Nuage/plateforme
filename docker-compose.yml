@@ -419,7 +419,7 @@ services:
       - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
 
   system-tests:
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}system-tests:${CI_COMMIT_REF_SLUG:-latest}"
     build:
       args:
         BUILDKIT_INLINE_CACHE: ${BUILDKIT_INLINE_CACHE:-1}
