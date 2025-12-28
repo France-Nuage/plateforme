@@ -23,8 +23,8 @@ FROM base AS builder
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
   --mount=type=cache,target=/usr/local/cargo/git \
   --mount=type=cache,target=/app/target \
-  SQLX_OFFLINE=true cargo build --package=authz-worker --release && \
-  cp /app/target/release/authz-worker /app/authz-worker
+  SQLX_OFFLINE=true cargo build --bin=authz-worker --release && \
+  install -D /app/target/release/authz-worker /app/authz-worker
 
 # Production Stage
 FROM alpine:3.23 AS release
