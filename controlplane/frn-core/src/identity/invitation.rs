@@ -331,23 +331,22 @@ impl<A: Authorize> Invitations<A> {
         }
 
         // Verify the user matches the invitation (if user_id is set)
-        if let Some(inv_user_id) = invitation.user_id {
-            if inv_user_id != *user.id() {
-                return Err(Error::PermissionDenied(
-                    "user does not match invitation".to_string(),
-                ));
-            }
+        if let Some(inv_user_id) = invitation.user_id
+            && inv_user_id != *user.id()
+        {
+            return Err(Error::PermissionDenied(
+                "user does not match invitation".to_string(),
+            ));
         }
 
         // Verify email matches (if email is set and no user_id)
-        if invitation.user_id.is_none() {
-            if let Some(ref inv_email) = invitation.email {
-                if inv_email != &user.email {
-                    return Err(Error::PermissionDenied(
-                        "user email does not match invitation".to_string(),
-                    ));
-                }
-            }
+        if invitation.user_id.is_none()
+            && let Some(ref inv_email) = invitation.email
+            && inv_email != &user.email
+        {
+            return Err(Error::PermissionDenied(
+                "user email does not match invitation".to_string(),
+            ));
         }
 
         let new_state = if accept {
