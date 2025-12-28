@@ -9,7 +9,10 @@ stages:
   - release
   - deploy
 
-image: docker:cli
+image: docker:29-cli
+
+services:
+  - docker:29-dind
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -19,7 +22,10 @@ after_script:
   - docker compose down --volumes
 
 variables:
-  DOCKER_HOST: unix:///var/run/docker.sock
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   GIT_DEPTH: 0
   GIT_STRATEGY: clone
 
