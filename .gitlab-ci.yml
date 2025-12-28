@@ -56,14 +56,16 @@ gitleaks:
   stage: build
   variables:
     TARGET: development
+    BUILDKIT_INLINE_CACHE: "1"
   script:
-    - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
+    - docker compose build
     - docker compose push
 
 "build / release":
   stage: build
   variables:
     TARGET: release
+    BUILDKIT_INLINE_CACHE: "1"
   script:
     - docker compose build
     - docker compose push

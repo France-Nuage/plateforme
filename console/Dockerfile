@@ -1,15 +1,20 @@
 FROM node:22-alpine AS base
 
-RUN apk add curl
+RUN apk add --no-cache curl
 
+# Build node-sdk first with cache mounts
 WORKDIR /node-sdk
+COPY ./node-sdk/package.json ./node-sdk/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci
 COPY ./node-sdk .
-RUN npm ci
 RUN npm run build
 
+# Build console with cache mounts
 WORKDIR /app
 COPY ./console/package.json ./console/package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci
 COPY ./console .
 
 FROM base AS development

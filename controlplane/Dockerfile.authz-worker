@@ -1,7 +1,34 @@
 # Base Stage
 FROM rust:1.90-alpine AS base
-RUN apk add musl-dev openssl-dev openssl-libs-static protobuf-dev protoc
+
+# Install system dependencies
+RUN apk add --no-cache \
+  musl-dev \
+  openssl-dev \
+  openssl-libs-static \
+  protobuf-dev \
+  protoc
+
 WORKDIR /app
+
+# Copy manifests first for better layer caching
+COPY Cargo.toml Cargo.lock ./
+COPY build.rs ./
+
+# Create a dummy main to build dependencies
+RUN mkdir -p src/bin && \
+  echo "fn main() {}" > src/bin/authz-worker.rs
+
+# Build dependencies only (will be cached)
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/usr/local/cargo/git \
+  --mount=type=cache,target=/app/target \
+  cargo build --package=authz-worker --release || true
+
+# Remove dummy files
+RUN rm -rf src
+
+# Copy actual source code
 COPY . .
 
 # Development Stage
@@ -10,11 +37,15 @@ CMD ["cargo", "run", "--bin=authz-worker"]
 
 # Build Stage
 FROM base AS builder
-RUN SQLX_OFFLINE=true cargo build --package=authz-worker --release
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/usr/local/cargo/git \
+  --mount=type=cache,target=/app/target \
+  SQLX_OFFLINE=true cargo build --package=authz-worker --release && \
+  cp /app/target/release/authz-worker /app/authz-worker
 
 # Production Stage
 FROM alpine:3.23 AS release
 
-COPY --from=builder /app/target/release/authz-worker /usr/bin/authz-worker
+COPY --from=builder /app/authz-worker /usr/bin/authz-worker
 RUN chmod +x /usr/bin/authz-worker
 CMD ["/usr/bin/authz-worker"]
