@@ -41,8 +41,8 @@ variables:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
   BUILDKIT_PROGRESS: plain
-  GIT_DEPTH: 10
-  GIT_STRATEGY: fetch
+  GIT_DEPTH: 0
+  GIT_STRATEGY: clone
 
 gitleaks:
   stage: security
@@ -309,8 +309,6 @@ gitleaks:
 
 "unit tests / migration linting":
   stage: "unit-tests"
-  variables:
-    GIT_DEPTH: 0  # Need full history for git diff with origin/master
   script:
     - docker compose run atlas migrate lint --dev-url="postgres://postgres:postgres@atlas-dev-database:5432?sslmode=disable" --dir="file://controlplane/migrations" --git-base=origin/master
 
