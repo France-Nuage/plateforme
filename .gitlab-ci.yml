@@ -86,15 +86,26 @@ gitleaks:
           ${context}
       }
 
-      # Build each service
+      # Build services with target stages
       build_service "controlplane" "controlplane" "Dockerfile" ""
       build_service "authz-worker" "controlplane" "Dockerfile.authz-worker" ""
       build_service "synchronizer" "controlplane" "Dockerfile.synchronizer" ""
-      build_service "node-sdk" "node-sdk" "Dockerfile" ""
       build_service "console" "." "console/Dockerfile" "--build-arg VITE_OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-francenuage} --build-arg VITE_OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-keycloak} --build-arg VITE_OIDC_PROVIDER_URL=${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage} --build-arg VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE:-rpc} --build-arg VITE_CONTROLPLANE_URL=${CONTROLPLANE_URL:-https://controlplane.test}"
       build_service "system-tests" "." "system-tests/Dockerfile" ""
 
-      # Protocol - no target stage
+      # Services without target stages
+      echo "Building node-sdk..."
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:master-${TARGET} \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache,mode=max \
+        --build-arg BUILDKIT_INLINE_CACHE=1 \
+        --tag ${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file node-sdk/Dockerfile \
+        node-sdk
+
       echo "Building protocol..."
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache \
@@ -139,14 +150,14 @@ gitleaks:
           ${context}
       }
 
-      # Build each service (no node-sdk in release)
+      # Build services with target stages (no node-sdk in release)
       build_service "controlplane" "controlplane" "Dockerfile" ""
       build_service "authz-worker" "controlplane" "Dockerfile.authz-worker" ""
       build_service "synchronizer" "controlplane" "Dockerfile.synchronizer" ""
       build_service "console" "." "console/Dockerfile" "--build-arg VITE_OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-francenuage} --build-arg VITE_OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-keycloak} --build-arg VITE_OIDC_PROVIDER_URL=${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage} --build-arg VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE:-rpc} --build-arg VITE_CONTROLPLANE_URL=${CONTROLPLANE_URL:-https://controlplane.test}"
       build_service "system-tests" "." "system-tests/Dockerfile" ""
 
-      # Protocol - no target stage
+      # Services without target stages
       echo "Building protocol..."
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache \
