@@ -30,26 +30,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 WORKDIR /app
 
-# Copy manifests first for better layer caching
-COPY Cargo.toml Cargo.lock ./
-COPY build.rs ./
-
-# Create a dummy main to build dependencies
-RUN mkdir -p src/bin && \
-  echo "fn main() {}" > src/bin/server.rs && \
-  echo "fn main() {}" > src/bin/synchronizer.rs && \
-  echo "fn main() {}" > src/bin/authz-worker.rs
-
-# Build dependencies only (will be cached)
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  --mount=type=cache,target=/usr/local/cargo/git \
-  --mount=type=cache,target=/app/target \
-  cargo build --release || true
-
-# Remove dummy files
-RUN rm -rf src
-
-# Copy actual source code
+# Copy source code
 COPY . .
 
 # Development Stage
