@@ -24,7 +24,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
   --mount=type=cache,target=/usr/local/cargo/git \
   --mount=type=cache,target=/app/target \
   SQLX_OFFLINE=true cargo build --bin=synchronizer --release && \
-  install -D /app/target/release/synchronizer /app/synchronizer
+  test -f /app/target/release/synchronizer && \
+  cp /app/target/release/synchronizer /app/synchronizer
 
 # Production Stage
 FROM alpine:3.23 AS release
