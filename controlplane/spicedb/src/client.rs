@@ -136,6 +136,21 @@ impl SpiceDB {
         }
     }
 
+    /// Writes a relationship tuple to SpiceDB.
+    ///
+    /// Creates or updates a relationship between a subject and an object.
+    /// Uses the "touch" operation which creates the relationship if it doesn't
+    /// exist, or updates it if it already exists.
+    ///
+    /// # Arguments
+    /// * `subject_type` - The type of the subject (e.g., "User")
+    /// * `subject_id` - The unique identifier of the subject
+    /// * `relation` - The relation type (e.g., "Member", "Owner")
+    /// * `object_type` - The type of the object (e.g., "Organization")
+    /// * `object_id` - The unique identifier of the object
+    ///
+    /// # Returns
+    /// The ZedToken representing the state after the write, if available.
     pub async fn write_relationship(
         &mut self,
         subject_type: String,
@@ -155,6 +170,20 @@ impl SpiceDB {
         .await
     }
 
+    /// Deletes a relationship tuple from SpiceDB.
+    ///
+    /// Removes an existing relationship between a subject and an object.
+    /// This is the inverse of `write_relationship`.
+    ///
+    /// # Arguments
+    /// * `subject_type` - The type of the subject (e.g., "User")
+    /// * `subject_id` - The unique identifier of the subject
+    /// * `relation` - The relation type (e.g., "Member", "Owner")
+    /// * `object_type` - The type of the object (e.g., "Organization")
+    /// * `object_id` - The unique identifier of the object
+    ///
+    /// # Returns
+    /// The ZedToken representing the state after deletion, if available.
     pub async fn delete_relationship(
         &mut self,
         subject_type: String,

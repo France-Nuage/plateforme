@@ -98,6 +98,24 @@ impl From<InvitationState> for String {
     }
 }
 
+/// Helper function to map a database row to an Invitation struct.
+fn row_to_invitation(row: sqlx::postgres::PgRow) -> Invitation {
+    use sqlx::Row;
+    Invitation {
+        id: row.get("id"),
+        organization_id: row.get("organization_id"),
+        user_id: row.get("user_id"),
+        email: row.get("email"),
+        role_id: row.get("role_id"),
+        token: row.get("token"),
+        state: row.get::<String, _>("state").into(),
+        expires_at: row.get("expires_at"),
+        answered_at: row.get("answered_at"),
+        created_at: row.get("created_at"),
+        updated_at: row.get("updated_at"),
+    }
+}
+
 #[derive(Clone)]
 pub struct Invitations<A: Authorize> {
     auth: A,
@@ -267,24 +285,7 @@ impl<A: Authorize> Invitations<A> {
         .fetch_optional(&self.db)
         .await?;
 
-        let invitation = row.map(|row| {
-            use sqlx::Row;
-            Invitation {
-                id: row.get("id"),
-                organization_id: row.get("organization_id"),
-                user_id: row.get("user_id"),
-                email: row.get("email"),
-                role_id: row.get("role_id"),
-                token: row.get("token"),
-                state: row.get::<String, _>("state").into(),
-                expires_at: row.get("expires_at"),
-                answered_at: row.get("answered_at"),
-                created_at: row.get("created_at"),
-                updated_at: row.get("updated_at"),
-            }
-        });
-
-        Ok(invitation)
+        Ok(row.map(row_to_invitation))
     }
 
     /// Answers an invitation (accept or decline).
@@ -308,31 +309,16 @@ impl<A: Authorize> Invitations<A> {
         user: &User,
         accept: bool,
     ) -> Result<(Invitation, Option<Operation>), Error> {
-        use sqlx::Row;
-
         // Fetch the invitation
-        let row = sqlx::query(
+        let invitation = sqlx::query(
             r#"SELECT id, organization_id, user_id, email, role_id, token,
                       state, expires_at, answered_at, created_at, updated_at
                FROM invitations WHERE id = $1"#,
         )
         .bind(invitation_id)
         .fetch_one(&self.db)
-        .await?;
-
-        let invitation = Invitation {
-            id: row.get("id"),
-            organization_id: row.get("organization_id"),
-            user_id: row.get("user_id"),
-            email: row.get("email"),
-            role_id: row.get("role_id"),
-            token: row.get("token"),
-            state: row.get::<String, _>("state").into(),
-            expires_at: row.get("expires_at"),
-            answered_at: row.get("answered_at"),
-            created_at: row.get("created_at"),
-            updated_at: row.get("updated_at"),
-        };
+        .await
+        .map(row_to_invitation)?;
 
         // Verify the invitation can be answered
         if !invitation.can_answer() {
@@ -383,28 +369,15 @@ impl<A: Authorize> Invitations<A> {
         .await?;
 
         // Fetch the updated invitation
-        let row = sqlx::query(
+        let updated_invitation = sqlx::query(
             r#"SELECT id, organization_id, user_id, email, role_id, token,
                       state, expires_at, answered_at, created_at, updated_at
                FROM invitations WHERE id = $1"#,
         )
         .bind(invitation_id)
         .fetch_one(&self.db)
-        .await?;
-
-        let updated_invitation = Invitation {
-            id: row.get("id"),
-            organization_id: row.get("organization_id"),
-            user_id: row.get("user_id"),
-            email: row.get("email"),
-            role_id: row.get("role_id"),
-            token: row.get("token"),
-            state: row.get::<String, _>("state").into(),
-            expires_at: row.get("expires_at"),
-            answered_at: row.get("answered_at"),
-            created_at: row.get("created_at"),
-            updated_at: row.get("updated_at"),
-        };
+        .await
+        .map(row_to_invitation)?;
 
         if !accept {
             return Ok((updated_invitation, None));
