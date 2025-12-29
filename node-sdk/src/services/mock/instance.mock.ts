@@ -44,6 +44,11 @@ export class InstanceMockService implements InstanceService {
   stop() {
     return Promise.resolve();
   }
+
+  /** @inheritdoc */
+  update(_id: string, data: InstanceFormValue) {
+    return Promise.resolve({ ...instance(), ...data });
+  }
 }
 
 export const instanceMockService = new InstanceMockService();

@@ -43,6 +43,14 @@ export const stopInstance = createAsyncThunk<
   extra.services.instance.stop(id).then(() => id),
 );
 
+export const updateInstance = createAsyncThunk<
+  Instance,
+  { id: string; data: InstanceFormValue },
+  { extra: ExtraArgument }
+>('instances/update', ({ id, data }, { extra }) =>
+  extra.services.instance.update(id, data),
+);
+
 export type InstancesState = {
   instances: Instance[];
 };
@@ -98,6 +106,14 @@ export const instancesSlice = createSlice({
 
       if (instance) {
         instance.status = InstanceStatus.Stopping;
+      }
+    });
+    builder.addCase(updateInstance.fulfilled, (state, action) => {
+      const index = state.instances.findIndex(
+        (instance) => instance.id === action.payload.id,
+      );
+      if (index !== -1) {
+        state.instances[index] = action.payload;
       }
     });
   },

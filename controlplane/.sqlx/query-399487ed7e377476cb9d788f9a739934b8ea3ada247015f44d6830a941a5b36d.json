@@ -1,0 +1,114 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE instances\n            SET\n                name = COALESCE($2, name),\n                project_id = COALESCE($3, project_id),\n                updated_at = NOW()\n            WHERE id = $1\n            RETURNING *\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "hypervisor_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "distant_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "max_cpu_cores",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "cpu_usage_percent",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 6,
+        "name": "max_memory_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "memory_usage_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 8,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "project_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 12,
+        "name": "max_disk_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 13,
+        "name": "disk_usage_bytes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 14,
+        "name": "ip_v4",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 15,
+        "name": "zero_trust_network_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "399487ed7e377476cb9d788f9a739934b8ea3ada247015f44d6830a941a5b36d"
+}

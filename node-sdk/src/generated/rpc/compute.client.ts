@@ -13,6 +13,8 @@ import type { CreateZoneRequest } from './compute';
 import type { ListZonesResponse } from './compute';
 import type { ListZonesRequest } from './compute';
 import { Instances } from './compute';
+import type { UpdateInstanceResponse } from './compute';
+import type { UpdateInstanceRequest } from './compute';
 import type { StopInstanceResponse } from './compute';
 import type { StopInstanceRequest } from './compute';
 import type { StartInstanceResponse } from './compute';
@@ -192,6 +194,15 @@ export interface IInstancesClient {
     input: StopInstanceRequest,
     options?: RpcOptions,
   ): UnaryCall<StopInstanceRequest, StopInstanceResponse>;
+  /**
+   * Update modifies an existing instance's properties.
+   *
+   * @generated from protobuf rpc: Update
+   */
+  update(
+    input: UpdateInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<UpdateInstanceRequest, UpdateInstanceResponse>;
 }
 /**
  * Instances service provides operations to manage instances.
@@ -310,6 +321,25 @@ export class InstancesClient implements IInstancesClient, ServiceInfo {
     const method = this.methods[5],
       opt = this._transport.mergeOptions(options);
     return stackIntercept<StopInstanceRequest, StopInstanceResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
+   * Update modifies an existing instance's properties.
+   *
+   * @generated from protobuf rpc: Update
+   */
+  update(
+    input: UpdateInstanceRequest,
+    options?: RpcOptions,
+  ): UnaryCall<UpdateInstanceRequest, UpdateInstanceResponse> {
+    const method = this.methods[6],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<UpdateInstanceRequest, UpdateInstanceResponse>(
       'unary',
       this._transport,
       method,

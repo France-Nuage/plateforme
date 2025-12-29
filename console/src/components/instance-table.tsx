@@ -4,6 +4,8 @@ import {
   Dialog,
   IconButton,
   Portal,
+  Select,
+  useListCollection,
 } from '@chakra-ui/react';
 import {
   Hypervisor,
@@ -22,10 +24,15 @@ import {
 } from '@tanstack/react-table';
 import { FunctionComponent, ReactNode, useMemo, useState } from 'react';
 import { HiTrash } from 'react-icons/hi';
-import { HiPlay, HiStop } from 'react-icons/hi2';
+import { HiArrowRight, HiPlay, HiStop } from 'react-icons/hi2';
 
-import { removeInstance, startInstance, stopInstance } from '@/features';
-import { useAppDispatch } from '@/hooks';
+import {
+  removeInstance,
+  startInstance,
+  stopInstance,
+  updateInstance,
+} from '@/features';
+import { useAppDispatch, useAppSelector } from '@/hooks';
 import { bytesToGB } from '@/services';
 
 import { AppTable } from './app-table';
@@ -63,16 +70,19 @@ const columns: ColumnDef<InstanceData, any>[] = [
     id: 'name',
   }),
   columnHelper.accessor('id', {}),
-  columnHelper.accessor('zone.name', {
+  columnHelper.accessor((row) => row.zone?.name ?? '', {
     header: 'Zone',
     id: 'zoneName',
   }),
-  columnHelper.accessor('vpc.name', { header: 'Vpc', id: 'vpcName' }),
-  columnHelper.accessor('organization.name', {
+  columnHelper.accessor((row) => row.vpc?.name ?? '', {
+    header: 'Vpc',
+    id: 'vpcName',
+  }),
+  columnHelper.accessor((row) => row.organization?.name ?? '', {
     header: 'Organization',
     id: 'organizationName',
   }),
-  columnHelper.accessor('project.name', {
+  columnHelper.accessor((row) => row.project?.name ?? '', {
     header: 'Project',
     id: 'projectName',
   }),
@@ -173,7 +183,7 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
 };
 
 export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
-  type Action = 'start' | 'stop' | 'remove';
+  type Action = 'start' | 'stop' | 'remove' | 'move';
 
   const dispatch = useAppDispatch();
 
@@ -190,63 +200,65 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
   const [actionPending, setActionPending] = useState(false);
 
   const actions: Record<Action, ReactNode> = {
+    move: <MoveToProjectButton instance={row.original} />,
     remove: (
-      <IconButton
-        aria-label="remove instance"
-        bg={{ _hover: 'bg.error', base: 'transparent' }}
-        color="fg.error"
-        onClick={() =>
-          setConfirmation({
-            action: () => dispatch(removeInstance(row.original.id)),
-            description: `Êtes vous sûr de vouloir supprimer l'instance "${row.original.name}"`,
-            title: "Supprimer l'instance",
-          })
-        }
+      <Dialog.Root
+        lazyMount
+        unmountOnExit={false}
+        open={!!confirmation}
+        onOpenChange={(e) => !e.open && setConfirmation(undefined)}
       >
-        <Dialog.Root
-          lazyMount
-          unmountOnExit={false}
-          open={!!confirmation}
-          onOpenChange={(e) => !e.open && setConfirmation(undefined)}
-        >
-          <Dialog.Trigger />
-          <Portal>
-            <Dialog.Backdrop />
-            <Dialog.Positioner>
-              <Dialog.Content>
-                <Dialog.CloseTrigger />
-                <Dialog.Header>
-                  <Dialog.Title>{confirmation?.title}</Dialog.Title>
-                </Dialog.Header>
-                <Dialog.Body>{confirmation?.description}</Dialog.Body>
-                <Dialog.Footer>
-                  <Dialog.ActionTrigger asChild>
-                    <Button disabled={actionPending} variant="outline">
-                      Annuler
-                    </Button>
-                  </Dialog.ActionTrigger>
-                  <Button
-                    colorPalette="red"
-                    disabled={actionPending}
-                    loading={actionPending}
-                    loadingText="Suppression en cours..."
-                    onClick={async () => {
-                      setActionPending(true);
-                      await confirmation?.action();
-                      setActionPending(false);
-                      setConfirmation(undefined);
-                    }}
-                    variant="solid"
-                  >
-                    Supprimer
+        <Dialog.Trigger asChild>
+          <IconButton
+            aria-label="remove instance"
+            bg={{ _hover: 'bg.error', base: 'transparent' }}
+            color="fg.error"
+            onClick={() =>
+              setConfirmation({
+                action: () => dispatch(removeInstance(row.original.id)),
+                description: `Êtes vous sûr de vouloir supprimer l'instance "${row.original.name}"`,
+                title: "Supprimer l'instance",
+              })
+            }
+          >
+            <HiTrash />
+          </IconButton>
+        </Dialog.Trigger>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.CloseTrigger />
+              <Dialog.Header>
+                <Dialog.Title>{confirmation?.title}</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>{confirmation?.description}</Dialog.Body>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger asChild>
+                  <Button disabled={actionPending} variant="outline">
+                    Annuler
                   </Button>
-                </Dialog.Footer>
-              </Dialog.Content>
-            </Dialog.Positioner>
-          </Portal>
-        </Dialog.Root>
-        <HiTrash />
-      </IconButton>
+                </Dialog.ActionTrigger>
+                <Button
+                  colorPalette="red"
+                  disabled={actionPending}
+                  loading={actionPending}
+                  loadingText="Suppression en cours..."
+                  onClick={async () => {
+                    setActionPending(true);
+                    await confirmation?.action();
+                    setActionPending(false);
+                    setConfirmation(undefined);
+                  }}
+                  variant="solid"
+                >
+                  Supprimer
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     ),
     start: <StartInstanceButton instance={row.original} />,
     stop: <StopInstanceButton instance={row.original} />,
@@ -256,9 +268,9 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
     [InstanceStatus.Deprovisionning]: [],
     [InstanceStatus.Provisioning]: [],
     [InstanceStatus.Repairing]: [],
-    [InstanceStatus.Running]: ['stop', 'remove'],
+    [InstanceStatus.Running]: ['move', 'stop', 'remove'],
     [InstanceStatus.Staging]: [],
-    [InstanceStatus.Stopped]: ['start', 'remove'],
+    [InstanceStatus.Stopped]: ['move', 'start', 'remove'],
     [InstanceStatus.Stopping]: [],
     [InstanceStatus.Suspended]: [],
     [InstanceStatus.Suspending]: [],
@@ -326,6 +338,148 @@ const StopInstanceButton: FunctionComponent<{ instance: Instance }> = ({
     >
       <HiStop />
     </IconButton>
+  );
+};
+
+/**
+ * Provides a button for moving the instance to a different project
+ */
+const MoveToProjectButton: FunctionComponent<{ instance: Instance }> = ({
+  instance,
+}) => {
+  const dispatch = useAppDispatch();
+  const projects = useAppSelector((state) => state.resources.projects);
+  const organizations = useAppSelector(
+    (state) => state.resources.organizations,
+  );
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string[]>([]);
+
+  // Filter out the current project from the list and build items with org/project labels
+  const projectItems = useMemo(
+    () =>
+      projects
+        .filter((p) => p.id !== instance.projectId)
+        .map((project) => {
+          const organization = organizations.find(
+            (org) => org.id === project.organizationId,
+          );
+          return {
+            label: `${organization?.name ?? 'Unknown'} / ${project.name}`,
+            value: project.id,
+          };
+        }),
+    [projects, instance.projectId, organizations],
+  );
+
+  const { collection } = useListCollection({
+    initialItems: projectItems,
+  });
+
+  const handleMove = async () => {
+    if (selectedProjectId.length === 0) return;
+
+    setLoading(true);
+    try {
+      await dispatch(
+        updateInstance({
+          data: {
+            image: '',
+            maxCpuCores: instance.maxCpuCores,
+            maxDiskBytes: instance.maxDiskBytes,
+            maxMemoryBytes: instance.maxMemoryBytes,
+            name: instance.name,
+            projectId: selectedProjectId[0],
+            snippet: '',
+          },
+          id: instance.id,
+        }),
+      );
+      setDialogOpen(false);
+      setSelectedProjectId([]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog.Root
+      lazyMount
+      open={dialogOpen}
+      onOpenChange={(e) => {
+        setDialogOpen(e.open);
+        if (!e.open) {
+          setSelectedProjectId([]);
+        }
+      }}
+    >
+      <Dialog.Trigger asChild>
+        <IconButton aria-label="move to project">
+          <HiArrowRight />
+        </IconButton>
+      </Dialog.Trigger>
+      <Portal>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.CloseTrigger />
+            <Dialog.Header>
+              <Dialog.Title>Déplacer vers un projet</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <p style={{ marginBottom: '1rem' }}>
+                Sélectionnez le projet de destination pour l&apos;instance
+                &quot;
+                {instance.name}&quot;
+              </p>
+              <Select.Root
+                collection={collection}
+                value={selectedProjectId}
+                onValueChange={(e) => setSelectedProjectId(e.value)}
+              >
+                <Select.Control>
+                  <Select.Trigger>
+                    <Select.ValueText placeholder="Sélectionner un projet" />
+                  </Select.Trigger>
+                  <Select.IndicatorGroup>
+                    <Select.Indicator />
+                  </Select.IndicatorGroup>
+                </Select.Control>
+                <Select.Positioner>
+                  <Select.Content>
+                    {projectItems.map((item) => (
+                      <Select.Item item={item} key={item.value}>
+                        {item.label}
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Select.Root>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Dialog.ActionTrigger asChild>
+                <Button disabled={loading} variant="outline">
+                  Annuler
+                </Button>
+              </Dialog.ActionTrigger>
+              <Button
+                disabled={loading || selectedProjectId.length === 0}
+                loading={loading}
+                loadingText="Déplacement en cours..."
+                onClick={handleMove}
+                variant="solid"
+              >
+                Déplacer
+              </Button>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
+    </Dialog.Root>
   );
 };
 
