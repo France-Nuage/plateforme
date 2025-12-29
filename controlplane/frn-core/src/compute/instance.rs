@@ -516,24 +516,25 @@ impl<A: Authorize> Instances<A> {
 
         // If the project changed, update the authorization relationships
         if let Some(new_project_id) = request.project_id
-            && new_project_id != old_project_id {
-                // Remove old project relationship from SpiceDB
-                let old_relationship = Relationship::new(
-                    &Project::some(old_project_id),
-                    Relation::Parent,
-                    &updated_instance,
-                );
-                self.auth.delete_relationship(&old_relationship).await?;
+            && new_project_id != old_project_id
+        {
+            // Remove old project relationship from SpiceDB
+            let old_relationship = Relationship::new(
+                &Project::some(old_project_id),
+                Relation::Parent,
+                &updated_instance,
+            );
+            self.auth.delete_relationship(&old_relationship).await?;
 
-                // Add new project relationship via the queue
-                Relationship::new(
-                    &Project::some(new_project_id),
-                    Relation::Parent,
-                    &updated_instance,
-                )
-                .publish(&self.db)
-                .await?;
-            }
+            // Add new project relationship via the queue
+            Relationship::new(
+                &Project::some(new_project_id),
+                Relation::Parent,
+                &updated_instance,
+            )
+            .publish(&self.db)
+            .await?;
+        }
 
         Ok(updated_instance)
     }
