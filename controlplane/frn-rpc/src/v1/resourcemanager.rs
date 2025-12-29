@@ -13,6 +13,7 @@ impl From<frn_core::resourcemanager::Organization> for Organization {
         Self {
             id: org.id.to_string(),
             name: org.name,
+            slug: org.slug,
             created_at: Some(SystemTime::from(org.created_at).into()),
             updated_at: Some(SystemTime::from(org.updated_at).into()),
         }

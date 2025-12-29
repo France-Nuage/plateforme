@@ -13,6 +13,11 @@ export type Organization = {
   name: string;
 
   /**
+   * The organization slug (DNS-compatible identifier).
+   */
+  slug: string;
+
+  /**
    * The organization parent id, if any.
    */
   parentId?: string;

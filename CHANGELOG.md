@@ -1,3 +1,17 @@
+# [1.54.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.53.0...v1.54.0) (2025-12-23)
+
+
+### Bug Fixes
+
+* add slug field to node-sdk fixtures and generated types ([45ca3b1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/45ca3b1c2fd4c9f65823f18bdf6cec40d51f424a))
+* **migration:** handle edge cases in slug generation ([6bdd492](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/6bdd4928370cf1c5064fd47c6cd4a51210a73dba))
+* **tests:** add slug field to organization test fixtures ([8723c0c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/8723c0c007d87a264e62190e02f2fd467e80660c))
+
+
+### Features
+
+* **organization:** add DNS-compatible slug field ([7829799](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/7829799e18bc72a6a59fa19d3075892d2f527957)), closes [#7785](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/issues/7785)
+
 # [1.53.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.52.1...v1.53.0) (2025-12-23)
 
 

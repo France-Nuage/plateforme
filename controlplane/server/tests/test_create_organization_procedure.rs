@@ -35,6 +35,7 @@ async fn test_the_create_organization_procedure_works(
             organization: Some(Organization {
                 id: organizations[0].id.to_string(),
                 name: String::from("ACME"),
+                slug: String::from("acme"),
                 created_at: Some(prost_types::Timestamp::default()),
                 updated_at: Some(prost_types::Timestamp::default()),
             })

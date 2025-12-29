@@ -2,7 +2,6 @@ use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::identity::{ServiceAccount, User};
 use crate::resourcemanager::{DEFAULT_PROJECT_NAME, Project};
-// use database::{Factory, Persistable, Repository};
 use fabrique::{Factory, Persistable};
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
@@ -15,12 +14,29 @@ pub struct Organization {
     pub id: Uuid,
     /// The organization name
     pub name: String,
+    /// The organization slug (DNS-compatible identifier)
+    pub slug: String,
     /// The organization parent, if any
     pub parent_id: Option<Uuid>,
     /// Creation time of the organization
     pub created_at: chrono::DateTime<chrono::Utc>,
     /// Last update time of the organization
     pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+/// Generate a DNS-compatible slug from a name.
+///
+/// The slug follows RFC 1123 subdomain rules:
+/// - Only lowercase alphanumeric characters and hyphens
+/// - Cannot start or end with a hyphen
+/// - Maximum 63 characters
+fn generate_slug(name: &str) -> String {
+    slug::slugify(name)
+        .chars()
+        .take(63)
+        .collect::<String>()
+        .trim_end_matches('-')
+        .to_string()
 }
 
 #[derive(Clone)]
@@ -62,19 +78,34 @@ impl<A: Authorize> Organizations<A> {
             &parent_id
         );
 
+        // Generate slug from name
+        let slug = generate_slug(&name);
+
+        // Check for slug collision
+        let existing: Option<(Uuid,)> =
+            sqlx::query_as("SELECT id FROM organizations WHERE slug = $1")
+                .bind(&slug)
+                .fetch_optional(connection)
+                .await?;
+
+        if existing.is_some() {
+            return Err(Error::SlugAlreadyExists(slug));
+        }
+
         // Create the organization
         let organization = Organization::factory()
             .id(Uuid::new_v4())
             .name(name)
+            .slug(slug)
             .parent_id(parent_id)
             .create(connection)
             .await?;
 
         // Create the parent relationship if specified
         if let Some(parent_id) = parent_id {
-            let parent = sqlx::query_as!(
+            let parent: Organization = sqlx::query_as!(
                 Organization,
-                "SELECT * FROM organizations WHERE id = $1",
+                "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE id = $1",
                 parent_id
             )
             .fetch_one(&self.db)
@@ -136,10 +167,10 @@ impl<A: Authorize> Organizations<A> {
         organization_name: String,
     ) -> Result<Organization, Error> {
         // Attempt to retrieve the organization from the database
-        let maybe_organization = sqlx::query_as!(
+        let maybe_organization: Option<Organization> = sqlx::query_as!(
             Organization,
-            "SELECT * FROM organizations WHERE name = $1 LIMIT 1",
-            organization_name
+            "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE name = $1 LIMIT 1",
+            &organization_name
         )
         .fetch_optional(&self.db)
         .await?;
@@ -148,8 +179,22 @@ impl<A: Authorize> Organizations<A> {
         let organization = match maybe_organization {
             Some(organization) => organization,
             None => {
+                let slug = generate_slug(&organization_name);
+
+                // Check for slug collision
+                let existing: Option<(Uuid,)> =
+                    sqlx::query_as("SELECT id FROM organizations WHERE slug = $1")
+                        .bind(&slug)
+                        .fetch_optional(&self.db)
+                        .await?;
+
+                if existing.is_some() {
+                    return Err(Error::SlugAlreadyExists(slug));
+                }
+
                 Organization::factory()
                     .name(organization_name)
+                    .slug(slug)
                     .create(&self.db)
                     .await?
             }
@@ -158,10 +203,10 @@ impl<A: Authorize> Organizations<A> {
         // Create the default project for the root organization
         sqlx::query!(
             r#"
-            INSERT INTO projects (name, organization_id) 
+            INSERT INTO projects (name, organization_id)
             SELECT 'unattributed', $1
             WHERE NOT EXISTS (
-                SELECT 1 FROM projects 
+                SELECT 1 FROM projects
                 WHERE name = 'unattributed' AND organization_id = $1
             )
             "#,

@@ -22,10 +22,10 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
             hypervisor.url.clone(),
             hypervisor.authorization_token.clone(),
         );
-        let root_organization = sqlx::query_as!(
+        let root_organization: Organization = sqlx::query_as!(
             Organization,
-            "SELECT * FROM organizations WHERE name = $1",
-            app.config.root_organization.name
+            "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE name = $1",
+            &app.config.root_organization.name
         )
         .fetch_one(&app.db)
         .await?;

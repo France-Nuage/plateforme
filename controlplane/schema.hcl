@@ -201,6 +201,10 @@ table "organizations" {
     null = false
     type = text
   }
+  column "slug" {
+    null = false
+    type = text
+  }
   column "parent_id" {
     null = true
     type = uuid
@@ -223,6 +227,10 @@ table "organizations" {
     ref_columns = [table.organizations.column.id]
     on_update   = NO_ACTION
     on_delete   = SET_NULL
+  }
+  index "organizations_slug_idx" {
+    unique  = true
+    columns = [column.slug]
   }
 }
 table "organization_service_account" {
