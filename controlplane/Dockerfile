@@ -30,9 +30,10 @@ FROM chef AS base
 # Install additional tools
 RUN apk add --no-cache libxml2-utils wget
 
-# Install grpc_health_probe
+# Install grpc_health_probe with multi-arch support
+ARG TARGETARCH
 RUN GRPC_HEALTH_PROBE_VERSION=v0.4.19 && \
-  wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+  wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${TARGETARCH} && \
   chmod +x /bin/grpc_health_probe
 
 # Install Rust tools
@@ -62,9 +63,11 @@ RUN SQLX_OFFLINE=true cargo build --release
 FROM alpine:3.23 AS release
 RUN apk add --no-cache ca-certificates openssl
 
+# Install grpc_health_probe with multi-arch support
+ARG TARGETARCH
 RUN apk add --no-cache wget && \
   GRPC_HEALTH_PROBE_VERSION=v0.4.19 && \
-  wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+  wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${TARGETARCH} && \
   chmod +x /bin/grpc_health_probe
 
 COPY --from=builder /app/target/release/server /usr/bin/server
