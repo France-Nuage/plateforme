@@ -42,8 +42,8 @@ variables:
   COMPOSE_DOCKER_CLI_BUILD: 1
   BUILDKIT_PROGRESS: plain
   BUILDKIT_INLINE_CACHE: 1
-  GIT_DEPTH: 0
-  GIT_STRATEGY: clone
+  GIT_DEPTH: 1
+  GIT_STRATEGY: fetch
 
 gitleaks:
   stage: security
@@ -278,6 +278,9 @@ gitleaks:
 
 "code style / controlplane":
   stage: code-style
+  needs:
+    - job: "build / controlplane"
+      artifacts: false
   variables:
     SQLX_OFFLINE: true
   script:
@@ -286,33 +289,48 @@ gitleaks:
 
 "code style / console":
   stage: code-style
+  needs:
+    - job: "build / console"
+      artifacts: false
   script:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
 "code style / node-sdk":
   stage: code-style
+  needs:
+    - job: "build / node-sdk"
+      artifacts: false
   script:
     - docker compose run --no-deps --remove-orphans node-sdk npm run lint
     - docker compose run --no-deps --remove-orphans node-sdk npx prettier --check .
 
 "code style / markdown":
   stage: code-style
+  needs: []
   script:
     - docker compose run --remove-orphans markdown-lint
 
 "unit tests / authz":
   stage: "unit-tests"
+  needs: []
   script:
     - docker compose run zed validate authz/tests.yaml
 
 "unit tests / migration linting":
   stage: "unit-tests"
+  needs: []
+  variables:
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
   script:
     - docker compose run atlas migrate lint --dev-url="postgres://postgres:postgres@atlas-dev-database:5432?sslmode=disable" --dir="file://controlplane/migrations" --git-base=origin/master
 
 "unit tests / controlplane":
   stage: unit-tests
+  needs:
+    - job: "build / controlplane"
+      artifacts: false
   variables:
     CARGO_INCREMENTAL: "0"
     LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
@@ -332,6 +350,9 @@ gitleaks:
 
 "system tests / console":
   stage: system-tests
+  needs:
+    - job: "build / release"
+      artifacts: false
   allow_failure: true
   variables:
     TARGET: release
@@ -427,6 +448,8 @@ gitleaks:
   variables:
     CI: true
     HUSKY: 0
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
   before_script:
     - apk add --no-cache git
     - git remote set-url origin "https://oauth2:${GITLAB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
