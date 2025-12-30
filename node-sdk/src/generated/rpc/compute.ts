@@ -399,6 +399,44 @@ export interface StopInstanceRequest {
  */
 export interface StopInstanceResponse {}
 /**
+ * UpdateInstanceRequest defines the parameters to update an existing instance.
+ *
+ * @generated from protobuf message francenuage.fr.v1.compute.UpdateInstanceRequest
+ */
+export interface UpdateInstanceRequest {
+  /**
+   * Unique identifier of the instance to update
+   *
+   * @generated from protobuf field: string id = 1
+   */
+  id: string;
+  /**
+   * Optional new name for the instance
+   *
+   * @generated from protobuf field: optional string name = 2
+   */
+  name?: string;
+  /**
+   * Optional new project id to move the instance to
+   *
+   * @generated from protobuf field: optional string project_id = 3
+   */
+  projectId?: string;
+}
+/**
+ * UpdateInstanceResponse contains the result of an update instance operation.
+ *
+ * @generated from protobuf message francenuage.fr.v1.compute.UpdateInstanceResponse
+ */
+export interface UpdateInstanceResponse {
+  /**
+   * The updated instance.
+   *
+   * @generated from protobuf field: francenuage.fr.v1.compute.Instance instance = 1
+   */
+  instance?: Instance;
+}
+/**
  * ListZonesRequest is an empty message for listing zones.
  *
  * @generated from protobuf message francenuage.fr.v1.compute.ListZonesRequest
@@ -1027,6 +1065,64 @@ class StopInstanceResponse$Type extends MessageType<StopInstanceResponse> {
  */
 export const StopInstanceResponse = new StopInstanceResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class UpdateInstanceRequest$Type extends MessageType<UpdateInstanceRequest> {
+  constructor() {
+    super('francenuage.fr.v1.compute.UpdateInstanceRequest', [
+      {
+        no: 1,
+        name: 'id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+      {
+        no: 2,
+        name: 'name',
+        kind: 'scalar',
+        opt: true,
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '128', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+      {
+        no: 3,
+        name: 'project_id',
+        kind: 'scalar',
+        opt: true,
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.compute.UpdateInstanceRequest
+ */
+export const UpdateInstanceRequest = new UpdateInstanceRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateInstanceResponse$Type extends MessageType<UpdateInstanceResponse> {
+  constructor() {
+    super('francenuage.fr.v1.compute.UpdateInstanceResponse', [
+      { no: 1, name: 'instance', kind: 'message', T: () => Instance },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.compute.UpdateInstanceResponse
+ */
+export const UpdateInstanceResponse = new UpdateInstanceResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class ListZonesRequest$Type extends MessageType<ListZonesRequest> {
   constructor() {
     super('francenuage.fr.v1.compute.ListZonesRequest', []);
@@ -1163,6 +1259,12 @@ export const Instances = new ServiceType(
       options: {},
       I: StopInstanceRequest,
       O: StopInstanceResponse,
+    },
+    {
+      name: 'Update',
+      options: {},
+      I: UpdateInstanceRequest,
+      O: UpdateInstanceResponse,
     },
   ],
 );

@@ -13,6 +13,7 @@ pub enum Permission {
     InviteMember,
     Start,
     Stop,
+    Update,
     #[default]
     Unspecified,
 }

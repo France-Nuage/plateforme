@@ -36,6 +36,9 @@ service Instances {
 
     // StopInstance halts a specific instance identified by its unique ID.
     rpc Stop (StopInstanceRequest) returns (StopInstanceResponse);
+
+    // Update modifies an existing instance's properties.
+    rpc Update (UpdateInstanceRequest) returns (UpdateInstanceResponse);
 }
 
 // Hypervisors service provides operations to manage zones.
@@ -344,6 +347,36 @@ message StopInstanceRequest {
 
 // StopInstanceResponse contains the result of a stop instance operation.
 message StopInstanceResponse {
+}
+
+// UpdateInstanceRequest defines the parameters to update an existing instance.
+message UpdateInstanceRequest {
+    // Unique identifier of the instance to update
+    string id = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+
+    // Optional new name for the instance
+    optional string name = 2 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 128,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+
+    // Optional new project id to move the instance to
+    optional string project_id = 3 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+// UpdateInstanceResponse contains the result of an update instance operation.
+message UpdateInstanceResponse {
+    // The updated instance.
+    Instance instance = 1;
 }
 
 // ListZonesRequest is an empty message for listing zones.

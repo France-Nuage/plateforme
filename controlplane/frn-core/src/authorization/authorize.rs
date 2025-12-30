@@ -29,7 +29,12 @@ pub trait Authorize: Clone + Send + Sync {
     fn write_relationship(
         &mut self,
         relationship: &Relationship,
-    ) -> impl Future<Output = Result<Option<Zookie>, Error>>;
+    ) -> impl Future<Output = Result<Option<Zookie>, Error>> + Send;
+
+    fn delete_relationship(
+        &mut self,
+        relationship: &Relationship,
+    ) -> impl Future<Output = Result<Option<Zookie>, Error>> + Send;
 
     /// Start a permission check with a principal
     fn can<'a, P: Principal>(&self, principal: &'a P) -> CheckWithPrincipal<'a, Self, P> {
@@ -94,6 +99,22 @@ impl Authorize for SpiceDB {
         .map(|token| token.map(Into::into))
         .map_err(Into::into)
     }
+
+    async fn delete_relationship(
+        &mut self,
+        relationship: &Relationship,
+    ) -> Result<Option<Zookie>, Error> {
+        self.delete_relationship(
+            relationship.subject_type.clone(),
+            relationship.subject_id.clone(),
+            relationship.relation.to_string(),
+            relationship.object_type.clone(),
+            relationship.object_id.clone(),
+        )
+        .await
+        .map(|token| token.map(Into::into))
+        .map_err(Into::into)
+    }
 }
 
 #[cfg(test)]
@@ -116,30 +137,3 @@ mod tests {
         assert!(result.is_ok())
     }
 }
-
-// impl AuthorizationServer for SpiceDB {
-//     async fn check(&mut self, request: AuthorizationRequest<'_>) -> Result<(), Error> {
-//         let (principal_type, principal_id) = request.principal.resource();
-//         let (resource_type, resource_id) = request.resource.resource();
-//         self.check_permission(
-//             (principal_type, principal_id),
-//             request.permission.to_string(),
-//             (resource_type, resource_id),
-//         )
-//         .await
-//         .map_err(Into::into)
-//     }
-//
-//     // async fn lookup(&mut self, request: AuthorizationRequest<'_>) -> Result<Vec<String>, Error> {
-//     //     let (principal_type, principal_id) = request.principal.resource();
-//     //     let (resource_type, _) = request.resource.resource();
-//     //
-//     //     self.lookup(
-//     //         (principal_type, principal_id),
-//     //         request.permission.to_string(),
-//     //         resource_type,
-//     //     )
-//     //     .await
-//     //     .map_err(Into::into)
-//     // }
-// }

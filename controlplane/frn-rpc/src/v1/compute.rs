@@ -2,7 +2,9 @@ use std::time::SystemTime;
 
 use crate::error::Error;
 use frn_core::authorization::Authorize;
-use frn_core::compute::{HypervisorCreateRequest, Hypervisors as Service, InstanceCreateRequest};
+use frn_core::compute::{
+    HypervisorCreateRequest, Hypervisors as Service, InstanceCreateRequest, InstanceUpdateRequest,
+};
 use frn_core::identity::IAM;
 use sqlx::{Pool, Postgres, types::Uuid};
 use tonic::{Request, Response, Status};
@@ -255,6 +257,35 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
         let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id))?;
         self.service.clone().stop(&principal, id).await?;
         Ok(Response::new(StopInstanceResponse {}))
+    }
+
+    /// Update modifies an existing instance's properties.
+    /// Returns the updated instance or a ProblemDetails on failure.
+    async fn update(
+        &self,
+        request: Request<UpdateInstanceRequest>,
+    ) -> Result<Response<UpdateInstanceResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let inner = request.into_inner();
+
+        let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
+
+        let project_id = inner
+            .project_id
+            .map(|id| Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id)))
+            .transpose()?;
+
+        let request = InstanceUpdateRequest {
+            id,
+            name: inner.name,
+            project_id,
+        };
+
+        let instance = self.service.clone().update(&principal, request).await?;
+
+        Ok(Response::new(UpdateInstanceResponse {
+            instance: Some(instance.into()),
+        }))
     }
 }
 
