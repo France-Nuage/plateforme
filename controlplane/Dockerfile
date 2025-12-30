@@ -51,15 +51,26 @@ RUN SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json
 # Copy source code
 COPY . .
 
-# Development Stage
+# Development Stage - Server
 FROM base AS development
 CMD ["cargo", "run", "--bin=server"]
 
-# Build Stage
-FROM base AS builder
-RUN SQLX_OFFLINE=true cargo build --release
+# Development Stage - Authz Worker
+FROM base AS development-authz-worker
+CMD ["cargo", "run", "--bin=authz-worker"]
 
-# Production Stage
+# Development Stage - Synchronizer
+FROM base AS development-synchronizer
+CMD ["cargo", "run", "--bin=synchronizer"]
+
+# Build Stage - Build all 3 binaries in a single cargo invocation
+FROM base AS builder
+RUN SQLX_OFFLINE=true cargo build --release \
+  --bin server \
+  --bin authz-worker \
+  --bin synchronizer
+
+# Production Stage - Server
 FROM alpine:3.23 AS release
 RUN apk add --no-cache ca-certificates openssl
 
@@ -73,3 +84,19 @@ RUN apk add --no-cache wget && \
 COPY --from=builder /app/target/release/server /usr/bin/server
 RUN chmod +x /usr/bin/server
 CMD ["/usr/bin/server"]
+
+# Production Stage - Authz Worker
+FROM alpine:3.23 AS release-authz-worker
+RUN apk add --no-cache ca-certificates openssl
+
+COPY --from=builder /app/target/release/authz-worker /usr/bin/authz-worker
+RUN chmod +x /usr/bin/authz-worker
+CMD ["/usr/bin/authz-worker"]
+
+# Production Stage - Synchronizer
+FROM alpine:3.23 AS release-synchronizer
+RUN apk add --no-cache ca-certificates openssl
+
+COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer
+RUN chmod +x /usr/bin/synchronizer
+CMD ["/usr/bin/synchronizer"]

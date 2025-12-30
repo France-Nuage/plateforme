@@ -37,8 +37,8 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}authz-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}authz-worker:master-${TARGET:-development}
       context: controlplane
-      dockerfile: Dockerfile.authz-worker
-      target: ${TARGET:-development}
+      dockerfile: Dockerfile
+      target: ${TARGET:-development}-authz-worker
     depends_on:
       postgres:
         condition: service_healthy
@@ -390,8 +390,8 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}synchronizer:master-${TARGET:-development}
       context: controlplane
-      dockerfile: Dockerfile.synchronizer
-      target: ${TARGET:-development}
+      dockerfile: Dockerfile
+      target: ${TARGET:-development}-synchronizer
     depends_on:
       keycloak:
         condition: service_healthy

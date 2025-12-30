@@ -95,7 +95,7 @@ gitleaks:
         --target development \
         --tag ${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
         --push \
-        --file controlplane/Dockerfile.all \
+        --file controlplane/Dockerfile \
         controlplane
 
       docker buildx build \
@@ -108,7 +108,7 @@ gitleaks:
         --target development-authz-worker \
         --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
         --push \
-        --file controlplane/Dockerfile.all \
+        --file controlplane/Dockerfile \
         controlplane
 
       docker buildx build \
@@ -121,7 +121,7 @@ gitleaks:
         --target development-synchronizer \
         --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
         --push \
-        --file controlplane/Dockerfile.all \
+        --file controlplane/Dockerfile \
         controlplane
 
 # Legacy job aliases for backward compatibility - can be removed after validation
@@ -281,7 +281,7 @@ gitleaks:
         --target ${TARGET} \
         --tag ${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
-        --file controlplane/Dockerfile.all \
+        --file controlplane/Dockerfile \
         controlplane
 
       # Build authz-worker release (reuses cache from first build)
@@ -295,7 +295,7 @@ gitleaks:
         --target ${TARGET}-authz-worker \
         --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
-        --file controlplane/Dockerfile.all \
+        --file controlplane/Dockerfile \
         controlplane
 
       # Build synchronizer release (reuses cache from first build)
@@ -309,7 +309,7 @@ gitleaks:
         --target ${TARGET}-synchronizer \
         --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
-        --file controlplane/Dockerfile.all \
+        --file controlplane/Dockerfile \
         controlplane
 
 "build / console / release":
