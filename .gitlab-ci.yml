@@ -41,6 +41,7 @@ variables:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
   BUILDKIT_PROGRESS: plain
+  BUILDKIT_INLINE_CACHE: 1
   GIT_DEPTH: 0
   GIT_STRATEGY: clone
 
@@ -69,7 +70,6 @@ gitleaks:
   stage: build
   variables:
     TARGET: development
-    BUILDKIT_INLINE_CACHE: "1"
 
 "build / controlplane":
   <<: *build_template
@@ -219,7 +219,6 @@ gitleaks:
   stage: build
   variables:
     TARGET: release
-    BUILDKIT_INLINE_CACHE: "1"
   script:
     - |
       set -e  # Exit on error

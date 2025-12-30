@@ -13,8 +13,7 @@ RUN apk add --no-cache \
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 # Install cargo-chef for dependency caching
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  cargo install cargo-chef
+RUN cargo install cargo-chef
 
 WORKDIR /app
 
@@ -28,9 +27,7 @@ FROM chef AS base
 
 # Build dependencies (cached layer - only rebuilds when dependencies change)
 COPY --from=planner /app/recipe.json recipe.json
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  --mount=type=cache,target=/usr/local/cargo/git \
-  SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json --bin synchronizer
+RUN SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json --bin synchronizer
 
 # Copy source code
 COPY . .
@@ -41,17 +38,12 @@ CMD ["cargo", "run", "--bin=synchronizer"]
 
 # Build Stage
 FROM base AS builder
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  --mount=type=cache,target=/usr/local/cargo/git \
-  --mount=type=cache,target=/app/target \
-  SQLX_OFFLINE=true cargo build --bin=synchronizer --release && \
-  test -f /app/target/release/synchronizer && \
-  cp /app/target/release/synchronizer /app/synchronizer
+RUN SQLX_OFFLINE=true cargo build --bin=synchronizer --release
 
 # Production Stage
 FROM alpine:3.23 AS release
 RUN apk add --no-cache ca-certificates openssl
 
-COPY --from=builder /app/synchronizer /usr/bin/synchronizer
+COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer
 RUN chmod +x /usr/bin/synchronizer
 CMD ["/usr/bin/synchronizer"]

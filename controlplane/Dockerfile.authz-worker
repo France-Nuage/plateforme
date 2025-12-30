@@ -13,8 +13,7 @@ RUN apk add --no-cache \
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 # Install cargo-chef for dependency caching
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  cargo install cargo-chef
+RUN cargo install cargo-chef
 
 WORKDIR /app
 
@@ -28,9 +27,7 @@ FROM chef AS base
 
 # Build dependencies (cached layer - only rebuilds when dependencies change)
 COPY --from=planner /app/recipe.json recipe.json
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  --mount=type=cache,target=/usr/local/cargo/git \
-  SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json --bin authz-worker
+RUN SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json --bin authz-worker
 
 # Copy source code
 COPY . .
@@ -41,17 +38,12 @@ CMD ["cargo", "run", "--bin=authz-worker"]
 
 # Build Stage
 FROM base AS builder
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  --mount=type=cache,target=/usr/local/cargo/git \
-  --mount=type=cache,target=/app/target \
-  SQLX_OFFLINE=true cargo build --bin=authz-worker --release && \
-  test -f /app/target/release/authz-worker && \
-  cp /app/target/release/authz-worker /app/authz-worker
+RUN SQLX_OFFLINE=true cargo build --bin=authz-worker --release
 
 # Production Stage
 FROM alpine:3.23 AS release
 RUN apk add --no-cache ca-certificates openssl
 
-COPY --from=builder /app/authz-worker /usr/bin/authz-worker
+COPY --from=builder /app/target/release/authz-worker /usr/bin/authz-worker
 RUN chmod +x /usr/bin/authz-worker
 CMD ["/usr/bin/authz-worker"]
