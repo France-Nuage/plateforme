@@ -1,0 +1,348 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║          GITLAB CI OPTIMIZATION PLAN - KUBERNETES + EMPTYDIR RUNNER          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+CONTEXT:
+- Monorepo avec Rust (controlplane) + Node.js (console, node-sdk, system-tests)
+- Runner K8s avec emptyDir (full ephemeral, pas de cache local)
+- Stratégie: maximiser parallélisation + registry cache
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ PHASE 1 - COMPLETED (Quick Wins)
+───────────────────────────────────────────────────────────────────────────────
+
+1. GIT_DEPTH: 1 par défaut
+   - Gain: ~1-2 min (30-60s × ~20 jobs)
+   - Override pour migration linting et release
+
+2. needs: dependencies
+   - Gain: ~5-10 min
+   - Jobs démarrent dès que LEUR dépendance est prête
+   - Exemples:
+     * code style / controlplane → needs: build / controlplane
+     * unit tests / authz → needs: [] (image externe)
+
+TOTAL PHASE 1: 6-12 minutes
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⏳ PHASE 2 - PLANNED (Medium Impact)
+───────────────────────────────────────────────────────────────────────────────
+
+1. PARALLÉLISER "build / release"
+   Gain: 15-20 min
+
+   Action:
+   - Éclater le job monolithique en jobs séparés par service
+   - Tous les builds release tournent en parallèle
+
+   Avant:
+     "build / release" (1 job séquentiel)
+       ├─ controlplane
+       ├─ authz-worker
+       ├─ synchronizer
+       ├─ console
+       ├─ system-tests
+       └─ protocol
+
+   Après:
+     6 jobs parallèles:
+       ├─ "build / controlplane / release"
+       ├─ "build / authz-worker / release"
+       ├─ "build / synchronizer / release"
+       ├─ "build / console / release"
+       ├─ "build / system-tests / release"
+       └─ "build / protocol / release"
+
+───────────────────────────────────────────────────────────────────────────────
+
+2. OPTIMISER RUST MULTI-BINARY BUILDS
+   Gain: 10-15 min
+
+   Problème:
+   - 3 Dockerfiles séparés pour controlplane (server, authz-worker, synchronizer)
+   - Chaque build recompile le workspace complet
+   - cargo chef cook s'exécute 3 fois
+
+   Solution:
+   - Créer controlplane/Dockerfile.all qui build les 3 binaires en 1 passe
+   - Utiliser --target pour créer 3 images séparées
+
+   Dockerfile.all:
+   ```dockerfile
+   FROM rust:1.90-alpine AS chef
+   # ... setup
+
+   FROM chef AS builder
+   RUN SQLX_OFFLINE=true cargo build --release \
+       --bin server \
+       --bin authz-worker \
+       --bin synchronizer
+
+   FROM alpine:3.23 AS server
+   COPY --from=builder /app/target/release/server /usr/bin/server
+   CMD ["/usr/bin/server"]
+
+   FROM alpine:3.23 AS authz-worker
+   COPY --from=builder /app/target/release/authz-worker /usr/bin/authz-worker
+   CMD ["/usr/bin/authz-worker"]
+
+   FROM alpine:3.23 AS synchronizer
+   COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer
+   CMD ["/usr/bin/synchronizer"]
+   ```
+
+   CI usage:
+   ```yaml
+   "build / controlplane-all":
+     script:
+       - |
+         docker buildx build \
+           --target server \
+           --tag ${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
+           --target authz-worker \
+           --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
+           --target synchronizer \
+           --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
+           --push --file controlplane/Dockerfile.all controlplane
+   ```
+
+───────────────────────────────────────────────────────────────────────────────
+
+3. CACHE REGISTRY AMÉLIORÉ
+   Gain: 2-5 min
+
+   Ajout de refs par branche pour meilleur hit rate:
+
+   ```yaml
+   --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/service:buildcache \
+   --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/service:buildcache-${CI_COMMIT_REF_SLUG} \
+   --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/service:${CI_COMMIT_REF_SLUG}-dev \
+   --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/service:master-dev \
+   --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/service:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+   --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/service:buildcache,mode=max
+   ```
+
+───────────────────────────────────────────────────────────────────────────────
+
+4. OPTIMISER CONTEXTES DOCKER
+   Gain: 30s-1min
+
+   Problème:
+   - console/Dockerfile utilise contexte "." (1.5GB envoyé au daemon)
+   - system-tests/Dockerfile idem
+   - Raison: ils buildent node-sdk en interne
+
+   Solution A (simple):
+   - Extraire node-sdk en stage nommé
+   - Utiliser l'image du registry dans console/system-tests
+
+   Solution B (avancée):
+   - Utiliser --cache-from avec l'image node-sdk
+   - COPY --from pour récupérer les artifacts
+
+   Exemple Solution A:
+   ```dockerfile
+   # console/Dockerfile
+   ARG NODE_SDK_IMAGE
+   FROM ${NODE_SDK_IMAGE} AS node-sdk
+
+   FROM node:22-alpine AS base
+   COPY --from=node-sdk /app /node-sdk
+
+   WORKDIR /app
+   COPY package.json package-lock.json ./
+   RUN npm ci
+   COPY . .
+   # ...
+   ```
+
+   CI:
+   ```yaml
+   "build / console":
+     script:
+       - |
+         docker buildx build \
+           --build-arg NODE_SDK_IMAGE=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG} \
+           --file console/Dockerfile \
+           console  # Contexte réduit à console/
+   ```
+
+TOTAL PHASE 2: 28-41 minutes
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 PHASE 3 - PLANNED (Advanced Infrastructure)
+───────────────────────────────────────────────────────────────────────────────
+
+1. REGISTRY PULL-THROUGH CACHE
+   Gain: 5-10 min
+
+   Infrastructure:
+   - Déployer registry:2 dans le cluster K8s
+   - Configurer en mode mirror/proxy
+   - Pointer runners vers ce registry local
+
+   registry-mirror.yaml:
+   ```yaml
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: docker-registry-mirror
+     namespace: gitlab-runner
+   spec:
+     replicas: 2
+     selector:
+       matchLabels:
+         app: registry-mirror
+     template:
+       metadata:
+         labels:
+           app: registry-mirror
+       spec:
+         containers:
+         - name: registry
+           image: registry:2
+           env:
+           - name: REGISTRY_PROXY_REMOTEURL
+             value: https://registry.gitlab.com
+           - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+             value: /var/lib/registry
+           ports:
+           - containerPort: 5000
+           volumeMounts:
+           - name: registry-storage
+             mountPath: /var/lib/registry
+         volumes:
+         - name: registry-storage
+           persistentVolumeClaim:
+             claimName: registry-mirror-pvc
+   ---
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: registry-mirror
+     namespace: gitlab-runner
+   spec:
+     selector:
+       app: registry-mirror
+     ports:
+     - port: 5000
+       targetPort: 5000
+   ```
+
+   Runner config.toml:
+   ```toml
+   [[runners]]
+     [runners.kubernetes]
+       [[runners.kubernetes.volumes.host_path]]
+         name = "docker-daemon-config"
+         mount_path = "/etc/docker"
+         host_path = "/etc/docker"
+   ```
+
+   /etc/docker/daemon.json sur les nodes:
+   ```json
+   {
+     "registry-mirrors": ["http://registry-mirror.gitlab-runner.svc.cluster.local:5000"]
+   }
+   ```
+
+───────────────────────────────────────────────────────────────────────────────
+
+2. BUILDKIT REMOTE CACHE (S3/GCS)
+   Gain: 3-7 min
+
+   Plus efficace que inline cache registry:
+   - Meilleure compression
+   - Métadonnées séparées
+   - Pas besoin de pull l'image complète
+
+   Prérequis:
+   - Bucket S3 ou GCS
+   - Credentials configurées dans le runner
+
+   CI usage:
+   ```yaml
+   script:
+     - |
+       docker buildx build \
+         --cache-from type=s3,region=eu-west-1,bucket=gitlab-ci-cache,name=controlplane \
+         --cache-to type=s3,region=eu-west-1,bucket=gitlab-ci-cache,name=controlplane,mode=max \
+         ...
+   ```
+
+   Alternative GCS:
+   ```yaml
+   --cache-from type=gha \  # GitHub Actions cache (si on migre)
+   --cache-to type=gha,mode=max
+   ```
+
+TOTAL PHASE 3: 8-17 minutes
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 RÉCAPITULATIF DES GAINS
+───────────────────────────────────────────────────────────────────────────────
+
+Phase 1 (DONE):      6-12 min   ✅
+Phase 2 (PLANNED):  28-41 min   ⏳
+Phase 3 (PLANNED):   8-17 min   🚀
+────────────────────────────────
+TOTAL POTENTIEL:    42-70 min
+
+Pipeline actuelle estimée: ~60-80 min
+Pipeline optimisée cible:   ~10-40 min
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔍 MÉTRIQUES À SURVEILLER POST-PHASE 1
+───────────────────────────────────────────────────────────────────────────────
+
+1. Temps de clone git
+   - Attendu: <10s au lieu de ~60s
+   - Sauf migration linting et release: ~60s OK
+
+2. Temps d'attente entre stages
+   - code-style jobs doivent démarrer dès leur build fini
+   - unit-tests avec needs:[] démarrent immédiatement
+
+3. Cache hit rate
+   - Vérifier dans les logs buildx
+   - "CACHED" doit apparaître pour les layers
+
+4. Erreurs potentielles
+   - Migration linting: vérifier accès à origin/master
+   - Semantic-release: vérifier historique git complet
+   - Jobs avec needs: vérifier que les dépendances existent
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📝 NOTES TECHNIQUES
+───────────────────────────────────────────────────────────────────────────────
+
+Pourquoi GIT_STRATEGY=fetch au lieu de clone?
+- fetch réutilise le repo si disponible (pas le cas avec emptyDir)
+- Mais prépare le terrain si on passe à un runner avec cache
+
+Pourquoi needs: artifacts: false?
+- On ne transfère que les métadonnées de job
+- Les images Docker sont dans le registry, pas besoin d'artifacts
+
+Rust cargo workspace:
+- Cargo compile incrémentalement
+- Mais sans cache local (emptyDir), on perd cet avantage
+- D'où l'importance de cargo-chef cook
+
+BuildKit inline cache limitations:
+- Doit pull l'image pour avoir le cache
+- Moins efficace que remote cache S3/GCS
+- Mais plus simple à setup
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Generated: 2025-12-30
+Agent: Claude Sonnet 4.5 (DevOps Expert Analysis)
+Context: feat-build-with-buildkit branch
+Runner: Kubernetes executor with emptyDir
