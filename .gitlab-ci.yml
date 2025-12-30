@@ -25,7 +25,14 @@ services:
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   # Login to Docker Hub to avoid rate limits (requires DOCKERHUB_USERNAME and DOCKERHUB_TOKEN variables)
-  - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin || echo "Docker Hub login failed, continuing..."
+  - |
+    if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
+      echo "Logging into Docker Hub..."
+      echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+    else
+      echo "WARNING: DOCKERHUB_USERNAME or DOCKERHUB_TOKEN not set. Skipping Docker Hub authentication."
+      echo "You may encounter rate limits when pulling images from Docker Hub."
+    fi
   - docker context create buildx-context --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"
   - docker buildx create --use --name ci-builder --driver docker-container buildx-context
   - docker compose down --volumes --remove-orphans
@@ -84,7 +91,10 @@ gitleaks:
       set -e
 
       # Build all 3 services using the unified Dockerfile
-      # This compiles the workspace once and produces 3 images
+      # First build compiles the entire workspace and exports cache
+      # Subsequent builds reuse that cache (near-instant)
+
+      # Build 1: controlplane (exports full workspace cache)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
@@ -98,26 +108,24 @@ gitleaks:
         --file controlplane/Dockerfile \
         controlplane
 
+      # Build 2: authz-worker (reuses cache from build 1, no export)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-development \
-        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
-        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache,mode=max \
         --target development-authz-worker \
         --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
         --push \
         --file controlplane/Dockerfile \
         controlplane
 
+      # Build 3: synchronizer (reuses cache from build 1, no export)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:master-development \
-        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
-        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache,mode=max \
         --target development-synchronizer \
         --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
         --push \
@@ -270,7 +278,7 @@ gitleaks:
     - |
       set -e
 
-      # Build controlplane (server) release
+      # Build 1: controlplane release (exports full workspace cache)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
@@ -284,28 +292,24 @@ gitleaks:
         --file controlplane/Dockerfile \
         controlplane
 
-      # Build authz-worker release (reuses cache from first build)
+      # Build 2: authz-worker release (reuses cache, no export)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-${TARGET} \
-        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
-        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache,mode=max \
         --target ${TARGET}-authz-worker \
         --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
         --file controlplane/Dockerfile \
         controlplane
 
-      # Build synchronizer release (reuses cache from first build)
+      # Build 3: synchronizer release (reuses cache, no export)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:master-${TARGET} \
-        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
-        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache,mode=max \
         --target ${TARGET}-synchronizer \
         --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
@@ -482,6 +486,7 @@ gitleaks:
   stage: deploy
   script:
     - |
+      set -e
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:master-release \
