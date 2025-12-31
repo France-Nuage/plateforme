@@ -1,3 +1,42 @@
+# [1.56.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.55.0...v1.56.0) (2025-12-31)
+
+
+### Bug Fixes
+
+* add Docker Hub authentication to avoid rate limits ([143938d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/143938daa27673d56049c9ac20e3d303f0c1cf1f))
+* add explicit test for binary existence before copy ([ffe2068](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ffe2068fdb3ca9e71486efe8e53b71907f83c822))
+* add runtime TLS dependencies and fix cache tag inconsistencies ([fa51736](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/fa51736b6ca7e2312f2093d1d342b9e901498c81))
+* address CI review comments - error handling and cache strategy ([5300887](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/53008877c8520df4e7111a08c49ba0561f319a15))
+* address code review comments on buildx migration ([451ba8d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/451ba8d242798488b32ebf1537d841579111143d))
+* build node-sdk and system-tests without target stage ([cded032](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/cded032225ae12bfbb5c59b5ead35c17ede3826a))
+* build node-sdk without target stage ([9e9a8da](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9e9a8dac83a8b84a2c69270f2ed5712f260b402e))
+* CI controlplane IP ([6c98cf7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/6c98cf72964358bd6cebfa8df032043433cc43ec))
+* create Docker context before buildx builder for TLS compatibility ([1f22ad5](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1f22ad55bdad6e98bbca24b4b73505597e1dfbf2))
+* prevent duplicate pipelines for merge requests ([0914adb](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/0914adb2082e437335a394ca53ac3f748c5f0e1b))
+* remove /app/target cache mount from cargo chef cook ([91e99dd](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/91e99dd5f2b71f37c19e4d71b954e4a1cf07ef31))
+* remove cache mounts not applicable in CI with emptydirs ([a3c6140](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a3c614080e85adca8b71814110275dd6c2bbb021))
+* simplify Rust Dockerfiles and handle protocol without target ([fd6d8ea](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/fd6d8ea315f671c65cc9d6f3bbb8d1d3b74a8543))
+* use --bin instead of --package and install instead of cp ([9ecbf24](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9ecbf24ac2b5c1537cd87e950f2cd92ecebc9287))
+* use GIT_DEPTH=0 for migration linting job ([5e1a82f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/5e1a82fee9612f376cdc98aebca14e05d5919414))
+
+
+### Features
+
+* major build performance optimizations ([beca249](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/beca249d0d37094419ac2727dd25544c9a157878))
+
+
+### Performance Improvements
+
+* add BuildKit registry cache for persistent CI caching ([3dca808](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/3dca8080214fd10bcf9925f9eeb463975be694c1))
+* implement Phase 2 CI optimizations - parallel builds and unified Rust compilation ([6d92c6d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/6d92c6d35cd32c5ece4bedd874a357ddba06ad0d))
+* optimize CI pipeline with Phase 1 quick wins ([1030993](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/103099360a662dce12f0708f03b0de90de878d18))
+* optimize Docker builds with comprehensive BuildKit caching ([c6c1f0a](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/c6c1f0a1309becf4ddd6fe8897c516199cb8d7bc))
+
+
+### Reverts
+
+* go back to GIT_DEPTH=0 and GIT_STRATEGY=clone ([80c1bcc](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/80c1bcc22f1bf770f80977757d0ee9c32566bc48))
+
 # [1.55.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.54.0...v1.55.0) (2025-12-30)
 
 
