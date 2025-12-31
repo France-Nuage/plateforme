@@ -1,12 +1,15 @@
 FROM node:22-alpine AS base
 
-RUN apk add curl
+RUN apk add --no-cache curl
 
+# Build node-sdk first
 WORKDIR /node-sdk
-COPY ./node-sdk .
+COPY ./node-sdk/package.json ./node-sdk/package-lock.json ./
 RUN npm ci
+COPY ./node-sdk .
 RUN npm run build
 
+# Build console
 WORKDIR /app
 COPY ./console/package.json ./console/package-lock.json ./
 RUN npm ci

@@ -1,3 +1,11 @@
+# Prevent duplicate pipelines for merge requests
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
 # Define the pipeline stages
 stages:
   - security
@@ -16,6 +24,17 @@ services:
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  # Login to Docker Hub to avoid rate limits (requires DOCKERHUB_USERNAME and DOCKERHUB_TOKEN variables)
+  - |
+    if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
+      echo "Logging into Docker Hub..."
+      echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+    else
+      echo "WARNING: DOCKERHUB_USERNAME or DOCKERHUB_TOKEN not set. Skipping Docker Hub authentication."
+      echo "You may encounter rate limits when pulling images from Docker Hub."
+    fi
+  - docker context create buildx-context --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"
+  - docker buildx create --use --name ci-builder --driver docker-container buildx-context
   - docker compose down --volumes --remove-orphans
 
 after_script:
@@ -29,8 +48,9 @@ variables:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
   BUILDKIT_PROGRESS: plain
-  GIT_DEPTH: 0
-  GIT_STRATEGY: clone
+  BUILDKIT_INLINE_CACHE: 1
+  GIT_DEPTH: 1
+  GIT_STRATEGY: fetch
 
 gitleaks:
   stage: security
@@ -52,24 +72,325 @@ gitleaks:
     when: always
     expire_in: 1 week
 
-"build / development":
+# Shared build script template
+.build_template: &build_template
   stage: build
   variables:
     TARGET: development
-  script:
-    - docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
-    - docker compose push
 
-"build / release":
+# Unified build job for all Rust services (controlplane, authz-worker, synchronizer)
+# Builds all 3 binaries in a single cargo invocation to share compilation
+"build / rust-services":
+  <<: *build_template
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
+
+      # Build all 3 services using the unified Dockerfile
+      # First build compiles the entire workspace and exports cache
+      # Subsequent builds reuse that cache (near-instant)
+
+      # Build 1: controlplane (exports full workspace cache)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:master-development \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache,mode=max \
+        --target development \
+        --tag ${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+      # Build 2: authz-worker (reuses cache from build 1, no export)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-development \
+        --target development-authz-worker \
+        --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+      # Build 3: synchronizer (reuses cache from build 1, no export)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:master-development \
+        --target development-synchronizer \
+        --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+# Legacy job aliases for backward compatibility - can be removed after validation
+"build / controlplane":
+  <<: *build_template
+  needs:
+    - job: "build / rust-services"
+      artifacts: false
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+      when: never
+  script:
+    - echo "This job is now handled by 'build / rust-services'"
+
+"build / authz-worker":
+  <<: *build_template
+  needs:
+    - job: "build / rust-services"
+      artifacts: false
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+      when: never
+  script:
+    - echo "This job is now handled by 'build / rust-services'"
+
+"build / synchronizer":
+  <<: *build_template
+  needs:
+    - job: "build / rust-services"
+      artifacts: false
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+      when: never
+  script:
+    - echo "This job is now handled by 'build / rust-services'"
+
+"build / console":
+  <<: *build_template
+  rules:
+    - changes:
+        - console/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:master-development \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache,mode=max \
+        --build-arg VITE_OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-francenuage} \
+        --build-arg VITE_OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-keycloak} \
+        --build-arg VITE_OIDC_PROVIDER_URL=${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage} \
+        --build-arg VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE:-rpc} \
+        --build-arg VITE_CONTROLPLANE_URL=${CONTROLPLANE_URL:-https://controlplane.test} \
+        --target development \
+        --tag ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file console/Dockerfile \
+        .
+
+"build / node-sdk":
+  <<: *build_template
+  rules:
+    - changes:
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file node-sdk/Dockerfile \
+        node-sdk
+
+"build / system-tests":
+  <<: *build_template
+  rules:
+    - changes:
+        - system-tests/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file system-tests/Dockerfile \
+        .
+
+"build / protocol":
+  <<: *build_template
+  rules:
+    - changes:
+        - protocol/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file protocol/Dockerfile \
+        protocol
+
+# Unified release build for all Rust services
+# Compiles workspace once, produces 3 release images
+"build / rust-services / release":
   stage: build
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
   variables:
     TARGET: release
   script:
-    - docker compose build
-    - docker compose push
+    - |
+      set -e
+
+      # Build 1: controlplane release (exports full workspace cache)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:master-${TARGET} \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache,mode=max \
+        --target ${TARGET} \
+        --tag ${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+      # Build 2: authz-worker release (reuses cache, no export)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-${TARGET} \
+        --target ${TARGET}-authz-worker \
+        --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+      # Build 3: synchronizer release (reuses cache, no export)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:master-${TARGET} \
+        --target ${TARGET}-synchronizer \
+        --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+"build / console / release":
+  stage: build
+  rules:
+    - changes:
+        - console/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+  variables:
+    TARGET: release
+  script:
+    - |
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:master-${TARGET} \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache,mode=max \
+        --build-arg VITE_OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-francenuage} \
+        --build-arg VITE_OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-keycloak} \
+        --build-arg VITE_OIDC_PROVIDER_URL=${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage} \
+        --build-arg VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE:-rpc} \
+        --build-arg VITE_CONTROLPLANE_URL=${CONTROLPLANE_URL:-https://controlplane.test} \
+        --target ${TARGET} \
+        --tag ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file console/Dockerfile \
+        .
+
+"build / system-tests / release":
+  stage: build
+  rules:
+    - changes:
+        - system-tests/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file system-tests/Dockerfile \
+        .
+
+"build / protocol / release":
+  stage: build
+  rules:
+    - changes:
+        - protocol/**/*
+        - .gitlab-ci.yml
+  script:
+    - |
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file protocol/Dockerfile \
+        protocol
 
 "code style / controlplane":
   stage: code-style
+  needs:
+    - job: "build / rust-services"
+      artifacts: false
   variables:
     SQLX_OFFLINE: true
   script:
@@ -78,33 +399,48 @@ gitleaks:
 
 "code style / console":
   stage: code-style
+  needs:
+    - job: "build / console"
+      artifacts: false
   script:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
 
 "code style / node-sdk":
   stage: code-style
+  needs:
+    - job: "build / node-sdk"
+      artifacts: false
   script:
     - docker compose run --no-deps --remove-orphans node-sdk npm run lint
     - docker compose run --no-deps --remove-orphans node-sdk npx prettier --check .
 
 "code style / markdown":
   stage: code-style
+  needs: []
   script:
     - docker compose run --remove-orphans markdown-lint
 
 "unit tests / authz":
   stage: "unit-tests"
+  needs: []
   script:
     - docker compose run zed validate authz/tests.yaml
 
 "unit tests / migration linting":
   stage: "unit-tests"
+  needs: []
+  variables:
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
   script:
     - docker compose run atlas migrate lint --dev-url="postgres://postgres:postgres@atlas-dev-database:5432?sslmode=disable" --dir="file://controlplane/migrations" --git-base=origin/master
 
 "unit tests / controlplane":
   stage: unit-tests
+  needs:
+    - job: "build / rust-services"
+      artifacts: false
   variables:
     CARGO_INCREMENTAL: "0"
     LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
@@ -124,6 +460,13 @@ gitleaks:
 
 "system tests / console":
   stage: system-tests
+  needs:
+    - job: "build / rust-services / release"
+      artifacts: false
+    - job: "build / console / release"
+      artifacts: false
+    - job: "build / system-tests / release"
+      artifacts: false
   allow_failure: true
   variables:
     TARGET: release
@@ -142,7 +485,22 @@ gitleaks:
 "deploy / console":
   stage: deploy
   script:
-    - docker build --target=release --tag=${CI_REGISTRY_IMAGE}/console:release --push --file=console/Dockerfile .
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:master-release \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache,mode=max \
+        --build-arg VITE_OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-francenuage} \
+        --build-arg VITE_OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-keycloak} \
+        --build-arg VITE_OIDC_PROVIDER_URL=${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage} \
+        --build-arg VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE:-rpc} \
+        --build-arg VITE_CONTROLPLANE_URL=${CONTROLPLANE_URL:-https://controlplane.test} \
+        --target release \
+        --tag ${CI_REGISTRY_IMAGE}/console:release \
+        --push \
+        --file console/Dockerfile \
+        .
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
@@ -205,6 +563,8 @@ gitleaks:
   variables:
     CI: true
     HUSKY: 0
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
   before_script:
     - apk add --no-cache git
     - git remote set-url origin "https://oauth2:${GITLAB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
