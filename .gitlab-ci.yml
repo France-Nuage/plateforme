@@ -529,7 +529,7 @@ gitleaks:
 "deploy / apply authz schema":
   stage: deploy
   script:
-    - docker compose run zed schema write --endpoint 10.0.0.24:50051 --insecure --token $SPICEDB_TOKEN authz/schema.zed
+    - docker compose run zed schema write --endpoint $PRODUCTION_SPICEDB_URL:50051 --insecure --token $SPICEDB_TOKEN authz/schema.zed
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success

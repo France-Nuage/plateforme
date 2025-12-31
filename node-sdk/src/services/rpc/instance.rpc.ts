@@ -64,6 +64,17 @@ export class InstanceRpcService implements InstanceService {
   public stop(id: string) {
     return this.client.stop({ id }).response.then(() => {});
   }
+
+  /** @inheritdoc */
+  public update(id: string, data: InstanceFormValue): Promise<Instance> {
+    return this.client
+      .update({
+        id,
+        name: data.name,
+        projectId: data.projectId,
+      })
+      .response.then(({ instance }) => fromRpcInstance(instance!));
+  }
 }
 
 // Converts a protocol Instance into a concrete Instance.

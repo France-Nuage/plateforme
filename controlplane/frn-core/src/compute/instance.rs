@@ -88,6 +88,18 @@ pub struct InstanceCreateRequest {
     pub snippet: String,
 }
 
+#[derive(Clone, Debug)]
+pub struct InstanceUpdateRequest {
+    /// The instance identifier.
+    pub id: Uuid,
+
+    /// The optional new name for the instance.
+    pub name: Option<String>,
+
+    /// The optional new project to move the instance to.
+    pub project_id: Option<Uuid>,
+}
+
 /// Service for managing compute instances.
 #[derive(Clone, Debug)]
 pub struct Instances<A: Authorize> {
@@ -456,6 +468,75 @@ impl<A: Authorize> Instances<A> {
         .await?;
 
         Ok(instance)
+    }
+
+    /// Updates an existing instance's properties.
+    pub async fn update<P: Principal + Sync>(
+        &mut self,
+        principal: &P,
+        request: InstanceUpdateRequest,
+    ) -> Result<Instance, Error> {
+        // Check permission to update the instance
+        self.auth
+            .can(principal)
+            .perform(Permission::Update)
+            .over::<Instance>(&request.id)
+            .await?;
+
+        // If moving to a new project, check permission to create instances in target project
+        if let Some(ref new_project_id) = request.project_id {
+            self.auth
+                .can(principal)
+                .perform(Permission::CreateInstance)
+                .over::<Project>(new_project_id)
+                .await?;
+        }
+
+        let instance = Instance::find_one_by_id(&self.db, request.id).await?;
+        let old_project_id = instance.project_id;
+
+        // Build the update query dynamically based on provided fields
+        let updated_instance = sqlx::query_as!(
+            Instance,
+            r#"
+            UPDATE instances
+            SET
+                name = COALESCE($2, name),
+                project_id = COALESCE($3, project_id),
+                updated_at = NOW()
+            WHERE id = $1
+            RETURNING *
+            "#,
+            request.id,
+            request.name,
+            request.project_id,
+        )
+        .fetch_one(&self.db)
+        .await?;
+
+        // If the project changed, update the authorization relationships
+        if let Some(new_project_id) = request.project_id
+            && new_project_id != old_project_id
+        {
+            // Remove old project relationship from SpiceDB
+            let old_relationship = Relationship::new(
+                &Project::some(old_project_id),
+                Relation::Parent,
+                &updated_instance,
+            );
+            self.auth.delete_relationship(&old_relationship).await?;
+
+            // Add new project relationship via the queue
+            Relationship::new(
+                &Project::some(new_project_id),
+                Relation::Parent,
+                &updated_instance,
+            )
+            .publish(&self.db)
+            .await?;
+        }
+
+        Ok(updated_instance)
     }
 }
 

@@ -18,4 +18,7 @@ export interface InstanceService {
 
   /** Stop the given instance. */
   stop: (id: string) => Promise<void>;
+
+  /** Update an existing instance. */
+  update: (id: string, data: InstanceFormValue) => Promise<Instance>;
 }

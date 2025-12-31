@@ -32,6 +32,7 @@ definition instance {
   permission delete = get
   permission start = get
   permission stop = get
+  permission update = get
 }
 
 definition service_account {}

@@ -1,3 +1,17 @@
+# [1.55.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.54.0...v1.55.0) (2025-12-30)
+
+
+### Bug Fixes
+
+* add dind service and fix version to compat with new kube runner ([936bb67](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/936bb67053034a234434a3905124362eb4931105))
+
+
+### Features
+
+* add move instance feature ([52fa93e](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/52fa93e8916735a5913c74f71e0043fcc9a21624))
+* add move instance feature ([73f4fc7](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/73f4fc723751d8228330161cbefd3671ff193bea))
+* tentative d'ajout de buildkit ([2246fdf](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2246fdf69f71f99e27f898a29fa3b94bf14cde7d))
+
 # [1.54.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.53.0...v1.54.0) (2025-12-23)
 
 
