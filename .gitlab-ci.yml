@@ -474,7 +474,7 @@ gitleaks:
   after_script:
     - docker compose logs > docker-compose-logs.txt
   script:
-    - docker compose run --remove-orphans system-tests npm run test:ci
+    - docker compose -f docker-compose.yml -f docker-compose.ci.yml run --remove-orphans system-tests npm run test:ci
   artifacts:
     when: always
     paths:
