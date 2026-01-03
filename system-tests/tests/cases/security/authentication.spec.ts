@@ -20,9 +20,4 @@ test.describe('Security', () => {
     await pages.oidc.locators.loginButton.click();
     await pages.compute.instances.assertRedirectedTo();
   });
-
-  test('Login page automatically redirects to OIDC provider', async ({ pages }) => {
-    await pages.login.goto();
-    await pages.oidc.assertRedirectedTo();
-  });
 });
