@@ -1,18 +1,17 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import BasePage from "./base.page";
 
+/**
+ * Login page object model.
+ *
+ * This page automatically redirects to the OIDC provider.
+ * No user interaction is required on this page.
+ */
 export class LoginPage extends BasePage {
-  locators: {
-    loginButton: Locator;
-  };
-
   /**
    * @inheritdoc
    */
   public constructor(page: Page) {
     super(page, "/login");
-    this.locators = {
-      loginButton: page.getByRole('button', { name: 'Se connecter avec Gitlab' }),
-    };
   }
 }
