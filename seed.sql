@@ -1,8 +1,8 @@
 BEGIN;
 
 WITH organization AS (
-  INSERT INTO organizations (name)
-  VALUES ('ACME')
+  INSERT INTO organizations (name, slug)
+  VALUES ('acme', 'acme')
   RETURNING id
 ),
 zone AS (

@@ -485,6 +485,12 @@ services:
 
   traefik:
     image: traefik:v2.11
+    networks:
+      default:
+        aliases:
+          - console.test
+          - keycloak.test
+          - controlplane.test
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"

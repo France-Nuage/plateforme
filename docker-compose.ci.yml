@@ -1,0 +1,24 @@
+# CI-specific overrides for Docker Compose
+#
+# In CI (Docker-in-Docker), the `host-gateway` extra_hosts don't work because
+# Traefik runs inside the Docker network, not on the DinD host.
+# Instead, we rely on Docker's internal DNS via network aliases defined on the
+# traefik service in docker-compose.yml.
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.ci.yml run ...
+
+services:
+  console:
+    extra_hosts: []
+
+  controlplane:
+    extra_hosts: []
+
+  synchronizer:
+    extra_hosts: []
+
+  playwright:
+    extra_hosts: []
+
+  system-tests:
+    extra_hosts: []
