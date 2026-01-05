@@ -1,4 +1,4 @@
-use fabrique::Persistable;
+use fabrique::{Factory, Query};
 use frn_core::resourcemanager::Organization;
 use frn_rpc::v1::resourcemanager::{CreateProjectRequest, CreateProjectResponse, Project};
 mod common;

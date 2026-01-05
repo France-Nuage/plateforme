@@ -20,6 +20,9 @@ pub enum Error {
     #[error("{0}")]
     Database(#[from] sqlx::Error),
 
+    #[error("fabrique: {0}")]
+    Fabrique(#[from] fabrique::Error),
+
     /// Authorization check failed - access denied.
     #[error("forbidden")]
     Forbidden,

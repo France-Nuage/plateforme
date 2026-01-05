@@ -1,14 +1,14 @@
 use crate::Error;
 use crate::authorization::{Authorize, Principal, Resource};
 use chrono::{DateTime, Utc};
-use database::{Factory, Persistable, Repository};
-use sqlx::{FromRow, Pool, Postgres};
+use fabrique::{Factory, Model, Query};
+use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, FromRow, PartialEq, Repository, Resource)]
+#[derive(Debug, Default, Factory, Model, PartialEq, Resource)]
 pub struct Zone {
     /// Unique identifier for the zone
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
 
     /// A human-readable name for the zone
@@ -45,7 +45,7 @@ impl<Auth: Authorize> Zones<Auth> {
         //     .over(&Zone::any())
         //     .await?;
 
-        Zone::list(&self.db).await.map_err(Into::into)
+        Zone::all(&self.db).await.map_err(Into::into)
     }
 
     pub async fn create<P: Principal>(

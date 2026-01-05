@@ -33,14 +33,7 @@ rsa = { version = "0.8", optional = true }
 serde = { version = "1" }
 serde_json = { version = "1", optional = true }
 spicedb = { path = "../spicedb" }
-sqlx = { version = "0.8", features = [
-  "chrono",
-  "macros",
-  "migrate",
-  "postgres",
-  "runtime-tokio-rustls",
-  "uuid",
-] }
+sqlx = { workspace = true }
 strum = "0.27"
 strum_macros = "0.27"
 thiserror = "2"

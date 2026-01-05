@@ -1,4 +1,8 @@
-use frn_core::{compute::Instance, resourcemanager::Organization};
+use fabrique::Factory;
+use frn_core::{
+    compute::{Hypervisor, Instance, Zone},
+    resourcemanager::{Organization, Project},
+};
 use frn_rpc::v1::compute::CloneInstanceRequest;
 use tonic::Request;
 
@@ -15,15 +19,22 @@ async fn test_the_clone_instance_procedure_works(pool: sqlx::PgPool) {
         .create(&pool)
         .await
         .expect("could not create organization");
+    let hypervisor = Hypervisor::factory()
+        .url(mock_url)
+        .for_zone(Zone::factory())
+        .organization_id(organization.id)
+        .create(&pool)
+        .await
+        .expect("could not create hypervisor");
+    let project = Project::factory()
+        .organization_id(organization.id)
+        .create(&pool)
+        .await
+        .expect("could not create project");
     let instance = Instance::factory()
         .distant_id("100".into())
-        .for_hypervisor(move |hypervisor| {
-            hypervisor
-                .url(mock_url)
-                .for_zone(|zone| zone)
-                .organization_id(organization.id)
-        })
-        .for_project(move |project| project.organization_id(organization.id))
+        .hypervisor_id(hypervisor.id)
+        .project_id(project.id)
         .create(&pool)
         .await
         .expect("could not create instance");

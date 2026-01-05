@@ -2,12 +2,12 @@ use crate::Error;
 use crate::authorization::{Authorize, Principal, Resource};
 use crate::resourcemanager::Organization;
 use chrono::{DateTime, Utc};
-use fabrique::{Factory, Persistable};
+use fabrique::{Factory, Model, Query};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
 /// Non-human identity for programmatic access using API keys
-#[derive(Debug, Default, Factory, Persistable, Resource)]
+#[derive(Debug, Default, Factory, Model, Resource)]
 #[fabrique(table = "service_accounts")]
 pub struct ServiceAccount {
     #[fabrique(primary_key)]

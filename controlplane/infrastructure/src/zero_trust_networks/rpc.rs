@@ -35,14 +35,16 @@ impl ZeroTrustNetworks for ZeroTrustNetworkRpcService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ZeroTrustNetwork;
+    use crate::{ZeroTrustNetwork, ZeroTrustNetworkType};
+    use fabrique::Factory;
+    use frn_core::resourcemanager::Organization;
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_organizations_works(pool: sqlx::PgPool) {
         // Arrange the test
         let model = ZeroTrustNetwork::factory()
-            .for_default_organization()
-            .for_default_zero_trust_network_type()
+            .for_organization(Organization::factory())
+            .for_zero_trust_network_type(ZeroTrustNetworkType::factory())
             .create(&pool)
             .await
             .unwrap();

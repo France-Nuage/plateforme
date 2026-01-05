@@ -1,5 +1,5 @@
 use crate::common::{Api, OnBehalfOf};
-use fabrique::Persistable;
+use fabrique::Query;
 use frn_rpc::v1::resourcemanager::{
     CreateOrganizationRequest, CreateOrganizationResponse, Organization,
 };

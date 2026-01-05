@@ -1,6 +1,6 @@
 use crate::common::{Api, OnBehalfOf};
-use fabrique::Persistable;
-use frn_core::compute::{Hypervisor, Instance};
+use fabrique::{Factory, Query};
+use frn_core::compute::{Hypervisor, Instance, Zone};
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
 use frn_rpc::v1::compute::{CreateInstanceRequest, CreateInstanceResponse};
 use tonic::Request;
@@ -18,7 +18,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
 
     let hypervisor = Hypervisor::factory()
         .url(api.mock_server.url())
-        .for_zone(|zone| zone)
+        .for_zone(Zone::factory())
         .organization_id(organization.id)
         .create(&pool)
         .await

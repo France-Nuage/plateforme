@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 frn-core = { path = "../frn-core" }
 spicedb = { path = "../spicedb" }
-sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls"] }
+sqlx = { workspace = true }
 tokio = { version = "1.0", features = ["rt-multi-thread", "time", "macros"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

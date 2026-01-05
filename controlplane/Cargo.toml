@@ -15,12 +15,21 @@ members = [
   "mock_server",
   "server",
   "spicedb",
-  "synchronizer", "hoop",
+  "synchronizer",
+  "hoop",
 ]
 
 resolver = "3"
 
 [workspace.dependencies]
-fabrique = "0.1.1"
+fabrique = "0.2"
+fake = { version = "4", features = ["derive"] }
+sqlx = { version = "0.9.0-alpha.1", features = [
+  "chrono",
+  "macros",
+  "postgres",
+  "runtime-tokio",
+  "uuid",
+] }
 thiserror = "2"
 uuid = { version = "1", features = ["serde"] }

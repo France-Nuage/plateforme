@@ -1,4 +1,5 @@
 use crate::common::{Api, OnBehalfOf};
+use fabrique::Factory;
 use frn_core::resourcemanager::Organization;
 use frn_rpc::v1::resourcemanager::ListOrganizationsRequest;
 use tonic::Request;

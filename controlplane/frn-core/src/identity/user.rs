@@ -1,12 +1,12 @@
 use crate::Error;
 use crate::authorization::{Authorize, Principal};
 use crate::resourcemanager::Organization;
-use fabrique::{Factory, Persistable};
+use fabrique::{Factory, Model, Persist, Query};
 use frn_derive::Resource;
 use sqlx::{Pool, Postgres, types::chrono};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, Persistable, Resource)]
+#[derive(Debug, Default, Factory, Model, Resource)]
 pub struct User {
     /// Unique identifier for the user
     #[fabrique(primary_key)]
@@ -54,17 +54,21 @@ impl User {
     pub async fn find_or_create_one_by_email(
         pool: &Pool<Postgres>,
         email: &str,
-    ) -> Result<User, sqlx::Error> {
+    ) -> Result<User, fabrique::Error> {
         let maybe_user = User::find_one_by_email(pool, email).await?;
 
         match maybe_user {
             Some(user) => Ok(user),
             None => {
-                User::factory()
-                    .id(Uuid::new_v4())
-                    .email(email.to_owned())
-                    .create(pool)
-                    .await
+                User {
+                    id: Uuid::new_v4(),
+                    is_admin: false,
+                    email: email.to_owned(),
+                    created_at: chrono::Utc::now(),
+                    updated_at: chrono::Utc::now(),
+                }
+                .create(pool)
+                .await
             }
         }
     }

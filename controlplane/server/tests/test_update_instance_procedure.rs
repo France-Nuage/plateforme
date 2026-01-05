@@ -1,5 +1,6 @@
 use crate::common::{Api, OnBehalfOf};
-use frn_core::compute::Instance;
+use fabrique::Factory;
+use frn_core::compute::{Hypervisor, Instance, Zone};
 use frn_core::resourcemanager::{Organization, Project};
 use frn_rpc::v1::compute::UpdateInstanceRequest;
 use sqlx::types::Uuid;
@@ -39,12 +40,12 @@ async fn test_the_update_instance_procedure_can_change_project(pool: sqlx::PgPoo
 
     // Create an instance in project A
     let instance = Instance::factory()
-        .for_hypervisor(move |hypervisor| {
-            hypervisor
-                .for_zone(|zone| zone)
+        .for_hypervisor(
+            Hypervisor::factory()
+                .for_zone(Zone::factory())
                 .organization_id(organization.id)
-                .url(mock_url)
-        })
+                .url(mock_url),
+        )
         .project_id(project_a.id)
         .name("test-instance".into())
         .distant_id("100".into())
@@ -96,13 +97,13 @@ async fn test_the_update_instance_procedure_can_change_name(pool: sqlx::PgPool) 
 
     // Create an instance
     let instance = Instance::factory()
-        .for_hypervisor(move |hypervisor| {
-            hypervisor
-                .for_zone(|zone| zone)
+        .for_hypervisor(
+            Hypervisor::factory()
+                .for_zone(Zone::factory())
                 .organization_id(organization.id)
-                .url(mock_url)
-        })
-        .for_project(move |project| project.organization_id(organization.id))
+                .url(mock_url),
+        )
+        .for_project(Project::factory().organization_id(organization.id))
         .name("old-name".into())
         .distant_id("101".into())
         .create(&pool)

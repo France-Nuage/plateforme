@@ -1,4 +1,5 @@
 use crate::common::{Api, OnBehalfOf};
+use fabrique::Factory;
 use frn_core::{compute::Zone, resourcemanager::Organization};
 use frn_rpc::v1::compute::RegisterHypervisorRequest;
 use tonic::Request;

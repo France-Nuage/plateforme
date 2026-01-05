@@ -5,27 +5,27 @@
 
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
-use crate::compute::{Hypervisor, HypervisorFactory};
-use crate::resourcemanager::{Project, ProjectFactory};
+use crate::compute::{Hypervisor, HypervisorFactory, HypervisorIdColumn};
+use crate::resourcemanager::{Project, ProjectFactory, ProjectIdColumn};
 use base64::Engine;
 use chrono::{DateTime, Utc};
-use fabrique::{Factory, Persistable};
+use fabrique::{Factory, Model, Persist, Query};
 use hypervisor::instance::Instances as HypervisorInstancesTrait;
 use hypervisor::instance::Status;
 use sqlx::{Pool, Postgres};
 use ssh_key::{Algorithm, LineEnding, PrivateKey};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Default, Factory, Persistable, Resource)]
+#[derive(Clone, Debug, Default, Factory, Model, Resource)]
 pub struct Instance {
     /// Unique identifier for the instance
     #[fabrique(primary_key)]
     pub id: Uuid,
     /// The hypervisor this instance is attached to
-    #[fabrique(relation = "Hypervisor", referenced_key = "id")]
+    #[fabrique(belongs_to = Hypervisor)]
     pub hypervisor_id: Uuid,
     /// The project this instance belongs to
-    #[fabrique(relation = "Project", referenced_key = "id")]
+    #[fabrique(belongs_to = Project)]
     pub project_id: Uuid,
     /// The zero trust network this instance belongs to
     pub zero_trust_network_id: Option<Uuid>,

@@ -1,4 +1,4 @@
-use database::Persistable;
+use fabrique::Query;
 
 use crate::{Problem, ZeroTrustNetworkType};
 
@@ -10,7 +10,9 @@ pub struct ZeroTrustNetworkTypeService {
 impl ZeroTrustNetworkTypeService {
     /// List all zero trust network types.
     pub async fn list(&self) -> Result<Vec<ZeroTrustNetworkType>, Problem> {
-        ZeroTrustNetworkType::list(&self.pool)
+        ZeroTrustNetworkType::query()
+            .select()
+            .get(&self.pool)
             .await
             .map_err(Into::into)
     }
@@ -24,6 +26,7 @@ impl ZeroTrustNetworkTypeService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use fabrique::Factory;
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list(pool: sqlx::PgPool) {
