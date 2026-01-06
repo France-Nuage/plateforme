@@ -57,6 +57,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
             instance: Some(frn_rpc::v1::compute::Instance {
                 id: instance.id.to_string(),
                 max_cpu_cores: 1,
+                max_disk_bytes: 10737418240,
                 max_memory_bytes: 536870912,
                 name: "acme-mgs".to_owned(),
                 hypervisor_id: hypervisor.id.to_string(),

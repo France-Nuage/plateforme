@@ -203,7 +203,7 @@ impl<A: Authorize> Instances<A> {
                     disk_usage_bytes: 0,
                     ip_v4: String::new(),
                     max_cpu_cores: request.cores as i32,
-                    max_disk_bytes: 0,
+                    max_disk_bytes: request.disk_size as i64,
                     max_memory_bytes: request.memory as i64,
                     memory_usage_bytes: 0,
                     name: request.name,
