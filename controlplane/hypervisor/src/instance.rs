@@ -68,8 +68,8 @@ pub struct InstanceCreateRequest {
     /// The number of cores per socket.
     pub cores: u8,
 
-    /// The disk size.
-    pub disk_bytes: u32,
+    /// The disk size in bytes.
+    pub disk_bytes: u64,
 
     /// The disk image to create the instance from.
     pub disk_image: String,
