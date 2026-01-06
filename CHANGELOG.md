@@ -1,3 +1,16 @@
+# [1.57.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.56.0...v1.57.0) (2026-01-06)
+
+
+### Bug Fixes
+
+* **console:** add error handling for OIDC redirect and remove redundant test ([6a97689](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/6a97689a70c4aa4939fdd9b478894d17335999c3))
+* handle max_disk_bytes ([d017b5e](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d017b5e75c5dbf72677fb15e9a5534479339c295))
+
+
+### Features
+
+* **console:** auto-redirect /login to OIDC provider ([a9d4f16](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/a9d4f16d1d5695cc235596105b58de850b64e087))
+
 # [1.56.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.55.0...v1.56.0) (2025-12-31)
 
 
