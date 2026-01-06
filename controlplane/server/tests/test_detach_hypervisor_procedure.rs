@@ -13,6 +13,7 @@ mod common;
 async fn test_the_detach_hypervisor_procedure_works(pool: sqlx::PgPool) {
     // Arrange the grpc server and a client
     let organization = Organization::factory()
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");

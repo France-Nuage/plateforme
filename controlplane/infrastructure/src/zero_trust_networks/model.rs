@@ -5,6 +5,7 @@ use frn_core::resourcemanager::{Organization, OrganizationFactory, OrganizationI
 use uuid::Uuid;
 
 #[derive(Debug, Default, Factory, Model, PartialEq)]
+#[fabrique(table = "zero_trust_networks")]
 pub struct ZeroTrustNetwork {
     /// Unique identifier for the zero trust network
     #[fabrique(primary_key)]

@@ -3,6 +3,7 @@ use fabrique::{Factory, Model};
 use uuid::Uuid;
 
 #[derive(Debug, Default, Factory, Model, PartialEq)]
+#[fabrique(table = "zero_trust_network_types")]
 pub struct ZeroTrustNetworkType {
     /// Unique identifier for the zero trust network
     #[fabrique(primary_key)]

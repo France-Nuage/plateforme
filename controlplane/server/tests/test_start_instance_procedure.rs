@@ -5,7 +5,6 @@ use frn_core::{
     resourcemanager::{Organization, Project},
 };
 use frn_rpc::v1::compute::StartInstanceRequest;
-use sqlx::types::Uuid;
 use tonic::Request;
 
 mod common;
@@ -17,7 +16,7 @@ async fn test_the_start_instance_procedure_works(pool: sqlx::PgPool) {
     let mock_url = api.mock_server.url();
 
     let organization = Organization::factory()
-        .id(Uuid::new_v4())
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
@@ -37,6 +36,7 @@ async fn test_the_start_instance_procedure_works(pool: sqlx::PgPool) {
         .hypervisor_id(hypervisor.id)
         .project_id(project.id)
         .distant_id("100".into())
+        .zero_trust_network_id(None)
         .create(&pool)
         .await
         .expect("could not create instance");

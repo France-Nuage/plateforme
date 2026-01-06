@@ -14,6 +14,7 @@ async fn test_the_list_instances_procedure_works(pool: sqlx::PgPool) {
     let mock_url = api.mock_server.url();
 
     let organization = Organization::factory()
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
@@ -33,6 +34,7 @@ async fn test_the_list_instances_procedure_works(pool: sqlx::PgPool) {
     Instance::factory()
         .hypervisor_id(hypervisor.id)
         .project_id(project.id)
+        .zero_trust_network_id(None)
         .create(&pool)
         .await
         .expect("could not create instance");

@@ -43,7 +43,7 @@ mod tests {
     async fn test_list_organizations_works(pool: sqlx::PgPool) {
         // Arrange the test
         let model = ZeroTrustNetwork::factory()
-            .for_organization(Organization::factory())
+            .for_organization(Organization::factory().parent_id(None))
             .for_zero_trust_network_type(ZeroTrustNetworkType::factory())
             .create(&pool)
             .await

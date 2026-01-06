@@ -195,11 +195,16 @@ impl<A: Authorize> Organizations<A> {
                     return Err(Error::SlugAlreadyExists(slug));
                 }
 
-                Organization::factory()
-                    .name(organization_name)
-                    .slug(slug)
-                    .create(&self.db)
-                    .await?
+                Organization {
+                    id: Uuid::new_v4(),
+                    name: organization_name,
+                    slug,
+                    parent_id: None,
+                    created_at: chrono::Utc::now(),
+                    updated_at: chrono::Utc::now(),
+                }
+                .create(&self.db)
+                .await?
             }
         };
 

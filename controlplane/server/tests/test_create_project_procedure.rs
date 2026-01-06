@@ -13,6 +13,7 @@ async fn test_the_create_project_procedure_works(pool: sqlx::PgPool) {
     let mut api = Api::start(&pool).await.expect("count not start api");
 
     let organization = Organization::factory()
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
@@ -39,8 +40,12 @@ async fn test_the_create_project_procedure_works(pool: sqlx::PgPool) {
                 id: projects[0].id.to_string(),
                 name: String::from("ACME"),
                 organization_id: organization.id.to_string(),
-                created_at: Some(prost_types::Timestamp::default()),
-                updated_at: Some(prost_types::Timestamp::default()),
+                created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
+                    projects[0].created_at
+                ))),
+                updated_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
+                    projects[0].updated_at
+                ))),
             })
         }
     );

@@ -35,7 +35,7 @@ mod tests {
         // Arrange the service
         let service = ZeroTrustNetworkService::new(pool.clone());
         let model = ZeroTrustNetwork::factory()
-            .for_organization(Organization::factory())
+            .for_organization(Organization::factory().parent_id(None))
             .for_zero_trust_network_type(ZeroTrustNetworkType::factory())
             .create(&pool)
             .await

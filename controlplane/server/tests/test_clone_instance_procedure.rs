@@ -16,6 +16,7 @@ async fn test_the_clone_instance_procedure_works(pool: sqlx::PgPool) {
     let mut api = Api::start(&pool).await.expect("count not start api");
     let mock_url = api.mock_server.url();
     let organization = Organization::factory()
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
@@ -35,6 +36,7 @@ async fn test_the_clone_instance_procedure_works(pool: sqlx::PgPool) {
         .distant_id("100".into())
         .hypervisor_id(hypervisor.id)
         .project_id(project.id)
+        .zero_trust_network_id(None)
         .create(&pool)
         .await
         .expect("could not create instance");

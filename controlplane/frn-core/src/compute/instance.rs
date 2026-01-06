@@ -193,16 +193,26 @@ impl<A: Authorize> Instances<A> {
         let instance = match maybe_instance {
             None => {
                 // Save the created instance in database
-                Instance::factory()
-                    .id(instance_id)
-                    .hypervisor_id(hypervisor.id)
-                    .project_id(request.project_id)
-                    .distant_id(next_id)
-                    .max_cpu_cores(request.cores as i32)
-                    .max_memory_bytes(request.memory as i64)
-                    .name(request.name)
-                    .create(&self.db)
-                    .await?
+                Instance {
+                    id: instance_id,
+                    hypervisor_id: hypervisor.id,
+                    project_id: request.project_id,
+                    zero_trust_network_id: None,
+                    distant_id: next_id,
+                    cpu_usage_percent: 0.0,
+                    disk_usage_bytes: 0,
+                    ip_v4: String::new(),
+                    max_cpu_cores: request.cores as i32,
+                    max_disk_bytes: 0,
+                    max_memory_bytes: request.memory as i64,
+                    memory_usage_bytes: 0,
+                    name: request.name,
+                    status: Status::default(),
+                    created_at: chrono::Utc::now(),
+                    updated_at: chrono::Utc::now(),
+                }
+                .create(&self.db)
+                .await?
             }
             Some(instance) => {
                 sqlx::query!(

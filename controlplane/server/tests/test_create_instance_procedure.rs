@@ -12,6 +12,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
     // Arrange a test api and the required data
     let mut api = Api::start(&pool).await.expect("count not start api");
     let organization = Organization::factory()
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
@@ -45,7 +46,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
 
     // Assert the result
     let result = api.compute.instances.create(request).await;
-    assert!(result.is_ok());
+    assert!(result.is_ok(), "create failed: {:?}", result.err());
     let instances = Instance::all(&pool)
         .await
         .expect("could not fetch instances");
