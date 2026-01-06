@@ -36,6 +36,9 @@ pub enum Error {
     #[error("unauthenticated")]
     Unauthenticated,
 
+    #[error("Unknown operation \"{0}\"")]
+    UnknownOperation(String),
+
     /// Authorization builder missing principal.
     #[error("authorization check missing principal")]
     UnspecifiedPrincipal,

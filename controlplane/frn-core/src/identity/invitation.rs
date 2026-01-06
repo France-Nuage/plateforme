@@ -2,6 +2,7 @@ use crate::{
     Error,
     authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource},
     identity::User,
+    longrunning::Operation,
     resourcemanager::{Organization, Organizations},
 };
 use fabrique::{Factory, Model};
@@ -119,9 +120,14 @@ impl<A: Authorize> Invitations<A> {
         self.organizations.add_user(&organization, &user).await?;
 
         // Create the relationship
-        Relationship::new(&user, Relation::Member, &organization)
-            .publish(&self.db)
-            .await?;
+        Operation::write_relationships(vec![Relationship::new(
+            &user,
+            Relation::Member,
+            &organization,
+        )])
+        .dispatch(&self.db)
+        .await?;
+
         Ok(invitation)
     }
 }

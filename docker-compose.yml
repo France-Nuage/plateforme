@@ -29,16 +29,16 @@ services:
     healthcheck:
       test: ["CMD", "pg_isready"]
 
-  authz-worker:
+  operation-worker:
     build:
       args:
         BUILDKIT_INLINE_CACHE: ${BUILDKIT_INLINE_CACHE:-1}
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}authz-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}authz-worker:master-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:master-${TARGET:-development}
       context: controlplane
       dockerfile: Dockerfile
-      target: ${TARGET:-development}-authz-worker
+      target: ${TARGET:-development}-operation-worker
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,7 +52,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}authz-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     volumes:
       - ./controlplane:/app
       - /app/target
@@ -429,7 +429,7 @@ services:
       context: .
       dockerfile: system-tests/Dockerfile
     depends_on:
-      authz-worker:
+      operation-worker:
         condition: service_started
       console:
         condition: service_healthy

@@ -6,6 +6,7 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::compute::{Hypervisor, HypervisorFactory, HypervisorIdColumn};
+use crate::longrunning::Operation;
 use crate::resourcemanager::{Project, ProjectFactory, ProjectIdColumn};
 use base64::Engine;
 use chrono::{DateTime, Utc};
@@ -228,12 +229,12 @@ impl<A: Authorize> Instances<A> {
         };
 
         // Save the relations
-        Relationship::new(
+        Operation::write_relationships(vec![Relationship::new(
             &Project::some(request.project_id),
             Relation::Parent,
             &instance,
-        )
-        .publish(&self.db)
+        )])
+        .dispatch(&self.db)
         .await?;
 
         Ok(instance)
@@ -469,12 +470,12 @@ impl<A: Authorize> Instances<A> {
 
         let instance = instance.create(&self.db).await?;
 
-        Relationship::new(
+        Operation::write_relationships(vec![Relationship::new(
             &Project::some(instance.project_id),
             Relation::Parent,
             &instance,
-        )
-        .publish(&self.db)
+        )])
+        .dispatch(&self.db)
         .await?;
 
         Ok(instance)
@@ -536,13 +537,13 @@ impl<A: Authorize> Instances<A> {
             );
             self.auth.delete_relationship(&old_relationship).await?;
 
-            // Add new project relationship via the queue
-            Relationship::new(
+            // Add new project relationship via the operations queue
+            Operation::write_relationships(vec![Relationship::new(
                 &Project::some(new_project_id),
                 Relation::Parent,
                 &updated_instance,
-            )
-            .publish(&self.db)
+            )])
+            .dispatch(&self.db)
             .await?;
         }
 

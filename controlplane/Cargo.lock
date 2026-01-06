@@ -158,18 +158,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "authz-worker"
-version = "0.1.0"
-dependencies = [
- "frn-core",
- "spicedb",
- "sqlx",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -974,6 +962,7 @@ dependencies = [
  "rand 0.8.5",
  "reqwest",
  "serde",
+ "serde_json",
  "serde_plain",
  "slug",
  "spicedb",
@@ -2063,6 +2052,20 @@ dependencies = [
  "libc",
  "pkg-config",
  "vcpkg",
+]
+
+[[package]]
+name = "operation-worker"
+version = "0.1.0"
+dependencies = [
+ "frn-core",
+ "serde_json",
+ "spicedb",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

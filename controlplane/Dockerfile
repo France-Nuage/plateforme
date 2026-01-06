@@ -55,9 +55,9 @@ COPY . .
 FROM base AS development
 CMD ["cargo", "run", "--bin=server"]
 
-# Development Stage - Authz Worker
-FROM base AS development-authz-worker
-CMD ["cargo", "run", "--bin=authz-worker"]
+# Development Stage - Operation Worker
+FROM base AS development-operation-worker
+CMD ["cargo", "run", "--bin=operation-worker"]
 
 # Development Stage - Synchronizer
 FROM base AS development-synchronizer
@@ -67,7 +67,7 @@ CMD ["cargo", "run", "--bin=synchronizer"]
 FROM base AS builder
 RUN SQLX_OFFLINE=true cargo build --release \
   --bin server \
-  --bin authz-worker \
+  --bin operation-worker \
   --bin synchronizer
 
 # Production Stage - Server
@@ -85,13 +85,13 @@ COPY --from=builder /app/target/release/server /usr/bin/server
 RUN chmod +x /usr/bin/server
 CMD ["/usr/bin/server"]
 
-# Production Stage - Authz Worker
-FROM alpine:3.23 AS release-authz-worker
+# Production Stage - Operation Worker
+FROM alpine:3.23 AS release-operation-worker
 RUN apk add --no-cache ca-certificates openssl
 
-COPY --from=builder /app/target/release/authz-worker /usr/bin/authz-worker
-RUN chmod +x /usr/bin/authz-worker
-CMD ["/usr/bin/authz-worker"]
+COPY --from=builder /app/target/release/operation-worker /usr/bin/operation-worker
+RUN chmod +x /usr/bin/operation-worker
+CMD ["/usr/bin/operation-worker"]
 
 # Production Stage - Synchronizer
 FROM alpine:3.23 AS release-synchronizer

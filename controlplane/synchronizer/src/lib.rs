@@ -1,4 +1,5 @@
 use frn_core::authorization::{Relation, Relationship, Resource};
+use frn_core::longrunning::Operation;
 use frn_core::resourcemanager::Project;
 use frn_core::{
     App, authorization::Authorize, compute::Instance, identity::ServiceAccount,
@@ -95,12 +96,12 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
         let instances = Instance::upsert(&app.db, &instances).await?;
 
         for instance in &instances {
-            Relationship::new(
+            Operation::write_relationships(vec![Relationship::new(
                 &Project::some(instance.project_id),
                 Relation::Parent,
                 instance,
-            )
-            .publish(&app.db)
+            )])
+            .dispatch(&app.db)
             .await?;
         }
     }
