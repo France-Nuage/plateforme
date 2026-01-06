@@ -1,4 +1,5 @@
 use auth::mock::WithWellKnown;
+use fabrique::Factory;
 use frn_core::identity::ServiceAccount;
 use frn_rpc::v1::compute::instances_client::InstancesClient;
 use frn_rpc::v1::{

@@ -1,5 +1,5 @@
 use crate::common::{Api, OnBehalfOf};
-use fabrique::Persistable;
+use fabrique::Query;
 use frn_rpc::v1::resourcemanager::{
     CreateOrganizationRequest, CreateOrganizationResponse, Organization,
 };
@@ -36,8 +36,12 @@ async fn test_the_create_organization_procedure_works(
                 id: organizations[0].id.to_string(),
                 name: String::from("ACME"),
                 slug: String::from("acme"),
-                created_at: Some(prost_types::Timestamp::default()),
-                updated_at: Some(prost_types::Timestamp::default()),
+                created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
+                    organizations[0].created_at
+                ))),
+                updated_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
+                    organizations[0].updated_at
+                ))),
             })
         }
     );

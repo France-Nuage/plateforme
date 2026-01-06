@@ -17,11 +17,7 @@ prost = "0.14"
 prost-types = "0.14"
 reqwest = { version = "0.12", features = ["json"] }
 spicedb = { path = "../spicedb" }
-sqlx = { version = "0.8", features = [
-  "migrate",
-  "postgres",
-  "runtime-tokio-rustls",
-] }
+sqlx = { workspace = true, features = ["migrate"] }
 thiserror = "2"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread", "signal"] }
 tokio-stream = "0.1.17"

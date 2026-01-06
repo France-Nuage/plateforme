@@ -1,4 +1,4 @@
-use database::Persistable;
+use fabrique::Query;
 
 use crate::{Problem, ZeroTrustNetwork};
 
@@ -10,7 +10,11 @@ pub struct ZeroTrustNetworkService {
 impl ZeroTrustNetworkService {
     /// List all zero trust networks.
     pub async fn list(&self) -> Result<Vec<ZeroTrustNetwork>, Problem> {
-        ZeroTrustNetwork::list(&self.pool).await.map_err(Into::into)
+        ZeroTrustNetwork::query()
+            .select()
+            .get(&self.pool)
+            .await
+            .map_err(Into::into)
     }
 
     /// Create a new zero trust network service.
@@ -22,14 +26,17 @@ impl ZeroTrustNetworkService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ZeroTrustNetworkType;
+    use fabrique::Factory;
+    use frn_core::resourcemanager::Organization;
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list(pool: sqlx::PgPool) {
         // Arrange the service
         let service = ZeroTrustNetworkService::new(pool.clone());
         let model = ZeroTrustNetwork::factory()
-            .for_default_organization()
-            .for_default_zero_trust_network_type()
+            .for_organization(Organization::factory().parent_id(None))
+            .for_zero_trust_network_type(ZeroTrustNetworkType::factory())
             .create(&pool)
             .await
             .unwrap();

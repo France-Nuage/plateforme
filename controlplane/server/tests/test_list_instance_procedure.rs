@@ -1,6 +1,7 @@
 use crate::common::{Api, OnBehalfOf};
-use frn_core::compute::Instance;
-use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization};
+use fabrique::Factory;
+use frn_core::compute::{Hypervisor, Instance, Zone};
+use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
 use frn_rpc::v1::compute::ListInstancesRequest;
 use tonic::Request;
 
@@ -13,21 +14,27 @@ async fn test_the_list_instances_procedure_works(pool: sqlx::PgPool) {
     let mock_url = api.mock_server.url();
 
     let organization = Organization::factory()
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
+    let hypervisor = Hypervisor::factory()
+        .for_zone(Zone::factory())
+        .organization_id(organization.id)
+        .url(mock_url)
+        .create(&pool)
+        .await
+        .expect("could not create hypervisor");
+    let project = Project::factory()
+        .name(DEFAULT_PROJECT_NAME.into())
+        .organization_id(organization.id)
+        .create(&pool)
+        .await
+        .expect("could not create project");
     Instance::factory()
-        .for_hypervisor(move |hypervisor| {
-            hypervisor
-                .for_zone(|zone| zone)
-                .organization_id(organization.id)
-                .url(mock_url)
-        })
-        .for_project(move |project| {
-            project
-                .name(DEFAULT_PROJECT_NAME.into())
-                .organization_id(organization.id)
-        })
+        .hypervisor_id(hypervisor.id)
+        .project_id(project.id)
+        .zero_trust_network_id(None)
         .create(&pool)
         .await
         .expect("could not create instance");

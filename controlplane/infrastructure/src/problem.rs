@@ -13,6 +13,13 @@ impl From<sqlx::Error> for Problem {
     }
 }
 
+/// Converts a `fabrique::Error` into a `infrastructure::Problem`.
+impl From<fabrique::Error> for Problem {
+    fn from(value: fabrique::Error) -> Self {
+        Problem::Other(Box::new(value))
+    }
+}
+
 /// Converts a `infrastructure::Problem` into a `tonic::Status`.
 impl From<Problem> for tonic::Status {
     fn from(value: Problem) -> Self {

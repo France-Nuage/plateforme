@@ -4,13 +4,14 @@ use crate::{
     identity::User,
     resourcemanager::{Organization, Organizations},
 };
-use fabrique::{Factory, Persistable};
+use fabrique::{Factory, Model};
+use fake::Dummy;
 use sqlx::{Pool, Postgres};
 use std::str::FromStr;
 use strum_macros::{Display, EnumString, IntoStaticStr};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, Persistable, Resource)]
+#[derive(Debug, Default, Factory, Model, Resource)]
 pub struct Invitation {
     /// The invitation id
     #[fabrique(primary_key)]
@@ -33,7 +34,7 @@ pub struct Invitation {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[derive(Debug, Default, Display, EnumString, IntoStaticStr)]
+#[derive(Clone, Debug, Default, Display, Dummy, EnumString, IntoStaticStr)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum InvitationState {
     #[default]

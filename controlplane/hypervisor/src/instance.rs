@@ -1,10 +1,11 @@
 use crate::Error;
+use fake::Dummy;
 use std::net::Ipv4Addr;
 use std::str::FromStr;
 use strum_macros::{Display, EnumString, IntoStaticStr};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Default, Display, EnumString, IntoStaticStr)]
+#[derive(Clone, Debug, Default, Display, Dummy, EnumString, IntoStaticStr)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum Status {
     /// Instance is active and operational.
@@ -67,8 +68,8 @@ pub struct InstanceCreateRequest {
     /// The number of cores per socket.
     pub cores: u8,
 
-    /// The disk size.
-    pub disk_bytes: u32,
+    /// The disk size in bytes.
+    pub disk_bytes: u64,
 
     /// The disk image to create the instance from.
     pub disk_image: String,

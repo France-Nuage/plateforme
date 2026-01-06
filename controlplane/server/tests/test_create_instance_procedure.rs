@@ -1,6 +1,6 @@
 use crate::common::{Api, OnBehalfOf};
-use fabrique::Persistable;
-use frn_core::compute::{Hypervisor, Instance};
+use fabrique::{Factory, Query};
+use frn_core::compute::{Hypervisor, Instance, Zone};
 use frn_core::resourcemanager::{DEFAULT_PROJECT_NAME, Organization, Project};
 use frn_rpc::v1::compute::{CreateInstanceRequest, CreateInstanceResponse};
 use tonic::Request;
@@ -12,13 +12,14 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
     // Arrange a test api and the required data
     let mut api = Api::start(&pool).await.expect("count not start api");
     let organization = Organization::factory()
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
 
     let hypervisor = Hypervisor::factory()
         .url(api.mock_server.url())
-        .for_zone(|zone| zone)
+        .for_zone(Zone::factory())
         .organization_id(organization.id)
         .create(&pool)
         .await
@@ -45,7 +46,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
 
     // Assert the result
     let result = api.compute.instances.create(request).await;
-    assert!(result.is_ok());
+    assert!(result.is_ok(), "create failed: {:?}", result.err());
     let instances = Instance::all(&pool)
         .await
         .expect("could not fetch instances");
@@ -56,6 +57,7 @@ async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
             instance: Some(frn_rpc::v1::compute::Instance {
                 id: instance.id.to_string(),
                 max_cpu_cores: 1,
+                max_disk_bytes: 10737418240,
                 max_memory_bytes: 536870912,
                 name: "acme-mgs".to_owned(),
                 hypervisor_id: hypervisor.id.to_string(),

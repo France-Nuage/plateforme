@@ -2,7 +2,6 @@ use crate::Error;
 use crate::authorization::lookup::LookupWithResource;
 use crate::authorization::{Principal, Resource, check::CheckWithPrincipal};
 use crate::authorization::{Relationship, Zookie};
-use fabrique::Persistable;
 use spicedb::SpiceDB;
 
 /// Authorization backend trait for checking and looking up permissions
@@ -42,7 +41,7 @@ pub trait Authorize: Clone + Send + Sync {
     }
 
     /// Start a resource lookup query
-    fn lookup<R: Resource + Persistable>(&self) -> LookupWithResource<Self, R> {
+    fn lookup<R: Resource>(&self) -> LookupWithResource<Self, R> {
         LookupWithResource::new(self.clone())
     }
 }

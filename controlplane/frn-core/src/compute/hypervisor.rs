@@ -1,23 +1,22 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
-use crate::compute::ZoneFactory;
-use crate::resourcemanager::Organization;
-use fabrique::{Factory, Persistable};
-use frn_core::resourcemanager::OrganizationFactory;
+use crate::compute::{Zone, ZoneFactory, ZoneIdColumn};
+use crate::resourcemanager::{Organization, OrganizationFactory, OrganizationIdColumn};
+use fabrique::{Factory, Model, Query};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, Persistable, Resource)]
+#[derive(Debug, Default, Factory, Model, Resource)]
 pub struct Hypervisor {
     /// The hypervisor id
     #[fabrique(primary_key)]
     pub id: Uuid,
 
-    #[fabrique(relation = "Zone", referenced_key = "id")]
+    #[fabrique(belongs_to = Zone)]
     pub zone_id: Uuid,
 
     /// The id of the organization the hypervisor belongs to
-    #[fabrique(relation = "Organization", referenced_key = "id")]
+    #[fabrique(belongs_to = Organization)]
     pub organization_id: Uuid,
 
     /// The hypervisor url

@@ -2,12 +2,12 @@ use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::identity::{ServiceAccount, User};
 use crate::resourcemanager::{DEFAULT_PROJECT_NAME, Project};
-use fabrique::{Factory, Persistable};
+use fabrique::{Factory, Model, Persist};
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, Persistable, Resource)]
+#[derive(Debug, Default, Factory, Model, Resource)]
 pub struct Organization {
     /// The organization id
     #[fabrique(primary_key)]
@@ -93,13 +93,16 @@ impl<A: Authorize> Organizations<A> {
         }
 
         // Create the organization
-        let organization = Organization::factory()
-            .id(Uuid::new_v4())
-            .name(name)
-            .slug(slug)
-            .parent_id(parent_id)
-            .create(connection)
-            .await?;
+        let organization = Organization {
+            id: Uuid::new_v4(),
+            name,
+            slug,
+            parent_id,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+        }
+        .create(connection)
+        .await?;
 
         // Create the parent relationship if specified
         if let Some(parent_id) = parent_id {
@@ -192,11 +195,16 @@ impl<A: Authorize> Organizations<A> {
                     return Err(Error::SlugAlreadyExists(slug));
                 }
 
-                Organization::factory()
-                    .name(organization_name)
-                    .slug(slug)
-                    .create(&self.db)
-                    .await?
+                Organization {
+                    id: Uuid::new_v4(),
+                    name: organization_name,
+                    slug,
+                    parent_id: None,
+                    created_at: chrono::Utc::now(),
+                    updated_at: chrono::Utc::now(),
+                }
+                .create(&self.db)
+                .await?
             }
         };
 

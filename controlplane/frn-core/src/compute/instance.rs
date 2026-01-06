@@ -5,27 +5,27 @@
 
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
-use crate::compute::{Hypervisor, HypervisorFactory};
-use crate::resourcemanager::{Project, ProjectFactory};
+use crate::compute::{Hypervisor, HypervisorFactory, HypervisorIdColumn};
+use crate::resourcemanager::{Project, ProjectFactory, ProjectIdColumn};
 use base64::Engine;
 use chrono::{DateTime, Utc};
-use fabrique::{Factory, Persistable};
+use fabrique::{Factory, Model, Persist, Query};
 use hypervisor::instance::Instances as HypervisorInstancesTrait;
 use hypervisor::instance::Status;
 use sqlx::{Pool, Postgres};
 use ssh_key::{Algorithm, LineEnding, PrivateKey};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Default, Factory, Persistable, Resource)]
+#[derive(Clone, Debug, Default, Factory, Model, Resource)]
 pub struct Instance {
     /// Unique identifier for the instance
     #[fabrique(primary_key)]
     pub id: Uuid,
     /// The hypervisor this instance is attached to
-    #[fabrique(relation = "Hypervisor", referenced_key = "id")]
+    #[fabrique(belongs_to = Hypervisor)]
     pub hypervisor_id: Uuid,
     /// The project this instance belongs to
-    #[fabrique(relation = "Project", referenced_key = "id")]
+    #[fabrique(belongs_to = Project)]
     pub project_id: Uuid,
     /// The zero trust network this instance belongs to
     pub zero_trust_network_id: Option<Uuid>,
@@ -72,8 +72,8 @@ pub struct InstanceCreateRequest {
     /// The number of cores per socket.
     pub cores: u8,
 
-    /// The disk size.
-    pub disk_size: u32,
+    /// The disk size in bytes.
+    pub disk_size: u64,
 
     /// The disk image to create the instance from.
     pub disk_image: String,
@@ -193,16 +193,26 @@ impl<A: Authorize> Instances<A> {
         let instance = match maybe_instance {
             None => {
                 // Save the created instance in database
-                Instance::factory()
-                    .id(instance_id)
-                    .hypervisor_id(hypervisor.id)
-                    .project_id(request.project_id)
-                    .distant_id(next_id)
-                    .max_cpu_cores(request.cores as i32)
-                    .max_memory_bytes(request.memory as i64)
-                    .name(request.name)
-                    .create(&self.db)
-                    .await?
+                Instance {
+                    id: instance_id,
+                    hypervisor_id: hypervisor.id,
+                    project_id: request.project_id,
+                    zero_trust_network_id: None,
+                    distant_id: next_id,
+                    cpu_usage_percent: 0.0,
+                    disk_usage_bytes: 0,
+                    ip_v4: String::new(),
+                    max_cpu_cores: request.cores as i32,
+                    max_disk_bytes: request.disk_size as i64,
+                    max_memory_bytes: request.memory as i64,
+                    memory_usage_bytes: 0,
+                    name: request.name,
+                    status: Status::default(),
+                    created_at: chrono::Utc::now(),
+                    updated_at: chrono::Utc::now(),
+                }
+                .create(&self.db)
+                .await?
             }
             Some(instance) => {
                 sqlx::query!(

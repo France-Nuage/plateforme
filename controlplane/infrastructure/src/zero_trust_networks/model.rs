@@ -1,28 +1,28 @@
-use crate::ZeroTrustNetworkTypeFactory;
-use database::{Factory, Persistable, Repository};
-use frn_core::resourcemanager::OrganizationFactory;
-use sqlx::FromRow;
-use sqlx::types::chrono;
+use crate::{ZeroTrustNetworkType, ZeroTrustNetworkTypeFactory, ZeroTrustNetworkTypeIdColumn};
+use chrono::{DateTime, Utc};
+use fabrique::{Factory, Model};
+use frn_core::resourcemanager::{Organization, OrganizationFactory, OrganizationIdColumn};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Factory, FromRow, PartialEq, Repository)]
+#[derive(Debug, Default, Factory, Model, PartialEq)]
+#[fabrique(table = "zero_trust_networks")]
 pub struct ZeroTrustNetwork {
     /// Unique identifier for the zero trust network
-    #[repository(primary)]
+    #[fabrique(primary_key)]
     pub id: Uuid,
 
-    #[factory(relation = "OrganizationFactory")]
+    #[fabrique(belongs_to = Organization)]
     pub organization_id: Uuid,
 
-    #[factory(relation = "ZeroTrustNetworkTypeFactory")]
+    #[fabrique(belongs_to = ZeroTrustNetworkType)]
     pub zero_trust_network_type_id: Uuid,
 
     /// Zero trust network name
     pub name: String,
 
-    // Creation time of the zero trust network type
-    pub created_at: chrono::DateTime<chrono::Utc>,
+    /// Creation time of the zero trust network
+    pub created_at: DateTime<Utc>,
 
-    // Time of the zero trust network type last update
-    pub updated_at: chrono::DateTime<chrono::Utc>,
+    /// Time of the zero trust network last update
+    pub updated_at: DateTime<Utc>,
 }

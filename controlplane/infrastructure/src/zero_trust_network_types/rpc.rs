@@ -39,6 +39,7 @@ impl ZeroTrustNetworkTypes for ZeroTrustNetworkTypeRpcService {
 mod tests {
     use super::*;
     use crate::ZeroTrustNetworkType;
+    use fabrique::Factory;
 
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_organizations_works(pool: sqlx::PgPool) {
