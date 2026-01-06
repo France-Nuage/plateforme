@@ -2,7 +2,8 @@ use crate::{
     Error,
     authorization::{Authorize, Permission, Principal, Resource},
 };
-use fabrique::Persistable;
+use fabrique::{DatabaseAware, Query};
+use sqlx::{Pool, Postgres};
 use std::{
     future::{Future, IntoFuture},
     marker::PhantomData,
@@ -10,13 +11,13 @@ use std::{
 };
 
 /// Typestate after specifying the resource type
-pub struct LookupWithResource<A: Authorize, R: Resource + Persistable> {
+pub struct LookupWithResource<A: Authorize, R: Resource> {
     auth: A,
     resource: PhantomData<R>,
 }
 
 /// Typestate after specifying the principal
-pub struct LookupWithPrincipal<'a, A: Authorize, P: Principal, R: Resource + Persistable> {
+pub struct LookupWithPrincipal<'a, A: Authorize, P: Principal, R: Resource> {
     auth: A,
     resource: PhantomData<R>,
     subject_id: &'a P::Id,
@@ -24,7 +25,7 @@ pub struct LookupWithPrincipal<'a, A: Authorize, P: Principal, R: Resource + Per
 }
 
 /// Typestate after specifying the permission
-pub struct LookupWithPermission<'a, A: Authorize, P: Principal, R: Resource + Persistable> {
+pub struct LookupWithPermission<'a, A: Authorize, P: Principal, R: Resource> {
     auth: A,
     permission: Permission,
     resource: PhantomData<R>,
@@ -33,16 +34,16 @@ pub struct LookupWithPermission<'a, A: Authorize, P: Principal, R: Resource + Pe
 }
 
 /// Typestate with all parameters set, ready to execute the resource lookup
-pub struct LookupWithConnection<'a, A: Authorize, P: Principal, R: Resource + Persistable> {
+pub struct LookupWithConnection<'a, A: Authorize, P: Principal, R: Resource> {
     auth: A,
-    connection: &'a R::Connection,
+    connection: &'a Pool<Postgres>,
     permission: Permission,
     resource: PhantomData<R>,
     subject_id: &'a P::Id,
     subject_type: &'static str,
 }
 
-impl<A: Authorize, R: Resource + Persistable> LookupWithResource<A, R> {
+impl<A: Authorize, R: Resource> LookupWithResource<A, R> {
     pub fn new(prev: A) -> Self {
         Self {
             auth: prev,
@@ -59,7 +60,7 @@ impl<A: Authorize, R: Resource + Persistable> LookupWithResource<A, R> {
     }
 }
 
-impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithPrincipal<'a, A, P, R> {
+impl<'a, A: Authorize, P: Principal, R: Resource> LookupWithPrincipal<'a, A, P, R> {
     pub fn new(
         prev: LookupWithResource<A, R>,
         subject_type: &'static str,
@@ -78,7 +79,7 @@ impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithPrinci
         LookupWithPermission::new(self, permission)
     }
 }
-impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithPermission<'a, A, P, R> {
+impl<'a, A: Authorize, P: Principal, R: Resource> LookupWithPermission<'a, A, P, R> {
     pub fn new(prev: LookupWithPrincipal<'a, A, P, R>, permission: Permission) -> Self {
         Self {
             auth: prev.auth,
@@ -90,13 +91,13 @@ impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithPermis
     }
 
     /// Specify the database connection to query resources from
-    pub fn against(self, connection: &'a R::Connection) -> LookupWithConnection<'a, A, P, R> {
+    pub fn against(self, connection: &'a Pool<Postgres>) -> LookupWithConnection<'a, A, P, R> {
         LookupWithConnection::new(self, connection)
     }
 }
 
-impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithConnection<'a, A, P, R> {
-    pub fn new(prev: LookupWithPermission<'a, A, P, R>, connection: &'a R::Connection) -> Self {
+impl<'a, A: Authorize, P: Principal, R: Resource> LookupWithConnection<'a, A, P, R> {
+    pub fn new(prev: LookupWithPermission<'a, A, P, R>, connection: &'a Pool<Postgres>) -> Self {
         Self {
             auth: prev.auth,
             permission: prev.permission,
@@ -108,8 +109,11 @@ impl<'a, A: Authorize, P: Principal, R: Resource + Persistable> LookupWithConnec
     }
 }
 
-impl<'a, A: Authorize + 'a, P: Principal, R: Resource + Persistable> IntoFuture
+impl<'a, A: Authorize + 'a, P: Principal, R: Resource + Query> IntoFuture
     for LookupWithConnection<'a, A, P, R>
+where
+    R: DatabaseAware<Database = Postgres>,
+    R::Error: From<sqlx::Error>,
 {
     type Output = Result<Vec<R>, Error>;
 
@@ -127,7 +131,9 @@ impl<'a, A: Authorize + 'a, P: Principal, R: Resource + Persistable> IntoFuture
                 )
                 .await?;
 
-            let models = R::all(self.connection)
+            let models = R::query()
+                .select()
+                .get(self.connection)
                 .await
                 .map_err(|_| Error::Other("persistence layer failure".to_owned()))?
                 .into_iter()

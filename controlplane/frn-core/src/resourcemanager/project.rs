@@ -1,7 +1,7 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship};
-use crate::resourcemanager::{Organization, OrganizationFactory};
-use fabrique::{Factory, Persistable};
+use crate::resourcemanager::{Organization, OrganizationFactory, OrganizationIdColumn};
+use fabrique::{Factory, Model};
 use frn_core::authorization::Resource;
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 pub const DEFAULT_PROJECT_NAME: &str = "unattributed";
 
-#[derive(Debug, Default, Factory, Persistable, Resource)]
+#[derive(Debug, Default, Factory, Model, Resource)]
 pub struct Project {
     /// The project id
     #[fabrique(primary_key)]
@@ -19,7 +19,7 @@ pub struct Project {
     pub name: String,
 
     /// The organization this project belongs to
-    #[fabrique(relation = "Organization", referenced_key = "id")]
+    #[fabrique(belongs_to = "Organization")]
     pub organization_id: Uuid,
 
     /// Creation time of the project

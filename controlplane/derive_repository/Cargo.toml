@@ -18,11 +18,5 @@ thiserror = "2.0"
 
 [dev-dependencies]
 database = { path = "../database" }
-sqlx = { version = "0.8", features = [
-  "chrono",
-  "migrate",
-  "postgres",
-  "runtime-tokio-rustls",
-  "uuid",
-] }
+sqlx = { workspace = true }
 uuid = { version = "1.0", features = ["v4"] }

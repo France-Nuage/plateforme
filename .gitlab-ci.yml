@@ -204,6 +204,7 @@ gitleaks:
   <<: *build_template
   rules:
     - changes:
+        - controlplane/**/*
         - node-sdk/**/*
         - .gitlab-ci.yml
   script:
@@ -225,8 +226,9 @@ gitleaks:
   <<: *build_template
   rules:
     - changes:
-        - system-tests/**/*
+        - controlplane/**/*
         - node-sdk/**/*
+        - system-tests/**/*
         - .gitlab-ci.yml
   script:
     - |
@@ -321,6 +323,7 @@ gitleaks:
   rules:
     - changes:
         - console/**/*
+        - controlplane/**/*
         - node-sdk/**/*
         - .gitlab-ci.yml
   variables:
@@ -349,6 +352,8 @@ gitleaks:
   stage: build
   rules:
     - changes:
+        - console/**/*
+        - controlplane/**/*
         - system-tests/**/*
         - node-sdk/**/*
         - .gitlab-ci.yml

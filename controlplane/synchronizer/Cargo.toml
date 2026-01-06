@@ -9,7 +9,7 @@ hypervisor = { path = "../hypervisor" }
 frn-core = { path = "../frn-core" }
 futures = "0.3"
 reqwest = "0.12"
-sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls"] }
+sqlx = { workspace = true }
 thiserror = "2"
 tokio = { version = "1.0", features = ["rt", "time", "macros"] }
 tracing = "0.1"

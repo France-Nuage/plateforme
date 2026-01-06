@@ -1,4 +1,5 @@
 use crate::common::{Api, OnBehalfOf};
+use fabrique::Factory;
 use frn_core::{compute::Zone, resourcemanager::Organization};
 use frn_rpc::v1::compute::RegisterHypervisorRequest;
 use tonic::Request;
@@ -13,6 +14,7 @@ async fn test_the_register_hypervisor_procedure_works(pool: sqlx::PgPool) {
         .await
         .expect("could not create zone");
     let organization = Organization::factory()
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");

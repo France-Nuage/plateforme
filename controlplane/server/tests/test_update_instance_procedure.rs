@@ -1,8 +1,8 @@
 use crate::common::{Api, OnBehalfOf};
-use frn_core::compute::Instance;
+use fabrique::Factory;
+use frn_core::compute::{Hypervisor, Instance, Zone};
 use frn_core::resourcemanager::{Organization, Project};
 use frn_rpc::v1::compute::UpdateInstanceRequest;
-use sqlx::types::Uuid;
 use tonic::Request;
 
 mod common;
@@ -14,14 +14,13 @@ async fn test_the_update_instance_procedure_can_change_project(pool: sqlx::PgPoo
     let mock_url = api.mock_server.url();
 
     let organization = Organization::factory()
-        .id(Uuid::new_v4())
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
 
     // Create project A explicitly
     let project_a = Project::factory()
-        .id(Uuid::new_v4())
         .name("project-a".into())
         .organization_id(organization.id)
         .create(&pool)
@@ -30,7 +29,6 @@ async fn test_the_update_instance_procedure_can_change_project(pool: sqlx::PgPoo
 
     // Create project B explicitly
     let project_b = Project::factory()
-        .id(Uuid::new_v4())
         .name("project-b".into())
         .organization_id(organization.id)
         .create(&pool)
@@ -39,15 +37,16 @@ async fn test_the_update_instance_procedure_can_change_project(pool: sqlx::PgPoo
 
     // Create an instance in project A
     let instance = Instance::factory()
-        .for_hypervisor(move |hypervisor| {
-            hypervisor
-                .for_zone(|zone| zone)
+        .for_hypervisor(
+            Hypervisor::factory()
+                .for_zone(Zone::factory())
                 .organization_id(organization.id)
-                .url(mock_url)
-        })
+                .url(mock_url),
+        )
         .project_id(project_a.id)
         .name("test-instance".into())
         .distant_id("100".into())
+        .zero_trust_network_id(None)
         .create(&pool)
         .await
         .expect("could not create instance");
@@ -89,22 +88,23 @@ async fn test_the_update_instance_procedure_can_change_name(pool: sqlx::PgPool) 
     let mock_url = api.mock_server.url();
 
     let organization = Organization::factory()
-        .id(Uuid::new_v4())
+        .parent_id(None)
         .create(&pool)
         .await
         .expect("could not create organization");
 
     // Create an instance
     let instance = Instance::factory()
-        .for_hypervisor(move |hypervisor| {
-            hypervisor
-                .for_zone(|zone| zone)
+        .for_hypervisor(
+            Hypervisor::factory()
+                .for_zone(Zone::factory())
                 .organization_id(organization.id)
-                .url(mock_url)
-        })
-        .for_project(move |project| project.organization_id(organization.id))
+                .url(mock_url),
+        )
+        .for_project(Project::factory().organization_id(organization.id))
         .name("old-name".into())
         .distant_id("101".into())
+        .zero_trust_network_id(None)
         .create(&pool)
         .await
         .expect("could not create instance");
