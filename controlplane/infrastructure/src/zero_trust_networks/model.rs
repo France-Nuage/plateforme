@@ -20,9 +20,9 @@ pub struct ZeroTrustNetwork {
     /// Zero trust network name
     pub name: String,
 
-    /// Creation time of the zero trust network type
+    /// Creation time of the zero trust network
     pub created_at: DateTime<Utc>,
 
-    /// Time of the zero trust network type last update
+    /// Time of the zero trust network last update
     pub updated_at: DateTime<Utc>,
 }
