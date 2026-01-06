@@ -16,7 +16,9 @@ export const LoginPage: FunctionComponent = () => {
   useEffect(() => {
     userManager.signinRedirect().catch((err: Error) => {
       console.error('OIDC redirect failed:', err);
-      setError('Failed to redirect to authentication provider. Please try again.');
+      setError(
+        'Failed to redirect to authentication provider. Please try again.',
+      );
     });
   }, []);
 
