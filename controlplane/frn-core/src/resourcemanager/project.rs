@@ -1,6 +1,5 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship};
-use crate::longrunning::Operation;
 use crate::resourcemanager::{Organization, OrganizationFactory, OrganizationIdColumn};
 use fabrique::{Factory, Model};
 use frn_core::authorization::Resource;
@@ -67,13 +66,13 @@ impl<Auth: Authorize> Projects<Auth> {
             .create(&self.db)
             .await?;
 
-        Operation::write_relationships(vec![Relationship::new(
-            &Organization::some(request.organization_id),
-            Relation::Parent,
-            &project,
-        )])
-        .dispatch(&self.db)
-        .await?;
+        self.auth
+            .write_relationship(&Relationship::new(
+                &Organization::some(request.organization_id),
+                Relation::Parent,
+                &project,
+            ))
+            .await?;
 
         Ok(project)
     }

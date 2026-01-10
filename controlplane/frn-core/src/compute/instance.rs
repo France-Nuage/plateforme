@@ -6,7 +6,6 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::compute::{Hypervisor, HypervisorFactory, HypervisorIdColumn};
-use crate::longrunning::Operation;
 use crate::resourcemanager::{Project, ProjectFactory, ProjectIdColumn};
 use base64::Engine;
 use chrono::{DateTime, Utc};
@@ -165,6 +164,8 @@ impl<A: Authorize> Instances<A> {
         .data
         .to_string();
 
+        tracing::info!("next id is: {}", &next_id);
+
         // Setup Hoop SSH bastion access
         let snippet = self
             .setup_hoop_access(&request.name, request.snippet)
@@ -228,14 +229,14 @@ impl<A: Authorize> Instances<A> {
             }
         };
 
-        // Save the relations
-        Operation::write_relationships(vec![Relationship::new(
-            &Project::some(request.project_id),
-            Relation::Parent,
-            &instance,
-        )])
-        .dispatch(&self.db)
-        .await?;
+        // Write the relationship synchronously to SpiceDB
+        self.auth
+            .write_relationship(&Relationship::new(
+                &Project::some(request.project_id),
+                Relation::Parent,
+                &instance,
+            ))
+            .await?;
 
         Ok(instance)
     }
@@ -470,13 +471,13 @@ impl<A: Authorize> Instances<A> {
 
         let instance = instance.create(&self.db).await?;
 
-        Operation::write_relationships(vec![Relationship::new(
-            &Project::some(instance.project_id),
-            Relation::Parent,
-            &instance,
-        )])
-        .dispatch(&self.db)
-        .await?;
+        self.auth
+            .write_relationship(&Relationship::new(
+                &Project::some(instance.project_id),
+                Relation::Parent,
+                &instance,
+            ))
+            .await?;
 
         Ok(instance)
     }
@@ -537,14 +538,14 @@ impl<A: Authorize> Instances<A> {
             );
             self.auth.delete_relationship(&old_relationship).await?;
 
-            // Add new project relationship via the operations queue
-            Operation::write_relationships(vec![Relationship::new(
-                &Project::some(new_project_id),
-                Relation::Parent,
-                &updated_instance,
-            )])
-            .dispatch(&self.db)
-            .await?;
+            // Add new project relationship synchronously to SpiceDB
+            self.auth
+                .write_relationship(&Relationship::new(
+                    &Project::some(new_project_id),
+                    Relation::Parent,
+                    &updated_instance,
+                ))
+                .await?;
         }
 
         Ok(updated_instance)

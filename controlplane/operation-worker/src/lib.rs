@@ -43,6 +43,7 @@ impl Worker<SpiceDB> {
 
             if let Some(operation) = self.consume().await? {
                 self.execute(&operation).await?;
+                Operation::mark_completed(operation.id, &self.connection).await?;
             }
         }
     }

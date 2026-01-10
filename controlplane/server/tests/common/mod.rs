@@ -4,6 +4,7 @@ use frn_core::identity::ServiceAccount;
 use frn_rpc::v1::compute::instances_client::InstancesClient;
 use frn_rpc::v1::{
     compute::hypervisors_client::HypervisorsClient,
+    longrunning::operations_client::OperationsClient,
     resourcemanager::{organizations_client::OrganizationsClient, projects_client::ProjectsClient},
 };
 use hypervisor::mock::{
@@ -36,6 +37,18 @@ impl Compute {
     }
 }
 
+pub struct Longrunning {
+    pub operations: OperationsClient<Channel>,
+}
+
+impl Longrunning {
+    pub async fn create(dst: &String) -> Result<Self, Error> {
+        let operations = OperationsClient::connect(dst.clone()).await?;
+
+        Ok(Self { operations })
+    }
+}
+
 pub struct ResourceManager {
     pub organizations: OrganizationsClient<Channel>,
     pub projects: ProjectsClient<Channel>,
@@ -56,6 +69,7 @@ impl ResourceManager {
 /// Test API wrapper that manages a gRPC server lifecycle.
 pub struct Api {
     pub compute: Compute,
+    pub longrunning: Longrunning,
     pub resourcemanager: ResourceManager,
     pub mock_server: MockServer,
     pub service_account: ServiceAccount,
@@ -89,6 +103,7 @@ impl Api {
 
         Ok(Self {
             compute: Compute::create(&server_url).await?,
+            longrunning: Longrunning::create(&server_url).await?,
             resourcemanager: ResourceManager::create(&server_url).await?,
             mock_server,
             service_account,

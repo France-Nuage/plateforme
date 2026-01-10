@@ -6,9 +6,10 @@
 
 use crate::Error;
 use crate::api::v1::check_permission_response::Permissionship;
+use crate::api::v1::consistency::Requirement;
 use crate::api::v1::relationship_update::Operation;
 use crate::api::v1::{
-    CheckPermissionRequest, ObjectReference, SubjectReference,
+    CheckPermissionRequest, Consistency, ObjectReference, SubjectReference,
     permissions_service_client::PermissionsServiceClient,
 };
 use crate::api::v1::{
@@ -59,7 +60,9 @@ impl SpiceDB {
         resource_type: String,
     ) -> Result<Vec<String>, Error> {
         let request = Request::new(LookupResourcesRequest {
-            consistency: None,
+            consistency: Some(Consistency {
+                requirement: Some(Requirement::FullyConsistent(true)),
+            }),
             context: None,
             optional_cursor: None,
             optional_limit: 0,
@@ -93,7 +96,9 @@ impl SpiceDB {
     ) -> Result<(), Error> {
         // forge the check permission request
         let request = Request::new(CheckPermissionRequest {
-            consistency: None,
+            consistency: Some(Consistency {
+                requirement: Some(Requirement::FullyConsistent(true)),
+            }),
             context: None,
             permission: permission.clone(),
             resource: Some(ObjectReference {

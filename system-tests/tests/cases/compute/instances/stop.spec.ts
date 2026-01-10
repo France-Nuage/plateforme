@@ -15,7 +15,6 @@ test.describe('Compute / Instances', () => {
       projectId: project.id,
       snippet: DEFAULT_SNIPPET,
     });
-    await new Promise(resolve => setTimeout(resolve, 5000));
     await services.instance.start(existing.id);
 
 

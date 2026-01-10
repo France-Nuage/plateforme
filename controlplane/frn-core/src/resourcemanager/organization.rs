@@ -1,7 +1,6 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::identity::{ServiceAccount, User};
-use crate::longrunning::Operation;
 use crate::resourcemanager::{DEFAULT_PROJECT_NAME, Project};
 use fabrique::{Factory, Model, Persist};
 use sqlx::types::chrono;
@@ -115,13 +114,9 @@ impl<A: Authorize> Organizations<A> {
             .fetch_one(&self.db)
             .await?;
 
-            Operation::write_relationships(vec![Relationship::new(
-                &parent,
-                Relation::Parent,
-                &organization,
-            )])
-            .dispatch(&self.db)
-            .await?;
+            self.auth
+                .write_relationship(&Relationship::new(&parent, Relation::Parent, &organization))
+                .await?;
         }
 
         let project = Project::factory()
@@ -131,13 +126,13 @@ impl<A: Authorize> Organizations<A> {
             .create(&self.db)
             .await?;
 
-        Operation::write_relationships(vec![Relationship::new(
-            &organization,
-            Relation::Parent,
-            &project,
-        )])
-        .dispatch(&self.db)
-        .await?;
+        self.auth
+            .write_relationship(&Relationship::new(
+                &organization,
+                Relation::Parent,
+                &project,
+            ))
+            .await?;
 
         Ok(organization)
     }
@@ -150,14 +145,14 @@ impl<A: Authorize> Organizations<A> {
         // Create the associated in the relational database
         sqlx::query!("INSERT INTO organization_service_account(organization_id, service_account_id) VALUES ($1, $2) ON CONFLICT (organization_id, service_account_id) DO NOTHING", organization.id(), service_account.id()).execute(&self.db).await?;
 
-        // Create the relation for dispatch in the authorization database
-        Operation::write_relationships(vec![Relationship::new(
-            service_account,
-            Relation::Member,
-            organization,
-        )])
-        .dispatch(&self.db)
-        .await?;
+        // Write the relationship synchronously to SpiceDB
+        self.auth
+            .write_relationship(&Relationship::new(
+                service_account,
+                Relation::Member,
+                organization,
+            ))
+            .await?;
 
         Ok(())
     }
@@ -170,14 +165,10 @@ impl<A: Authorize> Organizations<A> {
         // Create the associated in the relational database
         sqlx::query!("INSERT INTO organization_user(organization_id, user_id) VALUES ($1, $2) ON CONFLICT (organization_id, user_id) DO NOTHING", organization.id(), user.id()).execute(&self.db).await?;
 
-        // Create the relation for dispatch in the authorization database
-        Operation::write_relationships(vec![Relationship::new(
-            user,
-            Relation::Member,
-            organization,
-        )])
-        .dispatch(&self.db)
-        .await?;
+        // Write the relationship synchronously to SpiceDB
+        self.auth
+            .write_relationship(&Relationship::new(user, Relation::Member, organization))
+            .await?;
 
         Ok(())
     }

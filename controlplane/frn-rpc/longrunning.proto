@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package francenuage.fr.longrunning.v1;
+
+import "google/protobuf/duration.proto";
+
+// Manages long-running operations.
+//
+// When an API method takes a long time to complete, it can return an Operation
+// to the client. The client can use this service to poll the operation result
+// or wait for it to complete.
+service Operations {
+    // Gets the latest state of a long-running operation.
+    // Clients can use this method to poll the operation result at intervals.
+    rpc Get(GetOperationRequest) returns (Operation);
+
+    // Waits until the specified long-running operation is done or reaches at
+    // most a specified timeout, returning the latest state.
+    //
+    // If the operation is already done, the latest state is immediately
+    // returned. If the timeout specified is greater than the default HTTP/RPC
+    // timeout, the HTTP/RPC timeout is used.
+    rpc Wait(WaitOperationRequest) returns (Operation);
+}
+
+// Represents a long-running operation that is the result of a network API call.
+message Operation {
+    // The server-assigned name, which is only unique within the same service
+    // that originally returns it.
+    string name = 1;
+
+    // If the value is `false`, it means the operation is still in progress.
+    // If `true`, the operation is completed.
+    optional bool done = 3;
+}
+
+// Request message for `Operations.Get`.
+message GetOperationRequest {
+    // The name of the operation resource.
+    string name = 1;
+}
+
+// Request message for `Operations.Wait`.
+message WaitOperationRequest {
+    // The name of the operation resource to wait on.
+    string name = 1;
+
+    // The maximum duration to wait before timing out. If left blank, the wait
+    // will be at most the time permitted by the underlying HTTP/RPC protocol.
+    // If RPC context deadline is also specified, the shorter one will be used.
+    google.protobuf.Duration timeout = 2;
+}

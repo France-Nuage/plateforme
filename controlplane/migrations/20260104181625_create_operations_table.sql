@@ -1,7 +1,7 @@
 -- Create "operations" table
 CREATE TABLE "public"."operations" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
-  "type" text NOT NULL,
+  "kind" text NOT NULL,
   "payload" jsonb NOT NULL,
   "status" text NOT NULL DEFAULT 'pending',
   "created_at" timestamptz NOT NULL DEFAULT now(),

@@ -41,7 +41,7 @@ RUN rustup default stable && \
   rustup component add clippy rustfmt llvm-tools-preview
 
 # Install cargo tools
-RUN cargo install sqlx-cli && \
+RUN cargo install sqlx-cli --version 0.9.0-alpha.1 && \
   cargo install grcov --version 0.8.20
 
 # Build dependencies (cached layer - only rebuilds when dependencies change)

@@ -330,7 +330,7 @@ table "operations" {
     type    = uuid
     default = sql("gen_random_uuid()")
   }
-  column "type" {
+  column "kind" {
     null = false
     type = text
   }

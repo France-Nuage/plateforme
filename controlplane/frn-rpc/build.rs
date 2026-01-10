@@ -6,7 +6,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_prost_build::configure()
         .file_descriptor_set_path(&descriptor_path)
         .compile_protos(
-            &["compute.proto", "iam.proto", "resourcemanager.proto"],
+            &[
+                "compute.proto",
+                "iam.proto",
+                "longrunning.proto",
+                "resourcemanager.proto",
+            ],
             &["."],
         )?;
 

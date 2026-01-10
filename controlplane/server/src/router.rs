@@ -14,6 +14,8 @@ use frn_rpc::v1::compute::instances_server::InstancesServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::iam::Invitations;
 use frn_rpc::v1::iam::invitations_server::InvitationsServer;
+use frn_rpc::v1::longrunning::Operations;
+use frn_rpc::v1::longrunning::operations_server::OperationsServer;
 use frn_rpc::v1::resourcemanager::Organizations;
 use frn_rpc::v1::resourcemanager::Projects;
 use frn_rpc::v1::resourcemanager::organizations_server::OrganizationsServer;
@@ -83,6 +85,7 @@ impl Router {
                 health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
                 health_reporter.set_serving::<InstancesServer<Instances<SpiceDB>>>(),
                 health_reporter.set_serving::<InvitationsServer<Invitations<SpiceDB>>>(),
+                health_reporter.set_serving::<OperationsServer<Operations<SpiceDB>>>(),
                 health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
                 health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
                 health_reporter
@@ -157,6 +160,22 @@ impl Router {
                     invitations,
                     users,
                 ))),
+        }
+    }
+
+    /// Registers the long-running operations service with the router.
+    ///
+    /// This method adds the operations gRPC service to the router, providing
+    /// endpoints for querying and waiting on long-running operation status.
+    pub fn operations(
+        self,
+        iam: IAM,
+        operations: frn_core::longrunning::Operations<SpiceDB>,
+    ) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(OperationsServer::new(Operations::new(iam, operations))),
         }
     }
 

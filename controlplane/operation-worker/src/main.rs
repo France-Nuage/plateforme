@@ -1,3 +1,4 @@
+use frn_core::longrunning::Operation;
 use operation_worker::Worker;
 use spicedb::SpiceDB;
 use sqlx::PgPool;
@@ -17,11 +18,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pool = PgPool::connect(&database_url).await?;
     let authorizer = SpiceDB::connect(&spicedb_url, &spicedb_token).await?;
 
-    let mut worker = Worker::new(authorizer, pool);
+    let mut worker = Worker::new(authorizer, pool.clone());
 
     // Process pending operations
     while let Some(operation) = worker.consume().await? {
         worker.execute(&operation).await?;
+        Operation::mark_completed(operation.id, &pool).await?;
         tracing::info!("processed operation {}", operation.id);
     }
 

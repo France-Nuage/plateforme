@@ -9,7 +9,7 @@ test.describe('Compute / Instances', () => {
     await pages.compute.createInstance.assertRedirectedTo();
   });
 
-  test('I can create a new instance', async ({ actingAs, pages }) => {
+  test('I can create a new instance', async ({ actingAs, hypervisor, pages }) => {
     test.slow();
     const fixture = instance();
     await actingAs();
