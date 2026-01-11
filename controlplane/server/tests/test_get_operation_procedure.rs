@@ -13,9 +13,10 @@ async fn test_the_get_operation_procedure_works(pool: sqlx::PgPool) {
 
     // Arrange: create an operation in the database
     let operation = Operation::write_relationships(vec![])
+        .expect("could not create operation")
         .create(&pool)
         .await
-        .expect("could not create operation");
+        .expect("could not persist operation");
 
     // Act: call the Get RPC
     let request = Request::new(GetOperationRequest {
@@ -38,12 +39,12 @@ async fn test_the_get_operation_returns_done_when_completed(pool: sqlx::PgPool) 
     let mut api = Api::start(&pool).await.expect("could not start api");
 
     // Arrange: create a completed operation in the database
-    let mut operation = Operation::write_relationships(vec![]);
+    let mut operation = Operation::write_relationships(vec![]).expect("could not create operation");
     operation.completed_at = Some(Utc::now());
     let operation = operation
         .create(&pool)
         .await
-        .expect("could not create operation");
+        .expect("could not persist operation");
 
     // Act: call the Get RPC
     let request = Request::new(GetOperationRequest {

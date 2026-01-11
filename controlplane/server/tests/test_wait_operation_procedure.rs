@@ -12,9 +12,10 @@ async fn test_wait_blocks_until_operation_completes(pool: sqlx::PgPool) {
 
     // Arrange: create a pending operation
     let operation = Operation::write_relationships(vec![])
+        .expect("could not create operation")
         .create(&pool)
         .await
-        .expect("could not create operation");
+        .expect("could not persist operation");
 
     let operation_id = operation.id;
     let pool_clone = pool.clone();

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use auth::mock::WithWellKnown;
 use fabrique::Factory;
 use frn_core::identity::ServiceAccount;
@@ -20,6 +22,7 @@ use tokio::sync::oneshot;
 use tonic::{Request, metadata::MetadataValue, transport::Channel};
 
 /// gRPC clients for compute services.
+#[allow(dead_code)]
 pub struct Compute {
     pub hypervisors: HypervisorsClient<Channel>,
     pub instances: InstancesClient<Channel>,
@@ -37,6 +40,7 @@ impl Compute {
     }
 }
 
+#[allow(dead_code)]
 pub struct Longrunning {
     pub operations: OperationsClient<Channel>,
 }
@@ -49,6 +53,7 @@ impl Longrunning {
     }
 }
 
+#[allow(dead_code)]
 pub struct ResourceManager {
     pub organizations: OrganizationsClient<Channel>,
     pub projects: ProjectsClient<Channel>,
@@ -67,6 +72,7 @@ impl ResourceManager {
 }
 
 /// Test API wrapper that manages a gRPC server lifecycle.
+#[allow(dead_code)]
 pub struct Api {
     pub compute: Compute,
     pub longrunning: Longrunning,

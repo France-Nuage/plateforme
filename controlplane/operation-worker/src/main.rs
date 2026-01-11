@@ -1,3 +1,15 @@
+//! Operation worker binary for processing long-running operations.
+//!
+//! This service listens for operations via PostgreSQL LISTEN/NOTIFY and processes
+//! them asynchronously. On startup, it first processes any pending operations,
+//! then subscribes to the operations channel for new work.
+//!
+//! # Environment Variables
+//!
+//! - `DATABASE_URL`: PostgreSQL connection string
+//! - `SPICEDB_URL`: SpiceDB gRPC endpoint URL
+//! - `SPICEDB_GRPC_PRESHARED_KEY`: SpiceDB authentication token
+
 use frn_core::longrunning::Operation;
 use operation_worker::Worker;
 use spicedb::SpiceDB;

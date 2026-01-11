@@ -1,3 +1,9 @@
+//! Operation model and persistence for the long-running operation queue.
+//!
+//! Defines the `Operation` struct representing queued tasks and `OperationKind`
+//! for supported operation types. Uses PostgreSQL LISTEN/NOTIFY for dispatch
+//! coordination with the operation-worker service.
+
 use crate::Error;
 use crate::authorization::{Authorize, Principal, Relationship};
 use chrono::{DateTime, Utc};
@@ -15,11 +21,11 @@ pub const OPERATIONS_CHANNEL: &str = "operations";
 /// Channel for notifying clients that an operation has completed.
 pub const OPERATIONS_COMPLETED_CHANNEL: &str = "operations_completed";
 
-/// Types d'opérations supportées par le système.
+/// Supported operation types processed by the worker.
 #[derive(Clone, Debug, EnumString, Display)]
 #[strum(serialize_all = "snake_case")]
 pub enum OperationKind {
-    /// Écriture de relations dans SpiceDB
+    /// Write relationships to SpiceDB.
     WriteRelationships,
 }
 
@@ -31,15 +37,13 @@ impl TryFrom<String> for OperationKind {
     }
 }
 
-impl TryFrom<OperationKind> for String {
-    type Error = crate::Error;
-
-    fn try_from(value: OperationKind) -> Result<Self, Self::Error> {
-        Ok(value.to_string())
+impl From<OperationKind> for String {
+    fn from(value: OperationKind) -> Self {
+        value.to_string()
     }
 }
 
-/// Opération asynchrone traitée par un worker.
+/// Asynchronous operation processed by a worker.
 #[derive(Debug, Model)]
 pub struct Operation {
     #[fabrique(primary_key)]
@@ -53,16 +57,20 @@ pub struct Operation {
 }
 
 impl Operation {
-    /// Crée une opération d'écriture de relations.
-    pub fn write_relationships(relationships: Vec<Relationship>) -> Self {
-        Self {
+    /// Creates a write relationships operation.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the relationships cannot be serialized to JSON.
+    pub fn write_relationships(relationships: Vec<Relationship>) -> Result<Self, Error> {
+        Ok(Self {
             id: Uuid::new_v4(),
             kind: OperationKind::WriteRelationships,
-            payload: serde_json::to_value(relationships).unwrap(),
+            payload: serde_json::to_value(relationships)?,
             status: "pending".to_string(),
             created_at: Utc::now(),
             completed_at: None,
-        }
+        })
     }
 
     /// Dispatches the operation to the queue for processing by a worker.
@@ -103,6 +111,7 @@ impl Operation {
 
 #[derive(Clone)]
 pub struct Operations<A: Authorize> {
+    #[allow(dead_code)]
     auth: A,
     db: Pool<Postgres>,
 }

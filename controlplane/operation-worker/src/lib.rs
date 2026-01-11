@@ -1,3 +1,9 @@
+//! Operation worker for processing long-running operations.
+//!
+//! Provides the `Worker` struct that listens for operations via PostgreSQL
+//! LISTEN/NOTIFY and processes them asynchronously. Currently supports
+//! writing relationships to SpiceDB.
+
 mod error;
 
 pub use error::Error;

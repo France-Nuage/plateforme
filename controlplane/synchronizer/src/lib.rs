@@ -95,15 +95,20 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
 
         let instances = Instance::upsert(&app.db, &instances).await?;
 
-        for instance in &instances {
-            Operation::write_relationships(vec![Relationship::new(
-                &Project::some(instance.project_id),
-                Relation::Parent,
-                instance,
-            )])
+        let relationships: Vec<Relationship> = instances
+            .iter()
+            .map(|instance| {
+                Relationship::new(
+                    &Project::some(instance.project_id),
+                    Relation::Parent,
+                    instance,
+                )
+            })
+            .collect();
+
+        Operation::write_relationships(relationships)?
             .dispatch(&app.db)
             .await?;
-        }
     }
 
     Ok(())

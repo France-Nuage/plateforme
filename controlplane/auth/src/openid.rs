@@ -377,7 +377,6 @@ mod tests {
     #[cfg(feature = "mock")]
     #[tokio::test]
     async fn test_discovery_fails_when_the_metadata_is_unparsable() {
-        use crate::mock::WithWellKnown;
         use mock_server::MockServer;
 
         let server = MockServer::new().await;
