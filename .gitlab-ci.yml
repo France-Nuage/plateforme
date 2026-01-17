@@ -33,8 +33,8 @@ before_script:
       echo "WARNING: DOCKERHUB_USERNAME or DOCKERHUB_TOKEN not set. Skipping Docker Hub authentication."
       echo "You may encounter rate limits when pulling images from Docker Hub."
     fi
-  - docker context create buildx-context --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"
-  - docker buildx create --use --name ci-builder --driver docker-container buildx-context
+  - docker context create buildx-context-$CI_JOB_ID --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"
+  - docker buildx create --use --name ci-builder --driver docker-container --driver-opt image=moby/buildkit:v0.26.3 buildx-context-$CI_JOB_ID
   - docker compose down --volumes --remove-orphans
 
 after_script:
