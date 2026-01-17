@@ -297,6 +297,13 @@ export interface CloneInstanceRequest {
    * @generated from protobuf field: string id = 1
    */
   id: string;
+  /**
+   * Optional name for the cloned instance. If not provided, the clone
+   * inherits the name of the source instance.
+   *
+   * @generated from protobuf field: optional string name = 2
+   */
+  name?: string;
 }
 /**
  * CreateInstanceRequest defines the parameters needed to provision a new instance.
@@ -934,6 +941,18 @@ class CloneInstanceRequest$Type extends MessageType<CloneInstanceRequest> {
         options: {
           'validate.rules': {
             string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+          },
+        },
+      },
+      {
+        no: 2,
+        name: 'name',
+        kind: 'scalar',
+        opt: true,
+        T: 9 /*ScalarType.STRING*/,
+        options: {
+          'validate.rules': {
+            string: { minLen: '1', maxLen: '128', pattern: '^[a-zA-Z0-9_-]+$' },
           },
         },
       },

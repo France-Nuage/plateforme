@@ -22,9 +22,9 @@ export class InstanceRpcService implements InstanceService {
   }
 
   /** @inheritdoc */
-  public clone(id: string) {
+  public clone(id: string, name?: string) {
     return this.client
-      .clone({ id })
+      .clone({ id, name })
       .response.then((data) => fromRpcInstance(data));
   }
 

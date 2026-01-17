@@ -5,7 +5,7 @@ export interface InstanceService {
   list: () => Promise<Instance[]>;
 
   /** Clone a given instance. */
-  clone: (id: string) => Promise<Instance>;
+  clone: (id: string, name?: string) => Promise<Instance>;
 
   /** Create a new instance. */
   create: (data: InstanceFormValue) => Promise<Instance>;

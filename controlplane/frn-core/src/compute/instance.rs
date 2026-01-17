@@ -444,11 +444,12 @@ impl<A: Authorize> Instances<A> {
         Ok(())
     }
 
-    /// Stops a running instance.
+    /// Clones an existing instance.
     pub async fn clone_instance<P: Principal + Sync>(
         &mut self,
         principal: &P,
         id: Uuid,
+        name: Option<String>,
     ) -> Result<Instance, Error> {
         self.auth
             .can(principal)
@@ -466,6 +467,7 @@ impl<A: Authorize> Instances<A> {
         let instance = Instance {
             id: Uuid::new_v4(),
             distant_id: new_id,
+            name: name.unwrap_or(existing.name),
             ..existing
         };
 

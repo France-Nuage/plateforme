@@ -280,6 +280,14 @@ message CloneInstanceRequest {
         max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
+
+    // Optional name for the cloned instance. If not provided, the clone
+    // inherits the name of the source instance.
+    optional string name = 2 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 128,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
 }
 
 // CreateInstanceRequest defines the parameters needed to provision a new instance.

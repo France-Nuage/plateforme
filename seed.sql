@@ -3,8 +3,10 @@ BEGIN;
 WITH organization AS (
   INSERT INTO organizations (name, slug)
   VALUES ('acme', 'acme')
+  ON CONFLICT (slug)
+  DO UPDATE SET name = EXCLUDED.name
   RETURNING id
-),
+) ,
 zone AS (
   INSERT INTO zones (name)
   VALUES ('ACME Mesa Data Facility')

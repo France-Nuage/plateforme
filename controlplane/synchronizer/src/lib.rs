@@ -1,5 +1,4 @@
 use frn_core::authorization::{Relation, Relationship, Resource};
-use frn_core::longrunning::Operation;
 use frn_core::resourcemanager::Project;
 use frn_core::{
     App, authorization::Authorize, compute::Instance, identity::ServiceAccount,
@@ -19,6 +18,8 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
     let hypervisors = app.hypervisors.list(&principal).await?;
 
     for hypervisor in hypervisors {
+        tracing::info!(hypervisor_id = %hypervisor.id, hypervisor_url = %hypervisor.url, "Synchronizing hypervisor");
+
         let service = hypervisor::resolve(
             hypervisor.url.clone(),
             hypervisor.authorization_token.clone(),
@@ -106,9 +107,9 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
             })
             .collect();
 
-        Operation::write_relationships(relationships)?
-            .dispatch(&app.db)
-            .await?;
+        for relationship in &relationships {
+            app.auth.write_relationship(relationship).await?;
+        }
     }
 
     Ok(())

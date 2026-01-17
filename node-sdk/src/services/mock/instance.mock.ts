@@ -10,8 +10,8 @@ import { InstanceService } from '../api';
 
 export class InstanceMockService implements InstanceService {
   /** @inheritdoc */
-  clone() {
-    return Promise.resolve(instance());
+  clone(_id: string, name?: string) {
+    return Promise.resolve({ ...instance(), ...(name && { name }) });
   }
 
   /** @inheritdoc */

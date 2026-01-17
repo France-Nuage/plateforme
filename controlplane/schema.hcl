@@ -222,7 +222,7 @@ table "organizations" {
   primary_key {
     columns = [column.id]
   }
-    foreign_key "organizations_parent_id_fkey" {
+  foreign_key "organizations_parent_id_fkey" {
     columns     = [column.parent_id]
     ref_columns = [table.organizations.column.id]
     on_update   = NO_ACTION

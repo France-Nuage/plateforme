@@ -254,7 +254,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
     // Clone, start and register the template as a hypervisor
     console.log(`attempting to clone ${template.id}`);
-    const proxmox = await production.instance.clone(template.id);
+    const proxmox = await production.instance.clone(template.id, `Copy-of-VM-${template.name}`);
     await new Promise(resolve => setTimeout(resolve, 10000));
     await production.instance.start(proxmox.id);
 
@@ -307,7 +307,7 @@ const elect = (instances: Instance[]) => {
     ...acc,
     [curr.name]: {
       template: curr,
-      instance: instances.find((instance) => instance.name === `Copy - of - VM - ${curr.name}`),
+      instance: instances.find((instance) => instance.name === `Copy-of-VM-${curr.name}`),
     }
   }), {});
 
