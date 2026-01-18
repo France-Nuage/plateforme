@@ -36,6 +36,9 @@ pub enum Error {
     #[error("unauthenticated")]
     Unauthenticated,
 
+    #[error("Unknown operation \"{0}\"")]
+    UnknownOperation(String),
+
     /// Authorization builder missing principal.
     #[error("authorization check missing principal")]
     UnspecifiedPrincipal,
@@ -54,6 +57,10 @@ pub enum Error {
 
     #[error("no available hypervisors")]
     NoHypervisorsAvailable,
+
+    /// Serialization error.
+    #[error("serialization: {0}")]
+    Serialization(#[from] serde_json::Error),
 
     /// Organization slug already exists.
     #[error("organization slug already exists: {0}")]
@@ -78,6 +85,7 @@ impl From<Error> for tonic::Status {
             Error::Unauthenticated => tonic::Status::unauthenticated(value.to_string()),
             Error::Forbidden => tonic::Status::permission_denied(value.to_string()),
             Error::SlugAlreadyExists(_) => tonic::Status::already_exists(value.to_string()),
+            Error::UnknownOperation(_) => tonic::Status::invalid_argument(value.to_string()),
             err => {
                 tracing::error!("internal error: {}", err);
                 tonic::Status::internal("internal error")

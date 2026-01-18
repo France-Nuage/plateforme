@@ -114,8 +114,8 @@ impl<A: Authorize> Organizations<A> {
             .fetch_one(&self.db)
             .await?;
 
-            Relationship::new(&parent, Relation::Parent, &organization)
-                .publish(&self.db)
+            self.auth
+                .write_relationship(&Relationship::new(&parent, Relation::Parent, &organization))
                 .await?;
         }
 
@@ -126,8 +126,12 @@ impl<A: Authorize> Organizations<A> {
             .create(&self.db)
             .await?;
 
-        Relationship::new(&organization, Relation::Parent, &project)
-            .publish(&self.db)
+        self.auth
+            .write_relationship(&Relationship::new(
+                &organization,
+                Relation::Parent,
+                &project,
+            ))
             .await?;
 
         Ok(organization)
@@ -141,9 +145,13 @@ impl<A: Authorize> Organizations<A> {
         // Create the associated in the relational database
         sqlx::query!("INSERT INTO organization_service_account(organization_id, service_account_id) VALUES ($1, $2) ON CONFLICT (organization_id, service_account_id) DO NOTHING", organization.id(), service_account.id()).execute(&self.db).await?;
 
-        // Create the relation for dispatch in the authorization database
-        Relationship::new(service_account, Relation::Member, organization)
-            .publish(&self.db)
+        // Write the relationship synchronously to SpiceDB
+        self.auth
+            .write_relationship(&Relationship::new(
+                service_account,
+                Relation::Member,
+                organization,
+            ))
             .await?;
 
         Ok(())
@@ -157,9 +165,9 @@ impl<A: Authorize> Organizations<A> {
         // Create the associated in the relational database
         sqlx::query!("INSERT INTO organization_user(organization_id, user_id) VALUES ($1, $2) ON CONFLICT (organization_id, user_id) DO NOTHING", organization.id(), user.id()).execute(&self.db).await?;
 
-        // Create the relation for dispatch in the authorization database
-        Relationship::new(user, Relation::Member, organization)
-            .publish(&self.db)
+        // Write the relationship synchronously to SpiceDB
+        self.auth
+            .write_relationship(&Relationship::new(user, Relation::Member, organization))
             .await?;
 
         Ok(())

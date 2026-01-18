@@ -44,6 +44,7 @@ async fn test_the_clone_instance_procedure_works(pool: sqlx::PgPool) {
     // Act the request to the test_the_status_procedure_works
     let request = Request::new(CloneInstanceRequest {
         id: instance.id.to_string(),
+        name: None,
     })
     .on_behalf_of(&api.service_account);
 

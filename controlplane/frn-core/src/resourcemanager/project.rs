@@ -66,13 +66,13 @@ impl<Auth: Authorize> Projects<Auth> {
             .create(&self.db)
             .await?;
 
-        Relationship::new(
-            &Organization::some(request.organization_id),
-            Relation::Parent,
-            &project,
-        )
-        .publish(&self.db)
-        .await?;
+        self.auth
+            .write_relationship(&Relationship::new(
+                &Organization::some(request.organization_id),
+                Relation::Parent,
+                &project,
+            ))
+            .await?;
 
         Ok(project)
     }

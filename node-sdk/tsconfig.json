@@ -14,7 +14,7 @@
     "declaration": true,
     "declarationMap": true,
     // Stricter Typechecking Options
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
     // Style Options
     "noImplicitReturns": true,
     "noUnusedLocals": true,

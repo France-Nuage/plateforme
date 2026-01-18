@@ -164,6 +164,8 @@ impl<A: Authorize> Instances<A> {
         .data
         .to_string();
 
+        tracing::info!("next id is: {}", &next_id);
+
         // Setup Hoop SSH bastion access
         let snippet = self
             .setup_hoop_access(&request.name, request.snippet)
@@ -227,14 +229,14 @@ impl<A: Authorize> Instances<A> {
             }
         };
 
-        // Save the relations
-        Relationship::new(
-            &Project::some(request.project_id),
-            Relation::Parent,
-            &instance,
-        )
-        .publish(&self.db)
-        .await?;
+        // Write the relationship synchronously to SpiceDB
+        self.auth
+            .write_relationship(&Relationship::new(
+                &Project::some(request.project_id),
+                Relation::Parent,
+                &instance,
+            ))
+            .await?;
 
         Ok(instance)
     }
@@ -442,11 +444,12 @@ impl<A: Authorize> Instances<A> {
         Ok(())
     }
 
-    /// Stops a running instance.
+    /// Clones an existing instance.
     pub async fn clone_instance<P: Principal + Sync>(
         &mut self,
         principal: &P,
         id: Uuid,
+        name: Option<String>,
     ) -> Result<Instance, Error> {
         self.auth
             .can(principal)
@@ -464,18 +467,19 @@ impl<A: Authorize> Instances<A> {
         let instance = Instance {
             id: Uuid::new_v4(),
             distant_id: new_id,
+            name: name.unwrap_or(existing.name),
             ..existing
         };
 
         let instance = instance.create(&self.db).await?;
 
-        Relationship::new(
-            &Project::some(instance.project_id),
-            Relation::Parent,
-            &instance,
-        )
-        .publish(&self.db)
-        .await?;
+        self.auth
+            .write_relationship(&Relationship::new(
+                &Project::some(instance.project_id),
+                Relation::Parent,
+                &instance,
+            ))
+            .await?;
 
         Ok(instance)
     }
@@ -536,14 +540,14 @@ impl<A: Authorize> Instances<A> {
             );
             self.auth.delete_relationship(&old_relationship).await?;
 
-            // Add new project relationship via the queue
-            Relationship::new(
-                &Project::some(new_project_id),
-                Relation::Parent,
-                &updated_instance,
-            )
-            .publish(&self.db)
-            .await?;
+            // Add new project relationship synchronously to SpiceDB
+            self.auth
+                .write_relationship(&Relationship::new(
+                    &Project::some(new_project_id),
+                    Relation::Parent,
+                    &updated_instance,
+                ))
+                .await?;
         }
 
         Ok(updated_instance)

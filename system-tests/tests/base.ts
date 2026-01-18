@@ -103,14 +103,11 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   actingAs: async ({ keycloak, organization, page, services }, use) => {
     await use(async (user) => {
       // compute key/value pair for session storage representation of the user
-      await new Promise(resolve => setTimeout(resolve, 5 * 1000));
       const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
       const payload = await keycloak.createUser(user);
       const userinfo = await keycloak.getUserInfo(payload.access_token);
       console.log(`attempting to invite user ${userinfo.email} on organization ${organization.id}`)
       await services.invitation.create({ organizationId: organization.id, email: userinfo.email });
-
-      await new Promise(resolve => setTimeout(resolve, 5 * 1000));
 
       // define the session storage value in the context of the page
       await page.addInitScript(([key, value]) => sessionStorage.setItem(key, value), [key, JSON.stringify(payload)]);
@@ -138,6 +135,17 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   hypervisor: [async ({ organization, proxmox, services, zone }, use) => {
     let { url, authorizationToken } = templates[proxmox.name as keyof typeof templates];
 
+    // Check if a hypervisor with the same URL already exists
+    const existingHypervisors = await services.hypervisor.list();
+    const existingHypervisor = existingHypervisors.find(h => h.url === url);
+
+    if (existingHypervisor) {
+      console.log(`Reusing existing hypervisor ${existingHypervisor.id} with URL ${url}`);
+      use(existingHypervisor);
+      return;
+    }
+
+    console.log(`Registering new hypervisor with URL ${url}`);
     let hypervisor = await services.hypervisor.register({
       url,
       authorizationToken,
@@ -200,7 +208,6 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   project: [async ({ organization, services }, use) => {
-    await new Promise(resolve => setTimeout(resolve, 5000));
     const projects = await services.project.list();
     const project = projects.find((project) => project.organizationId === organization.id);
     if (!project) {
@@ -247,7 +254,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
     // Clone, start and register the template as a hypervisor
     console.log(`attempting to clone ${template.id}`);
-    const proxmox = await production.instance.clone(template.id);
+    const proxmox = await production.instance.clone(template.id, `Copy-of-VM-${template.name}`);
     await new Promise(resolve => setTimeout(resolve, 10000));
     await production.instance.start(proxmox.id);
 
@@ -300,7 +307,7 @@ const elect = (instances: Instance[]) => {
     ...acc,
     [curr.name]: {
       template: curr,
-      instance: instances.find((instance) => instance.name === `Copy - of - VM - ${curr.name}`),
+      instance: instances.find((instance) => instance.name === `Copy-of-VM-${curr.name}`),
     }
   }), {});
 

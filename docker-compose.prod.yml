@@ -1,6 +1,6 @@
 services:
-  authz-worker:
-    container_name: france-nuage-authz-worker
+  operation-worker:
+    container_name: france-nuage-operation-worker
     depends_on:
       postgres:
         condition: service_healthy
@@ -10,7 +10,7 @@ services:
       DATABASE_URL: postgresql://controlplane:${POSTGRES_CONTROLPLANE_PASSWORD:?POSTGRES_CONTROLPLANE_PASSWORD is required}@postgres:5432/controlplane
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:?SPICEDB_GRPC_PRESHARED_KEY is required}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
-    image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/authz-worker:release
+    image: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme/operation-worker:release
     labels:
       - com.centurylinklabs.watchtower.enable=true
     restart: always

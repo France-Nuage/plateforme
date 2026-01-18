@@ -22,20 +22,12 @@ image: docker:29-cli
 services:
   - docker:29-dind
 
-before_script:
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  # Login to Docker Hub to avoid rate limits (requires DOCKERHUB_USERNAME and DOCKERHUB_TOKEN variables)
-  - |
-    if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
-      echo "Logging into Docker Hub..."
-      echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-    else
-      echo "WARNING: DOCKERHUB_USERNAME or DOCKERHUB_TOKEN not set. Skipping Docker Hub authentication."
-      echo "You may encounter rate limits when pulling images from Docker Hub."
-    fi
-  - docker context create buildx-context --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"
-  - docker buildx create --use --name ci-builder --driver docker-container buildx-context
-  - docker compose down --volumes --remove-orphans
+before_script:                                                                                                                                                                                                                                                                                    
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY                                                                                                                                                                                                                       
+  - docker context create buildx-context-$CI_JOB_ID --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"                                                                                                                        
+  - docker context use buildx-context-$CI_JOB_ID                                                                                                                                                                                                                                                  
+  - docker buildx inspect --bootstrap                                                                                                                                                                                                                                                             
+  - docker compose down --volumes --remove-orphans  
 
 after_script:
   - docker compose down --volumes
@@ -78,7 +70,7 @@ gitleaks:
   variables:
     TARGET: development
 
-# Unified build job for all Rust services (controlplane, authz-worker, synchronizer)
+# Unified build job for all Rust services (controlplane, operation-worker, synchronizer)
 # Builds all 3 binaries in a single cargo invocation to share compilation
 "build / rust-services":
   <<: *build_template
@@ -108,14 +100,14 @@ gitleaks:
         --file controlplane/Dockerfile \
         controlplane
 
-      # Build 2: authz-worker (reuses cache from build 1, no export)
+      # Build 2: operation-worker (reuses cache from build 1, no export)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-development \
-        --target development-authz-worker \
-        --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:master-development \
+        --target development-operation-worker \
+        --tag ${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-development \
         --push \
         --file controlplane/Dockerfile \
         controlplane
@@ -146,7 +138,7 @@ gitleaks:
   script:
     - echo "This job is now handled by 'build / rust-services'"
 
-"build / authz-worker":
+"build / operation-worker":
   <<: *build_template
   needs:
     - job: "build / rust-services"
@@ -294,14 +286,14 @@ gitleaks:
         --file controlplane/Dockerfile \
         controlplane
 
-      # Build 2: authz-worker release (reuses cache, no export)
+      # Build 2: operation-worker release (reuses cache, no export)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-${TARGET} \
-        --target ${TARGET}-authz-worker \
-        --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:master-${TARGET} \
+        --target ${TARGET}-operation-worker \
+        --tag ${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
         --file controlplane/Dockerfile \
         controlplane
@@ -515,12 +507,12 @@ gitleaks:
       when: on_success
     - when: never
 
-"deploy / authz-worker":
+"deploy / operation-worker":
   stage: deploy
   script:
-    - docker pull ${CI_REGISTRY_IMAGE}/authz-worker:master-release
-    - docker tag ${CI_REGISTRY_IMAGE}/authz-worker:master-release ${CI_REGISTRY_IMAGE}/authz-worker:release
-    - docker push ${CI_REGISTRY_IMAGE}/authz-worker:release
+    - docker pull ${CI_REGISTRY_IMAGE}/operation-worker:master-release
+    - docker tag ${CI_REGISTRY_IMAGE}/operation-worker:master-release ${CI_REGISTRY_IMAGE}/operation-worker:release
+    - docker push ${CI_REGISTRY_IMAGE}/operation-worker:release
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success

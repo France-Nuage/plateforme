@@ -16,8 +16,6 @@ test.describe('Compute / Instances', () => {
       snippet: DEFAULT_SNIPPET,
     });
 
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
     await pages.compute.instances.goto();
     await pages.compute.instances.assertSee(existing.name);
 

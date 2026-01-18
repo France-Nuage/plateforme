@@ -208,10 +208,14 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
         request: tonic::Request<CloneInstanceRequest>,
     ) -> std::result::Result<tonic::Response<Instance>, tonic::Status> {
         let principal = self.iam.principal(&request).await?;
-        let id = request.into_inner().id;
-        let id = Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id))?;
+        let inner = request.into_inner();
+        let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
 
-        let instance = self.service.clone().clone_instance(&principal, id).await?;
+        let instance = self
+            .service
+            .clone()
+            .clone_instance(&principal, id, inner.name)
+            .await?;
 
         Ok(Response::new(instance.into()))
     }

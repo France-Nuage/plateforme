@@ -1,6 +1,6 @@
 use crate::{
     Error,
-    authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource},
+    authorization::{Authorize, Permission, Principal, Resource},
     identity::User,
     resourcemanager::{Organization, Organizations},
 };
@@ -118,10 +118,6 @@ impl<A: Authorize> Invitations<A> {
         // Add the user to the organization
         self.organizations.add_user(&organization, &user).await?;
 
-        // Create the relationship
-        Relationship::new(&user, Relation::Member, &organization)
-            .publish(&self.db)
-            .await?;
         Ok(invitation)
     }
 }

@@ -92,13 +92,13 @@ impl<Auth: Authorize> Hypervisors<Auth> {
             .create(&self.db)
             .await?;
 
-        Relationship::new(
-            &Organization::some(request.organization_id),
-            Relation::Parent,
-            &hypervisor,
-        )
-        .publish(&self.db)
-        .await?;
+        self.auth
+            .write_relationship(&Relationship::new(
+                &Organization::some(request.organization_id),
+                Relation::Parent,
+                &hypervisor,
+            ))
+            .await?;
 
         Ok(hypervisor)
     }

@@ -27,8 +27,6 @@ test.describe('Compute / Instances', () => {
       snippet: DEFAULT_SNIPPET,
     });
 
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
     // Navigate to instances page and verify the instance is visible
     await pages.compute.instances.goto();
     await pages.compute.instances.assertSee(existing.name);
@@ -55,7 +53,6 @@ test.describe('Compute / Instances', () => {
     await dialog.waitFor({ state: 'detached' });
 
     // Verify the instance was moved by checking the API
-    await new Promise(resolve => setTimeout(resolve, 2000));
     const instances = await userServices.instance.list();
     const movedInstance = instances.find(i => i.id === existing.id);
 

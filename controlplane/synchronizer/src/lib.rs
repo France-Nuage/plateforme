@@ -18,6 +18,8 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
     let hypervisors = app.hypervisors.list(&principal).await?;
 
     for hypervisor in hypervisors {
+        tracing::info!(hypervisor_id = %hypervisor.id, hypervisor_url = %hypervisor.url, "Synchronizing hypervisor");
+
         let service = hypervisor::resolve(
             hypervisor.url.clone(),
             hypervisor.authorization_token.clone(),
@@ -94,14 +96,19 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
 
         let instances = Instance::upsert(&app.db, &instances).await?;
 
-        for instance in &instances {
-            Relationship::new(
-                &Project::some(instance.project_id),
-                Relation::Parent,
-                instance,
-            )
-            .publish(&app.db)
-            .await?;
+        let relationships: Vec<Relationship> = instances
+            .iter()
+            .map(|instance| {
+                Relationship::new(
+                    &Project::some(instance.project_id),
+                    Relation::Parent,
+                    instance,
+                )
+            })
+            .collect();
+
+        for relationship in &relationships {
+            app.auth.write_relationship(relationship).await?;
         }
     }
 

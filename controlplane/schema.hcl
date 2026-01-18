@@ -222,7 +222,7 @@ table "organizations" {
   primary_key {
     columns = [column.id]
   }
-    foreign_key "organizations_parent_id_fkey" {
+  foreign_key "organizations_parent_id_fkey" {
     columns     = [column.parent_id]
     ref_columns = [table.organizations.column.id]
     on_update   = NO_ACTION
@@ -323,37 +323,37 @@ table "organization_user" {
     columns = [column.user_id, column.organization_id]
   }
 }
-table "relationship_queue" {
+table "operations" {
   schema = schema.public
   column "id" {
-    null = false
-    type = uuid
+    null    = false
+    type    = uuid
     default = sql("gen_random_uuid()")
   }
-  column "object_id" {
+  column "kind" {
     null = false
     type = text
   }
-  column "object_type" {
+  column "payload" {
     null = false
-    type = text
+    type = jsonb
   }
-  column "relation" {
-    null = false
-    type = text
-  }
-  column "subject_id" {
-    null = false
-    type= text
-  }
-  column "subject_type" {
-    null = false
-    type = text
+  column "status" {
+    null    = false
+    type    = text
+    default = "pending"
   }
   column "created_at" {
     null    = false
     type    = timestamptz
     default = sql("now()")
+  }
+  column "completed_at" {
+    null = true
+    type = timestamptz
+  }
+  primary_key {
+    columns = [column.id]
   }
 }
 table "projects" {
