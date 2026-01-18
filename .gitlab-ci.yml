@@ -23,10 +23,11 @@ services:
   - docker:29-dind
 
 before_script:                                                                                                                                                                                                                                                                                    
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY                                                                                                                                                                                                                       
   - docker context create buildx-context-$CI_JOB_ID --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"                                                                                                                        
-  - docker buildx create --use --name ci-builder-$CI_JOB_ID --driver docker buildx-context-$CI_JOB_ID                                                                                                                                                                                             
-  - docker compose down --volumes --remove-orphans 
+  - docker context use buildx-context-$CI_JOB_ID                                                                                                                                                                                                                                                  
+  - docker buildx inspect --bootstrap                                                                                                                                                                                                                                                             
+  - docker compose down --volumes --remove-orphans  
 
 after_script:
   - docker compose down --volumes
