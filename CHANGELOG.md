@@ -1,3 +1,17 @@
+# [1.58.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.57.0...v1.58.0) (2026-01-18)
+
+
+### Bug Fixes
+
+* tag fixe pour buildx et builder dédié par jobs ([33bf910](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/33bf910de08acf8946671b673e30f42e5affe84d))
+* tentons avec le contexte docker buildx seulement ([34cff23](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/34cff23b9141a126a7b453215b41c2c9f0911257))
+* use docker driver for buildkit to access tls certs ([2cd00b5](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/2cd00b549fd8474e616e17d39bb9ce4b905cd675))
+
+
+### Features
+
+* allow specifiying clone name ([ada2fbd](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/ada2fbd2d69ed9d17e7d36da9aee180aad1a5faf))
+
 # [1.57.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.56.0...v1.57.0) (2026-01-06)
 
 
