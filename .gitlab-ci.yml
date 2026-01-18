@@ -22,20 +22,11 @@ image: docker:29-cli
 services:
   - docker:29-dind
 
-before_script:
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  # Login to Docker Hub to avoid rate limits (requires DOCKERHUB_USERNAME and DOCKERHUB_TOKEN variables)
-  - |
-    if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
-      echo "Logging into Docker Hub..."
-      echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-    else
-      echo "WARNING: DOCKERHUB_USERNAME or DOCKERHUB_TOKEN not set. Skipping Docker Hub authentication."
-      echo "You may encounter rate limits when pulling images from Docker Hub."
-    fi
-  - docker context create buildx-context-$CI_JOB_ID --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"
-  - docker buildx create --use --name ci-builder --driver docker-container --driver-opt image=moby/buildkit:v0.26.3 buildx-context-$CI_JOB_ID
-  - docker compose down --volumes --remove-orphans
+before_script:                                                                                                                                                                                                                                                                                    
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+  - docker context create buildx-context-$CI_JOB_ID --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"                                                                                                                        
+  - docker buildx create --use --name ci-builder-$CI_JOB_ID --driver docker buildx-context-$CI_JOB_ID                                                                                                                                                                                             
+  - docker compose down --volumes --remove-orphans 
 
 after_script:
   - docker compose down --volumes
