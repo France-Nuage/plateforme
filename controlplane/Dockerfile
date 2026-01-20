@@ -55,9 +55,9 @@ COPY . .
 FROM base AS development
 CMD ["cargo", "run", "--bin=server"]
 
-# Development Stage - Operation Worker
-FROM base AS development-operation-worker
-CMD ["cargo", "run", "--bin=operation-worker"]
+# Development Stage - Authz Worker
+FROM base AS development-authz-worker
+CMD ["cargo", "run", "--bin=authz-worker"]
 
 # Development Stage - Synchronizer
 FROM base AS development-synchronizer

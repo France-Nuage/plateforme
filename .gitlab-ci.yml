@@ -88,7 +88,7 @@ gitleaks:
     TARGET: development
  
 # Unified build job for all Rust services (controlplane, authz-worker, synchronizer) 
-# Builds all 3 binaries in a single cargo invocation to share compilation
+# Builds all 3 binaries in a single cargo invocation to share compilation 
 "build / rust-services":
   extends: .buildkit_template
   stage: build
