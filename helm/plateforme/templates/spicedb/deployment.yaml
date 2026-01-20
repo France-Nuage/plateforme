@@ -1,0 +1,124 @@
+{{- if .Values.spicedb.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "plateforme.fullname" . }}-spicedb
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: spicedb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "plateforme.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: spicedb
+  template:
+    metadata:
+      labels:
+        {{- include "plateforme.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: spicedb
+    spec:
+      initContainers:
+        {{- if .Values.spicedb.useSharedDatabase }}
+        {{- include "plateforme.waitForPostgres" . | nindent 8 }}
+        {{- else }}
+        - name: wait-for-spicedb-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-spicedb-db 5432; do echo waiting for spicedb-db; sleep 2; done']
+        {{- end }}
+        - name: migrate
+          image: "{{ .Values.spicedb.image.repository }}:{{ .Values.spicedb.image.tag }}"
+          imagePullPolicy: {{ .Values.spicedb.image.pullPolicy }}
+          command:
+            - spicedb
+            - migrate
+            - head
+          args:
+            - --datastore-engine=postgres
+            - --datastore-conn-uri=$(SPICEDB_DATASTORE_CONN_URI)
+          env:
+            {{- if .Values.spicedb.useSharedDatabase }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: postgres-password
+            {{- else }}
+            - name: SPICEDB_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: spicedb-db-password
+            {{- end }}
+            - name: SPICEDB_DATASTORE_CONN_URI
+              value: {{ include "plateforme.spicedbDatabaseUrl" . | quote }}
+      containers:
+        - name: spicedb
+          image: "{{ .Values.spicedb.image.repository }}:{{ .Values.spicedb.image.tag }}"
+          imagePullPolicy: {{ .Values.spicedb.image.pullPolicy }}
+          command:
+            - spicedb
+            - serve
+          args:
+            - --grpc-preshared-key=$(SPICEDB_GRPC_PRESHARED_KEY)
+            - --datastore-engine=postgres
+            - --datastore-conn-uri=$(SPICEDB_DATASTORE_CONN_URI)
+            - --http-enabled=true
+            - --grpc-enabled=true
+            - --grpc-addr=0.0.0.0:50051
+            - --http-addr=0.0.0.0:8443
+            - --metrics-enabled=true
+            - --metrics-addr=0.0.0.0:9090
+            - --dispatch-cluster-enabled=false
+          ports:
+            - name: grpc
+              containerPort: 50051
+              protocol: TCP
+            - name: http
+              containerPort: 8443
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: SPICEDB_GRPC_PRESHARED_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: spicedb-preshared-key
+            {{- if .Values.spicedb.useSharedDatabase }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: postgres-password
+            {{- else }}
+            - name: SPICEDB_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: spicedb-db-password
+            {{- end }}
+            - name: SPICEDB_DATASTORE_CONN_URI
+              value: {{ include "plateforme.spicedbDatabaseUrl" . | quote }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8443
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - grpc_health_probe
+                - -addr=localhost:50051
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.spicedb.resources | nindent 12 }}
+{{- end }}

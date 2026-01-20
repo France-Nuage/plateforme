@@ -1,0 +1,73 @@
+Release Name: {{ .Release.Name }}
+Namespace:    {{ .Release.Namespace }}
+Chart:        {{ .Chart.Name }}-{{ .Chart.Version }}
+
+{{ if .Values.postgres.enabled }}
+✓ PostgreSQL deployed
+{{- end }}
+{{ if .Values.spicedb.enabled }}
+✓ SpiceDB deployed
+{{- end }}
+{{ if .Values.controlplane.enabled }}
+✓ Controlplane deployed
+{{- end }}
+{{ if .Values.authzWorker.enabled }}
+✓ Authz Worker deployed
+{{- end }}
+{{ if .Values.synchronizer.enabled }}
+✓ Synchronizer deployed
+{{- end }}
+{{ if .Values.console.enabled }}
+✓ Console deployed
+{{- end }}
+{{ if .Values.keycloak.enabled }}
+✓ Keycloak deployed
+{{- end }}
+
+{{ if .Values.controlplane.enabled }}
+Controlplane Service:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "plateforme.fullname" . }}-controlplane 8080:80
+
+  Access at: http://localhost:8080
+{{- end }}
+
+{{ if .Values.console.enabled }}
+Console Service:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "plateforme.fullname" . }}-console 3000:80
+
+  Access at: http://localhost:3000
+{{- end }}
+
+{{ if .Values.keycloak.enabled }}
+Keycloak Admin Console:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "plateforme.fullname" . }}-keycloak 8180:8080
+
+  Access at: http://localhost:8180
+  Username: admin
+  Password: Retrieve from secret:
+    kubectl get secret {{ include "plateforme.secretName" . }} -n {{ .Release.Namespace }} -o jsonpath='{.data.keycloak-admin-password}' | base64 -d
+{{- end }}
+
+Check pod status:
+  kubectl get pods -n {{ .Release.Namespace }}
+
+View logs:
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Get all resources:
+  kubectl get all -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Upgrade deployment:
+  helm upgrade {{ .Release.Name }} ./helm/plateforme -n {{ .Release.Namespace }}
+
+Uninstall:
+  helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+{{ if .Values.systemTests.enabled }}
+
+System tests are enabled. Check the test job status:
+  kubectl get job -n {{ .Release.Namespace }} {{ include "plateforme.fullname" . }}-system-tests
+
+View test logs:
+  kubectl logs -n {{ .Release.Namespace }} job/{{ include "plateforme.fullname" . }}-system-tests
+{{- end }}

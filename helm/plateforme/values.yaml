@@ -1,0 +1,221 @@
+global:
+  imageRegistry: registry.gitlab.com/getbunker-france-nuage/france-nuage/plateforme
+  imageTag: "latest"
+  imagePullPolicy: IfNotPresent
+
+secrets:
+  postgresPassword: ""
+  spicedbPassword: ""
+  spicedbPresharedKey: ""
+  keycloakAdminPassword: ""
+
+postgres:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    database: postgres
+    username: postgres
+  persistence:
+    enabled: false 
+    size: 10Gi
+    storageClass: ""
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+spicedbDb:
+  enabled: false 
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    database: spicedb
+    username: spicedb
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+keycloakDb:
+  enabled: false
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    database: keycloak
+    username: keycloak
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+spicedb:
+  enabled: true
+  image:
+    repository: authzed/spicedb
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  useSharedDatabase: true
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+controlplane:
+  enabled: true
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+  replicas: 1
+  config:
+    addr: "0.0.0.0:80"
+    consoleUrl: "https://console.france-nuage.fr"
+    oidcUrl: ""
+    logLevel: "info"
+    rootOrganizationName: "acme"
+    rootServiceAccountKey: "changeme"  
+    hoopApiKey: ""
+    hoopApiUrl: "https://bastion.ssh.france-nuage.fr"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+authzWorker:
+  enabled: true
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+  replicas: 1
+  config:
+    logLevel: "info"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+synchronizer:
+  enabled: true
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+  replicas: 1
+  config:
+    logLevel: "info"
+    rootOrganizationName: "acme"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+console:
+  enabled: false
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+  replicas: 1
+  config:
+    apiUrl: ""  
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+keycloak:
+  enabled: false
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.0"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  config:
+    importRealm: true
+    hostnameStrict: true
+    httpEnabled: false
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+systemTests:
+  enabled: false
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+  config:
+    consoleUrl: "" 
+    controlplaneUrl: ""  
+    keycloakUrl: ""  
+    keycloakAdmin: "admin"
+    keycloakAdminPassword: ""  
+    oidcClientId: "francenuage"
+    oidcProviderUrl: ""
+    headless: true
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+migrations:
+  atlas:
+    enabled: true
+    image:
+      repository: arigaio/atlas
+      tag: "latest"
+      pullPolicy: IfNotPresent
+
+  spicedb:
+    enabled: true
+    image:
+      repository: authzed/zed
+      tag: "latest"
+      pullPolicy: IfNotPresent

@@ -1,0 +1,280 @@
+{{- if and .Values.controlplane.enabled .Values.migrations.atlas.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "plateforme.fullname" . }}-migrations
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrations
+data:
+  20250901201631_initial.sql: |
+    -- Create "datacenters" table
+    CREATE TABLE "public"."datacenters" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "name" text NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id")
+    );
+    -- Create "organizations" table
+    CREATE TABLE "public"."organizations" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "name" text NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id")
+    );
+    -- Create "hypervisors" table
+    CREATE TABLE "public"."hypervisors" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "url" text NOT NULL,
+      "authorization_token" text NOT NULL,
+      "storage_name" text NOT NULL,
+      "organization_id" uuid NOT NULL,
+      "datacenter_id" uuid NOT NULL,
+      PRIMARY KEY ("id"),
+      CONSTRAINT "hypervisors_datacenter_id_fkey" FOREIGN KEY ("datacenter_id") REFERENCES "public"."datacenters" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT "hypervisors_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+    );
+    -- Create "projects" table
+    CREATE TABLE "public"."projects" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "name" text NOT NULL,
+      "organization_id" uuid NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id"),
+      CONSTRAINT "projects_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+    );
+    -- Create "zero_trust_network_types" table
+    CREATE TABLE "public"."zero_trust_network_types" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "name" text NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id")
+    );
+    -- Create "zero_trust_networks" table
+    CREATE TABLE "public"."zero_trust_networks" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "name" text NOT NULL,
+      "organization_id" uuid NOT NULL,
+      "zero_trust_network_type_id" uuid NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id"),
+      CONSTRAINT "zero_trust_networks_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT "zero_trust_networks_zero_trust_network_type_id_fkey" FOREIGN KEY ("zero_trust_network_type_id") REFERENCES "public"."zero_trust_network_types" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+    );
+    -- Create "instances" table
+    CREATE TABLE "public"."instances" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "hypervisor_id" uuid NOT NULL,
+      "distant_id" text NOT NULL,
+      "status" character varying(50) NOT NULL DEFAULT 'UNKNOWN',
+      "max_cpu_cores" integer NOT NULL DEFAULT 1,
+      "cpu_usage_percent" double precision NOT NULL DEFAULT 0,
+      "max_memory_bytes" bigint NOT NULL DEFAULT 1073741824,
+      "memory_usage_bytes" bigint NOT NULL DEFAULT 0,
+      "name" character varying(255) NOT NULL DEFAULT '',
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      "project_id" uuid NOT NULL,
+      "max_disk_bytes" bigint NOT NULL DEFAULT 1073741824,
+      "disk_usage_bytes" bigint NOT NULL DEFAULT 0,
+      "ip_v4" character varying(255) NOT NULL DEFAULT '0.0.0.0',
+      "zero_trust_network_id" uuid NULL,
+      PRIMARY KEY ("id"),
+      CONSTRAINT "instances_hypervisor_id_fkey" FOREIGN KEY ("hypervisor_id") REFERENCES "public"."hypervisors" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT "instances_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "public"."projects" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT "instances_zero_trust_network_id_fkey" FOREIGN KEY ("zero_trust_network_id") REFERENCES "public"."zero_trust_networks" ("id") ON UPDATE NO ACTION ON DELETE SET NULL
+    );
+    -- Create index "idx_instances_hypervisor_id" to table: "instances"
+    CREATE INDEX "idx_instances_hypervisor_id" ON "public"."instances" ("hypervisor_id");
+
+  20250905065156_create_users.sql: |
+    -- Create "users" table
+    CREATE TABLE "public"."users" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "organization_id" uuid NOT NULL,
+      "email" text NOT NULL,
+      "is_admin" boolean NOT NULL DEFAULT false,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id"),
+      CONSTRAINT "users_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+    );
+    -- Create index "users_email_idx" to table: "users"
+    CREATE UNIQUE INDEX "users_email_idx" ON "public"."users" ("email");
+
+  20250924143151_create_relationship_queue.sql: |
+    -- Create "relationship_queue" table
+    CREATE TABLE "public"."relationship_queue" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "object_id" uuid NOT NULL,
+      "object_type" text NOT NULL,
+      "relation" text NOT NULL,
+      "subject_id" uuid NOT NULL,
+      "subject_type" text NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now()
+    );
+
+  20250926093544_create_organization_user.sql: |
+    -- Modify "users" table
+    -- atlas:nolint DS103
+    ALTER TABLE "public"."users" DROP COLUMN "organization_id";
+    -- Create "organization_user" table
+    CREATE TABLE "public"."organization_user" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "user_id" uuid NOT NULL,
+      "organization_id" uuid NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id"),
+      CONSTRAINT "user_organizations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT "user_organizations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+    );
+    -- Create index "user_organizations_user_id_organization_id_idx" to table: "organization_user"
+    CREATE UNIQUE INDEX "user_organizations_user_id_organization_id_idx" ON "public"."organization_user" ("user_id", "organization_id");
+
+  20251006154943_rename_datacenters_zones.sql: |
+    -- Create "zones" table
+    -- atlas:nolint PG110
+    CREATE TABLE "public"."zones" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "name" text NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id")
+    );
+    -- Rename a column from "datacenter_id" to "zone_id"
+    -- atlas:nolint BC102
+    ALTER TABLE "public"."hypervisors" RENAME COLUMN "datacenter_id" TO "zone_id";
+    -- Modify "hypervisors" table
+    -- atlas:nolint CD101
+    ALTER TABLE "public"."hypervisors" DROP CONSTRAINT "hypervisors_datacenter_id_fkey", ADD CONSTRAINT "hypervisors_zone_id_fkey" FOREIGN KEY ("zone_id") REFERENCES "public"."zones" ("id") ON UPDATE NO ACTION ON DELETE CASCADE;
+    -- Drop "datacenters" table
+    -- atlas:nolint DS102
+    DROP TABLE "public"."datacenters";
+
+  20251007074634_add_service_accounts.sql: |
+    -- Create "service_accounts" table
+    -- atlas:nolint PG110
+    CREATE TABLE "public"."service_accounts" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "name" text NOT NULL DEFAULT 'false',
+      "key" text NOT NULL DEFAULT 'false',
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id")
+    );
+    -- Create "organization_service_account" table
+    CREATE TABLE "public"."organization_service_account" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "service_account_id" uuid NOT NULL,
+      "organization_id" uuid NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY ("id"),
+      CONSTRAINT "organization_service_account_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT "organization_service_account_service_account_id_fkey" FOREIGN KEY ("service_account_id") REFERENCES "public"."service_accounts" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+    );
+    -- Create index "organization_service_account_service_account_id_organization_id" to table: "organization_service_account"
+    CREATE UNIQUE INDEX "organization_service_account_service_account_id_organization_id" ON "public"."organization_service_account" ("service_account_id", "organization_id");
+
+  20251015083226_move_relationship_types_to_string.sql: |
+    -- Modify "relationship_queue" table
+    ALTER TABLE "public"."relationship_queue" ALTER COLUMN "subject_id" TYPE text;
+
+  20251015083304_move_relationship_types_to_string.sql: |
+    -- Modify "relationship_queue" table
+    ALTER TABLE "public"."relationship_queue" ALTER COLUMN "object_id" TYPE text;
+
+  20251022063048_add_invitations.sql: |
+    -- Create "invitations" table
+    CREATE TABLE "public"."invitations" (
+      "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+      "state" text NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now(),
+      "organization_id" uuid NOT NULL,
+      "user_id" uuid NOT NULL,
+      PRIMARY KEY ("id"),
+      CONSTRAINT "invitations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT "invitations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+    );
+
+  20251028133733_update_organizations_add_parent_id_column.sql: |
+    -- Modify "organizations" table
+    ALTER TABLE "public"."organizations" ADD COLUMN "parent_id" uuid NULL, ADD CONSTRAINT "organizations_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE SET NULL;
+
+  20251223141541_add_slug_to_organizations.sql: |
+    -- atlas:nolint BC102
+    -- Add slug column to organizations table for DNS-compatible identifiers
+
+    -- Step 1: Add slug column as nullable first
+    ALTER TABLE "public"."organizations" ADD COLUMN "slug" text NULL;
+
+    -- Step 2: Generate slugs for existing organizations
+    -- Convert to lowercase, replace spaces with hyphens, remove special characters
+    UPDATE "public"."organizations"
+    SET slug = LOWER(
+        REGEXP_REPLACE(
+            REGEXP_REPLACE(
+                REGEXP_REPLACE(name, '[^a-zA-Z0-9\s-]', '', 'g'),
+                '\s+', '-', 'g'
+            ),
+            '-+', '-', 'g'
+        )
+    );
+
+    -- Step 3: Trim leading/trailing hyphens
+    UPDATE "public"."organizations"
+    SET slug = TRIM(BOTH '-' FROM slug);
+
+    -- Step 4: Handle potential duplicates by appending row number
+    -- Pre-truncate slug to leave room for suffix (max 10 chars: '-' + up to 9 digits)
+    WITH duplicates AS (
+        SELECT id, slug, ROW_NUMBER() OVER (PARTITION BY slug ORDER BY created_at) as rn
+        FROM "public"."organizations"
+    )
+    UPDATE "public"."organizations" o
+    SET slug = SUBSTRING(d.slug, 1, 63 - LENGTH(d.rn::text) - 1) || '-' || d.rn
+    FROM duplicates d
+    WHERE o.id = d.id AND d.rn > 1;
+
+    -- Step 5: Handle empty slugs by using a UUID-based fallback
+    UPDATE "public"."organizations"
+    SET slug = 'org-' || SUBSTRING(id::text, 1, 8)
+    WHERE slug IS NULL OR slug = '';
+
+    -- Step 6: Truncate slugs to max 63 characters (DNS label limit)
+    UPDATE "public"."organizations"
+    SET slug = SUBSTRING(slug, 1, 63)
+    WHERE LENGTH(slug) > 63;
+
+    -- Step 6b: Clean up any trailing hyphens created by truncation
+    UPDATE "public"."organizations"
+    SET slug = RTRIM(slug, '-')
+    WHERE slug LIKE '%-';
+
+    -- Step 7: Make column NOT NULL
+    ALTER TABLE "public"."organizations" ALTER COLUMN "slug" SET NOT NULL;
+
+    -- Step 8: Add unique constraint
+    CREATE UNIQUE INDEX "organizations_slug_idx" ON "public"."organizations" ("slug");
+
+  atlas.sum: |
+    h1:GLRuhsq8qmMfInrn7VeF5EInn8ci9vYGzHr8Kyin7pU=
+    20250901201631_initial.sql h1:I+fkuCn9NMpmL/AwF1y/wsmW2+IcPhAfSxGEH9Y2Seo=
+    20250905065156_create_users.sql h1:tKKPDZycejUig1fxcYo+gDlLeZugn45InwitZubLDME=
+    20250924143151_create_relationship_queue.sql h1:pjj8Bxl7ybKoq6/2j03x6WxdNODyBTp4dn1JXLnaXwY=
+    20250926093544_create_organization_user.sql h1:UcmssFN0hyQzcvRPxxS3ilG9UHoMAqPAQiXssJQHDOs=
+    20251006154943_rename_datacenters_zones.sql h1:L0jNiLHf09QHl4Q4BY6VFIxi/n+OnrwjzmyN8UCrVeo=
+    20251007074634_add_service_accounts.sql h1:eVOqpmc18UDSz4f1N83j0CUI1v1l/ZI8K5C44Xgm9FE=
+    20251015083226_move_relationship_types_to_string.sql h1:O5GZ0GTkECqoIV9EL5g3hvx0h30TbbWq4bdV5XTot5s=
+    20251015083304_move_relationship_types_to_string.sql h1:UUXuLH4cfTdwdpHuWBg3y8+7rn2s3kA6awR+HFYL7eM=
+    20251022063048_add_invitations.sql h1:HSP6AzVpxNhls9A+9LAwKjRMZd5FkPCyWVxBpe3sH9w=
+    20251028133733_update_organizations_add_parent_id_column.sql h1:aU25Zfj8y6HX5ILSeVODLZ12Zz2VcL4b8OXzL03BBhc=
+    20251223141541_add_slug_to_organizations.sql h1:2kxZnT2n7DJxx17PkDLuu0UV1W1MoViAaODXJfJezZ4=
+{{- end }}

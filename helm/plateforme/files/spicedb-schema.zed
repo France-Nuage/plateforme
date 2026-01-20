@@ -1,0 +1,40 @@
+definition organization {
+	relation member: service_account | user
+  relation parent: organization
+
+  permission get = member + parent->get
+  permission invite_member = member + parent->get
+}
+
+definition folder {
+	relation parent: folder | organization
+	permission get = parent->get
+}
+
+definition project {
+	relation parent: folder | organization
+
+	permission get = parent->get
+  permission create_instance = get
+}
+
+definition hypervisor {
+  relation parent: organization
+
+  permission get = parent->get
+}
+
+definition instance {
+	relation parent: project
+
+	permission get = parent->get
+  permission clone = get
+  permission delete = get
+  permission start = get
+  permission stop = get
+  permission update = get
+}
+
+definition service_account {}
+
+definition user {}

@@ -8,3 +8,7 @@ ignores:
   - node_modules
   - oidc-server/node_modules
   - system-tests/node_modules
+  - docs/README.md
+  - docs/helm-chart-mission.md
+  - docs/buildkit-rootless-mission.md
+

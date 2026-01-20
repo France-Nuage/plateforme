@@ -1,0 +1,19 @@
+{{- if .Values.controlplane.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "plateforme.fullname" . }}-controlplane
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: controlplane
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "plateforme.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: controlplane
+{{- end }}

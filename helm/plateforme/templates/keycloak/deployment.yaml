@@ -1,0 +1,94 @@
+{{- if .Values.keycloak.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "plateforme.fullname" . }}-keycloak
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+spec:
+  replicas: {{ .Values.keycloak.replicas }}
+  selector:
+    matchLabels:
+      {{- include "plateforme.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: keycloak
+  template:
+    metadata:
+      labels:
+        {{- include "plateforme.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: keycloak
+    spec:
+      initContainers:
+        - name: wait-for-keycloak-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-keycloak-db 5432; do echo waiting for keycloak-db; sleep 2; done']
+      containers:
+        - name: keycloak
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
+          args:
+            - {{ .Values.keycloak.config.startCommand | default "start" }}
+            {{- if .Values.keycloak.config.importRealm }}
+            - --import-realm
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: "admin"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: keycloak-admin-password
+            - name: KC_DB
+              value: "postgres"
+            - name: KC_DB_URL
+              value: {{ include "plateforme.keycloakDatabaseUrl" . | quote }}
+            - name: KC_DB_USERNAME
+              value: {{ .Values.keycloakDb.auth.username | quote }}
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: keycloak-db-password
+            - name: KC_HOSTNAME_STRICT
+              value: {{ .Values.keycloak.config.hostnameStrict | default "true" | quote }}
+            - name: KC_HTTP_ENABLED
+              value: {{ .Values.keycloak.config.httpEnabled | default "false" | quote }}
+            - name: KC_PROXY
+              value: "edge"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          {{- if .Values.keycloak.config.importRealm }}
+          volumeMounts:
+            - name: realm
+              mountPath: /opt/keycloak/data/import
+          {{- end }}
+          resources:
+            {{- toYaml .Values.keycloak.resources | nindent 12 }}
+      {{- if .Values.keycloak.config.importRealm }}
+      volumes:
+        - name: realm
+          configMap:
+            name: {{ include "plateforme.fullname" . }}-keycloak-realm
+      {{- end }}
+{{- end }}

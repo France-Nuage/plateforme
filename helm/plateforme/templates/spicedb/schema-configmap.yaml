@@ -1,0 +1,12 @@
+{{- if .Values.spicedb.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "plateforme.fullname" . }}-spicedb-schema
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: spicedb-schema
+data:
+  schema.zed: |
+{{ .Files.Get "files/spicedb-schema.zed" | indent 4 }}
+{{- end }}
