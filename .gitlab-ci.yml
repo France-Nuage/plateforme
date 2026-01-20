@@ -243,7 +243,7 @@ gitleaks:
         - protocol/**/*
         - .gitlab-ci.yml
 
-# Unified release build for all Rust services
+# Unified release build for all Rust services 
 # Compiles workspace once, produces 3 release images
 "build / rust-services / release":
   extends: .buildkit_template
