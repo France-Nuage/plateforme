@@ -114,14 +114,14 @@ gitleaks:
         --file controlplane/Dockerfile \
         controlplane
 
-      # Build 2: operation-worker (reuses cache from build 1, no export)
+      # Build 2: authz-worker (reuses cache from build 1, no export)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-development \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:master-development \
-        --target development-operation-worker \
-        --tag ${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-development \
+        --target development-authz-worker \
+        --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-development \
         --push \
         --file controlplane/Dockerfile \
         controlplane
@@ -268,14 +268,14 @@ gitleaks:
         --file controlplane/Dockerfile \
         controlplane
 
-      # Build 2: operation-worker release (reuses cache, no export)
+      # Build 2: authz-worker release (reuses cache, no export)
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:master-${TARGET} \
-        --target ${TARGET}-operation-worker \
-        --tag ${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/authz-worker:master-${TARGET} \
+        --target ${TARGET}-authz-worker \
+        --tag ${CI_REGISTRY_IMAGE}/authz-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
         --push \
         --file controlplane/Dockerfile \
         controlplane
