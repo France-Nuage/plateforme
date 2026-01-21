@@ -82,7 +82,12 @@ RUN apk add --no-cache wget && \
   chmod +x /bin/grpc_health_probe
 
 # Install Atlas for migrations
-RUN apk add --no-cache atlas --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing/
+ARG TARGETARCH
+RUN ATLAS_VERSION=v1.0.0 && \
+  wget -qO /tmp/atlas.tar.gz https://github.com/ariga/atlas/releases/download/${ATLAS_VERSION}/atlas_${ATLAS_VERSION}_linux_${TARGETARCH}.tar.gz && \
+  tar -xzf /tmp/atlas.tar.gz -C /usr/local/bin && \
+  rm /tmp/atlas.tar.gz && \
+  chmod +x /usr/local/bin/atlas
 
 # Copy migrations
 COPY --from=builder /app/migrations /app/migrations
