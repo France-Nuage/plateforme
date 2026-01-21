@@ -82,7 +82,7 @@ RUN apk add --no-cache wget && \
   chmod +x /bin/grpc_health_probe
 
 # Install Atlas for migrations
-RUN wget -qO- https://atlasgo.sh | sh
+RUN apk add --no-cache atlas --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing/
 
 # Copy migrations
 COPY --from=builder /app/migrations /app/migrations
