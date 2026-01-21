@@ -30,11 +30,6 @@ variables:
 .buildkit_template:
   image: docker:29
   services: []
-  variables:
-    DOCKER_HOST: ""
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_TLS_VERIFY: ""
-    DOCKER_CERT_PATH: ""
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - |

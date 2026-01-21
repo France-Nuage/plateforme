@@ -27,11 +27,6 @@ spec:
         {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
         {{- end }}
       volumes:
-        {{- if .Values.migrations.atlas.enabled }}
-        - name: migrations
-          configMap:
-            name: {{ include "plateforme.fullname" . }}-migrations
-        {{- end }}
         - name: spicedb-schema
           configMap:
             name: {{ include "plateforme.fullname" . }}-spicedb-schema

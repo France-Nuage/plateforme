@@ -81,6 +81,12 @@ RUN apk add --no-cache wget && \
   wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${TARGETARCH} && \
   chmod +x /bin/grpc_health_probe
 
+# Install Atlas for migrations
+RUN wget -qO- https://atlasgo.sh | sh
+
+# Copy migrations
+COPY --from=builder /app/migrations /app/migrations
+
 COPY --from=builder /app/target/release/server /usr/bin/server
 RUN chmod +x /usr/bin/server
 CMD ["/usr/bin/server"]

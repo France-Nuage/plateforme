@@ -182,33 +182,24 @@ app.kubernetes.io/component: {{ .component }}
 
 {{- define "plateforme.runAtlasMigrations" -}}
 - name: run-atlas-migrations
-  image: "{{ .Values.migrations.atlas.image.repository }}:{{ .Values.migrations.atlas.image.tag }}"
+  image: {{ include "plateforme.imageWithOverrides" (dict "component" "controlplane" "imageConfig" .Values.controlplane.image "context" .) }}
+  command: ["atlas"]
   args:
     - schema
     - apply
     - --url
     - $(DATABASE_URL)?sslmode=disable
     - --to
-    - file:///migrations
+    - file:///app/migrations
     - --dev-url
     - $(DATABASE_URL)?sslmode=disable
     - --auto-approve
   env:
-    - name: POSTGRES_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: {{ include "plateforme.secretName" . }}
-          key: postgres-password
     - name: DATABASE_URL
       valueFrom:
         secretKeyRef:
           name: {{ include "plateforme.secretName" . }}
           key: database-url
-  {{- if .Values.migrations.atlas.enabled }}
-  volumeMounts:
-    - name: migrations
-      mountPath: /migrations
-  {{- end }}
 {{- end }}
 
 {{- define "plateforme.waitForMigrations" -}}
