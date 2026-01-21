@@ -577,6 +577,7 @@ gitleaks:
     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
   script:
     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
+    - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
   when: manual
   rules:
 
