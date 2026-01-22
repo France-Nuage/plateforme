@@ -1,5 +1,5 @@
 # Chef Stage - Install cargo-chef
-FROM rust:1.90-alpine AS chef
+FROM registry.france-nuage.fr/library/rust:1.90-alpine AS chef
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -55,9 +55,9 @@ COPY . .
 FROM base AS development
 CMD ["cargo", "run", "--bin=server"]
 
-# Development Stage - Operation Worker
-FROM base AS development-operation-worker
-CMD ["cargo", "run", "--bin=operation-worker"]
+# Development Stage - Authz Worker
+FROM base AS development-authz-worker
+CMD ["cargo", "run", "--bin=authz-worker"]
 
 # Development Stage - Synchronizer
 FROM base AS development-synchronizer
@@ -71,7 +71,7 @@ RUN SQLX_OFFLINE=true cargo build --release \
   --bin synchronizer
 
 # Production Stage - Server
-FROM alpine:3.23 AS release
+FROM registry.france-nuage.fr/library/alpine:3.23 AS release
 RUN apk add --no-cache ca-certificates openssl
 
 # Install grpc_health_probe with multi-arch support
@@ -81,12 +81,20 @@ RUN apk add --no-cache wget && \
   wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${TARGETARCH} && \
   chmod +x /bin/grpc_health_probe
 
+# Install Atlas for migrations
+RUN ATLAS_VERSION=v1.0.0 && \
+  wget -qO /usr/local/bin/atlas https://release.ariga.io/atlas/atlas-linux-amd64-${ATLAS_VERSION} && \
+  chmod +x /usr/local/bin/atlas
+
+# Copy migrations
+COPY --from=builder /app/migrations /app/migrations
+
 COPY --from=builder /app/target/release/server /usr/bin/server
 RUN chmod +x /usr/bin/server
 CMD ["/usr/bin/server"]
 
-# Production Stage - Operation Worker
-FROM alpine:3.23 AS release-operation-worker
+# Production Stage - Authz Worker
+FROM registry.france-nuage.fr/library/alpine:3.23 AS release-authz-worker
 RUN apk add --no-cache ca-certificates openssl
 
 COPY --from=builder /app/target/release/operation-worker /usr/bin/operation-worker
@@ -94,7 +102,7 @@ RUN chmod +x /usr/bin/operation-worker
 CMD ["/usr/bin/operation-worker"]
 
 # Production Stage - Synchronizer
-FROM alpine:3.23 AS release-synchronizer
+FROM registry.france-nuage.fr/library/alpine:3.23 AS release-synchronizer
 RUN apk add --no-cache ca-certificates openssl
 
 COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer

@@ -1,0 +1,68 @@
+global:
+  imageTag: "release"
+postgres:
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: "standard"
+
+spicedb:
+  useSharedDatabase: true
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"
+controlplane:
+  replicas: 2
+  config:
+    consoleUrl: "https://console.france-nuage.fr"
+    oidcUrl: "https://auth.france-nuage.fr/realms/france-nuage/.well-known/openid-configuration"
+    logLevel: "warn"
+    rootOrganizationName: "France Nuage"
+    rootServiceAccountKey: ""  
+    hoopApiKey: ""  
+    hoopApiUrl: "https://bastion.ssh.france-nuage.fr"  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"
+
+authzWorker:
+  replicas: 2
+  config:
+    logLevel: "warn"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+synchronizer:
+  replicas: 2
+  config:
+    logLevel: "warn"
+    rootOrganizationName: "France Nuage"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+console:
+  enabled: false
+
+keycloak:
+  enabled: false
+
+systemTests:
+  enabled: false

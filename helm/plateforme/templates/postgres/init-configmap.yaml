@@ -1,0 +1,22 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "plateforme.fullname" . }}-postgres-init
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
+data:
+  init-databases.sh: |
+    #!/bin/bash
+    set -e
+    psql -v ON_ERROR_STOP=1 \
+      -v spicedb_password="$SPICEDB_PASSWORD" \
+      --username "$POSTGRES_USER" \
+      --dbname "$POSTGRES_DB" <<-EOSQL
+        -- Création de l'utilisateur avec le mot de passe dédié
+        CREATE USER spicedb WITH PASSWORD :'spicedb_password';
+        CREATE DATABASE spicedb OWNER spicedb;
+        GRANT ALL PRIVILEGES ON DATABASE spicedb TO spicedb;
+    EOSQL
+{{- end }}

@@ -1,0 +1,55 @@
+{{- if .Values.console.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "plateforme.fullname" . }}-console
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: console
+spec:
+  replicas: {{ .Values.console.replicas }}
+  selector:
+    matchLabels:
+      {{- include "plateforme.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: console
+  template:
+    metadata:
+      labels:
+        {{- include "plateforme.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: console
+    spec:
+      initContainers:
+        {{- include "plateforme.waitForControlplane" . | nindent 8 }}
+        {{- if .Values.keycloak.enabled }}
+        {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: console
+          image: {{ include "plateforme.imageWithOverrides" (dict "component" "console" "imageConfig" .Values.console.image "context" .) }}
+          imagePullPolicy: {{ .Values.console.image.pullPolicy | default .Values.global.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: API_URL
+              value: {{ include "plateforme.controlplaneUrl" . | quote }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.console.resources | nindent 12 }}
+{{- end }}
