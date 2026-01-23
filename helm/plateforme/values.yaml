@@ -111,7 +111,7 @@ controlplane:
       memory: "1Gi"
       cpu: "1000m"
 
-authzWorker:
+operationWorker:
   enabled: true
   image:
     repository: ""

@@ -1,22 +1,22 @@
-{{- if .Values.authzWorker.enabled }}
+{{- if .Values.operationWorker.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "plateforme.fullname" . }}-authz-worker
+  name: {{ include "plateforme.fullname" . }}-operation-worker
   labels:
     {{- include "plateforme.labels" . | nindent 4 }}
-    app.kubernetes.io/component: authz-worker
+    app.kubernetes.io/component: operation-worker
 spec:
-  replicas: {{ .Values.authzWorker.replicas }}
+  replicas: {{ .Values.operationWorker.replicas }}
   selector:
     matchLabels:
       {{- include "plateforme.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: authz-worker
+      app.kubernetes.io/component: operation-worker
   template:
     metadata:
       labels:
         {{- include "plateforme.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: authz-worker
+        app.kubernetes.io/component: operation-worker
     spec:
       initContainers:
         {{- include "plateforme.waitForPostgres" . | nindent 8 }}
@@ -24,9 +24,9 @@ spec:
         {{- include "plateforme.waitForSpicedb" . | nindent 8 }}
         {{- include "plateforme.waitForSpicedbSchema" . | nindent 8 }}
       containers:
-        - name: authz-worker
-          image: {{ include "plateforme.imageWithOverrides" (dict "component" "authz-worker" "imageConfig" .Values.authzWorker.image "context" .) }}
-          imagePullPolicy: {{ .Values.authzWorker.image.pullPolicy | default .Values.global.imagePullPolicy }}
+        - name: operation-worker
+          image: {{ include "plateforme.imageWithOverrides" (dict "component" "operation-worker" "imageConfig" .Values.operationWorker.image "context" .) }}
+          imagePullPolicy: {{ .Values.operationWorker.image.pullPolicy | default .Values.global.imagePullPolicy }}
           env:
             - name: POSTGRES_PASSWORD
               valueFrom:
@@ -45,10 +45,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "plateforme.secretName" . }}
                   key: spicedb-preshared-key
-            {{- if .Values.authzWorker.config.logLevel }}
+            {{- if .Values.operationWorker.config.logLevel }}
             - name: LOG_LEVEL
-              value: {{ .Values.authzWorker.config.logLevel | quote }}
+              value: {{ .Values.operationWorker.config.logLevel | quote }}
             {{- end }}
           resources:
-            {{- toYaml .Values.authzWorker.resources | nindent 12 }}
+            {{- toYaml .Values.operationWorker.resources | nindent 12 }}
 {{- end }}

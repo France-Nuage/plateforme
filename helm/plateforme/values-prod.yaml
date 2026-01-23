@@ -33,7 +33,7 @@ controlplane:
       memory: "2Gi"
       cpu: "2000m"
 
-authzWorker:
+operationWorker:
   replicas: 2
   config:
     logLevel: "warn"

@@ -11,8 +11,8 @@ Chart:        {{ .Chart.Name }}-{{ .Chart.Version }}
 {{ if .Values.controlplane.enabled }}
 ✓ Controlplane deployed
 {{- end }}
-{{ if .Values.authzWorker.enabled }}
-✓ Authz Worker deployed
+{{ if .Values.operationWorker.enabled }}
+✓ Operation Worker deployed
 {{- end }}
 {{ if .Values.synchronizer.enabled }}
 ✓ Synchronizer deployed

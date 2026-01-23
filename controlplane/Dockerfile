@@ -55,9 +55,9 @@ COPY . .
 FROM base AS development
 CMD ["cargo", "run", "--bin=server"]
 
-# Development Stage - Authz Worker
-FROM base AS development-authz-worker
-CMD ["cargo", "run", "--bin=authz-worker"]
+# Development Stage - Operation Worker
+FROM base AS development-operation-worker
+CMD ["cargo", "run", "--bin=operation-worker"]
 
 # Development Stage - Synchronizer
 FROM base AS development-synchronizer
@@ -93,8 +93,8 @@ COPY --from=builder /app/target/release/server /usr/bin/server
 RUN chmod +x /usr/bin/server
 CMD ["/usr/bin/server"]
 
-# Production Stage - Authz Worker
-FROM registry.france-nuage.fr/library/alpine:3.23 AS release-authz-worker
+# Production Stage - Operation Worker
+FROM registry.france-nuage.fr/library/alpine:3.23 AS release-operation-worker
 RUN apk add --no-cache ca-certificates openssl
 
 COPY --from=builder /app/target/release/operation-worker /usr/bin/operation-worker
