@@ -576,13 +576,14 @@ impl Instance {
         let ip_v4s: Vec<String> = instances.iter().map(|i| i.ip_v4.clone()).collect();
         let disk_usage_bytes: Vec<i64> = instances.iter().map(|i| i.disk_usage_bytes).collect();
         let max_disk_bytes: Vec<i64> = instances.iter().map(|i| i.max_disk_bytes).collect();
+        let deleted_ats: Vec<Option<DateTime<Utc>>> = instances.iter().map(|i| i.deleted_at).collect();
 
         sqlx::query_as!(
         Instance,
         r#"
-        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
-        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes
-        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
+        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at)
+        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at
+        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[], $14::timestamptz[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at)
         ON CONFLICT (id) DO UPDATE
         SET
             hypervisor_id = EXCLUDED.hypervisor_id,
@@ -597,6 +598,7 @@ impl Instance {
             ip_v4 = EXCLUDED.ip_v4,
             disk_usage_bytes = EXCLUDED.disk_usage_bytes,
             max_disk_bytes = EXCLUDED.max_disk_bytes,
+            deleted_at = EXCLUDED.deleted_at,
             updated_at = NOW()
         RETURNING *
     "#,
@@ -613,6 +615,7 @@ impl Instance {
         &ip_v4s,
         &disk_usage_bytes,
         &max_disk_bytes,
+        &deleted_ats,
     )
     .fetch_all(pool)
     .await
