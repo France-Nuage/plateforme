@@ -17,10 +17,11 @@ stages:
   - release
   - deploy
 
-image: docker:29-cli
+image: registry.gitlab.com/gitlab-org/ci-cd/docker:20.10.16
 
 services:
-  - docker:29-dind
+  - name: registry.gitlab.com/gitlab-org/ci-cd/docker:20.10.16-dind
+    alias: docker
 
 before_script:                                                                                                                                                                                                                                                                                    
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY                                                                                                                                                                                                                       
