@@ -22,21 +22,19 @@ image: docker:29-cli
 services:
   - docker:29-dind
 
-before_script:                                                                                                                                                                                                                                                                                    
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY                                                                                                                                                                                                                       
-  - docker context create buildx-context-$CI_JOB_ID --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"                                                                                                                        
-  - docker context use buildx-context-$CI_JOB_ID                                                                                                                                                                                                                                                  
-  - docker buildx inspect --bootstrap                                                                                                                                                                                                                                                             
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker context create buildx-context-$CI_JOB_ID
+  - docker context use buildx-context-$CI_JOB_ID
+  - docker buildx inspect --bootstrap
   - docker compose down --volumes --remove-orphans  
 
 after_script:
   - docker compose down --volumes
 
 variables:
-  DOCKER_HOST: tcp://docker:2376
-  DOCKER_TLS_CERTDIR: "/certs"
-  DOCKER_TLS_VERIFY: 1
-  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
   BUILDKIT_PROGRESS: plain
