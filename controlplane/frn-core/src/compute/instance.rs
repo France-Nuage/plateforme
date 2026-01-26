@@ -54,6 +54,9 @@ pub struct Instance {
     pub created_at: DateTime<Utc>,
     // Time of the instance last update
     pub updated_at: DateTime<Utc>,
+    /// Soft delete timestamp - when the instance was marked as deleted
+    #[fabrique(soft_delete)]
+    pub deleted_at: Option<DateTime<Utc>>,
 }
 
 impl Instance {
@@ -185,7 +188,7 @@ impl<A: Authorize> Instances<A> {
 
         let maybe_instance = sqlx::query_as!(
             Instance,
-            "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
+            "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2 AND deleted_at IS NULL",
             next_id,
             hypervisor.id
         )

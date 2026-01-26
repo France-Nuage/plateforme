@@ -7,6 +7,7 @@ use frn_core::{
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor::instance::Instances;
 use sqlx::types::Uuid;
+use chrono::Utc;
 
 mod error;
 use error::Error;
@@ -87,6 +88,7 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
                         status: distant.status,
                         created_at: existing.created_at,
                         updated_at: existing.updated_at,
+                        deleted_at: None,
                     })
                 }
             })
@@ -95,6 +97,37 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
             .await?;
 
         let instances = Instance::upsert(&app.db, &instances).await?;
+
+        // Soft delete instances that exist in the DB but not on the hypervisor
+        let synced_distant_ids: Vec<String> = distant_instances.iter().map(|i| i.id.clone()).collect();
+        
+        // Get all non-deleted instances for this hypervisor
+        let db_instances: Vec<Instance> = sqlx::query_as!(
+            Instance,
+            "SELECT * FROM instances WHERE hypervisor_id = $1 AND deleted_at IS NULL",
+            hypervisor.id
+        )
+        .fetch_all(&app.db)
+        .await?;
+
+        // Soft delete instances that are in DB but not on hypervisor
+        let instances_to_delete: Vec<Instance> = db_instances
+            .into_iter()
+            .filter(|db_instance| !synced_distant_ids.contains(&db_instance.distant_id))
+            .map(|mut instance| {
+                instance.deleted_at = Some(Utc::now());
+                instance
+            })
+            .collect();
+
+        if !instances_to_delete.is_empty() {
+            tracing::info!(
+                hypervisor_id = %hypervisor.id,
+                count = instances_to_delete.len(),
+                "Soft deleting instances not found on hypervisor"
+            );
+            Instance::upsert(&app.db, &instances_to_delete).await?;
+        }
 
         let relationships: Vec<Relationship> = instances
             .iter()

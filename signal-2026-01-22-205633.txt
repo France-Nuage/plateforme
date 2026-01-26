@@ -1,0 +1,47 @@
+Concernant les tests système, il y a toujours pas mal d'instabilité, on a passé quelques
+heures avec Kevin hier soir à corriger certains problèmes.
+Je ne pense pas qu'on puisse assainir très rapidement et je pense que le sujet est trop
+difficile pour toi dans le sens où ça demande à la fois une compréhension fine des hyperviseurs
+de l'état actuel de la Codebase, même si tu avais plus d'expérience en programmation,
+ça resterait un sujet à pro.
+Ce que je te propose en attendant que je stabilise certaines parties c'est de te reconcentrer
+sur un sujet qu'il faut de toute façon qu'on traite, qui est qu'on a un service qui s'appelle
+le synchroniser, qui s'occupe d'aller requêter les différents hyperviseurs pour récupérer
+les listes d'instances et les ajouter dans le Control Plane, c'est un des sujets dont
+je te parlais pendant notre visio, ça, ça fonctionne et quand il détecte une instance
+qui existe côté Proxmox et qui n'existe pas côté Control Plane, il la crée, sinon
+si elle existe côté Control Plane, il la met à jour.
+Il y a un sujet où si l'instance n'existe pas côté Proxmox mais existe côté Control
+Plane, à ce moment-là il ne fait rien, ce qui fait qu'on a des instances qui vivent
+côté Control Plane qui n'existent plus côté hyperviseur.
+Donc il faudrait mettre à jour le processus de synchronisation pour gérer ça, sachant
+qu'on peut avoir un scénario où on a un hyperviseur qui se déconnecte et à ce moment-là
+il ne faut pas supprimer toutes ces instances.
+Donc en fait ce qu'il faudrait c'est au niveau du processus de synchronisation, à chaque
+fois qu'on itère sur les instances d'un Proxmox, si on arrive à obtenir une réponse
+du Proxmox et qu'il nous retourne une liste d'instances, à ce moment-là il faut regarder
+toutes les instances en base qui sont rattachées à cet hyperviseur et qui n'appartiennent
+pas à la liste et les supprimer.
+Et plutôt que les supprimer et enlever carrément la ligne de la base de données, il faudrait
+plutôt qu'on aille modifier une clé.
+Donc soit on a déjà un soft delete, à savoir un champ deleted at et on peut l'utiliser
+pour mettre le type stamp de délétion.
+Il faudrait aussi mettre à jour le statut de l'AVM pour l'enmarquer comme deleted.
+Et une fois qu'on a fait ça, vérifier que le code qui récupère les listes des instances
+ne retourne plus les instances supprimées.
+Donc si j'écris l'intégralité de l'issue en pensant à tous les HKS au final, ça
+va aller plus vite pour moi de programmer directement.
+Donc ce que je te propose, c'est que tu prennes à l'esinformation que je t'ai passée
+en vocale, que tu les mettes au clair proprement, que tu y terres dessus avec un cloud code
+pour réfléchir un peu aux implications concrètes.
+Cloud code va être assez adapté là-dessus parce qu'il va être capable de fouiller la
+code base assez facilement pour comprendre les choses à faire et comment fonctionne
+le code et qu'est-ce qu'il faut modifier.
+Derrière, tu me formalises tout ça sous forme d'une issue GitLab qui détaille un
+petit peu le travail à faire.
+Pareil, tu peux te faire du cloud code pour la rédiger.
+Tu m'envoies ça, je te confirme que c'est OK ou qu'il y a des points qu'on a oubliés.
+Et derrière, tu pourras passer à l'implementation, même si c'est du reste.
+Je pense qu'à l'aide d'un LLM, tu devrais t'en sortir pour avancer et ça va me faire
+gagner un petit peu de temps.
+Donc voilà, ta mission de demain.
