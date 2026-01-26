@@ -398,8 +398,8 @@ gitleaks:
   stage: code-style
   needs:
     - job: "build / console"
-        optional: true
       artifacts: false
+      optional: true
   script:
     - docker compose run --no-deps --remove-orphans console npm run lint
     - docker compose run --no-deps --remove-orphans console npx prettier --check .
