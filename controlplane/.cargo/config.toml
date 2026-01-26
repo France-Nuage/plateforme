@@ -1,5 +1,0 @@
-[build]
-rustflags = ["-Z", "unstable-options"]
-
-[build.x86_64-unknown-linux-gnu]
-rustflags = ["-Z", "unstable-options"]
