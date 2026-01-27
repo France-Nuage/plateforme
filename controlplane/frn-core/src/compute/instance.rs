@@ -524,9 +524,6 @@ impl<A: Authorize> Instances<A> {
             WHERE id = $1
             RETURNING *
             "#,
-            request.id,
-            request.name,
-            request.project_id,
         )
         .bind(request.id)
         .bind(request.name)
