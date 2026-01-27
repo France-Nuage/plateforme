@@ -55,6 +55,7 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
                     .unwrap_or(Instance {
                         id: Uuid::new_v4(),
                         project_id: default_project.id,
+                        deleted_at: None,
                         ..Default::default()
                     });
 
