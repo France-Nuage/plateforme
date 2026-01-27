@@ -25,6 +25,7 @@ default:
 variables:
   GIT_DEPTH: 1
   GIT_STRATEGY: fetch
+  # Cache invalidation: 2026-01-27 15:06
 
 # template buildkit 
 .buildkit_template:
@@ -97,6 +98,7 @@ gitleaks:
 
       # Build 1: controlplane (exports full workspace cache)
       docker buildx build \
+        --no-cache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
@@ -111,6 +113,7 @@ gitleaks:
 
       # Build 2: operation-worker (reuses cache from build 1, no export)
       docker buildx build \
+        --no-cache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-development \
@@ -123,6 +126,7 @@ gitleaks:
 
       # Build 3: synchronizer (reuses cache from build 1, no export)
       docker buildx build \
+        --no-cache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
@@ -429,7 +433,7 @@ gitleaks:
   needs: []
   allow_failure: true
   script:
-    - npm install -g markdownlint-cli2 #pour qu'il prenne en compte le .markdownlint-cli2.yml 
+    - npm install -g markdownlint-cli2
     - markdownlint-cli2
   rules:
     - changes:
@@ -485,7 +489,7 @@ gitleaks:
   stage: unit-tests
   image: registry.france-nuage.fr/library/rust:1.90-alpine
   needs: []
-  allow_failure: true  # Modifier le code pour détecter l'environnement de test et skip Hoop plus tard
+  allow_failure: true
   services:
     - name: registry.france-nuage.fr/library/postgres:16-alpine
       alias: test-postgres
