@@ -4,10 +4,10 @@
 
 France-Nuage souhaite mettre en place un service de **catalogue des APIs**
 similaire à Google API Discovery. Ce service de découverte permettra de
-**recenser, maintenir et exposer les métadonnées** des différentes API proposées,
-afin que développeurs et outils puissent en obtenir la description de façon
-automatisée. L’objectif est de fournir un point centralisé où chaque API est
-décrite de façon assez riche pour en **générer du code client** et des
+**recenser, maintenir et exposer les métadonnées** des différentes API
+proposées, afin que développeurs et outils puissent en obtenir la description
+de façon automatisée. L’objectif est de fournir un point centralisé où chaque
+API est décrite de façon assez riche pour en **générer du code client** et des
 intégrations, notamment : des définitions d’interfaces gRPC (`.proto`) et du
 code pour un provider Terraform correspondant.
 
@@ -888,10 +888,11 @@ Des **paramètres de filtrage** pourront être supportés comme chez Google :
 n’avoir que les versions préférées. Il suffit de filtrer la requête SQL derrière.
 
 * **GET `/discovery/v1/apis/{apiName}/{version}/rest`** – Retourne le **document
-de découverte complet** pour l’API demandée (au format JSON, Discovery document).
-C’est la méthode principale pour obtenir la description de toutes les ressources,
-méthodes et schémas d’une API spécifique. Le résultat a la structure type
-`discovery#restDescription`[developers.google.com](https://developers.google.com/discovery/v1/reference/apis#resource#:~:text=%7B%20%22kind%22%3A%20%22discovery,string).
+  de découverte complet** pour l’API demandée (au format JSON, Discovery
+  document). C’est la méthode principale pour obtenir la description de toutes
+  les ressources, méthodes et schémas d’une API spécifique. Le résultat a la
+  structure type `discovery#restDescription`
+  [developers.google.com](https://developers.google.com/discovery/v1/reference/apis#resource#:~:text=%7B%20%22kind%22%3A%20%22discovery,string).
 
 La réponse inclut beaucoup d’informations. Notre service va reconstruire ce
 JSON à partir des tables relationnelles. Pour une API donnée, il faut assembler :
