@@ -1517,9 +1517,9 @@ API `books` devient un type Terraform `francenuage_library_book`. (Convention
 typique: `<provider>_<api>_<resourceSingulier>`). Si une API a plusieurs
 ressources, chaque aura son mapping.
 
-* À partir des métadonnées, on connaît tous les **champs de la ressource** (via le
-schéma principal associé, ici `Book`). Pour construire la définition Terraform,
-on distingue :
+* À partir des métadonnées, on connaît tous les **champs de la ressource**
+  (via le schéma principal associé, ici `Book`). Pour construire la définition
+  Terraform, on distingue :
 
   * Les champs **configurables** par l’utilisateur (généralement ceux nécessaires
   à la création, ou modifiables). Dans `Book`, par exemple, `title`, `author`
