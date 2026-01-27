@@ -61,7 +61,8 @@ pub struct Instance {
 
 impl Instance {
     pub async fn find_one_by_id(pool: &Pool<Postgres>, id: Uuid) -> Result<Instance, sqlx::Error> {
-        sqlx::query_as!(Instance, "SELECT * FROM instances WHERE id = $1", id)
+        sqlx::query_as::<_, Instance>("SELECT * FROM instances WHERE id = $1")
+            .bind(id)
             .fetch_one(pool)
             .await
     }
@@ -186,12 +187,11 @@ impl<A: Authorize> Instances<A> {
             })
             .await?;
 
-        let maybe_instance = sqlx::query_as!(
-            Instance,
+        let maybe_instance = sqlx::query_as::<_, Instance>(
             "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2 AND deleted_at IS NULL",
-            next_id,
-            hypervisor.id
         )
+        .bind(&next_id)
+        .bind(hypervisor.id)
         .fetch_optional(&self.db)
         .await?;
 
@@ -215,6 +215,7 @@ impl<A: Authorize> Instances<A> {
                     status: Status::default(),
                     created_at: chrono::Utc::now(),
                     updated_at: chrono::Utc::now(),
+                    deleted_at: None,
                 }
                 .create(&self.db)
                 .await?
@@ -513,8 +514,7 @@ impl<A: Authorize> Instances<A> {
         let old_project_id = instance.project_id;
 
         // Build the update query dynamically based on provided fields
-        let updated_instance = sqlx::query_as!(
-            Instance,
+        let updated_instance = sqlx::query_as::<_, Instance>(
             r#"
             UPDATE instances
             SET
@@ -528,6 +528,9 @@ impl<A: Authorize> Instances<A> {
             request.name,
             request.project_id,
         )
+        .bind(request.id)
+        .bind(request.name)
+        .bind(request.project_id)
         .fetch_one(&self.db)
         .await?;
 
@@ -578,46 +581,45 @@ impl Instance {
         let max_disk_bytes: Vec<i64> = instances.iter().map(|i| i.max_disk_bytes).collect();
         let deleted_ats: Vec<Option<DateTime<Utc>>> = instances.iter().map(|i| i.deleted_at).collect();
 
-        sqlx::query_as!(
-        Instance,
-        r#"
-        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at)
-        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at
-        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[], $14::timestamptz[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at)
-        ON CONFLICT (id) DO UPDATE
-        SET
-            hypervisor_id = EXCLUDED.hypervisor_id,
-            project_id = EXCLUDED.project_id,
-            distant_id = EXCLUDED.distant_id,
-            cpu_usage_percent = EXCLUDED.cpu_usage_percent,
-            max_cpu_cores = EXCLUDED.max_cpu_cores,
-            max_memory_bytes = EXCLUDED.max_memory_bytes,
-            memory_usage_bytes = EXCLUDED.memory_usage_bytes,
-            name = EXCLUDED.name,
-            status = EXCLUDED.status,
-            ip_v4 = EXCLUDED.ip_v4,
-            disk_usage_bytes = EXCLUDED.disk_usage_bytes,
-            max_disk_bytes = EXCLUDED.max_disk_bytes,
-            deleted_at = EXCLUDED.deleted_at,
-            updated_at = NOW()
-        RETURNING *
-    "#,
-        &ids,
-        &hypervisor_ids,
-        &project_ids,
-        &distant_ids,
-        &cpu_usage_percents,
-        &max_cpu_cores,
-        &max_memory_bytes,
-        &memory_usage_bytes,
-        &names,
-        &statuses,
-        &ip_v4s,
-        &disk_usage_bytes,
-        &max_disk_bytes,
-        &deleted_ats,
-    )
-    .fetch_all(pool)
-    .await
+        sqlx::query_as::<_, Instance>(
+            r#"
+            INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at)
+            SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at
+            FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[], $14::timestamptz[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at)
+            ON CONFLICT (id) DO UPDATE
+            SET
+                hypervisor_id = EXCLUDED.hypervisor_id,
+                project_id = EXCLUDED.project_id,
+                distant_id = EXCLUDED.distant_id,
+                cpu_usage_percent = EXCLUDED.cpu_usage_percent,
+                max_cpu_cores = EXCLUDED.max_cpu_cores,
+                max_memory_bytes = EXCLUDED.max_memory_bytes,
+                memory_usage_bytes = EXCLUDED.memory_usage_bytes,
+                name = EXCLUDED.name,
+                status = EXCLUDED.status,
+                ip_v4 = EXCLUDED.ip_v4,
+                disk_usage_bytes = EXCLUDED.disk_usage_bytes,
+                max_disk_bytes = EXCLUDED.max_disk_bytes,
+                deleted_at = EXCLUDED.deleted_at,
+                updated_at = NOW()
+            RETURNING *
+        "#,
+        )
+        .bind(&ids)
+        .bind(&hypervisor_ids)
+        .bind(&project_ids)
+        .bind(&distant_ids)
+        .bind(&cpu_usage_percents)
+        .bind(&max_cpu_cores)
+        .bind(&max_memory_bytes)
+        .bind(&memory_usage_bytes)
+        .bind(&names)
+        .bind(&statuses)
+        .bind(&ip_v4s)
+        .bind(&disk_usage_bytes)
+        .bind(&max_disk_bytes)
+        .bind(&deleted_ats)
+        .fetch_all(pool)
+        .await
     }
 }
