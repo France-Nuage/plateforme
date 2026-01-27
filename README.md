@@ -57,8 +57,10 @@ France nuage Cloud allows you to create free cloud projects in minutes.
 - **Free Autonomous Tier**: Available with no credit card required
 - **No Product Limitations**: Unlimited users and applications in our platform
 - **Self-Service Dashboard**: Create and monitor all your projects in one place
-- **End-to-End Solution**: Full stack platform with database, auto-scaling, and storage
-- **Usage-Based Pricing**: Pay-as-you-go for our Standard Cloud offering
+- **End-to-End Solution**: Full stack platform with database,
+  auto-scaling, and storage
+- **Usage-Based Pricing**: Pay-as-you-go for our Standard Cloud
+  offering
 - **Quick Provisioning**: Select your desired region in France and provision new
 resources in minutes
 
@@ -70,12 +72,13 @@ resources in minutes
 The [France nuage Documentation](https://france-nuage.fr/support/documentation)
 is a great place to start, or explore these other channels:
 
-- [Gitlab Issues](https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/issues/?sort=milestone_due_desc&state=opened&first_page_size=100)
-(Report Bugs, Questions, Feature Requests)
+- [Gitlab Issues][gitlab-issues] (Report Bugs, Questions, Feature Requests)
 - [GitHub Mirror](https://github.com/France-Nuage/plateforme)
 - [Linkedin](https://www.linkedin.com/company/france-nuage) (Latest News)
 - [Website](https://france-nuage.fr/) (Infos)
 - [Platform](https://plateforme.france-nuage.fr/auth/login) (Login, sign up)
+
+[gitlab-issues]: https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/issues/?sort=milestone_due_desc&state=opened&first_page_size=100
 
 ## 📌 Requirements
 
@@ -173,11 +176,13 @@ Cloud API compliance validation
 
 ## ❤️ Contributing & Sponsoring
 
-All security vulnerabilities should be reported in accordance with our Security Policy.
+All security vulnerabilities should be reported in accordance with our
+Security Policy.
 
 ## License
 
-France nuage is a premium open-source [Server Side Public License (SSPL) v1](./LICENCE)
+France nuage is a premium open-source
+[Server Side Public License (SSPL) v1](./LICENCE)
 project made possible with support from our passionate core team, talented
 contributors, and amazing Sponsors. Thank you all!
 
