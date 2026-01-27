@@ -102,11 +102,10 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
         let synced_distant_ids: Vec<String> = distant_instances.iter().map(|i| i.id.clone()).collect();
         
         // Get all non-deleted instances for this hypervisor
-        let db_instances: Vec<Instance> = sqlx::query_as!(
-            Instance,
+        let db_instances: Vec<Instance> = sqlx::query_as::<_, Instance>(
             "SELECT * FROM instances WHERE hypervisor_id = $1 AND deleted_at IS NULL",
-            hypervisor.id
         )
+        .bind(hypervisor.id)
         .fetch_all(&app.db)
         .await?;
 

@@ -11,7 +11,8 @@ API est décrite de façon assez riche pour en **générer du code client** et d
 intégrations, notamment : des définitions d’interfaces gRPC (`.proto`) et du
 code pour un provider Terraform correspondant.
 
-Ce besoin s’inscrit dans une optique de **standardisation et d’automatisation** :
+Ce besoin s'inscrit dans une optique de **standardisation et
+d'automatisation** :
 en enregistrant les détails des endpoints, schémas de données et opérations pour
 chaque service, on évite la duplication d’effort (écriture manuelle de specs
 différentes pour gRPC, REST, Terraform…). De plus, en exposant ces métadonnées
@@ -897,11 +898,11 @@ n’avoir que les versions préférées. Il suffit de filtrer la requête SQL de
 La réponse inclut beaucoup d’informations. Notre service va reconstruire ce
 JSON à partir des tables relationnelles. Pour une API donnée, il faut assembler :
 
-* **Propriétés de haut niveau de l’API** : `name`, `version`, `title`,
-`description`, `documentationLink`, `revision`, `protocol` (toujours "rest"),
-`baseUrl`, `basePath`, `rootUrl`, `servicePath`, `batchPath`, `parameters`
-(les éventuels paramètres globaux), `auth` (scopes OAuth2), `features`
-(le cas échéant), `labels` (ex: "limited\_availability").
+* **Propriétés de haut niveau de l'API** : `name`, `version`, `title`,
+  `description`, `documentationLink`, `revision`, `protocol` (toujours
+  "rest"), `baseUrl`, `basePath`, `rootUrl`, `servicePath`, `batchPath`,
+  `parameters` (les éventuels paramètres globaux), `auth` (scopes OAuth2),
+  `features` (le cas échéant), `labels` (ex: "limited\_availability").
 
 * **La liste des schémas** (`schemas`) définis : c’est un objet dont chaque clé
 est le nom d’un schéma et la valeur est la définition JSON Schema correspondante.
