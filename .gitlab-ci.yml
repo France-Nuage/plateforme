@@ -22,11 +22,12 @@ image: docker:24.0.5
 services:
   - docker:24.0.5-dind
 
-before_script:                                                                                                                                                                                                                                                                                    
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY                                                                                                                                                                                                                       
-  - docker context create buildx-context-$CI_JOB_ID --docker "host=$DOCKER_HOST,ca=$DOCKER_CERT_PATH/ca.pem,cert=$DOCKER_CERT_PATH/cert.pem,key=$DOCKER_CERT_PATH/key.pem"                                                                                                                        
-  - docker context use buildx-context-$CI_JOB_ID                                                                                                                                                                                                                                                  
-  - docker buildx inspect --bootstrap                                                                                                                                                                                                                                                             
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - for i in $(seq 1 30); do docker info && break || sleep 1; done
+  - docker context create buildx-context-$CI_JOB_ID --docker "host=$DOCKER_HOST"
+  - docker context use buildx-context-$CI_JOB_ID
+  - docker buildx inspect --bootstrap
   - docker compose down --volumes --remove-orphans  
 
 after_script:
