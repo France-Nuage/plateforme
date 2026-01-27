@@ -1,0 +1,63 @@
+{{- if .Values.synchronizer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "plateforme.fullname" . }}-synchronizer
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: synchronizer
+spec:
+  replicas: {{ .Values.synchronizer.replicas }}
+  selector:
+    matchLabels:
+      {{- include "plateforme.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: synchronizer
+  template:
+    metadata:
+      labels:
+        {{- include "plateforme.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: synchronizer
+    spec:
+      initContainers:
+        {{- include "plateforme.waitForPostgres" . | nindent 8 }}
+        {{- include "plateforme.waitForMigrations" . | nindent 8 }}
+        {{- include "plateforme.waitForSpicedb" . | nindent 8 }}
+        {{- include "plateforme.waitForSpicedbSchema" . | nindent 8 }}
+        {{- if .Values.keycloak.enabled }}
+        {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: synchronizer
+          image: {{ include "plateforme.imageWithOverrides" (dict "component" "synchronizer" "imageConfig" .Values.synchronizer.image "context" .) }}
+          imagePullPolicy: {{ .Values.synchronizer.image.pullPolicy | default .Values.global.imagePullPolicy }}
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: postgres-password
+            - name: DATABASE_URL
+              value: {{ include "plateforme.postgresUrl" . | quote }}
+            - name: SPICEDB_URL
+              value: {{ include "plateforme.spicedbUrl" . | quote }}
+            - name: SPICEDB_GRPC_PRESHARED_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: spicedb-preshared-key
+            {{- if .Values.controlplane.config.oidcUrl }}
+            - name: OIDC_URL
+              value: {{ .Values.controlplane.config.oidcUrl | quote }}
+            {{- else if .Values.keycloak.enabled }}
+            - name: OIDC_URL
+              value: {{ include "plateforme.keycloakOidcUrl" . | quote }}
+            {{- end }}
+            {{- if .Values.synchronizer.config.logLevel }}
+            - name: LOG_LEVEL
+              value: {{ .Values.synchronizer.config.logLevel | quote }}
+            {{- end }}
+            - name: ROOT_ORGANIZATION_NAME
+              value: {{ .Values.synchronizer.config.rootOrganizationName | quote }}
+          resources:
+            {{- toYaml .Values.synchronizer.resources | nindent 12 }}
+{{- end }}

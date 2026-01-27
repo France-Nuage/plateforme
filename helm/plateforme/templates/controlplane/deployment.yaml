@@ -1,0 +1,108 @@
+{{- if .Values.controlplane.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "plateforme.fullname" . }}-controlplane
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: controlplane
+spec:
+  replicas: {{ .Values.controlplane.replicas }}
+  selector:
+    matchLabels:
+      {{- include "plateforme.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: controlplane
+  template:
+    metadata:
+      labels:
+        {{- include "plateforme.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: controlplane
+    spec:
+      initContainers:
+        {{- include "plateforme.waitForPostgres" . | nindent 8 }}
+        {{- include "plateforme.runAtlasMigrations" . | nindent 8 }}
+        {{- include "plateforme.waitForSpicedb" . | nindent 8 }}
+        {{- include "plateforme.runSpicedbMigrations" . | nindent 8 }}
+        {{- if .Values.keycloak.enabled }}
+        {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: spicedb-schema
+          configMap:
+            name: {{ include "plateforme.fullname" . }}-spicedb-schema
+      containers:
+        - name: controlplane
+          image: {{ include "plateforme.imageWithOverrides" (dict "component" "controlplane" "imageConfig" .Values.controlplane.image "context" .) }}
+          imagePullPolicy: {{ .Values.controlplane.image.pullPolicy | default .Values.global.imagePullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: CONTROLPLANE_ADDR
+              value: {{ .Values.controlplane.config.addr | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: postgres-password
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: database-url
+            - name: SPICEDB_URL
+              value: {{ include "plateforme.spicedbUrl" . | quote }}
+            - name: SPICEDB_GRPC_PRESHARED_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: spicedb-preshared-key
+            - name: CONSOLE_URL
+              value: {{ include "plateforme.consoleUrl" . | quote }}
+            {{- if .Values.controlplane.config.oidcUrl }}
+            - name: OIDC_URL
+              value: {{ .Values.controlplane.config.oidcUrl | quote }}
+            {{- else if .Values.keycloak.enabled }}
+            - name: OIDC_URL
+              value: {{ include "plateforme.keycloakOidcUrl" . | quote }}
+            {{- end }}
+            {{- if .Values.controlplane.config.logLevel }}
+            - name: LOG_LEVEL
+              value: {{ .Values.controlplane.config.logLevel | quote }}
+            {{- end }}
+            - name: ROOT_ORGANIZATION_NAME
+              value: {{ .Values.controlplane.config.rootOrganizationName | quote }}
+            - name: ROOT_SERVICE_ACCOUNT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: root-service-account-key
+            {{- if .Values.secrets.hoopApiKey }}
+            - name: HOOP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: hoop-api-key
+            {{- end }}
+            {{- if .Values.controlplane.config.hoopApiUrl }}
+            - name: HOOP_API_URL
+              value: {{ .Values.controlplane.config.hoopApiUrl | quote }}
+            {{- end }}
+          livenessProbe:
+            exec:
+              command: ["/bin/grpc_health_probe", "-addr=localhost:80"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            exec:
+              command: ["/bin/grpc_health_probe", "-addr=localhost:80"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.controlplane.resources | nindent 12 }}
+{{- end }}

@@ -1,0 +1,51 @@
+global:
+  imageTag: "development"  
+
+spicedbDb:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: "ceph-rbd"
+
+spicedb:
+  useSharedDatabase: false
+
+keycloakDb:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: "ceph-rbd"
+
+keycloak:
+  enabled: true
+  config:
+    startCommand: "start-dev"
+    importRealm: true
+    hostnameStrict: "false"
+    httpEnabled: "true"
+postgres:
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: "ceph-rbd"
+
+console:
+  enabled: true
+  config:
+    apiUrl: "" 
+
+systemTests:
+  enabled: false
+  config:
+    headless: true
+
+controlplane:
+  config:
+    consoleUrl: "" 
+    oidcUrl: ""     
+
+synchronizer:
+  config:
+    oidcUrl: ""

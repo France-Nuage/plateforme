@@ -1,0 +1,78 @@
+{{- if .Values.spicedbDb.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "plateforme.fullname" . }}-spicedb-db
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: spicedb-db
+spec:
+  serviceName: {{ include "plateforme.fullname" . }}-spicedb-db
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "plateforme.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: spicedb-db
+  template:
+    metadata:
+      labels:
+        {{- include "plateforme.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: spicedb-db
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.spicedbDb.image.repository }}:{{ .Values.spicedbDb.image.tag }}"
+          imagePullPolicy: {{ .Values.spicedbDb.image.pullPolicy }}
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.spicedbDb.auth.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.spicedbDb.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: spicedb-db-password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U {{ .Values.spicedbDb.auth.username }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U {{ .Values.spicedbDb.auth.username }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.spicedbDb.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        {{- if .Values.spicedbDb.persistence.storageClass }}
+        storageClassName: {{ .Values.spicedbDb.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.spicedbDb.persistence.size | default "10Gi" | quote }}
+{{- end }}

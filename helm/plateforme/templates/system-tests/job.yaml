@@ -1,0 +1,64 @@
+{{- if .Values.systemTests.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "plateforme.fullname" . }}-system-tests
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: system-tests
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        {{- include "plateforme.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: system-tests
+    spec:
+      restartPolicy: Never
+      initContainers:
+        {{- include "plateforme.waitForControlplane" . | nindent 8 }}
+        {{- if .Values.console.enabled }}
+        {{- include "plateforme.waitForConsole" . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.keycloak.enabled }}
+        {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: system-tests
+          image: {{ include "plateforme.imageWithOverrides" (dict "component" "system-tests" "imageConfig" .Values.systemTests.image "context" .) }}
+          imagePullPolicy: {{ .Values.systemTests.image.pullPolicy | default .Values.global.imagePullPolicy }}
+          command:
+            - npm
+            - run
+            - test:ci
+          env:
+            - name: CONSOLE_URL
+              value: {{ include "plateforme.consoleUrl" . | quote }}
+            - name: CONTROLPLANE_URL
+              value: {{ include "plateforme.controlplaneUrl" . | quote }}
+            {{- if .Values.keycloak.enabled }}
+            - name: KEYCLOAK_URL
+              value: {{ include "plateforme.keycloakUrl" . | quote }}
+            - name: KEYCLOAK_ADMIN
+              value: {{ .Values.systemTests.config.keycloakAdmin | quote }}
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: keycloak-admin-password
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.systemTests.config.oidcClientId | quote }}
+            - name: OIDC_PROVIDER_URL
+              value: {{ include "plateforme.keycloakOidcUrl" . | quote }}
+            {{- end }}
+            {{- if .Values.systemTests.config.headless }}
+            - name: HEADLESS
+              value: "true"
+            {{- end }}
+          resources:
+            {{- toYaml .Values.systemTests.resources | nindent 12 }}
+{{- end }}

@@ -5,3 +5,4 @@ https://cloud.debian.org/images/cloud/trixie/20250814-2204/debian-13-genericclou
 https://cloud-images.ubuntu.com/releases/noble/release-20250313/ubuntu-24.04-server-cloudimg-amd64.img
 https://dl.rockylinux.org/pub/rocky/8/images/x86_64/Rocky-8-GenericCloud-Base-8.10-20240528.0.x86_64.qcow2
 https://enterprise.proxmox.com/iso/proxmox-ve_8.4-1.iso
+https://cloud.debian.org/images/cloud/trixie/20260112-2355/debian-13-genericcloud-amd64-20260112-2355.qcow2

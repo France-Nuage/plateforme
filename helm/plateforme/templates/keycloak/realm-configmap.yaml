@@ -1,0 +1,12 @@
+{{- if and .Values.keycloak.enabled .Values.keycloak.config.importRealm }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "plateforme.fullname" . }}-keycloak-realm
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+data:
+  francenuage-realm.json: |
+    {{ .Files.Get "files/keycloak-realm.json" | nindent 4 }}
+{{- end }}

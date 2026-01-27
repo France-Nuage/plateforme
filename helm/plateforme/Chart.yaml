@@ -1,0 +1,9 @@
+apiVersion: v2
+name: plateforme
+description: helm chart pour deploiement de la plateforme 
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+sources:
+  - https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme
+
