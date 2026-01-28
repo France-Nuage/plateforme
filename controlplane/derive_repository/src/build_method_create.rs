@@ -109,6 +109,7 @@ mod tests {
         assert_eq!(stream.to_string(), expected.to_string());
     }
 
+
     #[test]
     fn test_handle_sqlx_try_from() {
         // Arrange an input with an sqlx::try_from
@@ -171,3 +172,4 @@ mod tests {
         };
         assert_eq!(stream.to_string(), expected.to_string());
     }
+}
