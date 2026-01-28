@@ -120,6 +120,10 @@ table "instances" {
     null = true
     type = uuid
   }
+  column "deleted_at" {
+    null = true
+    type = timestamptz
+  }
   primary_key {
     columns = [column.id]
   }
@@ -354,6 +358,12 @@ table "operations" {
   }
   primary_key {
     columns = [column.id]
+  }
+  index "idx_operations_status" {
+    columns = [column.status]
+  }
+  index "idx_operations_status_created_at" {
+    columns = [column.status, column.created_at]
   }
 }
 table "projects" {

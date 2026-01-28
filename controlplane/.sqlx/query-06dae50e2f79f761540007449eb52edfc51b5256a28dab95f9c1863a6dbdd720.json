@@ -178,6 +178,17 @@
             "name": "zero_trust_network_id"
           }
         }
+      },
+      {
+        "ordinal": 16,
+        "name": "deleted_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "deleted_at"
+          }
+        }
       }
     ],
     "parameters": {
@@ -194,7 +205,8 @@
         "TextArray",
         "TextArray",
         "Int8Array",
-        "Int8Array"
+        "Int8Array",
+        "TimestamptzArray"
       ]
     },
     "nullable": [
@@ -213,6 +225,7 @@
       false,
       false,
       false,
+      true,
       true
     ]
   },
