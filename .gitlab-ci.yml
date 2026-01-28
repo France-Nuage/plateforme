@@ -525,7 +525,7 @@ gitleaks:
     on_stop: "cleanup / ci-environment"
   variables:
     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
-    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
+    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
     GIT_DEPTH: 0
     GIT_STRATEGY: clone
   script:
@@ -574,7 +574,7 @@ gitleaks:
     action: stop
   variables:
     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
-    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
+    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
   script:
     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
@@ -590,7 +590,7 @@ gitleaks:
   allow_failure: true
   variables:
     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
-    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
+    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
   script:
     - |
       set -e
