@@ -40,7 +40,7 @@ variables:
     - |
       docker buildx create \
         --driver=kubernetes \
-        --driver-opt=namespace=${BUILDKIT_NAMESPACE:-managed-frn-gitlab-runner-prod} \
+        --driver-opt=namespace=${BUILDKIT_NAMESPACE:-${KUBE_CI_NAMESPACE_NAME}} \
         --driver-opt=rootless=true \
         --driver-opt=image=registry.france-nuage.fr/moby/buildkit:rootless \
         --driver-opt=replicas=1 \
@@ -524,7 +524,7 @@ gitleaks:
     name: ci
     on_stop: "cleanup / ci-environment"
   variables:
-    NAMESPACE: "managed-frn-gitlab-runner-prod"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
     GIT_DEPTH: 0
     GIT_STRATEGY: clone
@@ -573,7 +573,7 @@ gitleaks:
     name: ci
     action: stop
   variables:
-    NAMESPACE: "managed-frn-gitlab-runner-prod"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
   script:
     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
@@ -589,7 +589,7 @@ gitleaks:
       artifacts: false
   allow_failure: true
   variables:
-    NAMESPACE: "managed-frn-gitlab-runner-prod"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
   script:
     - |
@@ -628,7 +628,7 @@ gitleaks:
     name: production
     on_stop: "cleanup / production"
   variables:
-    NAMESPACE: "managed-frn-gitlab-runner-prod"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
     RELEASE_NAME: "plateforme-prod"
     GIT_DEPTH: 0
     GIT_STRATEGY: clone
@@ -669,7 +669,7 @@ gitleaks:
     name: production
     action: stop
   variables:
-    NAMESPACE: "managed-frn-gitlab-runner-prod"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
     RELEASE_NAME: "plateforme-prod"
   script:
     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
