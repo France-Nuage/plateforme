@@ -23,10 +23,11 @@ tests existante) ?
 - [ ] **Licences** : La licence de l'outil permet-elle son déploiement via
 France-Nuage ?
 - [ ] **Support & Partenariats** :
-  - [ ] Avons-nous établi des **contacts avec les mainteneurs** pour demander du
-  support payant si nécessaire ?
+  - [ ] Avons-nous établi des **contacts avec les mainteneurs** pour demander
+  du support payant si nécessaire ?
   - [ ] Les mainteneurs sont-ils prêts à **être recommandés** pour du
-consulting/développement spécifique, avec une commission d'apporteur d'affaires ?
+consulting/développement spécifique, avec une commission d'apporteur
+d'affaires ?
 
 ## Notes additionnelles
 

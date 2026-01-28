@@ -576,7 +576,8 @@ impl Instance {
         let ip_v4s: Vec<String> = instances.iter().map(|i| i.ip_v4.clone()).collect();
         let disk_usage_bytes: Vec<i64> = instances.iter().map(|i| i.disk_usage_bytes).collect();
         let max_disk_bytes: Vec<i64> = instances.iter().map(|i| i.max_disk_bytes).collect();
-        let deleted_ats: Vec<Option<DateTime<Utc>>> = instances.iter().map(|i| i.deleted_at).collect();
+        let deleted_ats: Vec<Option<DateTime<Utc>>> =
+            instances.iter().map(|i| i.deleted_at).collect();
 
         sqlx::query_as::<_, Instance>(
             r#"

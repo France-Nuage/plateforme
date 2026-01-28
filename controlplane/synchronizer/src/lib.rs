@@ -1,3 +1,4 @@
+use chrono::Utc;
 use frn_core::authorization::{Relation, Relationship, Resource};
 use frn_core::resourcemanager::Project;
 use frn_core::{
@@ -7,7 +8,6 @@ use frn_core::{
 use futures::{StreamExt, TryStreamExt, stream};
 use hypervisor::instance::Instances;
 use sqlx::types::Uuid;
-use chrono::Utc;
 
 mod error;
 use error::Error;
@@ -38,7 +38,7 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
             .await?;
 
         let distant_instances = service.list().await?;
-        let instances = stream::iter(distant_instances)
+        let instances = stream::iter(distant_instances.clone())
             .map(|distant| {
                 let pool = app.db.clone();
                 let service = Clone::clone(&service);
@@ -100,8 +100,9 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
         let instances = Instance::upsert(&app.db, &instances).await?;
 
         // Soft delete instances that exist in the DB but not on the hypervisor
-        let synced_distant_ids: Vec<String> = distant_instances.iter().map(|i| i.id.clone()).collect();
-        
+        let synced_distant_ids: Vec<String> =
+            distant_instances.iter().map(|i| i.id.clone()).collect();
+
         // Get all non-deleted instances for this hypervisor
         let db_instances: Vec<Instance> = sqlx::query_as::<_, Instance>(
             "SELECT * FROM instances WHERE hypervisor_id = $1 AND deleted_at IS NULL",
