@@ -25,7 +25,6 @@ default:
 variables:
   GIT_DEPTH: 1
   GIT_STRATEGY: fetch
-  # Cache invalidation: 2026-01-27 15:06
 
 # template buildkit 
 .buildkit_template:
@@ -98,7 +97,6 @@ gitleaks:
 
       # Build 1: controlplane (exports full workspace cache)
       docker buildx build \
-        --no-cache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
@@ -113,7 +111,6 @@ gitleaks:
 
       # Build 2: operation-worker (reuses cache from build 1, no export)
       docker buildx build \
-        --no-cache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-development \
@@ -126,7 +123,6 @@ gitleaks:
 
       # Build 3: synchronizer (reuses cache from build 1, no export)
       docker buildx build \
-        --no-cache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
@@ -377,7 +373,7 @@ gitleaks:
 
 "code style / controlplane":
   stage: code-style
-  image: registry.france-nuage.fr/library/rust:1.90-alpine
+  image: rust:1.90-alpine
   services: []
   needs: []
   variables:
@@ -396,7 +392,7 @@ gitleaks:
 
 "code style / console":
   stage: code-style
-  image: registry.france-nuage.fr/library/node:22-alpine
+  image: node:22-alpine
   services: []
   needs: []
   before_script:
@@ -412,7 +408,7 @@ gitleaks:
 
 "code style / node-sdk":
   stage: code-style
-  image: registry.france-nuage.fr/library/node:22-alpine
+  image: node:22-alpine
   services: []
   needs: []
   before_script:
@@ -428,12 +424,12 @@ gitleaks:
 
 "code style / markdown":
   stage: code-style
-  image: registry.france-nuage.fr/library/node:22-alpine
+  image: node:22-alpine
   services: []
   needs: []
   allow_failure: true
   script:
-    - npm install -g markdownlint-cli2
+    - npm install -g markdownlint-cli2 #pour qu'il prenne en compte le .markdownlint-cli2.yml 
     - markdownlint-cli2
   rules:
     - changes:
@@ -442,7 +438,7 @@ gitleaks:
 
 "unit tests / authz":
   stage: unit-tests
-  image: registry.france-nuage.fr/library/alpine:latest
+  image: alpine:latest
   services: []
   needs: []
   before_script:
@@ -464,7 +460,7 @@ gitleaks:
     entrypoint: [""]
   needs: []
   services:
-    - name: registry.france-nuage.fr/library/postgres:16-alpine
+    - name: postgres:16-alpine
       alias: atlas-dev-database
   variables:
     GIT_DEPTH: 0
@@ -487,11 +483,11 @@ gitleaks:
 
 "unit tests / controlplane":
   stage: unit-tests
-  image: registry.france-nuage.fr/library/rust:1.90-alpine
+  image: rust:1.90-alpine
   needs: []
-  allow_failure: true
+  allow_failure: true  # Modifier le code pour détecter l'environnement de test et skip Hoop plus tard
   services:
-    - name: registry.france-nuage.fr/library/postgres:16-alpine
+    - name: postgres:16-alpine
       alias: test-postgres
   variables:
     CARGO_INCREMENTAL: "0"
@@ -511,7 +507,7 @@ gitleaks:
         - .gitlab-ci.yml
 
 .helm_template:
-  image: registry.france-nuage.fr/alpine/helm:latest
+  image: alpine/helm:latest
   services: []
   before_script:
     - apk add --no-cache kubectl
@@ -661,7 +657,7 @@ gitleaks:
     - when: never
 
 "release":
-  image: registry.france-nuage.fr/library/node:22-alpine
+  image: node:22-alpine
   services: []
   stage: release
   variables:
