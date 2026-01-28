@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Field, Meta, Token, punctuated::Punctuated, token::Comma};
+use syn::{Field, Meta, punctuated::Punctuated, token::Comma};
 
 use crate::build_sqlx_macro_parameters::build_sqlx_macro_parameters;
 
@@ -9,7 +9,7 @@ fn is_soft_delete_field(field: &Field) -> bool {
     for attr in &field.attrs {
         if attr.path().is_ident("fabrique") {
             if let Meta::List(meta_list) = &attr.meta {
-                if let Ok(nested_metas) = meta_list.parse_args::<Punctuated<Meta, Token![,]>>() {
+                if let Ok(nested_metas) = meta_list.parse_args_with(Punctuated::<Meta, syn::Token![,]>::parse_terminated) {
                     for meta in nested_metas {
                         if let Meta::Path(path) = meta {
                             if path.is_ident("soft_delete") {
@@ -108,7 +108,6 @@ mod tests {
         };
         assert_eq!(stream.to_string(), expected.to_string());
     }
-
 
     #[test]
     fn test_handle_sqlx_try_from() {
