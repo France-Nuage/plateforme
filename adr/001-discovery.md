@@ -896,7 +896,8 @@ n’avoir que les versions préférées. Il suffit de filtrer la requête SQL de
   [developers.google.com](https://developers.google.com/discovery/v1/reference/apis#resource#:~:text=%7B%20%22kind%22%3A%20%22discovery,string).
 
 La réponse inclut beaucoup d’informations. Notre service va reconstruire ce
-JSON à partir des tables relationnelles. Pour une API donnée, il faut assembler :
+JSON à partir des tables relationnelles.
+Pour une API donnée, il faut assembler :
 
 * **Propriétés de haut niveau de l'API** : `name`, `version`, `title`,
   `description`, `documentationLink`, `revision`, `protocol` (toujours
