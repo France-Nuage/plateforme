@@ -79,7 +79,7 @@ pub struct InstanceCreateRequest {
     pub disk_image: String,
 
     /// Memory properties.
-    pub memory: u32,
+    pub memory: u64,
 
     /// The instance human-readable name.
     pub name: String,
