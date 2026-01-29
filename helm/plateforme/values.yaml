@@ -12,7 +12,7 @@ secrets:
 postgres:
   enabled: true
   image:
-    repository: postgres
+    repository: registry.france-nuage.fr/library/postgres
     tag: "16-alpine"
     pullPolicy: IfNotPresent
   auth:
@@ -31,9 +31,9 @@ postgres:
       cpu: "1000m"
 
 spicedbDb:
-  enabled: false 
+  enabled: false
   image:
-    repository: postgres
+    repository: registry.france-nuage.fr/library/postgres
     tag: "16-alpine"
     pullPolicy: IfNotPresent
   auth:
@@ -54,7 +54,7 @@ spicedbDb:
 keycloakDb:
   enabled: false
   image:
-    repository: postgres
+    repository: registry.france-nuage.fr/library/postgres
     tag: "16-alpine"
     pullPolicy: IfNotPresent
   auth:
@@ -75,7 +75,7 @@ keycloakDb:
 spicedb:
   enabled: true
   image:
-    repository: authzed/spicedb
+    repository: registry.france-nuage.fr/authzed/spicedb
     tag: "latest"
     pullPolicy: IfNotPresent
   useSharedDatabase: true
@@ -166,7 +166,7 @@ console:
 keycloak:
   enabled: false
   image:
-    repository: quay.io/keycloak/keycloak
+    repository: registry.france-nuage.fr/keycloak/keycloak
     tag: "26.0"
     pullPolicy: IfNotPresent
   replicas: 1
@@ -209,13 +209,13 @@ migrations:
   atlas:
     enabled: true
     image:
-      repository: arigaio/atlas
+      repository: registry.france-nuage.fr/arigaio/atlas
       tag: "latest"
       pullPolicy: IfNotPresent
 
   spicedb:
     enabled: true
     image:
-      repository: authzed/zed
+      repository: registry.france-nuage.fr/authzed/zed
       tag: "latest"
       pullPolicy: IfNotPresent

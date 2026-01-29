@@ -19,7 +19,7 @@ stages:
   - release
 
 default:
-  image: docker:29
+  image: registry.france-nuage.fr/library/docker:29
   services: []
 
 variables:
@@ -28,7 +28,7 @@ variables:
 
 # template buildkit 
 .buildkit_template:
-  image: docker:29
+  image: registry.france-nuage.fr/library/docker:29
   services: []
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
@@ -40,7 +40,7 @@ variables:
     - |
       docker buildx create \
         --driver=kubernetes \
-        --driver-opt=namespace=${BUILDKIT_NAMESPACE:-managed-frn-gitlab-runner-prod} \
+        --driver-opt=namespace=${BUILDKIT_NAMESPACE:-${KUBE_CI_NAMESPACE_NAME}} \
         --driver-opt=rootless=true \
         --driver-opt=image=registry.france-nuage.fr/moby/buildkit:rootless \
         --driver-opt=replicas=1 \
@@ -59,7 +59,7 @@ variables:
 gitleaks:
   stage: security
   image:
-    name: zricethezav/gitleaks:v8.24.2
+    name: registry.france-nuage.fr/zricethezav/gitleaks:v8.24.2
     entrypoint: [""]
   services: []
   before_script: []
@@ -373,7 +373,7 @@ gitleaks:
 
 "code style / controlplane":
   stage: code-style
-  image: rust:1.90-alpine
+  image: registry.france-nuage.fr/library/rust:1.90-alpine
   services: []
   needs: []
   variables:
@@ -392,7 +392,7 @@ gitleaks:
 
 "code style / console":
   stage: code-style
-  image: node:22-alpine
+  image: registry.france-nuage.fr/library/node:22-alpine
   services: []
   needs: []
   before_script:
@@ -408,7 +408,7 @@ gitleaks:
 
 "code style / node-sdk":
   stage: code-style
-  image: node:22-alpine
+  image: registry.france-nuage.fr/library/node:22-alpine
   services: []
   needs: []
   before_script:
@@ -424,12 +424,12 @@ gitleaks:
 
 "code style / markdown":
   stage: code-style
-  image: node:22-alpine
+  image: registry.france-nuage.fr/library/node:22-alpine
   services: []
   needs: []
   allow_failure: true
   script:
-    - npm install -g markdownlint-cli2 #pour qu'il prenne en compte le .markdownlint-cli2.yml 
+    - npm install -g markdownlint-cli2 #pour qu'il prenne en compte le .markdownlint-cli2.yml
     - markdownlint-cli2
   rules:
     - changes:
@@ -438,7 +438,7 @@ gitleaks:
 
 "unit tests / authz":
   stage: unit-tests
-  image: alpine:latest
+  image: registry.france-nuage.fr/library/alpine:latest
   services: []
   needs: []
   before_script:
@@ -456,11 +456,11 @@ gitleaks:
 "unit tests / migration linting":
   stage: unit-tests
   image:
-    name: arigaio/atlas@sha256:591872655a7758a60edcb6a23e60caee2fd3ae3fb08bceb8bc4e095f6d5013b5
+    name: registry.france-nuage.fr/arigaio/atlas@sha256:591872655a7758a60edcb6a23e60caee2fd3ae3fb08bceb8bc4e095f6d5013b5
     entrypoint: [""]
   needs: []
   services:
-    - name: postgres:16-alpine
+    - name: registry.france-nuage.fr/library/postgres:16-alpine
       alias: atlas-dev-database
   variables:
     GIT_DEPTH: 0
@@ -483,11 +483,11 @@ gitleaks:
 
 "unit tests / controlplane":
   stage: unit-tests
-  image: rust:1.90-alpine
+  image: registry.france-nuage.fr/library/rust:1.90-alpine
   needs: []
   allow_failure: true  # Modifier le code pour détecter l'environnement de test et skip Hoop plus tard
   services:
-    - name: postgres:16-alpine
+    - name: registry.france-nuage.fr/library/postgres:16-alpine
       alias: test-postgres
   variables:
     CARGO_INCREMENTAL: "0"
@@ -524,15 +524,17 @@ gitleaks:
     name: ci
     on_stop: "cleanup / ci-environment"
   variables:
-    NAMESPACE: "managed-frn-gitlab-runner-prod"
-    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
     GIT_DEPTH: 0
     GIT_STRATEGY: clone
   script:
     - |
       set -e
+      # Tente de rollback le release précédent si existant (ignore les erreurs)
       helm rollback ${RELEASE_NAME} -n ${NAMESPACE} 2>/dev/null || true
 
+      # Déploie ou met à jour la release Helm pour l'environnement CI
       helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
         --namespace ${NAMESPACE} \
         --values ./helm/plateforme/values-ci.yaml \
@@ -564,8 +566,6 @@ gitleaks:
       - helm/**/*
       - .gitlab-ci.yml
 
-
-
 "cleanup / ci-environment":
   extends: .helm_template
   stage: deploy
@@ -573,8 +573,8 @@ gitleaks:
     name: ci
     action: stop
   variables:
-    NAMESPACE: "managed-frn-gitlab-runner-prod"
-    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
   script:
     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
@@ -585,12 +585,12 @@ gitleaks:
   extends: .helm_template
   stage: system-tests
   needs:
-    - job: "deploy / ci-environment"
+    - job: "deploy / production"
       artifacts: false
   allow_failure: true
   variables:
-    NAMESPACE: "managed-frn-gitlab-runner-prod"
-    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_REF_SLUG}"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
   script:
     - |
       set -e
@@ -623,41 +623,63 @@ gitleaks:
 "deploy / production":
   extends: .helm_template
   stage: deploy
+  resource_group: "deploy-production"
   environment:
     name: production
-    url: https://console.france-nuage.fr
+    on_stop: "cleanup / production"
   variables:
-    NAMESPACE: "frn-production"
-    RELEASE_NAME: "plateforme"
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+    RELEASE_NAME: "plateforme-prod"
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
   script:
     - |
       set -e
+      helm rollback ${RELEASE_NAME} -n ${NAMESPACE} 2>/dev/null || true
+
       helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
         --namespace ${NAMESPACE} \
         --values ./helm/plateforme/values-prod.yaml \
         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
-        --set global.imageTag=master-release \
+        --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
+        --set global.imagePullPolicy=Always \
         --set secrets.postgresPassword="${PRODUCTION_POSTGRES_PASSWORD}" \
-        --set secrets.spicedbPresharedKey="${PRODUCTION_SPICEDB_KEY}" \
+        --set secrets.spicedbPassword="${PRODUCTION_SPICEDB_PASSWORD}" \
+        --set secrets.spicedbPresharedKey="${SPICEDB_TOKEN}" \
         --set secrets.keycloakAdminPassword="${PRODUCTION_KEYCLOAK_PASSWORD}" \
-        --set controlplane.config.rootServiceAccountKey="${PRODUCTION_ROOT_SA_KEY}" \
-        --set controlplane.config.hoopApiKey="${PRODUCTION_HOOP_API_KEY}" \
+        --set controlplane.config.rootServiceAccountKey="${PRODUCTION_CONTROLPLANE_TOKEN}" \
+        --set controlplane.config.oidcUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
+        --set console.config.apiUrl=http://${RELEASE_NAME}-controlplane \
+        --set systemTests.config.consoleUrl=http://${RELEASE_NAME}-console \
+        --set systemTests.config.controlplaneUrl=http://${RELEASE_NAME}-controlplane \
+        --set systemTests.config.keycloakUrl=http://${RELEASE_NAME}-keycloak:8080 \
+        --set systemTests.config.oidcProviderUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
         --wait \
-        --timeout 15m \
-        --atomic
+        --timeout 10m
 
-      kubectl wait --for=condition=available --timeout=10m \
+      kubectl wait --for=condition=available --timeout=5m \
         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
-
-      echo "Console URL: https://console.france-nuage.fr"
-      echo "Controlplane URL: https://controlplane.france-nuage.fr"
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      when: manual
-    - when: never
+    - when: manual
+
+"cleanup / production":
+  extends: .helm_template
+  stage: deploy
+  environment:
+    name: production
+    action: stop
+  variables:
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+    RELEASE_NAME: "plateforme-prod"
+  script:
+    - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
+    - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
+  when: manual
+  rules:
+    - when: manual
 
 "release":
-  image: node:22-alpine
+  image: registry.france-nuage.fr/library/node:22-alpine
   services: []
   stage: release
   variables:

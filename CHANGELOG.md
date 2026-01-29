@@ -1,3 +1,10 @@
+# [1.59.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.58.0...v1.59.0) (2026-01-29)
+
+
+### Features
+
+* buildkit rootless, helm chart to deploy ([1a41cbe](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1a41cbe593ae25be4f981e256fb3f6413704e6f0))
+
 # [1.58.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.57.0...v1.58.0) (2026-01-18)
 
 
