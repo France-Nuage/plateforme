@@ -20,7 +20,7 @@ spec:
     spec:
       initContainers:
         - name: wait-for-keycloak-db
-          image: busybox:1.36
+          image: registry.france-nuage.fr/library/busybox:1.36
           command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-keycloak-db 5432; do echo waiting for keycloak-db; sleep 2; done']
       containers:
         - name: keycloak
@@ -66,7 +66,7 @@ spec:
             httpGet:
               path: /health/live
               port: 9000
-            initialDelaySeconds: 60
+            initialDelaySeconds: 80
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 6
@@ -74,7 +74,7 @@ spec:
             httpGet:
               path: /health/ready
               port: 9000
-            initialDelaySeconds: 30
+            initialDelaySeconds: 80
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 6

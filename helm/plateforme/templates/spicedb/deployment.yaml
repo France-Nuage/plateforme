@@ -23,7 +23,7 @@ spec:
         {{- include "plateforme.waitForPostgres" . | nindent 8 }}
         {{- else }}
         - name: wait-for-spicedb-db
-          image: busybox:1.36
+          image: registry.france-nuage.fr/library/busybox:1.36
           command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-spicedb-db 5432; do echo waiting for spicedb-db; sleep 2; done']
         {{- end }}
         - name: migrate

@@ -152,31 +152,60 @@ app.kubernetes.io/component: {{ .component }}
 
 {{- define "plateforme.waitForPostgres" -}}
 - name: wait-for-postgres
-  image: busybox:1.36
+  image: registry.france-nuage.fr/library/busybox:1.36
   command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-postgres 5432; do echo waiting for postgres; sleep 2; done']
 {{- end }}
 
 {{- define "plateforme.waitForSpicedb" -}}
 - name: wait-for-spicedb
-  image: busybox:1.36
+  image: registry.france-nuage.fr/library/busybox:1.36
   command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-spicedb 50051; do echo waiting for spicedb; sleep 2; done']
 {{- end }}
 
 {{- define "plateforme.waitForKeycloak" -}}
 - name: wait-for-keycloak
-  image: busybox:1.36
-  command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-keycloak 8080; do echo waiting for keycloak; sleep 2; done']
+  image: registry.france-nuage.fr/library/busybox:1.36
+  command:
+    - sh
+    - -c
+    - |
+      KEYCLOAK_URL="http://{{ include "plateforme.fullname" . }}-keycloak:8080/realms/francenuage/.well-known/openid-configuration"
+      STABILITY_CHECKS=5
+      STABILITY_INTERVAL=10
+      FINAL_WAIT=30
+
+      until wget -q --spider $KEYCLOAK_URL; do
+        sleep 5
+      done
+      SUCCESS_COUNT=0
+      while [ $SUCCESS_COUNT -lt $STABILITY_CHECKS ]; do
+        sleep $STABILITY_INTERVAL
+        if wget -q --spider $KEYCLOAK_URL; then
+          SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+        else
+          SUCCESS_COUNT=0
+          until wget -q --spider $KEYCLOAK_URL; do
+            sleep 5
+          done
+        fi
+      done
+      sleep $FINAL_WAIT
+      if wget -q --spider $KEYCLOAK_URL; then
+        exit 0
+      else
+        exit 1
+      fi
 {{- end }}
 
 {{- define "plateforme.waitForControlplane" -}}
 - name: wait-for-controlplane
-  image: busybox:1.36
+  image: registry.france-nuage.fr/library/busybox:1.36
   command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-controlplane 80; do echo waiting for controlplane; sleep 2; done']
 {{- end }}
 
 {{- define "plateforme.waitForConsole" -}}
 - name: wait-for-console
-  image: busybox:1.36
+  image: registry.france-nuage.fr/library/busybox:1.36
   command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-console 80; do echo waiting for console; sleep 2; done']
 {{- end }}
 
@@ -204,7 +233,7 @@ app.kubernetes.io/component: {{ .component }}
 
 {{- define "plateforme.waitForMigrations" -}}
 - name: wait-for-migrations
-  image: postgres:16-alpine
+  image: registry.france-nuage.fr/library/postgres:16-alpine
   env:
     - name: PGPASSWORD
       valueFrom:
@@ -224,7 +253,7 @@ app.kubernetes.io/component: {{ .component }}
 
 {{- define "plateforme.waitForSpicedbSchema" -}}
 - name: wait-for-spicedb-schema
-  image: alpine:3.19
+  image: registry.france-nuage.fr/library/alpine:3.19
   env:
     - name: SPICEDB_GRPC_PRESHARED_KEY
       valueFrom:
