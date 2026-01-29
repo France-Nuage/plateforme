@@ -40,6 +40,11 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.4.19 && \
 RUN rustup default stable && \
   rustup component add clippy rustfmt llvm-tools-preview
 
+# Install Atlas for migrations (multi-arch support)
+RUN ATLAS_VERSION=v1.0.0 && \
+  wget -qO /usr/local/bin/atlas https://release.ariga.io/atlas/atlas-linux-${TARGETARCH}-${ATLAS_VERSION} && \
+  chmod +x /usr/local/bin/atlas
+
 # Install cargo tools
 RUN cargo install sqlx-cli --version 0.9.0-alpha.1 && \
   cargo install grcov --version 0.8.20
@@ -81,9 +86,9 @@ RUN apk add --no-cache wget && \
   wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${TARGETARCH} && \
   chmod +x /bin/grpc_health_probe
 
-# Install Atlas for migrations
+# Install Atlas for migrations (multi-arch support)
 RUN ATLAS_VERSION=v1.0.0 && \
-  wget -qO /usr/local/bin/atlas https://release.ariga.io/atlas/atlas-linux-amd64-${ATLAS_VERSION} && \
+  wget -qO /usr/local/bin/atlas https://release.ariga.io/atlas/atlas-linux-${TARGETARCH}-${ATLAS_VERSION} && \
   chmod +x /usr/local/bin/atlas
 
 # Copy migrations
