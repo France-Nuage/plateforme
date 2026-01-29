@@ -78,16 +78,14 @@ impl Instances for ProxmoxInstanceService {
         // Write the value of options.snippet to a shared file
         let instance_id = Uuid::new_v4();
         let snippet_filename = format!("snippets/{}.yaml", &instance_id);
-        let mut snippet_file = File::create_new(format!(
-            "{}/{}",
-            crate::proxmox::VOLUME_ABSOLUTE_PATH,
-            &snippet_filename
-        ))
-        .await
-        .map_err(|err| {
-            tracing::error!("oopsie: {:?}", err);
-            Error::SnippetFileExists(snippet_filename.clone())
-        })?;
+        let volume_path = std::env::var("PROXMOX_VOLUME_ABSOLUTE_PATH")
+            .unwrap_or_else(|_| crate::proxmox::VOLUME_ABSOLUTE_PATH.to_owned());
+        let mut snippet_file = File::create_new(format!("{}/{}", volume_path, &snippet_filename))
+            .await
+            .map_err(|err| {
+                tracing::error!("oopsie: {:?}", err);
+                Error::SnippetFileExists(snippet_filename.clone())
+            })?;
         snippet_file.write_all(options.snippet.as_bytes()).await?;
 
         tracing::info!("snippet written to file: {:?}", snippet_file);

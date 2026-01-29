@@ -9,6 +9,18 @@ mod common;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_create_instance_procedure_works(pool: sqlx::PgPool) {
+    // Create a temporary directory for snippet files so the test doesn't
+    // depend on /mnt/pve/nfs-snippets being present on the host.
+    let tmp_volume = tempfile::tempdir().expect("could not create temp dir");
+    std::fs::create_dir_all(tmp_volume.path().join("snippets"))
+        .expect("could not create snippets dir");
+    unsafe {
+        std::env::set_var(
+            "PROXMOX_VOLUME_ABSOLUTE_PATH",
+            tmp_volume.path().to_str().unwrap(),
+        );
+    }
+
     // Arrange a test api and the required data
     let mut api = Api::start(&pool).await.expect("count not start api");
     let organization = Organization::factory()
