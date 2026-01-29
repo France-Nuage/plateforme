@@ -1,3 +1,7 @@
+//! SDN Zone deletion for Proxmox.
+//!
+//! Removes a zone from the cluster. The zone must not have any VNets attached.
+
 use crate::proxmox::api::Error;
 use crate::proxmox::api::api_response::{ApiResponse, ApiResponseExt};
 

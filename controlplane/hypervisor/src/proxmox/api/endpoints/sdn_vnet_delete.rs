@@ -1,3 +1,7 @@
+//! SDN VNet deletion for Proxmox.
+//!
+//! Removes a VNet from the cluster. The VNet must not have any subnets attached.
+
 use crate::proxmox::api::Error;
 use crate::proxmox::api::api_response::{ApiResponse, ApiResponseExt};
 

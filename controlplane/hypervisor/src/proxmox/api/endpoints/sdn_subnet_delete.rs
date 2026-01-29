@@ -1,3 +1,7 @@
+//! SDN Subnet deletion for Proxmox.
+//!
+//! Removes a subnet from a VNet. The subnet must not have active DHCP leases.
+
 use crate::proxmox::api::Error;
 use crate::proxmox::api::api_response::{ApiResponse, ApiResponseExt};
 

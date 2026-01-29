@@ -1,3 +1,8 @@
+//! SDN configuration apply for Proxmox.
+//!
+//! Applies pending SDN changes to all cluster nodes. Must be called after creating/deleting
+//! zones, VNets, or subnets.
+
 use crate::proxmox::api::Error;
 use crate::proxmox::api::api_response::{ApiResponse, ApiResponseExt};
 

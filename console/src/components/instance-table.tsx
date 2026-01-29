@@ -271,7 +271,9 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
   return (
     <>
       <ButtonGroup size="xs" variant="ghost">
-        {matrix[row.original.status].map((status) => actions[status])}
+        {matrix[row.original.status].map((action) => (
+          <span key={action}>{actions[action]}</span>
+        ))}
       </ButtonGroup>
     </>
   );
@@ -500,25 +502,34 @@ const InstanceBulkActions: FunctionComponent<{ instances: InstanceData[] }> = ({
 
   const handleStart = () => {
     startableInstances.forEach((instance) =>
-      dispatch(startInstance(instance.id)),
+      dispatch(startInstance(instance.id)).catch((error) =>
+        console.error(`Failed to start instance ${instance.name}:`, error),
+      ),
     );
   };
 
   const handleStop = () => {
     stoppableInstances.forEach((instance) =>
-      dispatch(stopInstance(instance.id)),
+      dispatch(stopInstance(instance.id)).catch((error) =>
+        console.error(`Failed to stop instance ${instance.name}:`, error),
+      ),
     );
   };
 
   const handleDelete = async () => {
     setDeleteLoading(true);
-    await Promise.all(
-      deletableInstances.map((instance) =>
-        dispatch(removeInstance(instance.id)),
-      ),
-    );
-    setDeleteLoading(false);
-    setDeleteDialogOpen(false);
+    try {
+      await Promise.all(
+        deletableInstances.map((instance) =>
+          dispatch(removeInstance(instance.id)),
+        ),
+      );
+    } catch (error) {
+      console.error('Failed to delete instances:', error);
+    } finally {
+      setDeleteLoading(false);
+      setDeleteDialogOpen(false);
+    }
   };
 
   return (

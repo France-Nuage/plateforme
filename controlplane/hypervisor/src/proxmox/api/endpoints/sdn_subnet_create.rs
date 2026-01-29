@@ -1,3 +1,7 @@
+//! SDN Subnet creation for Proxmox.
+//!
+//! Subnets define IP ranges within VNets and optionally enable DHCP for automatic IP assignment.
+
 use crate::proxmox::api::Error;
 use crate::proxmox::api::api_response::{ApiResponse, ApiResponseExt};
 use serde::{Deserialize, Serialize};

@@ -5,7 +5,7 @@
 
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
-use crate::compute::{Hypervisor, HypervisorFactory, HypervisorIdColumn};
+use crate::compute::{Hypervisor, HypervisorFactory, HypervisorIdColumn, InstanceNetworkInterface, ipam};
 use crate::resourcemanager::{Project, ProjectFactory, ProjectIdColumn};
 use base64::Engine;
 use chrono::{DateTime, Utc};
@@ -84,6 +84,20 @@ pub struct InstanceCreateRequest {
 
     /// The Cloud-Init snippet.
     pub snippet: String,
+
+    /// Network interfaces to attach to the instance.
+    /// Each interface specifies a network and optionally a specific IP.
+    pub network_interfaces: Vec<NetworkInterfaceRequest>,
+}
+
+/// Request for a network interface to attach to an instance.
+#[derive(Clone, Debug)]
+pub struct NetworkInterfaceRequest {
+    /// The network ID to connect to.
+    pub network_id: Uuid,
+
+    /// Optional specific IP address. If None, an IP will be auto-allocated.
+    pub network_ip: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -235,6 +249,30 @@ impl<A: Authorize> Instances<A> {
             ))
             .await?;
 
+        // Attach network interfaces and allocate IPs
+        for ni_request in request.network_interfaces {
+            // Allocate IP address (auto or specific)
+            let address = ipam::allocate_ip(
+                &self.db,
+                ni_request.network_id,
+                instance.id,
+                ni_request.network_ip.as_deref(),
+            )
+            .await?;
+
+            // Create network interface record
+            InstanceNetworkInterface {
+                id: Uuid::new_v4(),
+                instance_id: instance.id,
+                network_id: ni_request.network_id,
+                address_id: Some(address.id),
+                name: None,
+                created_at: chrono::Utc::now(),
+            }
+            .create(&self.db)
+            .await?;
+        }
+
         Ok(instance)
     }
 
@@ -256,6 +294,9 @@ impl<A: Authorize> Instances<A> {
 
         // Cleanup Hoop SSH bastion access (best effort)
         self.cleanup_hoop_access(&instance.name).await;
+
+        // Release all IP addresses allocated to this instance
+        ipam::release_instance_ips(&self.db, instance.id).await?;
 
         connector.delete(&instance.distant_id).await?;
 

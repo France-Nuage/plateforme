@@ -171,6 +171,24 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
         let request = request.into_inner();
 
+        // Map network interfaces from proto to service request
+        let network_interfaces = request
+            .network_interfaces
+            .into_iter()
+            .map(|ni| {
+                let network_id = ni
+                    .network
+                    .ok_or_else(|| Error::MalformedId("missing network_id".to_string()))
+                    .and_then(|id| {
+                        Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id))
+                    })?;
+                Ok(frn_core::compute::NetworkInterfaceRequest {
+                    network_id,
+                    network_ip: ni.network_i_p,
+                })
+            })
+            .collect::<Result<Vec<_>, Error>>()?;
+
         let request = InstanceCreateRequest {
             cores: request.cpu_cores as u8,
             project_id: Uuid::parse_str(&request.project_id)
@@ -180,6 +198,7 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
             memory: request.memory_bytes as u32,
             name: request.name,
             snippet: request.snippet,
+            network_interfaces,
         };
 
         let instance = self.service.clone().create(&principal, request).await?;

@@ -346,7 +346,7 @@ message CreateInstanceRequest {
     // Optional network interfaces for the instance.
     // If specified, the instance will be connected to the given networks.
     // If network_i_p is not specified for an interface, an IP will be auto-allocated.
-    repeated NetworkInterface network_interfaces = 8;
+    repeated NetworkInterface network_interfaces = 9;
 }
 
 // CreateInstanceResponse contains the result of a create instance operation.

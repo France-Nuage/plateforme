@@ -1,3 +1,7 @@
+//! SDN VNet creation for Proxmox.
+//!
+//! VNets are virtual bridges attached to SDN zones, used when connecting VMs to networks.
+
 use crate::proxmox::api::Error;
 use crate::proxmox::api::api_response::{ApiResponse, ApiResponseExt};
 use serde::{Deserialize, Serialize};
