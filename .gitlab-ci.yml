@@ -40,7 +40,7 @@ variables:
     - |
       docker buildx create \
         --driver=kubernetes \
-  --driver-opt=namespace=${BUILDKIT_NAMESPACE:-${KUBE_CI_NAMESPACE_NAME}} \
+        --driver-opt=namespace=${BUILDKIT_NAMESPACE:-${KUBE_CI_NAMESPACE_NAME}} \
         --driver-opt=rootless=true \
         --driver-opt=image=registry.france-nuage.fr/moby/buildkit:rootless \
         --driver-opt=replicas=1 \
