@@ -8,9 +8,11 @@
 use frn_core::identity::IAM;
 use frn_rpc::v1::compute::Hypervisors;
 use frn_rpc::v1::compute::Instances;
+use frn_rpc::v1::compute::Networks;
 use frn_rpc::v1::compute::Zones;
 use frn_rpc::v1::compute::hypervisors_server::HypervisorsServer;
 use frn_rpc::v1::compute::instances_server::InstancesServer;
+use frn_rpc::v1::compute::networks_server::NetworksServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::iam::Invitations;
 use frn_rpc::v1::iam::invitations_server::InvitationsServer;
@@ -20,10 +22,6 @@ use frn_rpc::v1::resourcemanager::Organizations;
 use frn_rpc::v1::resourcemanager::Projects;
 use frn_rpc::v1::resourcemanager::organizations_server::OrganizationsServer;
 use frn_rpc::v1::resourcemanager::projects_server::ProjectsServer;
-use infrastructure::ZeroTrustNetworkRpcService;
-use infrastructure::ZeroTrustNetworkTypeRpcService;
-use infrastructure::v1::zero_trust_network_types_server::ZeroTrustNetworkTypesServer;
-use infrastructure::v1::zero_trust_networks_server::ZeroTrustNetworksServer;
 use spicedb::SpiceDB;
 use sqlx::{Pool, Postgres};
 use tonic::service::Routes;
@@ -85,13 +83,10 @@ impl Router {
                 health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
                 health_reporter.set_serving::<InstancesServer<Instances<SpiceDB>>>(),
                 health_reporter.set_serving::<InvitationsServer<Invitations<SpiceDB>>>(),
+                health_reporter.set_serving::<NetworksServer<Networks<SpiceDB>>>(),
                 health_reporter.set_serving::<OperationsServer<Operations<SpiceDB>>>(),
                 health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
                 health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
-                health_reporter
-                    .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>(),
-                health_reporter
-                    .set_serving::<ZeroTrustNetworksServer<ZeroTrustNetworkRpcService>>(),
             )
         });
 
@@ -208,39 +203,21 @@ impl Router {
         }
     }
 
-    /// Registers the zero trust network types service with the router.
+    /// Registers the networks service with the router.
     ///
-    /// This method adds the zero trust network types gRPC service to the router,
-    /// providing endpoints for managing different types of zero trust network
-    /// configurations. The service is configured with the provided database pool
-    /// for persistent storage operations.
-    ///
-    /// # Parameters
-    ///
-    /// * `pool` - PostgreSQL database connection pool for database operations
-    pub fn zero_trust_network_types(self, pool: Pool<Postgres>) -> Self {
+    /// This method adds the networks gRPC service to the router, providing
+    /// endpoints for VPC network creation, IP address management, and
+    /// Proxmox SDN integration operations.
+    pub fn networks(
+        self,
+        iam: IAM,
+        pool: Pool<Postgres>,
+        networks: frn_core::compute::Networks<SpiceDB>,
+    ) -> Self {
         Self {
-            routes: self.routes.add_service(ZeroTrustNetworkTypesServer::new(
-                ZeroTrustNetworkTypeRpcService::new(pool),
-            )),
-        }
-    }
-
-    /// Registers the zero trust networks service with the router.
-    ///
-    /// This method adds the zero trust networks gRPC service to the router,
-    /// providing endpoints for zero trust network creation, configuration, and
-    /// management operations. The service is configured with the provided
-    /// database pool for persistent storage operations.
-    ///
-    /// # Parameters
-    ///
-    /// * `pool` - PostgreSQL database connection pool for database operations
-    pub fn zero_trust_networks(self, pool: Pool<Postgres>) -> Self {
-        Self {
-            routes: self.routes.add_service(ZeroTrustNetworksServer::new(
-                ZeroTrustNetworkRpcService::new(pool),
-            )),
+            routes: self
+                .routes
+                .add_service(NetworksServer::new(Networks::new(iam, pool, networks))),
         }
     }
 

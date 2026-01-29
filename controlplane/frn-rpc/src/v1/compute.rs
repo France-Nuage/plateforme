@@ -4,6 +4,7 @@ use crate::error::Error;
 use frn_core::authorization::Authorize;
 use frn_core::compute::{
     HypervisorCreateRequest, Hypervisors as Service, InstanceCreateRequest, InstanceUpdateRequest,
+    NetworkInsertRequest, Networks as NetworksService,
 };
 use frn_core::identity::IAM;
 use sqlx::{Pool, Postgres, types::Uuid};
@@ -141,7 +142,7 @@ impl From<frn_core::compute::Instance> for Instance {
             ip_v4: value.ip_v4,
             hypervisor_id: value.hypervisor_id.to_string(),
             project_id: value.project_id.to_string(),
-            zero_trust_network_id: value.zero_trust_network_id.map(Into::into),
+            network_interfaces: vec![], // TODO: load from database
             created_at: Some(SystemTime::from(value.created_at).into()),
             updated_at: Some(SystemTime::from(value.updated_at).into()),
         }
@@ -349,5 +350,117 @@ impl<Auth: Authorize + 'static> zones_server::Zones for Zones<Auth> {
         Ok(Response::new(CreateZoneResponse {
             zone: Some(zone.into()),
         }))
+    }
+}
+
+// =============================================================================
+// Networks Service
+// =============================================================================
+
+impl From<frn_core::compute::Network> for Network {
+    fn from(value: frn_core::compute::Network) -> Self {
+        Self {
+            id: Some(value.id.to_string()),
+            name: Some(value.name),
+            description: value.description,
+            i_pv4_range: Some(value.ipv4_range),
+            gateway_i_pv4: value.gateway_ipv4,
+            mtu: Some(value.mtu),
+            creation_timestamp: Some(value.created_at.to_rfc3339()),
+            kind: Some("compute#network".to_string()),
+            self_link: Some(format!("/networks/{}", value.id)),
+            project_id: Some(value.project_id.to_string()),
+        }
+    }
+}
+
+pub struct Networks<Auth: Authorize> {
+    iam: IAM,
+    _pool: Pool<Postgres>,
+    service: NetworksService<Auth>,
+}
+
+impl<Auth: Authorize> Networks<Auth> {
+    pub fn new(iam: IAM, pool: Pool<Postgres>, service: NetworksService<Auth>) -> Self {
+        Self {
+            iam,
+            _pool: pool,
+            service,
+        }
+    }
+}
+
+#[tonic::async_trait]
+impl<Auth: Authorize + 'static> networks_server::Networks for Networks<Auth> {
+    /// Insert creates a new network in the specified project.
+    async fn insert(
+        &self,
+        request: Request<InsertNetworkRequest>,
+    ) -> Result<Response<Network>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let inner = request.into_inner();
+
+        let project_id = Uuid::parse_str(&inner.project_id)
+            .map_err(|_| Error::MalformedId(inner.project_id))?;
+
+        let request = NetworkInsertRequest {
+            project_id,
+            name: inner.name,
+            description: inner.description,
+            ipv4_range: inner.i_pv4_range,
+            mtu: inner.mtu,
+        };
+
+        let network = self.service.clone().insert(&principal, request).await?;
+
+        Ok(Response::new(network.into()))
+    }
+
+    /// Get retrieves a network by its identifier.
+    async fn get(&self, request: Request<GetNetworkRequest>) -> Result<Response<Network>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let inner = request.into_inner();
+
+        let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
+
+        let network = self.service.clone().get(&principal, id).await?;
+
+        Ok(Response::new(network.into()))
+    }
+
+    /// List retrieves all networks accessible to the caller.
+    async fn list(
+        &self,
+        request: Request<ListNetworksRequest>,
+    ) -> Result<Response<NetworkList>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let inner = request.into_inner();
+
+        let project_id = inner
+            .project_id
+            .map(|id| Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id)))
+            .transpose()?;
+
+        let networks = self.service.clone().list(&principal, project_id).await?;
+
+        Ok(Response::new(NetworkList {
+            networks: networks.into_iter().map(Into::into).collect(),
+            kind: Some("compute#networkList".to_string()),
+        }))
+    }
+
+    /// Delete removes a network. Fails if instances are still attached.
+    async fn delete(
+        &self,
+        request: Request<DeleteNetworkRequest>,
+    ) -> Result<Response<DeleteNetworkResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let inner = request.into_inner();
+
+        let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
+
+        self.service.clone().delete(&principal, id).await?;
+
+        Ok(Response::new(DeleteNetworkResponse {}))
     }
 }

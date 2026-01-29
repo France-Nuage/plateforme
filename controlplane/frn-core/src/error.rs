@@ -58,6 +58,26 @@ pub enum Error {
     #[error("no available hypervisors")]
     NoHypervisorsAvailable,
 
+    /// Network has instances attached and cannot be deleted.
+    #[error("network has attached instances")]
+    NetworkHasAttachedInstances,
+
+    /// Invalid CIDR format.
+    #[error("invalid CIDR format: {0}")]
+    InvalidCidr(String),
+
+    /// Requested IP is not in the network range.
+    #[error("IP address not in network range: {0}")]
+    IpNotInRange(String),
+
+    /// Requested IP is already in use.
+    #[error("IP address already in use: {0}")]
+    IpAlreadyInUse(String),
+
+    /// No available IP addresses in the network.
+    #[error("no available IP addresses in network")]
+    NoAvailableIps,
+
     /// Serialization error.
     #[error("serialization: {0}")]
     Serialization(#[from] serde_json::Error),
@@ -86,6 +106,13 @@ impl From<Error> for tonic::Status {
             Error::Forbidden => tonic::Status::permission_denied(value.to_string()),
             Error::SlugAlreadyExists(_) => tonic::Status::already_exists(value.to_string()),
             Error::UnknownOperation(_) => tonic::Status::invalid_argument(value.to_string()),
+            Error::NetworkHasAttachedInstances => {
+                tonic::Status::failed_precondition(value.to_string())
+            }
+            Error::InvalidCidr(_) => tonic::Status::invalid_argument(value.to_string()),
+            Error::IpNotInRange(_) => tonic::Status::invalid_argument(value.to_string()),
+            Error::IpAlreadyInUse(_) => tonic::Status::already_exists(value.to_string()),
+            Error::NoAvailableIps => tonic::Status::resource_exhausted(value.to_string()),
             err => {
                 tracing::error!("internal error: {}", err);
                 tonic::Status::internal("internal error")

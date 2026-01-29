@@ -6,8 +6,6 @@ import {
   InvitationService,
   OrganizationService,
   ProjectService,
-  ZeroTrustNetworkService,
-  ZeroTrustNetworkTypeService,
   ZoneService,
 } from './api';
 import {
@@ -16,8 +14,6 @@ import {
   invitationMockService,
   organizationMockService,
   projectMockService,
-  zeroTrustNetworkMockService,
-  zeroTrustNetworkTypeMockService,
   zoneMockService,
 } from './mock';
 import {
@@ -26,8 +22,6 @@ import {
   InvitationRpcService,
   OrganizationRpcService,
   ProjectRpcService,
-  ZeroTrustNetworkRpcService,
-  ZeroTrustNetworkTypeRpcService,
   ZoneRpcService,
 } from './rpc';
 import { ServiceMode } from './service-mode';
@@ -39,8 +33,6 @@ export type Services = {
   invitation: InvitationService;
   organization: OrganizationService;
   project: ProjectService;
-  zeroTrustNetwork: ZeroTrustNetworkService;
-  zeroTrustNetworkType: ZeroTrustNetworkTypeService;
 };
 
 /**
@@ -62,8 +54,6 @@ export function configureResolver(
       invitation: invitationMockService,
       organization: organizationMockService,
       project: projectMockService,
-      zeroTrustNetwork: zeroTrustNetworkMockService,
-      zeroTrustNetworkType: zeroTrustNetworkTypeMockService,
       zone: zoneMockService,
     },
     [ServiceMode.Rpc]: {
@@ -72,8 +62,6 @@ export function configureResolver(
       invitation: new InvitationRpcService(transport),
       organization: new OrganizationRpcService(transport),
       project: new ProjectRpcService(transport),
-      zeroTrustNetwork: new ZeroTrustNetworkRpcService(transport),
-      zeroTrustNetworkType: new ZeroTrustNetworkTypeRpcService(transport),
       zone: new ZoneRpcService(transport),
     },
   };

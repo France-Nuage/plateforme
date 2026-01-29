@@ -7,6 +7,7 @@ use strum_macros::{Display, EnumString};
 pub enum Permission {
     Clone,
     CreateInstance,
+    CreateNetwork,
     Delete,
     Get,
     List,

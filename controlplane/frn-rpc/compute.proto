@@ -50,6 +50,22 @@ service Zones {
     rpc Create(CreateZoneRequest) returns (CreateZoneResponse);
 }
 
+// Networks service provides operations to manage VPC networks.
+// Networks connect resources to each other and enable isolation between clients.
+service Networks {
+    // Insert creates a new network in the specified project.
+    rpc Insert(InsertNetworkRequest) returns (Network);
+
+    // Get retrieves a network by its identifier.
+    rpc Get(GetNetworkRequest) returns (Network);
+
+    // List retrieves all networks accessible to the caller.
+    rpc List(ListNetworksRequest) returns (NetworkList);
+
+    // Delete removes a network. Fails if instances are still attached.
+    rpc Delete(DeleteNetworkRequest) returns (DeleteNetworkResponse);
+}
+
 // ListHypervisorsRequest is an empty message for listing hypervisors.
 message ListHypervisorsRequest {}
 
@@ -199,12 +215,9 @@ message Instance {
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
 
-    // Unique identifier for the instance zero trust network
-    optional string zero_trust_network_id = 102 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
-    }];
+    // Array of network configurations for this instance.
+    // Each interface connects the instance to a VPC network.
+    repeated NetworkInterface network_interfaces = 428771249;
 
     // Creation time of the instance
     google.protobuf.Timestamp created_at = 997;
@@ -325,10 +338,15 @@ message CreateInstanceRequest {
 
     // The id of the project the instance belongs to
     string project_id = 7 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
+
+    // Optional network interfaces for the instance.
+    // If specified, the instance will be connected to the given networks.
+    // If network_i_p is not specified for an interface, an IP will be auto-allocated.
+    repeated NetworkInterface network_interfaces = 8;
 }
 
 // CreateInstanceResponse contains the result of a create instance operation.
@@ -420,3 +438,203 @@ message Zone {
     // Name of the zone.
     string name = 2;
 }
+
+// =============================================================================
+// Network Messages
+// =============================================================================
+// Based on Google Cloud Compute API (google.cloud.compute.v1).
+// Field numbers are preserved from the original proto for future compatibility.
+
+// Network represents a VPC Network resource.
+// Networks connect resources to each other and enable isolation between clients.
+message Network {
+    // Unique identifier for the network, defined by the server.
+    optional string id = 3355;
+
+    // Name of the resource. Must be 1-63 characters long, comply with RFC1035.
+    // Pattern: `[a-z]([-a-z0-9]*[a-z0-9])?`
+    optional string name = 3373707 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 63,
+        pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
+    }];
+
+    // Optional description of this network.
+    optional string description = 422937596 [(validate.rules).string = {
+        max_len: 2048
+    }];
+
+    // The range of internal addresses that are legal on this network.
+    // CIDR specification, e.g., 192.168.0.0/16.
+    optional string i_pv4_range = 59234358 [(validate.rules).string = {
+        pattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$"
+    }];
+
+    // Gateway address for default routing out of the network, selected by the server.
+    optional string gateway_i_pv4 = 178678877;
+
+    // Maximum Transmission Unit in bytes. Min: 1300, Max: 8896, Default: 1450.
+    optional int32 mtu = 108462 [(validate.rules).int32 = {
+        gte: 1300,
+        lte: 8896
+    }];
+
+    // Creation timestamp in RFC3339 text format.
+    optional string creation_timestamp = 30525366;
+
+    // Type of the resource. Always "compute#network" for networks.
+    optional string kind = 3292052;
+
+    // Server-defined URL for the resource.
+    optional string self_link = 456214797;
+
+    // Project ID this network belongs to.
+    optional string project_id = 1000 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+// Address represents an IP Address resource.
+// An address resource represents an internal IP reservation within a Network.
+message Address {
+    // Status of the address.
+    enum Status {
+        UNDEFINED_STATUS = 0;
+        IN_USE = 17393485;
+        RESERVED = 432241448;
+        RESERVING = 514587225;
+    }
+
+    // Unique identifier for the address, defined by the server.
+    optional string id = 3355;
+
+    // Name of the resource.
+    optional string name = 3373707 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 63,
+        pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
+    }];
+
+    // Optional description of this address.
+    optional string description = 422937596 [(validate.rules).string = {
+        max_len: 2048
+    }];
+
+    // The static IP address represented by this resource.
+    optional string address = 462920692 [(validate.rules).string = {
+        pattern: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
+    }];
+
+    // Status of the address (RESERVING, RESERVED, or IN_USE).
+    optional string status = 181260274;
+
+    // The ID of the network in which this address is reserved.
+    optional string network = 232872494;
+
+    // The IDs of the resources that are using this address.
+    repeated string users = 111578632;
+
+    // Creation timestamp in RFC3339 text format.
+    optional string creation_timestamp = 30525366;
+
+    // Type of the resource. Always "compute#address" for addresses.
+    optional string kind = 3292052;
+
+    // Server-defined URL for the resource.
+    optional string self_link = 456214797;
+}
+
+// NetworkInterface represents a network interface attached to an instance.
+message NetworkInterface {
+    // ID of the VPC network for this interface.
+    optional string network = 232872494;
+
+    // IPv4 internal IP address for this network interface.
+    // If not specified, an unused internal IP is assigned by the system.
+    optional string network_i_p = 207181961 [(validate.rules).string = {
+        pattern: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
+    }];
+
+    // Name of the network interface, generated by the server.
+    optional string name = 3373707;
+
+    // Type of the resource. Always "compute#networkInterface".
+    optional string kind = 3292052;
+}
+
+// InsertNetworkRequest contains parameters to create a new network.
+message InsertNetworkRequest {
+    // Project ID where the network will be created.
+    string project_id = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+
+    // Name for the network. Must be unique within the project.
+    string name = 2 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 63,
+        pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
+    }];
+
+    // Optional description of the network.
+    optional string description = 3 [(validate.rules).string = {
+        max_len: 2048
+    }];
+
+    // CIDR range for the network, e.g., "10.0.0.0/24".
+    string i_pv4_range = 4 [(validate.rules).string = {
+        pattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$"
+    }];
+
+    // Optional MTU value (1300-8896). Defaults to 1450.
+    optional int32 mtu = 5 [(validate.rules).int32 = {
+        gte: 1300,
+        lte: 8896
+    }];
+}
+
+// GetNetworkRequest identifies which network to retrieve.
+message GetNetworkRequest {
+    // ID of the network to retrieve.
+    string id = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+// ListNetworksRequest contains filters for listing networks.
+message ListNetworksRequest {
+    // Optional project ID to filter networks by project.
+    optional string project_id = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+// NetworkList contains a collection of networks.
+message NetworkList {
+    // List of networks.
+    repeated Network networks = 1;
+
+    // Type of resource. Always "compute#networkList".
+    optional string kind = 2;
+}
+
+// DeleteNetworkRequest identifies which network to delete.
+message DeleteNetworkRequest {
+    // ID of the network to delete.
+    string id = 1 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 36,
+        pattern: "^[a-zA-Z0-9_-]+$"
+    }];
+}
+
+// DeleteNetworkResponse contains the result of a delete network operation.
+message DeleteNetworkResponse {}

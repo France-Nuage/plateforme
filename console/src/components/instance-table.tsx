@@ -13,7 +13,6 @@ import {
   InstanceStatus,
   Organization,
   Project,
-  ZeroTrustNetwork,
   Zone,
 } from '@france-nuage/sdk';
 import {
@@ -43,13 +42,11 @@ export type InstanceTableProps = {
   instances: Instance[];
   organizations: Organization[];
   projects: Project[];
-  vpcs: ZeroTrustNetwork[];
 };
 
 type InstanceData = Instance & {
   zone?: Zone;
   hypervisor?: Hypervisor;
-  vpc?: ZeroTrustNetwork;
   organization?: Organization;
   project?: Project;
 };
@@ -73,10 +70,6 @@ const columns: ColumnDef<InstanceData, any>[] = [
   columnHelper.accessor((row) => row.zone?.name ?? '', {
     header: 'Zone',
     id: 'zoneName',
-  }),
-  columnHelper.accessor((row) => row.vpc?.name ?? '', {
-    header: 'Vpc',
-    id: 'vpcName',
   }),
   columnHelper.accessor((row) => row.organization?.name ?? '', {
     header: 'Organization',
@@ -140,7 +133,6 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
   instances,
   organizations,
   projects,
-  vpcs,
   zones,
 }) => {
   // Compute the instances data with associated relations.
@@ -157,18 +149,16 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
         const organization = organizations.find(
           (organization) => organization.id === project?.organizationId,
         );
-        const vpc = vpcs.find((vpc) => vpc.id === instance.zeroTrustNetworkId)!;
 
         return {
           ...instance,
           hypervisor,
           organization,
           project,
-          vpc,
           zone,
         };
       }),
-    [zones, hypervisors, instances, organizations, projects, vpcs],
+    [zones, hypervisors, instances, organizations, projects],
   );
 
   return (

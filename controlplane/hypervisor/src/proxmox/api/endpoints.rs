@@ -1,5 +1,12 @@
 pub mod cluster_next_id;
 pub mod cluster_resources_list;
+pub mod sdn_apply;
+pub mod sdn_subnet_create;
+pub mod sdn_subnet_delete;
+pub mod sdn_vnet_create;
+pub mod sdn_vnet_delete;
+pub mod sdn_zone_create;
+pub mod sdn_zone_delete;
 pub mod task_status_read;
 pub mod vm_clone;
 pub mod vm_config_read;
@@ -13,6 +20,13 @@ pub mod vm_status_stop;
 
 pub use cluster_next_id::cluster_next_id;
 pub use cluster_resources_list::cluster_resources_list;
+pub use sdn_apply::sdn_apply;
+pub use sdn_subnet_create::{sdn_subnet_create, SdnSubnetConfig};
+pub use sdn_subnet_delete::{cidr_to_subnet_id, sdn_subnet_delete};
+pub use sdn_vnet_create::{sdn_vnet_create, SdnVnetConfig};
+pub use sdn_vnet_delete::sdn_vnet_delete;
+pub use sdn_zone_create::{sdn_zone_create, SdnZoneConfig, SdnZoneType};
+pub use sdn_zone_delete::sdn_zone_delete;
 pub use task_status_read::task_status_read;
 pub use vm_clone::vm_clone;
 pub use vm_config_read::vm_config_read;

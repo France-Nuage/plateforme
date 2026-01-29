@@ -217,6 +217,7 @@ impl<L> Application<L> {
         let hypervisors = self.config.app.hypervisors.clone();
         let instances = self.config.app.instances.clone();
         let invitations = self.config.app.invitations.clone();
+        let networks = self.config.app.networks.clone();
         let operations = self.config.app.operations.clone();
         let organizations = self.config.app.organizations.clone();
         let projects = self.config.app.projects.clone();
@@ -230,11 +231,10 @@ impl<L> Application<L> {
                 .hypervisors(iam.clone(), pool.clone(), hypervisors.clone())
                 .instances(iam.clone(), pool.clone(), instances.clone())
                 .invitations(iam.clone(), invitations.clone(), users.clone())
+                .networks(iam.clone(), pool.clone(), networks.clone())
                 .operations(iam.clone(), operations.clone())
                 .reflection()
                 .resources(iam.clone(), organizations, pool.clone(), projects.clone())
-                .zero_trust_networks(pool.clone())
-                .zero_trust_network_types(pool.clone())
                 .zones(iam.clone(), zones.clone()),
 
             server: self.server,

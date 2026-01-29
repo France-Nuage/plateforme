@@ -27,8 +27,6 @@ pub struct Instance {
     /// The project this instance belongs to
     #[fabrique(belongs_to = Project)]
     pub project_id: Uuid,
-    /// The zero trust network this instance belongs to
-    pub zero_trust_network_id: Option<Uuid>,
     /// ID used by the hypervisor to identify this instance remotely
     pub distant_id: String,
     /// Current CPU utilization as a percentage (0.0-100.0)
@@ -199,7 +197,6 @@ impl<A: Authorize> Instances<A> {
                     id: instance_id,
                     hypervisor_id: hypervisor.id,
                     project_id: request.project_id,
-                    zero_trust_network_id: None,
                     distant_id: next_id,
                     cpu_usage_percent: 0.0,
                     disk_usage_bytes: 0,

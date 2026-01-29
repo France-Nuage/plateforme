@@ -3,6 +3,4 @@ export * from './instance.rpc';
 export * from './invitation.rpc';
 export * from './organization.rpc';
 export * from './project.rpc';
-export * from './zero-trust-network-type.rpc';
-export * from './zero-trust-network.rpc';
 export * from './zone.rpc';

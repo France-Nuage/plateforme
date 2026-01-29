@@ -11,7 +11,7 @@
 use crate::{
     Config, Error,
     authorization::Authorize,
-    compute::{Hypervisors, Instances, Zones},
+    compute::{Hypervisors, Instances, Networks, Zones},
     identity::{IAM, Invitations, ServiceAccounts, Users},
     longrunning::Operations,
     resourcemanager::{Organizations, Projects},
@@ -36,6 +36,7 @@ pub struct App<A: Authorize> {
     pub hypervisors: Hypervisors<A>,
     pub instances: Instances<A>,
     pub invitations: Invitations<A>,
+    pub networks: Networks<A>,
     pub operations: Operations<A>,
     pub organizations: Organizations<A>,
     pub projects: Projects<A>,
@@ -63,6 +64,7 @@ impl App<SpiceDB> {
         let organizations = Organizations::new(auth.clone(), db.clone());
         let instances = Instances::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone(), organizations.clone());
+        let networks = Networks::new(auth.clone(), db.clone());
         let operations = Operations::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
         let service_accounts = ServiceAccounts::new(auth.clone(), db.clone());
@@ -78,6 +80,7 @@ impl App<SpiceDB> {
             hypervisors,
             instances,
             invitations,
+            networks,
             operations,
             organizations,
             projects,
@@ -102,6 +105,7 @@ impl App<SpiceDB> {
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
         let invitations = Invitations::new(auth.clone(), db.clone(), organizations.clone());
+        let networks = Networks::new(auth.clone(), db.clone());
         let operations = Operations::new(auth.clone(), db.clone());
         let projects = Projects::new(auth.clone(), db.clone());
         let service_accounts = ServiceAccounts::new(auth.clone(), db.clone());
@@ -117,6 +121,7 @@ impl App<SpiceDB> {
             instances,
             hypervisors,
             invitations,
+            networks,
             operations,
             organizations,
             projects,

@@ -12,104 +12,26 @@ service Datacenters {
   rpc List(ListDatacentersRequest) returns (ListDatacentersResponse);
 }
 
-// ZeroTrustNetworks service provides operations to manage zero trust network resources.
-// Zero trust networks implement security models where no user or device is trusted by default.
-service ZeroTrustNetworks {
-    // List retrieves information about all available zero trust networks.
-    // Returns a collection of zero trust networks.
-    rpc List(ListZeroTrustNetworksRequest) returns (ListZeroTrustNetworksResponse);
-}
-
-// ZeroTrustNetworkTypes service provides operations to manage zero trust network type definitions.
-// Network types define different categories or configurations of zero trust networks.
-service ZeroTrustNetworkTypes {
-    // List retrieves information about all available zero trust network types.
-    // Returns a collection of zero trust network types.
-    rpc List(ListZeroTrustNetworkTypesRequest) returns (ListZeroTrustNetworkTypesResponse);
-}
-
 // Datacenter represents a physical datacenter.
 message Datacenter {
     // Unique identifier for the datacenter
     string id = 1 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
-    
+
     // Human-readable name of the datacenter
     string name = 2 [(validate.rules).string = {
         min_len: 1,
         max_len: 64,
         pattern: "^[a-zA-Z0-9_\\- ]+$"  // Alphanumeric with spaces, underscores and hyphens
     }];
- 
-    // Creation time of the zero trust network
+
+    // Creation time of the datacenter
     google.protobuf.Timestamp created_at = 3;
 
-    // Time of the zero trust network's last update
-    google.protobuf.Timestamp updated_at = 4;
-}
-
-// ZeroTrustNetwork represents a zero trust network configuration.
-// Zero trust networks enforce strict identity verification and access controls.
-message ZeroTrustNetwork {
-    // Unique identifier for the zero trust network
-    string id = 1 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
-    }];
-    
-    // Human-readable name of the zero trust network
-    string name = 2 [(validate.rules).string = {
-        min_len: 1,
-        max_len: 64,
-        pattern: "^[a-zA-Z0-9_\\- ]+$"  // Alphanumeric with spaces, underscores and hyphens
-    }];
-
-    // ID of the organization this network belongs to
-    string organization_id = 3 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
-    }];
-
-    // ID of the zero trust network type this network is based on
-    string zero_trust_network_type_id = 4 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
-    }];
- 
-    // Creation time of the zero trust network
-    google.protobuf.Timestamp created_at = 5;
-
-    // Time of the zero trust network's last update
-    google.protobuf.Timestamp updated_at = 6;
-}
-
-// ZeroTrustNetworkType represents a type or category of zero trust network.
-// Network types define templates or configurations for creating zero trust networks.
-message ZeroTrustNetworkType {
-    // Unique identifier for the zero trust network type
-    string id = 1 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
-    }];
-    
-    // Human-readable name of the zero trust network type
-    string name = 2 [(validate.rules).string = {
-        min_len: 1,
-        max_len: 64,
-        pattern: "^[a-zA-Z0-9_\\- ]+$"  // Alphanumeric with spaces, underscores and hyphens
-    }];
-
-    // Creation time of the zero trust network type
-    google.protobuf.Timestamp created_at = 3;
-
-    // Time of the zero trust network type's last update
+    // Time of the datacenter's last update
     google.protobuf.Timestamp updated_at = 4;
 }
 
@@ -120,22 +42,4 @@ message ListDatacentersRequest {}
 message ListDatacentersResponse {
     // List of datacenter details
     repeated Datacenter datacenters = 1;
-}
-
-// ListZeroTrustNetworksRequest is an empty message for listing zero trust networks.
-message ListZeroTrustNetworksRequest {}
-
-// ListZeroTrustNetworksResponse contains a collection of zero trust network information.
-message ListZeroTrustNetworksResponse {
-    // List of zero trust network details
-    repeated ZeroTrustNetwork zero_trust_networks = 1;
-}
-
-// ListZeroTrustNetworkTypesRequest contains the necessary information to list zero trust network types.
-message ListZeroTrustNetworkTypesRequest {}
-
-// ListZeroTrustNetworkTypesResponse contains a collection of zero trust network type information.
-message ListZeroTrustNetworkTypesResponse {
-    // List of zero trust network type details
-    repeated ZeroTrustNetworkType zero_trust_network_types = 1;
 }

@@ -5,8 +5,6 @@ import {
   fetchAllInstances,
   fetchAllOrganizations,
   fetchAllProjects,
-  fetchAllZeroTrustNetworkTypes,
-  fetchAllZeroTrustNetworks,
   fetchAllZones,
 } from '@/features';
 
@@ -47,8 +45,6 @@ export function useControlplaneData() {
       dispatch(fetchAllHypervisors());
       dispatch(fetchAllInstances());
       dispatch(fetchAllProjects());
-      dispatch(fetchAllZeroTrustNetworks());
-      dispatch(fetchAllZeroTrustNetworkTypes());
       dispatch(fetchAllZones());
 
       interval = setInterval(() => {
