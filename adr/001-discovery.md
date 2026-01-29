@@ -11,7 +11,7 @@ décrite de façon assez riche pour en **générer du code client** et des
 intégrations, notamment : des définitions d’interfaces gRPC (`.proto`) et du
 code pour un provider Terraform correspondant.
 
-Ce besoin s’inscrit dans une optique de **standardisation et d’automatisation** :
+Ce besoin s’inscrit dans une optique de **standardisation et d’automatisation**:
 en enregistrant les détails des endpoints, schémas de données et opérations pour
 chaque service, on évite la duplication d’effort (écriture manuelle de specs
 différentes pour gRPC, REST, Terraform…). De plus, en exposant ces métadonnées
@@ -894,7 +894,7 @@ méthodes et schémas d’une API spécifique. Le résultat a la structure type
 `discovery#restDescription`[developers.google.com](https://developers.google.com/discovery/v1/reference/apis#resource#:~:text=%7B%20%22kind%22%3A%20%22discovery,string).
 
 La réponse inclut beaucoup d’informations. Notre service va reconstruire ce
-JSON à partir des tables relationnelles. Pour une API donnée, il faut assembler :
+JSON à partir des tables relationnelles. Pour une API donnée, il faut assembler:
 
 * **Propriétés de haut niveau de l’API** : `name`, `version`, `title`,
 `description`, `documentationLink`, `revision`, `protocol` (toujours "rest"),
@@ -1517,9 +1517,9 @@ API `books` devient un type Terraform `francenuage_library_book`. (Convention
 typique: `<provider>_<api>_<resourceSingulier>`). Si une API a plusieurs
 ressources, chaque aura son mapping.
 
-* À partir des métadonnées, on connaît tous les **champs de la ressource** (via le
-schéma principal associé, ici `Book`). Pour construire la définition Terraform,
-on distingue :
+* À partir des métadonnées, on connaît tous les **champs de la ressource** (via
+le schéma principal associé, ici `Book`). Pour construire la définition
+Terraform, on distingue :
 
   * Les champs **configurables** par l’utilisateur (généralement ceux nécessaires
   à la création, ou modifiables). Dans `Book`, par exemple, `title`, `author`
