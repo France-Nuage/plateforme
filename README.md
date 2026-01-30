@@ -177,9 +177,10 @@ Cloud API compliance validation
 
 [France nuage Cloud Status Page](https://status.france-nuage.fr/)
 
-# Contributing & Sponsoring
+## Contributing & Sponsoring
 
-All security vulnerabilities should be reported in accordance with our Security Policy
+All security vulnerabilities should be reported in accordance with
+our Security Policy
 
 ## License
 
