@@ -16,8 +16,7 @@ chaque service, on évite la duplication d’effort (écriture manuelle de specs
 différentes pour gRPC, REST, Terraform…). De plus, en exposant ces métadonnées
 via une API RESTful de découverte, on facilite la **découverte dynamique** des
 services (à l’instar du catalogue d’API Google
-[dev.to](https://dev.to/schttrj/accessing-the-google-api-discovery-api-and-its
--associated-discovery-documents-48aj#:~:text=%22kind%22%3A%20%22discovery,Shortener%20API%20lets%20you%20create)).
+<https://dev.to/schttrj/accessing-the-google-api-discovery-api-and-its-associated-discovery-documents-48aj#:~:text=%22kind%22%3A%20%22discovery,Shortener%20API%20lets%20you%20create>
 Le système doit également s’intégrer dans l’écosystème France-Nuage
 (technologies open-source, standards ouverts) et respecter des bonnes pratiques
 de persistance et de conception d’API.
@@ -895,7 +894,7 @@ n’avoir que les versions préférées. Il suffit de filtrer la requête SQL de
   [developers.google.com](https://developers.google.com/discovery/v1/reference/apis#resource#:~:text=%7B%20%22kind%22%3A%20%22discovery,string).
 
 La réponse inclut beaucoup d’informations. Notre service va reconstruire ce
-JSON à partir des tables relationnelles. 
+JSON à partir des tables relationnelles.
 Pour une API donnée, il faut assembler:
 
 * **Propriétés de haut niveau de l'API** : `name`, `version`, `title`,
@@ -1524,8 +1523,8 @@ ressources, chaque aura son mapping.
 Terraform, on distingue :
 
   * Les champs **configurables** par l’utilisateur (généralement ceux nécessaires
-  à la création, ou modifiables). Dans `Book`, par exemple, `title`, `author`
-  seraient configurables.
+    à la création, ou modifiables). Dans `Book`, par exemple, `title`, `author`
+    seraient configurables.
 
   * Les champs **en lecture seule/générés par le serveur** (ex: `id`, ou d’autres
   champs calculés). On doit marquer ces champs comme `Computed` dans Terraform.
