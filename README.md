@@ -57,20 +57,17 @@ France nuage Cloud allows you to create free cloud projects in minutes.
 - **Free Autonomous Tier**: Available with no credit card required
 - **No Product Limitations**: Unlimited users and applications in our platform
 - **Self-Service Dashboard**: Create and monitor all your projects in one place
-<<<<<<< HEAD
-- **End-to-End Solution**: Full stack platform with database,
-  auto-scaling, and storage
-- **Usage-Based Pricing**: Pay-as-you-go for our Standard Cloud
-  offering
-=======
-- **End-to-End Solution**: Full stack platform with database, auto-scaling, and
-storage
-- **Usage-Based Pricing**: Pay-as-you-go for our Standard Cloud offering
->>>>>>> origin/add-vm-resize
-- **Quick Provisioning**: Select your desired region in France and provision new
-resources in minutes
 
-[Create your Project](https://plateforme.france-nuage.fr/auth/login) •
+- **End-to-End Solution**: Full stack platform with database, auto-scaling, and storage
+
+- **Usage-Based Pricing**: Pay-as-you-go for our Standard Cloud offering
+
+- **Quick Provisioning**: Select your desired region in France and provision new resources in minutes
+
+
+
+[Create your Project](https://plateforme.france-nuage.fr/auth/login)
+
 [Contact a human](mailto:contact@france-nuage.fr)
 
 ## 🤔 Community Help
@@ -180,15 +177,11 @@ Cloud API compliance validation
 
 [France nuage Cloud Status Page](https://status.france-nuage.fr/)
 
-## ❤️ Contributing & Sponsoring
 
-<<<<<<< HEAD
-All security vulnerabilities should be reported in accordance with our
-Security Policy.
-=======
-All security vulnerabilities should be reported in accordance with our Security
-Policy.
->>>>>>> origin/add-vm-resize
+# Contributing & Sponsoring
+
+All security vulnerabilities should be reported in accordance with our Security Policy
+
 
 ## License
 
