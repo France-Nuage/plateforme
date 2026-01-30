@@ -36,3 +36,4 @@ auth = { path = "../auth", features = ["mock"] }
 database = { path = "../database" }
 fabrique = { workspace = true }
 hypervisor = { path = "../hypervisor", features = ["mock"] }
+tempfile = "3"

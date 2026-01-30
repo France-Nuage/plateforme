@@ -42,6 +42,8 @@ pub struct VMConfig {
     /// Use volume as IDE hard disk or CD-ROM.
     pub ide2: Option<String>,
 
+    pub ipconfig0: Option<String>,
+
     /// Memory properties.
     pub memory: Option<u32>,
 
@@ -89,6 +91,7 @@ impl Default for VMConfig {
             cpu: Some(String::from("x86-64-v2-AES")),
             cores: Some(1),
             ide2: Some(format!("{}:cloudinit", snippets_storage)),
+            ipconfig0: None,
             memory: Some(1024),
             name: None,
             nameserver: Some(String::from("1.1.1.1")),
@@ -116,12 +119,11 @@ impl VMConfig {
         let image_storage =
             std::env::var("PROXMOX_IMAGE_STORAGE").unwrap_or_else(|_| String::from("local-lvm"));
 
-        let disk_size_gb = value.disk_bytes / (1024 * 1024 * 1024);
-        let memory_mb = value.memory_bytes / (1024 * 1024);
+        let memory_mb = (value.memory_bytes / (1024 * 1024)) as u32;
 
         let volume = format!(
-            "{}:0,import-from=local:0/{},size={}G,discard=on,ssd=1",
-            image_storage, value.disk_image, disk_size_gb
+            "{}:0,import-from=local:0/{},discard=on,ssd=1",
+            image_storage, value.disk_image
         );
 
         VMConfig {
@@ -131,6 +133,7 @@ impl VMConfig {
                 snippet_filename
             )),
             cores: Some(value.cores),
+            ipconfig0: Some("ip=dhcp".to_owned()),
             memory: Some(memory_mb),
             name: Some(value.name),
             scsi0: Some(volume),

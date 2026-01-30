@@ -78,16 +78,14 @@ impl Instances for ProxmoxInstanceService {
         // Write the value of options.snippet to a shared file
         let instance_id = Uuid::new_v4();
         let snippet_filename = format!("snippets/{}.yaml", &instance_id);
-        let mut snippet_file = File::create_new(format!(
-            "{}/{}",
-            crate::proxmox::VOLUME_ABSOLUTE_PATH,
-            &snippet_filename
-        ))
-        .await
-        .map_err(|err| {
-            tracing::error!("oopsie: {:?}", err);
-            Error::SnippetFileExists(snippet_filename.clone())
-        })?;
+        let volume_path = std::env::var("PROXMOX_VOLUME_ABSOLUTE_PATH")
+            .unwrap_or_else(|_| crate::proxmox::VOLUME_ABSOLUTE_PATH.to_owned());
+        let mut snippet_file = File::create_new(format!("{}/{}", volume_path, &snippet_filename))
+            .await
+            .map_err(|err| {
+                tracing::error!("oopsie: {:?}", err);
+                Error::SnippetFileExists(snippet_filename.clone())
+            })?;
         snippet_file.write_all(options.snippet.as_bytes()).await?;
 
         tracing::info!("snippet written to file: {:?}", snippet_file);
@@ -113,6 +111,7 @@ impl Instances for ProxmoxInstanceService {
                 .clone()
                 .expect("node should be defined for resource of type node");
 
+        let disk_bytes = options.disk_bytes;
         let vm_config = VMConfig::from_instance_config(options, next_id, snippet_filename);
 
         // Create the VM and wait for the task to complete
@@ -135,6 +134,20 @@ impl Instances for ProxmoxInstanceService {
         )
         .await
         .map(|result| result.id)?;
+
+        // Resize the disk to the requested size. The `import-from` directive
+        // used during creation ignores the `size` parameter and creates the
+        // disk with the source image size instead.
+        api::vm_disk_resize(
+            &self.api_url,
+            &self.client,
+            &self.authorization,
+            &node_id,
+            next_id,
+            "scsi0",
+            disk_bytes,
+        )
+        .await?;
 
         Ok(instance_id)
     }
