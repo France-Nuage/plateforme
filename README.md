@@ -58,13 +58,13 @@ France nuage Cloud allows you to create free cloud projects in minutes.
 - **No Product Limitations**: Unlimited users and applications in our platform
 - **Self-Service Dashboard**: Create and monitor all your projects in one place
 
-- **End-to-End Solution**: Full stack platform with database, auto-scaling, and storage
+- **End-to-End Solution**: Full stack platform with database, auto-scaling,
+and storage
 
 - **Usage-Based Pricing**: Pay-as-you-go for our Standard Cloud offering
 
-- **Quick Provisioning**: Select your desired region in France and provision new resources in minutes
-
-
+- **Quick Provisioning**: Select your desired region in France and provision
+new resources in minutes
 
 [Create your Project](https://plateforme.france-nuage.fr/auth/login)
 
@@ -177,11 +177,9 @@ Cloud API compliance validation
 
 [France nuage Cloud Status Page](https://status.france-nuage.fr/)
 
-
 # Contributing & Sponsoring
 
 All security vulnerabilities should be reported in accordance with our Security Policy
-
 
 ## License
 

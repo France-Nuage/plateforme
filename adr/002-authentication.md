@@ -130,8 +130,8 @@ flux implicite
 - **Support extensible** : table de configuration des providers avec endpoints de
 découverte automatique
 
-- **Validation des audiences** : vérification que les tokens sont bien destinés aux client IDs France-Nuage
-
+- **Validation des audiences** : vérification que les tokens sont bien
+destinés aux client IDs France-Nuage
 
 ## Flux d'Authentification Détaillé
 

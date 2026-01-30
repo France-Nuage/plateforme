@@ -28,8 +28,8 @@ France-Nuage ?
   - [ ] Les mainteneurs sont-ils prêts à **être recommandés** pour du
 d'affaires ?
 
-consulting/développement spécifique, avec une commission d'apporteur d'affaires ?
-
+consulting/développement spécifique, avec une commission d'apporteur
+d'affaires ?
 
 ## Notes additionnelles
 
