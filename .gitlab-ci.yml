@@ -13,8 +13,8 @@ stages:
   - code-style
   - unit-tests
   - helm-deploy
-  - deploy       
-  - system-tests 
+  - deploy
+  - system-tests
   - documentation
   - release
 
@@ -26,7 +26,7 @@ variables:
   GIT_DEPTH: 1
   GIT_STRATEGY: fetch
 
-# template buildkit 
+# template buildkit
 .buildkit_template:
   image: registry.france-nuage.fr/library/docker:29
   services: []
@@ -52,7 +52,7 @@ variables:
         --name=k8s-builder-${CI_JOB_ID} \
         --use
     - docker buildx inspect --bootstrap
-    - sleep 5  
+    - sleep 5
   after_script:
     - docker buildx rm k8s-builder-${CI_JOB_ID} || true
 
@@ -76,14 +76,14 @@ gitleaks:
       - gitleaks-report.json
     when: always
     expire_in: 1 week
-    
+
 .build_template: &build_template
   stage: build
   variables:
     TARGET: development
- 
+
 # Unified build job for all Rust services (controlplane, operation-worker, synchronizer)
-# Builds all 3 binaries in a single cargo invocation to share compilation 
+# Builds all 3 binaries in a single cargo invocation to share compilation
 "build / rust-services":
   extends: .buildkit_template
   stage: build
@@ -136,7 +136,6 @@ gitleaks:
     - changes:
         - controlplane/**/*
         - .gitlab-ci.yml
-
 
 "build / console":
   extends: .buildkit_template
@@ -238,7 +237,7 @@ gitleaks:
         - protocol/**/*
         - .gitlab-ci.yml
 
-# Unified release build for all Rust services 
+# Unified release build for all Rust services
 # Compiles workspace once, produces 3 release images
 "build / rust-services / release":
   extends: .buildkit_template
@@ -427,7 +426,6 @@ gitleaks:
   image: registry.france-nuage.fr/library/node:22-alpine
   services: []
   needs: []
-  allow_failure: true
   script:
     - npm install -g markdownlint-cli2 #pour qu'il prenne en compte le .markdownlint-cli2.yml
     - markdownlint-cli2
@@ -485,7 +483,6 @@ gitleaks:
   stage: unit-tests
   image: registry.france-nuage.fr/library/rust:1.90-alpine
   needs: []
-  allow_failure: true  # Modifier le code pour détecter l'environnement de test et skip Hoop plus tard
   services:
     - name: registry.france-nuage.fr/library/postgres:16-alpine
       alias: test-postgres
@@ -558,13 +555,13 @@ gitleaks:
       kubectl wait --for=condition=available --timeout=5m \
         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
   rules:
-  - changes:
-      - controlplane/**/*
-      - console/**/*
-      - node-sdk/**/*
-      - system-tests/**/*
-      - helm/**/*
-      - .gitlab-ci.yml
+    - changes:
+        - controlplane/**/*
+        - console/**/*
+        - node-sdk/**/*
+        - system-tests/**/*
+        - helm/**/*
+        - .gitlab-ci.yml
 
 "cleanup / ci-environment":
   extends: .helm_template
@@ -612,7 +609,7 @@ gitleaks:
       - system-tests-logs.txt
     expire_in: 1 week
   rules:
-  - changes:
+    - changes:
         - controlplane/**/*
         - console/**/*
         - node-sdk/**/*

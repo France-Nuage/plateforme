@@ -176,7 +176,7 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
                 .map_err(|_| Error::MalformedId(request.project_id))?,
             disk_image: request.image,
             disk_size: request.disk_bytes,
-            memory: request.memory_bytes as u32,
+            memory: request.memory_bytes,
             name: request.name,
             snippet: request.snippet,
         };

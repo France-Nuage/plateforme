@@ -6,6 +6,7 @@ pub use crate::proxmox::api::vm_clone::mock::WithVMCloneMock;
 pub use crate::proxmox::api::vm_config_read::mock::WithVMConfigMock;
 pub use crate::proxmox::api::vm_create::mock::WithVMCreateMock;
 pub use crate::proxmox::api::vm_delete::mock::WithVMDeleteMock;
+pub use crate::proxmox::api::vm_disk_resize::mock::WithVMDiskResizeMock;
 pub use crate::proxmox::api::vm_list::mock::WithVMListMock;
 pub use crate::proxmox::api::vm_network_interfaces::mock::WithVMNetworkInterfaces;
 pub use crate::proxmox::api::vm_status_read::mock::WithVMStatusReadMock;

@@ -279,7 +279,7 @@ services:
       POSTGRES_DB: postgres
       PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
       PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
-      PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev-dc03-internal.france-nuage.fr}
+      PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev00-dc03.france-nuage.fr}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

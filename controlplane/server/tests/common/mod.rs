@@ -11,8 +11,8 @@ use frn_rpc::v1::{
 };
 use hypervisor::mock::{
     WithClusterNextId, WithClusterResourceList, WithTaskStatusReadMock, WithVMCloneMock,
-    WithVMCreateMock, WithVMDeleteMock, WithVMStatusReadMock, WithVMStatusStartMock,
-    WithVMStatusStopMock,
+    WithVMCreateMock, WithVMDeleteMock, WithVMDiskResizeMock, WithVMStatusReadMock,
+    WithVMStatusStartMock, WithVMStatusStopMock,
 };
 use mock_server::MockServer;
 use server::{Config, error::Error};
@@ -93,6 +93,7 @@ impl Api {
             .with_vm_clone()
             .with_vm_create()
             .with_vm_delete()
+            .with_vm_disk_resize()
             .with_vm_status_read()
             .with_vm_status_start()
             .with_vm_status_stop()

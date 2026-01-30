@@ -129,8 +129,13 @@ et JWKS, ou `jsonwebtoken` pour la vérification locale des JWT.
 flux implicite
 - **Support extensible** : table de configuration des providers avec endpoints de
 découverte automatique
+<<<<<<< HEAD
 - **Validation des audiences** : vérification que les tokens sont bien
   destinés aux client IDs France-Nuage
+=======
+- **Validation des audiences** : vérification que les tokens sont bien destinés
+aux client IDs France-Nuage
+>>>>>>> origin/add-vm-resize
 
 ## Flux d'Authentification Détaillé
 
