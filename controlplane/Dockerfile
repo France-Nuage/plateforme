@@ -51,22 +51,33 @@ RUN cargo install sqlx-cli --version 0.9.0-alpha.1 && \
 
 # Build dependencies (cached layer - only rebuilds when dependencies change)
 COPY --from=planner /app/recipe.json recipe.json
-RUN SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json
+RUN SQLX_OFFLINE=true cargo chef cook --recipe-path recipe.json && \
+  SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json
 
 # Copy source code
 COPY . .
 
+# Development Build Stage - Build all 3 binaries in debug mode
+FROM base AS development-builder
+RUN SQLX_OFFLINE=true cargo build \
+  --bin server \
+  --bin operation-worker \
+  --bin synchronizer
+
 # Development Stage - Server
 FROM base AS development
-CMD ["cargo", "run", "--bin=server"]
+COPY --from=development-builder /app/target/debug/server /usr/bin/server
+CMD ["/usr/bin/server"]
 
 # Development Stage - Operation Worker
 FROM base AS development-operation-worker
-CMD ["cargo", "run", "--bin=operation-worker"]
+COPY --from=development-builder /app/target/debug/operation-worker /usr/bin/operation-worker
+CMD ["/usr/bin/operation-worker"]
 
 # Development Stage - Synchronizer
 FROM base AS development-synchronizer
-CMD ["cargo", "run", "--bin=synchronizer"]
+COPY --from=development-builder /app/target/debug/synchronizer /usr/bin/synchronizer
+CMD ["/usr/bin/synchronizer"]
 
 # Build Stage - Build all 3 binaries in a single cargo invocation
 FROM base AS builder
