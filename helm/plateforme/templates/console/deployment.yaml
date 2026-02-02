@@ -34,6 +34,15 @@ spec:
           env:
             - name: API_URL
               value: {{ include "plateforme.controlplaneUrl" . | quote }}
+            # Vite environment variables (required for development mode)
+            - name: VITE_CONTROLPLANE_URL
+              value: {{ .Values.console.config.controlplaneUrl | default (include "plateforme.controlplaneUrl" .) | quote }}
+            - name: VITE_OIDC_CLIENT_ID
+              value: {{ .Values.console.config.oidcClientId | default "france-nuage-console" | quote }}
+            - name: VITE_OIDC_PROVIDER_NAME
+              value: {{ .Values.console.config.oidcProviderName | default "france-nuage" | quote }}
+            - name: VITE_OIDC_PROVIDER_URL
+              value: {{ .Values.console.config.oidcProviderUrl | default (include "plateforme.keycloakRealmUrl" .) | quote }}
           livenessProbe:
             httpGet:
               path: /

@@ -154,7 +154,11 @@ console:
     pullPolicy: ""
   replicas: 1
   config:
-    apiUrl: ""  
+    apiUrl: ""
+    controlplaneUrl: ""
+    oidcClientId: "france-nuage-console"
+    oidcProviderName: "france-nuage"
+    oidcProviderUrl: ""
   resources:
     requests:
       memory: "128Mi"

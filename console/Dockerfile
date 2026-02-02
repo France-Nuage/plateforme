@@ -18,6 +18,7 @@ COPY ./console .
 
 FROM base AS development
 WORKDIR /app
+ENV PORT=80
 CMD ["npm", "run", "dev"]
 
 FROM base AS build

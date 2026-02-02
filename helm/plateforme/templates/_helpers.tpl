@@ -123,6 +123,11 @@ app.kubernetes.io/component: {{ .component }}
 {{- printf "http://%s-keycloak:8080/realms/francenuage/.well-known/openid-configuration" $fullname }}
 {{- end }}
 
+{{- define "plateforme.keycloakRealmUrl" -}}
+{{- $fullname := include "plateforme.fullname" . }}
+{{- printf "http://%s-keycloak:8080/realms/francenuage" $fullname }}
+{{- end }}
+
 {{- define "plateforme.keycloakDatabaseUrl" -}}
 {{- $fullname := include "plateforme.fullname" . }}
 {{- $host := printf "%s-keycloak-db" $fullname }}
