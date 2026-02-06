@@ -19,6 +19,22 @@ spec:
         {{- include "plateforme.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: postgres
     spec:
+      {{- if .Values.secrets.existingSecret }}
+      initContainers:
+        - name: wait-for-secret
+          image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until [ -f /secret-check/postgres-password ]; do
+                sleep 2
+              done
+              echo "secret is available"
+          volumeMounts:
+            - name: secret-check
+              mountPath: /secret-check
+      {{- end }}
       containers:
         - name: postgres
           image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
@@ -56,6 +72,12 @@ spec:
           resources:
             {{- toYaml .Values.postgres.resources | nindent 12 }}
       volumes:
+        {{- if .Values.secrets.existingSecret }}
+        - name: secret-check
+          secret:
+            secretName: {{ include "plateforme.secretName" . }}
+            optional: true
+        {{- end }}
         {{- if .Values.spicedb.useSharedDatabase }}
         - name: init-scripts
           configMap:

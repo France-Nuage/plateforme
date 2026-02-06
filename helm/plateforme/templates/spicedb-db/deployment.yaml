@@ -19,6 +19,22 @@ spec:
         {{- include "plateforme.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: spicedb-db
     spec:
+      {{- if .Values.secrets.existingSecret }}
+      initContainers:
+        - name: wait-for-secret
+          image: "{{ .Values.spicedbDb.image.repository }}:{{ .Values.spicedbDb.image.tag }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until [ -f /secret-check/spicedb-db-password ]; do
+                sleep 2
+              done
+              echo "secret is available"
+          volumeMounts:
+            - name: secret-check
+              mountPath: /secret-check
+      {{- end }}
       containers:
         - name: postgres
           image: "{{ .Values.spicedbDb.image.repository }}:{{ .Values.spicedbDb.image.tag }}"
@@ -64,6 +80,13 @@ spec:
               mountPath: /var/lib/postgresql/data
           resources:
             {{- toYaml .Values.spicedbDb.resources | nindent 12 }}
+      {{- if .Values.secrets.existingSecret }}
+      volumes:
+        - name: secret-check
+          secret:
+            secretName: {{ include "plateforme.secretName" . }}
+            optional: true
+      {{- end }}
   volumeClaimTemplates:
     - metadata:
         name: data
