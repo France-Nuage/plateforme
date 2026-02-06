@@ -4,6 +4,7 @@ global:
   imagePullPolicy: IfNotPresent
 
 secrets:
+  existingSecret: ""
   postgresPassword: ""
   spicedbPassword: ""
   spicedbPresharedKey: ""

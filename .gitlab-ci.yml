@@ -633,18 +633,13 @@ gitleaks:
     - |
       set -e
       helm rollback ${RELEASE_NAME} -n ${NAMESPACE} 2>/dev/null || true
-
+      
       helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
         --namespace ${NAMESPACE} \
         --values ./helm/plateforme/values-prod.yaml \
         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
         --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
         --set global.imagePullPolicy=Always \
-        --set secrets.postgresPassword="${PRODUCTION_POSTGRES_PASSWORD}" \
-        --set secrets.spicedbPassword="${PRODUCTION_SPICEDB_PASSWORD}" \
-        --set secrets.spicedbPresharedKey="${SPICEDB_TOKEN}" \
-        --set secrets.keycloakAdminPassword="${PRODUCTION_KEYCLOAK_PASSWORD}" \
-        --set controlplane.config.rootServiceAccountKey="${PRODUCTION_CONTROLPLANE_TOKEN}" \
         --set controlplane.config.oidcUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
         --set console.config.apiUrl=http://${RELEASE_NAME}-controlplane \
         --set systemTests.config.consoleUrl=http://${RELEASE_NAME}-console \

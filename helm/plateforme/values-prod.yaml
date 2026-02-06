@@ -1,6 +1,9 @@
 global:
   imageTag: "release"
 
+secrets:
+  existingSecret: "plateforme-prod-secrets"
+
 spicedbDb:
   enabled: true
   persistence:
