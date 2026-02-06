@@ -37,7 +37,10 @@ spec:
                   name: {{ include "plateforme.secretName" . }}
                   key: postgres-password
             - name: DATABASE_URL
-              value: {{ include "plateforme.postgresUrl" . | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: database-url
             - name: SPICEDB_URL
               value: {{ include "plateforme.spicedbUrl" . | quote }}
             - name: SPICEDB_GRPC_PRESHARED_KEY
