@@ -427,7 +427,7 @@ gitleaks:
   services: []
   needs: []
   script:
-    - npm install -g markdownlint-cli2 #pour qu'il prenne en compte le .markdownlint-cli2.yml
+    - npm install -g markdownlint-cli2 #pour qu'il prenne en compte le .markdownlint-cli2.yml 
     - markdownlint-cli2
   rules:
     - changes:
