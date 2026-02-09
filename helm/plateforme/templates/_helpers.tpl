@@ -147,7 +147,11 @@ app.kubernetes.io/component: {{ .component }}
 {{- end }}
 
 {{- define "plateforme.secretName" -}}
+{{- if .Values.secrets.existingSecret }}
+{{- .Values.secrets.existingSecret }}
+{{- else }}
 {{- printf "%s-secrets" (include "plateforme.fullname" .) }}
+{{- end }}
 {{- end }}
 
 {{- define "plateforme.waitForPostgres" -}}
