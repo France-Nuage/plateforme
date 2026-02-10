@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
+  "query": "SELECT id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, created_at, updated_at, deleted_at FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
   "describe": {
     "columns": [
       {
@@ -27,34 +27,34 @@
       },
       {
         "ordinal": 2,
+        "name": "project_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "project_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "zero_trust_network_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "zero_trust_network_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
         "name": "distant_id",
         "type_info": "Text",
         "origin": {
           "Table": {
             "table": "instances",
             "name": "distant_id"
-          }
-        }
-      },
-      {
-        "ordinal": 3,
-        "name": "status",
-        "type_info": "Varchar",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "status"
-          }
-        }
-      },
-      {
-        "ordinal": 4,
-        "name": "max_cpu_cores",
-        "type_info": "Int4",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "max_cpu_cores"
           }
         }
       },
@@ -71,6 +71,17 @@
       },
       {
         "ordinal": 6,
+        "name": "max_cpu_cores",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "max_cpu_cores"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
         "name": "max_memory_bytes",
         "type_info": "Int8",
         "origin": {
@@ -81,7 +92,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "memory_usage_bytes",
         "type_info": "Int8",
         "origin": {
@@ -92,7 +103,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "name",
         "type_info": "Varchar",
         "origin": {
@@ -103,62 +114,18 @@
         }
       },
       {
-        "ordinal": 9,
-        "name": "created_at",
-        "type_info": "Timestamptz",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "created_at"
-          }
-        }
-      },
-      {
         "ordinal": 10,
-        "name": "updated_at",
-        "type_info": "Timestamptz",
+        "name": "status",
+        "type_info": "Varchar",
         "origin": {
           "Table": {
             "table": "instances",
-            "name": "updated_at"
+            "name": "status"
           }
         }
       },
       {
         "ordinal": 11,
-        "name": "project_id",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "project_id"
-          }
-        }
-      },
-      {
-        "ordinal": 12,
-        "name": "max_disk_bytes",
-        "type_info": "Int8",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "max_disk_bytes"
-          }
-        }
-      },
-      {
-        "ordinal": 13,
-        "name": "disk_usage_bytes",
-        "type_info": "Int8",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "disk_usage_bytes"
-          }
-        }
-      },
-      {
-        "ordinal": 14,
         "name": "ip_v4",
         "type_info": "Varchar",
         "origin": {
@@ -169,13 +136,46 @@
         }
       },
       {
-        "ordinal": 15,
-        "name": "zero_trust_network_id",
-        "type_info": "Uuid",
+        "ordinal": 12,
+        "name": "disk_usage_bytes",
+        "type_info": "Int8",
         "origin": {
           "Table": {
             "table": "instances",
-            "name": "zero_trust_network_id"
+            "name": "disk_usage_bytes"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "max_disk_bytes",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "max_disk_bytes"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "updated_at"
           }
         }
       },
@@ -201,21 +201,21 @@
       false,
       false,
       false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
       true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
       true
     ]
   },
-  "hash": "ffe303dcb8fa4fab32c696cfb22a9fd7ccfa3ebc90ffd6f044c31b0e85b5a7c6"
+  "hash": "53ba571496d1f1e1b801c296ae13e49875e582f31a90d05cdfeca73604baaf17"
 }

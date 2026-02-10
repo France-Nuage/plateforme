@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE instances\n            SET\n                name = COALESCE($2, name),\n                project_id = COALESCE($3, project_id),\n                updated_at = NOW()\n            WHERE id = $1\n            RETURNING *\n            ",
+  "query": "SELECT id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, created_at, updated_at, deleted_at FROM instances WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -27,34 +27,34 @@
       },
       {
         "ordinal": 2,
+        "name": "project_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "project_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "zero_trust_network_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "zero_trust_network_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
         "name": "distant_id",
         "type_info": "Text",
         "origin": {
           "Table": {
             "table": "instances",
             "name": "distant_id"
-          }
-        }
-      },
-      {
-        "ordinal": 3,
-        "name": "status",
-        "type_info": "Varchar",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "status"
-          }
-        }
-      },
-      {
-        "ordinal": 4,
-        "name": "max_cpu_cores",
-        "type_info": "Int4",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "max_cpu_cores"
           }
         }
       },
@@ -71,6 +71,17 @@
       },
       {
         "ordinal": 6,
+        "name": "max_cpu_cores",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "max_cpu_cores"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
         "name": "max_memory_bytes",
         "type_info": "Int8",
         "origin": {
@@ -81,7 +92,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "memory_usage_bytes",
         "type_info": "Int8",
         "origin": {
@@ -92,7 +103,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "name",
         "type_info": "Varchar",
         "origin": {
@@ -103,62 +114,18 @@
         }
       },
       {
-        "ordinal": 9,
-        "name": "created_at",
-        "type_info": "Timestamptz",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "created_at"
-          }
-        }
-      },
-      {
         "ordinal": 10,
-        "name": "updated_at",
-        "type_info": "Timestamptz",
+        "name": "status",
+        "type_info": "Varchar",
         "origin": {
           "Table": {
             "table": "instances",
-            "name": "updated_at"
+            "name": "status"
           }
         }
       },
       {
         "ordinal": 11,
-        "name": "project_id",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "project_id"
-          }
-        }
-      },
-      {
-        "ordinal": 12,
-        "name": "max_disk_bytes",
-        "type_info": "Int8",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "max_disk_bytes"
-          }
-        }
-      },
-      {
-        "ordinal": 13,
-        "name": "disk_usage_bytes",
-        "type_info": "Int8",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "disk_usage_bytes"
-          }
-        }
-      },
-      {
-        "ordinal": 14,
         "name": "ip_v4",
         "type_info": "Varchar",
         "origin": {
@@ -169,21 +136,63 @@
         }
       },
       {
-        "ordinal": 15,
-        "name": "zero_trust_network_id",
-        "type_info": "Uuid",
+        "ordinal": 12,
+        "name": "disk_usage_bytes",
+        "type_info": "Int8",
         "origin": {
           "Table": {
             "table": "instances",
-            "name": "zero_trust_network_id"
+            "name": "disk_usage_bytes"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "max_disk_bytes",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "max_disk_bytes"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "deleted_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "deleted_at"
           }
         }
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Varchar",
         "Uuid"
       ]
     },
@@ -191,6 +200,7 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -206,5 +216,5 @@
       true
     ]
   },
-  "hash": "399487ed7e377476cb9d788f9a739934b8ea3ada247015f44d6830a941a5b36d"
+  "hash": "e74982e1a636cb56dcc68eab63f1d9b1b7ac268387c12580f8afe15d2c307b11"
 }
