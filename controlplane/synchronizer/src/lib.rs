@@ -87,6 +87,7 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
                         status: distant.status,
                         created_at: existing.created_at,
                         updated_at: existing.updated_at,
+                        deleted_at: existing.deleted_at,
                     })
                 }
             })
