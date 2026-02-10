@@ -120,6 +120,10 @@ table "instances" {
     null = true
     type = uuid
   }
+  column "deleted_at" {
+    null = true
+    type = timestamptz
+  }
   primary_key {
     columns = [column.id]
   }
