@@ -1,4 +1,4 @@
-FROM registry.france-nuage.fr/library/alpine:3.23
+FROM alpine:3.23
 
 # Define a fixed version and sha256 to avoid supply chain attacks
 
