@@ -15,6 +15,7 @@ stages:
   - helm-deploy
   - deploy
   - system-tests
+  - cleanup
   - documentation
   - release
 
@@ -528,10 +529,6 @@ gitleaks:
   script:
     - |
       set -e
-      # Tente de rollback le release précédent si existant (ignore les erreurs)
-      helm rollback ${RELEASE_NAME} -n ${NAMESPACE} 2>/dev/null || true
-
-      # Déploie ou met à jour la release Helm pour l'environnement CI
       helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
         --namespace ${NAMESPACE} \
         --values ./helm/plateforme/values-ci.yaml \
@@ -565,24 +562,34 @@ gitleaks:
 
 "cleanup / ci-environment":
   extends: .helm_template
-  stage: deploy
+  stage: cleanup
   environment:
     name: ci
     action: stop
+  needs:
+    - job: "system tests / kubernetes"
+      artifacts: false
   variables:
     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
   script:
     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
-  when: manual
+  when: always
   rules:
+    - changes:
+        - controlplane/**/*
+        - console/**/*
+        - node-sdk/**/*
+        - system-tests/**/*
+        - helm/**/*
+        - .gitlab-ci.yml
 
 "system tests / kubernetes":
   extends: .helm_template
   stage: system-tests
   needs:
-    - job: "deploy / production"
+    - job: "deploy / ci-environment"
       artifacts: false
   allow_failure: true
   variables:
@@ -689,3 +696,17 @@ gitleaks:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
     - when: never
+
+"release / docker-images":
+  extends: .buildkit_template
+  stage: release
+  script:
+    - |
+      set -e
+      IMAGES="controlplane operation-worker synchronizer console"
+      for image in $IMAGES; do
+        echo "Re-tagging ${image}:${CI_COMMIT_REF_SLUG}-release -> ${image}:release"
+        docker buildx imagetools create \
+          --tag ${CI_REGISTRY_IMAGE}/${image}:release \
+          ${CI_REGISTRY_IMAGE}/${image}:${CI_COMMIT_REF_SLUG}-release
+      done
