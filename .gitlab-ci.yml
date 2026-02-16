@@ -12,9 +12,10 @@ stages:
   - build
   - code-style
   - unit-tests
+  - helm-deploy
   - deploy
   - system-tests
-  - cleanup
+  - documentation
   - release
 
 default:
@@ -564,7 +565,7 @@ gitleaks:
 
 "cleanup / ci-environment":
   extends: .helm_template
-  stage: cleanup
+  stage: deploy
   environment:
     name: ci
     action: stop
@@ -574,21 +575,14 @@ gitleaks:
   script:
     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
+  when: manual
   rules:
-    - changes:
-        - controlplane/**/*
-        - console/**/*
-        - node-sdk/**/*
-        - system-tests/**/*
-        - helm/**/*
-        - .gitlab-ci.yml
-      when: always
 
 "system tests / kubernetes":
   extends: .helm_template
   stage: system-tests
   needs:
-    - job: "deploy / ci-environment"
+    - job: "deploy / production"
       artifacts: false
   allow_failure: true
   variables:
@@ -675,25 +669,6 @@ gitleaks:
   when: manual
   rules:
     - when: manual
-
-"release / tag-images":
-  image: registry.france-nuage.fr/library/docker:29
-  services: []
-  stage: release
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-  script:
-    - |
-      set -e
-      for IMAGE in controlplane operation-worker synchronizer console; do
-        docker buildx imagetools create \
-          ${CI_REGISTRY_IMAGE}/${IMAGE}:${CI_COMMIT_REF_SLUG}-release \
-          --tag ${CI_REGISTRY_IMAGE}/${IMAGE}:release
-      done
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      when: on_success
-    - when: never
 
 "release":
   image: registry.france-nuage.fr/library/node:22-alpine
