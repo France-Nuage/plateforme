@@ -6,10 +6,6 @@ metadata:
   labels:
     {{- include "plateforme.labels" . | nindent 4 }}
     app.kubernetes.io/component: system-tests
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "10"
-    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   backoffLimit: 0
   template:
