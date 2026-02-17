@@ -174,31 +174,11 @@ app.kubernetes.io/component: {{ .component }}
     - -c
     - |
       KEYCLOAK_URL="http://{{ include "plateforme.fullname" . }}-keycloak:8080/realms/francenuage/.well-known/openid-configuration"
-      STABILITY_CHECKS=5
-      STABILITY_INTERVAL=10
-      FINAL_WAIT=30
-
       until wget -q --spider $KEYCLOAK_URL; do
-        sleep 5
+        echo "Waiting for Keycloak"
+        sleep 2
       done
-      SUCCESS_COUNT=0
-      while [ $SUCCESS_COUNT -lt $STABILITY_CHECKS ]; do
-        sleep $STABILITY_INTERVAL
-        if wget -q --spider $KEYCLOAK_URL; then
-          SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-        else
-          SUCCESS_COUNT=0
-          until wget -q --spider $KEYCLOAK_URL; do
-            sleep 5
-          done
-        fi
-      done
-      sleep $FINAL_WAIT
-      if wget -q --spider $KEYCLOAK_URL; then
-        exit 0
-      else
-        exit 1
-      fi
+      echo "Keycloak is ready!"
 {{- end }}
 
 {{- define "plateforme.waitForControlplane" -}}

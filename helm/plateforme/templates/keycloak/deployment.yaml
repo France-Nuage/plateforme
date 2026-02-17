@@ -66,18 +66,18 @@ spec:
             httpGet:
               path: /health/live
               port: 9000
-            initialDelaySeconds: 80
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 10
           readinessProbe:
             httpGet:
               path: /health/ready
               port: 9000
-            initialDelaySeconds: 80
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 10
           {{- if .Values.keycloak.config.importRealm }}
           volumeMounts:
             - name: realm

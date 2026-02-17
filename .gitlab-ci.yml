@@ -599,11 +599,11 @@ gitleaks:
     - |
       set -e
       kubectl wait --for=condition=complete --timeout=15m \
-        job/${RELEASE_NAME}-plateforme-system-tests -n ${NAMESPACE} || true
+        job/${RELEASE_NAME}-system-tests -n ${NAMESPACE} || true
 
-      kubectl logs -n ${NAMESPACE} job/${RELEASE_NAME}-plateforme-system-tests > system-tests-logs.txt || true
+      kubectl logs -n ${NAMESPACE} job/${RELEASE_NAME}-system-tests > system-tests-logs.txt || true
 
-      if kubectl get job ${RELEASE_NAME}-plateforme-system-tests -n ${NAMESPACE} -o jsonpath='{.status.succeeded}' | grep -q "1"; then
+      if kubectl get job ${RELEASE_NAME}-system-tests -n ${NAMESPACE} -o jsonpath='{.status.succeeded}' | grep -q "1"; then
         echo "System tests passed!"
         exit 0
       else

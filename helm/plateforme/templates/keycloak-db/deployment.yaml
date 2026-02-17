@@ -45,9 +45,9 @@ spec:
                 - /bin/sh
                 - -c
                 - pg_isready -U {{ .Values.keycloakDb.auth.username }}
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
             failureThreshold: 6
           readinessProbe:
             exec:
@@ -56,8 +56,8 @@ spec:
                 - -c
                 - pg_isready -U {{ .Values.keycloakDb.auth.username }}
             initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
             failureThreshold: 6
           volumeMounts:
             - name: data
