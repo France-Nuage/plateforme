@@ -7,6 +7,7 @@ test.describe('Security', () => {
   });
 
   test('I am redirected to the home page when visiting a guest page as a user', async ({ actingAs, pages }) => {
+    test.skip(!process.env['PRODUCTION_CONTROLPLANE_TOKEN'], 'Requires production access');
     await actingAs();
     await pages.login.goto();
     await pages.compute.instances.assertRedirectedTo();

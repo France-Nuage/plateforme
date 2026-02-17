@@ -1,6 +1,6 @@
-FROM registry.france-nuage.fr/library/node:22-alpine AS base
+FROM registry.france-nuage.fr/library/node:22-trixie AS base
 
-RUN apk add --no-cache ca-certificates
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Build node-sdk first
 WORKDIR /node-sdk
@@ -14,6 +14,9 @@ WORKDIR /app
 COPY ./system-tests/package.json ./system-tests/package-lock.json ./
 RUN npm ci
 COPY ./system-tests .
+
+# Install Playwright browsers and their system dependencies
+RUN npx playwright install --with-deps chromium
 
 CMD ["npm", "run", "test:ui"]
 
