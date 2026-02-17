@@ -35,6 +35,7 @@ async fn test_the_list_instances_procedure_works(pool: sqlx::PgPool) {
         .hypervisor_id(hypervisor.id)
         .project_id(project.id)
         .zero_trust_network_id(None)
+        .deleted_at(None)
         .create(&pool)
         .await
         .expect("could not create instance");
