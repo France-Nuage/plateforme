@@ -601,19 +601,19 @@ gitleaks:
     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
   script:
     - |
-      set -e
-      kubectl wait --for=condition=complete --timeout=15m \
-        job/${RELEASE_NAME}-system-tests -n ${NAMESPACE} || true
-
-      kubectl logs -n ${NAMESPACE} job/${RELEASE_NAME}-system-tests > system-tests-logs.txt || true
-
-      if kubectl get job ${RELEASE_NAME}-system-tests -n ${NAMESPACE} -o jsonpath='{.status.succeeded}' | grep -q "1"; then
-        echo "System tests passed!"
-        exit 0
-      else
-        echo "System tests failed!"
-        exit 1
-      fi
+      JOB="${RELEASE_NAME}-system-tests"
+      for i in $(seq 90); do
+        STATUS=$(kubectl get job $JOB -n $NAMESPACE \
+          -o jsonpath='{.status.succeeded},{.status.active},{.status.failed}' 2>/dev/null || echo ",,")
+        SUCCEEDED=$(echo $STATUS | cut -d, -f1)
+        ACTIVE=$(echo $STATUS    | cut -d, -f2)
+        FAILED=$(echo $STATUS    | cut -d, -f3)
+        [ "$SUCCEEDED" = "1" ]                        && break
+        [ "${ACTIVE:-0}" = "0" ] && [ -n "$FAILED" ] && break
+        sleep 10
+      done
+      kubectl logs -n $NAMESPACE job/$JOB > system-tests-logs.txt || true
+      [ "$SUCCEEDED" = "1" ] && echo "System tests passed" || { echo "System tests failed"; exit 1; }
   artifacts:
     when: always
     paths:
@@ -663,7 +663,9 @@ gitleaks:
       kubectl wait --for=condition=available --timeout=5m \
         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
   rules:
-    - when: manual
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: manual
+    - when: never
 
 "cleanup / production":
   extends: .helm_template
@@ -677,9 +679,10 @@ gitleaks:
   script:
     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
-  when: manual
   rules:
-    - when: manual
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: manual
+    - when: never
 
 "release":
   image: registry.france-nuage.fr/library/node:22-alpine
