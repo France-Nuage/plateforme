@@ -595,7 +595,7 @@ gitleaks:
   needs:
     - job: "deploy / ci-environment"
       artifacts: false
-  allow_failure: true
+  allow_failure: false
   variables:
     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"

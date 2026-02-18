@@ -196,10 +196,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
    * @inheritdoc
    */
   production: [async ({ }, use) => {
-    if (!process.env.PRODUCTION_CONTROLPLANE_TOKEN) {
-      throw new Error('missing env var PRODUCTION_CONTROLPLANE_TOKEN');
-    }
-    const services = configureResolver(transport('https://controlplane.france-nuage.fr', process.env.PRODUCTION_CONTROLPLANE_TOKEN))[ServiceMode.Rpc];
+    test.skip(!process.env.PRODUCTION_CONTROLPLANE_TOKEN, 'Requires production access');
+    const services = configureResolver(transport('https://controlplane.france-nuage.fr', process.env.PRODUCTION_CONTROLPLANE_TOKEN!))[ServiceMode.Rpc];
 
     await use(services);
   }, { scope: 'worker' }],

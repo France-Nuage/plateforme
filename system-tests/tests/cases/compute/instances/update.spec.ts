@@ -3,7 +3,7 @@ import { DEFAULT_IMAGE, DEFAULT_SNIPPET, instance, project } from "@france-nuage
 
 test.describe('Compute / Instances', () => {
   test('I can move an instance to another project', async ({ actingAs, organization, pages, page, project: defaultProject, services }) => {
-    test.skip(!process.env['PRODUCTION_CONTROLPLANE_TOKEN'], 'Requires production access');
+
     test.slow();
 
     // Act as a user and get the services
