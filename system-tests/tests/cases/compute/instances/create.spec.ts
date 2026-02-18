@@ -3,7 +3,6 @@ import { instance } from "@france-nuage/sdk";
 
 test.describe('Compute / Instances', () => {
   test('I can navigate to the "Create Instance" page from the instances list', async ({ actingAs, pages }) => {
-
     await actingAs();
     await pages.compute.instances.goto();
     await pages.compute.instances.locators.createInstanceButton.click();
@@ -11,7 +10,6 @@ test.describe('Compute / Instances', () => {
   });
 
   test('I can create a new instance', async ({ actingAs, hypervisor, pages }) => {
-
     test.slow();
     const fixture = instance();
     await actingAs();

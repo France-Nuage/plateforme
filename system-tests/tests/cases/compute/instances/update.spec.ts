@@ -3,7 +3,6 @@ import { DEFAULT_IMAGE, DEFAULT_SNIPPET, instance, project } from "@france-nuage
 
 test.describe('Compute / Instances', () => {
   test('I can move an instance to another project', async ({ actingAs, organization, pages, page, project: defaultProject, services }) => {
-
     test.slow();
 
     // Act as a user and get the services

@@ -3,7 +3,6 @@ import { DEFAULT_IMAGE, DEFAULT_SNIPPET, instance } from "@france-nuage/sdk";
 
 test.describe('Compute / Instances', () => {
   test('I can delete an existing instance', async ({ actingAs, pages, page, project }) => {
-
     test.slow();
     const services = await actingAs();
     const fixture = instance();
