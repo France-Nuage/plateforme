@@ -602,19 +602,10 @@ gitleaks:
   script:
     - |
       JOB="${RELEASE_NAME}-system-tests"
-      for i in $(seq 90); do
-        STATUS=$(kubectl get job $JOB -n $NAMESPACE \
-          -o jsonpath='{.status.succeeded},{.status.active},{.status.failed}' 2>/dev/null) \
-          || { sleep 10; continue; }
-        SUCCEEDED=$(echo $STATUS | cut -d, -f1)
-        ACTIVE=$(echo $STATUS    | cut -d, -f2)
-        FAILED=$(echo $STATUS    | cut -d, -f3)
-        [ "$SUCCEEDED" = "1" ]                        && break
-        [ "${ACTIVE:-0}" = "0" ] && [ -n "$FAILED" ] && break
-        sleep 10
-      done
-      kubectl logs -n $NAMESPACE job/$JOB > system-tests-logs.txt || true
-      [ "$SUCCEEDED" = "1" ] && echo "System tests passed" || { echo "System tests failed"; exit 1; }
+      kubectl logs -n $NAMESPACE -f job/$JOB 2>&1 | tee system-tests-logs.txt || true
+      kubectl wait -n $NAMESPACE job/$JOB --for=condition=complete --timeout=30s \
+        && echo "System tests passed" \
+        || { echo "System tests failed"; exit 1; }
   artifacts:
     when: always
     paths:
