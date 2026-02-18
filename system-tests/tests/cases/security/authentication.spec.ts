@@ -1,8 +1,7 @@
 import { test } from "../../base";
 
 test.describe('Security', () => {
-  test('I am redirected to the OIDC provider when visiting a protected page as a guest', async ({ pages }) => {
-    test.skip(!!process.env['CI'], 'OIDC redirect requires browser access to Keycloak (unavailable in CI)');
+  test('I am redirected to the OIDC provider when visiting a protected page as a guest @requires-oidc', async ({ pages }) => {
     await pages.home.goto();
     await pages.oidc.assertRedirectedTo();
   });
@@ -13,8 +12,7 @@ test.describe('Security', () => {
     await pages.compute.instances.assertRedirectedTo();
   });
 
-  test('I can authenticate with a valid user', async ({ pages }) => {
-    test.skip(!!process.env['CI'], 'OIDC redirect requires browser access to Keycloak (unavailable in CI)');
+  test('I can authenticate with a valid user @requires-oidc', async ({ pages }) => {
     await pages.login.goto();
     await pages.oidc.assertRedirectedTo();
     await pages.oidc.locators.emailInput.fill('wile.coyote');
