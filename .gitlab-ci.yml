@@ -569,7 +569,6 @@ gitleaks:
   needs:
     - job: "deploy / ci-environment"
       artifacts: false
-      optional: true
     - job: "system tests / kubernetes"
       artifacts: false
       optional: true
