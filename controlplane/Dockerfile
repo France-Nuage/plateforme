@@ -36,6 +36,11 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.4.19 && \
   wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${TARGETARCH} && \
   chmod +x /bin/grpc_health_probe
 
+# Install Atlas for migrations
+RUN ATLAS_VERSION=v1.0.0 && \
+  wget -qO /usr/local/bin/atlas https://release.ariga.io/atlas/atlas-linux-amd64-${ATLAS_VERSION} && \
+  chmod +x /usr/local/bin/atlas
+
 # Install Rust tools
 RUN rustup default stable && \
   rustup component add clippy rustfmt llvm-tools-preview
