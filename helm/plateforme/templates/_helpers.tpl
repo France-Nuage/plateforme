@@ -178,7 +178,7 @@ app.kubernetes.io/component: {{ .component }}
         echo "Waiting for Keycloak"
         sleep 2
       done
-      echo "Keycloak is ready!"
+      echo "Keycloak is ready"
 {{- end }}
 
 {{- define "plateforme.waitForControlplane" -}}
