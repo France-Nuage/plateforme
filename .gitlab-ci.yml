@@ -201,11 +201,11 @@ gitleaks:
       docker buildx build \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache \
         --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG} \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-development \
-        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
         --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
-        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-development \
+        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
         --push \
         --file system-tests/Dockerfile \
         .
@@ -378,14 +378,6 @@ gitleaks:
   needs: []
   variables:
     SQLX_OFFLINE: "true"
-    CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"
-  cache:
-    key:
-      files:
-        - controlplane/Cargo.lock
-    paths:
-      - .cargo/registry/
-      - .cargo/git/
   before_script:
     - apk add --no-cache musl-dev openssl-dev openssl-libs-static protobuf-dev
     - rustup component add rustfmt clippy
@@ -403,14 +395,6 @@ gitleaks:
   image: registry.france-nuage.fr/library/node:22-alpine
   services: []
   needs: []
-  variables:
-    NPM_CONFIG_CACHE: "${CI_PROJECT_DIR}/.npm"
-  cache:
-    key:
-      files:
-        - console/package-lock.json
-    paths:
-      - .npm/
   before_script:
     - cd console
     - npm ci
@@ -427,14 +411,6 @@ gitleaks:
   image: registry.france-nuage.fr/library/node:22-alpine
   services: []
   needs: []
-  variables:
-    NPM_CONFIG_CACHE: "${CI_PROJECT_DIR}/.npm"
-  cache:
-    key:
-      files:
-        - node-sdk/package-lock.json
-    paths:
-      - .npm/
   before_script:
     - cd node-sdk
     - npm ci
@@ -518,14 +494,6 @@ gitleaks:
     POSTGRES_USER: postgres
     POSTGRES_DB: test
     DATABASE_URL: "postgres://postgres:postgres@test-postgres:5432/test"
-    CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"
-  cache:
-    key:
-      files:
-        - controlplane/Cargo.lock
-    paths:
-      - .cargo/registry/
-      - .cargo/git/
   before_script:
     - apk add --no-cache musl-dev openssl-dev openssl-libs-static protobuf-dev
     - cd controlplane
@@ -553,16 +521,6 @@ gitleaks:
   environment:
     name: ci
     on_stop: "cleanup / ci-environment"
-  needs:
-    - job: "build / rust-services"
-      artifacts: false
-      optional: true
-    - job: "build / console"
-      artifacts: false
-      optional: true
-    - job: "build / system-tests"
-      artifacts: false
-      optional: true
   variables:
     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
@@ -575,7 +533,7 @@ gitleaks:
         --namespace ${NAMESPACE} \
         --values ./helm/plateforme/values-ci.yaml \
         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
-        --set global.imageTag=${CI_COMMIT_REF_SLUG}-development \
+        --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
         --set global.imagePullPolicy=Always \
         --set secrets.postgresPassword="postgres" \
         --set secrets.spicedbPassword="spicedb_password" \
