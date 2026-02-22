@@ -661,12 +661,12 @@ gitleaks:
         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
-      when: manual
+      when: on_success
     - when: never
 
 "cleanup / production":
   extends: .helm_template
-  stage: deploy
+  stage: cleanup
   environment:
     name: production
     action: stop
