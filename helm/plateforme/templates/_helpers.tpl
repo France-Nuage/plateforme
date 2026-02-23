@@ -174,7 +174,7 @@ app.kubernetes.io/component: {{ .component }}
     - -c
     - |
       KEYCLOAK_URL="http://{{ include "plateforme.fullname" . }}-keycloak:8080/realms/francenuage/.well-known/openid-configuration"
-      until wget -q --spider $KEYCLOAK_URL; do
+      until wget -q --spider --timeout=5 $KEYCLOAK_URL; do
         echo "Waiting for Keycloak"
         sleep 2
       done

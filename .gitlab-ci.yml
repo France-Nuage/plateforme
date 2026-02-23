@@ -605,8 +605,8 @@ gitleaks:
   script:
     - |
       JOB="${RELEASE_NAME}-system-tests"
-      kubectl logs -n $NAMESPACE -f job/$JOB 2>&1 | tee system-tests-logs.txt || true
-      kubectl wait -n $NAMESPACE job/$JOB --for=condition=complete --timeout=30s \
+      kubectl logs -n $NAMESPACE -f job/$JOB --pod-running-timeout=10m 2>&1 | tee system-tests-logs.txt || true
+      kubectl wait -n $NAMESPACE job/$JOB --for=condition=complete --timeout=5m \
         && echo "System tests passed" \
         || { echo "System tests failed"; exit 1; }
   artifacts:
@@ -714,3 +714,7 @@ gitleaks:
           --tag ${CI_REGISTRY_IMAGE}/${image}:release \
           ${CI_REGISTRY_IMAGE}/${image}:${CI_COMMIT_REF_SLUG}-release
       done
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never

@@ -24,5 +24,5 @@ COPY ./system-tests .
 # Install Playwright browsers and their system dependencies
 RUN npx playwright install chromium
 
-CMD ["npm", "run", "test:ui"]
+CMD ["npm", "run", "test:ci"]
 
