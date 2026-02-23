@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
-    "test:ci": "playwright test --reporter=dot,html",
+    "test:ci": "playwright test --reporter=dot,html --grep-invert @requires-oidc",
     "test:ui": "playwright test --ui-host=0.0.0.0 --ui-port=9000"
   },
   "keywords": [],

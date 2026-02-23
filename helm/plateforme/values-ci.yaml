@@ -44,7 +44,7 @@ console:
     apiUrl: "" 
 
 systemTests:
-  enabled: false
+  enabled: true
   config:
     headless: true
 
