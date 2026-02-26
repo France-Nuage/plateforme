@@ -542,6 +542,9 @@ gitleaks:
         --set controlplane.config.rootServiceAccountKey="ci-root-sa-key" \
         --set controlplane.config.oidcUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
         --set console.config.apiUrl=http://${RELEASE_NAME}-controlplane \
+        --set systemTests.image.repository=${CI_REGISTRY_IMAGE}/system-tests \
+        --set systemTests.image.tag=${CI_COMMIT_REF_SLUG}-release \
+        --set systemTests.image.pullPolicy=Always \
         --set systemTests.config.consoleUrl=http://${RELEASE_NAME}-console \
         --set systemTests.config.controlplaneUrl=http://${RELEASE_NAME}-controlplane \
         --set systemTests.config.keycloakUrl=http://${RELEASE_NAME}-keycloak:8080 \
