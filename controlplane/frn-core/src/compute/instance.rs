@@ -61,11 +61,7 @@ pub struct Instance {
 
 impl Instance {
     pub async fn find_one_by_id(pool: &Pool<Postgres>, id: Uuid) -> Result<Instance, sqlx::Error> {
-        sqlx::query_as!(
-            Instance,
-            "SELECT id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, created_at, updated_at, deleted_at FROM instances WHERE id = $1",
-            id
-        )
+        sqlx::query_as!(Instance, "SELECT * FROM instances WHERE id = $1", id)
             .fetch_one(pool)
             .await
     }
@@ -192,7 +188,7 @@ impl<A: Authorize> Instances<A> {
 
         let maybe_instance = sqlx::query_as!(
             Instance,
-            "SELECT id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, created_at, updated_at, deleted_at FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
+            "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
             next_id,
             hypervisor.id
         )
@@ -527,7 +523,7 @@ impl<A: Authorize> Instances<A> {
                 project_id = COALESCE($3, project_id),
                 updated_at = NOW()
             WHERE id = $1
-            RETURNING id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, created_at, updated_at, deleted_at
+            RETURNING *
             "#,
             request.id,
             request.name,
@@ -586,8 +582,9 @@ impl Instance {
         let deleted_ats: Vec<Option<DateTime<Utc>>> =
             instances.iter().map(|i| i.deleted_at).collect();
 
-        sqlx::query_as::<_, Instance>(
-        r#"
+        sqlx::query_as!(
+            Instance,
+            r#"
         INSERT INTO instances (id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at)
         SELECT id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at
         FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::uuid[], $5::text[], $6::float8[], $7::int4[], $8::int8[], $9::int8[], $10::text[], $11::text[], $12::text[], $13::int8[], $14::int8[], $15::timestamptz[]) AS t(id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, deleted_at)
@@ -608,25 +605,25 @@ impl Instance {
             max_disk_bytes = EXCLUDED.max_disk_bytes,
             deleted_at = EXCLUDED.deleted_at,
             updated_at = NOW()
-        RETURNING id, hypervisor_id, project_id, zero_trust_network_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes, created_at, updated_at, deleted_at
-    "#
+        RETURNING *
+    "#,
+            &ids,
+            &hypervisor_ids,
+            &project_ids,
+            &zero_trust_network_ids,
+            &distant_ids,
+            &cpu_usage_percents,
+            &max_cpu_cores,
+            &max_memory_bytes,
+            &memory_usage_bytes,
+            &names,
+            &statuses,
+            &ip_v4s,
+            &disk_usage_bytes,
+            &max_disk_bytes,
+            &deleted_ats
         )
-        .bind(&ids)
-        .bind(&hypervisor_ids)
-        .bind(&project_ids)
-        .bind(&zero_trust_network_ids)
-        .bind(&distant_ids)
-        .bind(&cpu_usage_percents)
-        .bind(&max_cpu_cores)
-        .bind(&max_memory_bytes)
-        .bind(&memory_usage_bytes)
-        .bind(&names)
-        .bind(&statuses)
-        .bind(&ip_v4s)
-        .bind(&disk_usage_bytes)
-        .bind(&max_disk_bytes)
-        .bind(&deleted_ats)
-    .fetch_all(pool)
-    .await
+        .fetch_all(pool)
+        .await
     }
 }
