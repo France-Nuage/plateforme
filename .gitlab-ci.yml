@@ -13,7 +13,7 @@ stages:
   - code-style
   - unit-tests
   - helm-deploy
-  - deploy
+  #- deploy
   - system-tests
   - cleanup
   - documentation
