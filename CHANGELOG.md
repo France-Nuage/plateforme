@@ -1,3 +1,10 @@
+# [1.61.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.60.0...v1.61.0) (2026-04-06)
+
+
+### Features
+
+* add beta page ([b4a036d](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b4a036d216fd361ce475694c86a4f35f61199ab9))
+
 # [1.60.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.59.0...v1.60.0) (2026-04-06)
 
 
