@@ -1,3 +1,20 @@
+# [1.60.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.59.0...v1.60.0) (2026-04-06)
+
+
+### Bug Fixes
+
+* invalid console production iam parameters ([d610003](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d610003f2b83ee33bbd6643a4596290395e63ffd))
+* on commente la partie deploy et cleanup inutilisée pour le moment ([94b9586](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/94b95863944ff58a8aeba28593cb2b84ec2c16d3))
+* on ne deploy pas sur le kube pour le moment ([bd46e60](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/bd46e60e1cb380af301efe8fed60637dc41f40f1))
+* on ne garde que le deploy sur kube pour les branche autre que master ([54f58df](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/54f58dffb37e963bcf09ee19e86faf8b8a57d510))
+* on rajoute le step de deploy manquant ([685da95](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/685da953155508bb399b063959bca2ceb89bd7f2))
+
+
+### Features
+
+* add vm resize ([42cad2e](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/42cad2e52207c4ecb2606eccea5e2c36030296ef))
+* using sealed secret for production ([1035205](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/1035205fa39a45fed1fe621d4cd4b0a09e37f58e))
+
 # [1.59.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.58.0...v1.59.0) (2026-01-29)
 
 
