@@ -12,7 +12,7 @@ stages:
   - build
   - code-style
   - unit-tests
-  #- deploy
+  - deploy
   - system-tests
   - cleanup
   - documentation
