@@ -9,4 +9,5 @@ export * from './project-global-switcher';
 export * from './instance-form-create';
 export * from './instance-table';
 
+export * from './organization-guard';
 export * from './page-guard';

@@ -32,6 +32,8 @@ export const fetchAllProjects = createAsyncThunk<
  */
 export type ResourcesState = {
   organizations: Organization[];
+  /** Whether organizations have been fetched from the API at least once. */
+  organizationsLoaded: boolean;
   projects: Project[];
 };
 
@@ -40,6 +42,7 @@ export type ResourcesState = {
  */
 const initialState: ResourcesState = {
   organizations: [],
+  organizationsLoaded: false,
   projects: [],
 };
 
@@ -51,12 +54,14 @@ export const resourcesSlice = createSlice({
     builder
       .addCase(fetchAllOrganizations.fulfilled, (state, action) => {
         state.organizations = action.payload;
+        state.organizationsLoaded = true;
       })
       .addCase(fetchAllProjects.fulfilled, (state, action) => {
         state.projects = action.payload;
       })
       .addCase(logout.fulfilled, (state) => {
         state.organizations = [];
+        state.organizationsLoaded = false;
         state.projects = [];
       });
   },
