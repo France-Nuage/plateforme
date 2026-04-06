@@ -513,83 +513,83 @@ gitleaks:
     - kubectl version --client
     - helm version
 
-# "deploy / ci-environment":
-#   extends: .helm_template
-#   stage: deploy
-#   resource_group: "deploy-ci-${CI_COMMIT_REF_SLUG}"
-#   environment:
-#     name: ci
-#     on_stop: "cleanup / ci-environment"
-#   variables:
-#     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
-#     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
-#     GIT_DEPTH: 0
-#     GIT_STRATEGY: clone
-#   script:
-#     - |
-#       set -e
-#       helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
-#         --namespace ${NAMESPACE} \
-#         --values ./helm/plateforme/values-ci.yaml \
-#         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
-#         --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
-#         --set global.imagePullPolicy=Always \
-#         --set secrets.postgresPassword="postgres" \
-#         --set secrets.spicedbPassword="spicedb_password" \
-#         --set secrets.spicedbPresharedKey="${SPICEDB_TOKEN}" \
-#         --set secrets.keycloakAdminPassword="admin" \
-#         --set controlplane.config.rootServiceAccountKey="ci-root-sa-key" \
-#         --set controlplane.config.oidcUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
-#         --set console.config.apiUrl=http://${RELEASE_NAME}-controlplane \
-#         --set systemTests.config.consoleUrl=http://${RELEASE_NAME}-console \
-#         --set systemTests.config.controlplaneUrl=http://${RELEASE_NAME}-controlplane \
-#         --set systemTests.config.keycloakUrl=http://${RELEASE_NAME}-keycloak:8080 \
-#         --set systemTests.config.oidcProviderUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
-#         --wait \
-#         --timeout 10m
+"deploy / ci-environment":
+  extends: .helm_template
+  stage: deploy
+  resource_group: "deploy-ci-${CI_COMMIT_REF_SLUG}"
+  environment:
+    name: ci
+    on_stop: "cleanup / ci-environment"
+  variables:
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
+  script:
+    - |
+      set -e
+      helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
+        --namespace ${NAMESPACE} \
+        --values ./helm/plateforme/values-ci.yaml \
+        --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
+        --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
+        --set global.imagePullPolicy=Always \
+        --set secrets.postgresPassword="postgres" \
+        --set secrets.spicedbPassword="spicedb_password" \
+        --set secrets.spicedbPresharedKey="${SPICEDB_TOKEN}" \
+        --set secrets.keycloakAdminPassword="admin" \
+        --set controlplane.config.rootServiceAccountKey="ci-root-sa-key" \
+        --set controlplane.config.oidcUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
+        --set console.config.apiUrl=http://${RELEASE_NAME}-controlplane \
+        --set systemTests.config.consoleUrl=http://${RELEASE_NAME}-console \
+        --set systemTests.config.controlplaneUrl=http://${RELEASE_NAME}-controlplane \
+        --set systemTests.config.keycloakUrl=http://${RELEASE_NAME}-keycloak:8080 \
+        --set systemTests.config.oidcProviderUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
+        --wait \
+        --timeout 10m
 
-#       kubectl wait --for=condition=available --timeout=5m \
-#         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
-#   rules:
-#     - if: '$CI_COMMIT_BRANCH == "master"'
-#       when: never
-#     - changes:
-#         - controlplane/**/*
-#         - console/**/*
-#         - node-sdk/**/*
-#         - system-tests/**/*
-#         - helm/**/*
-#         - .gitlab-ci.yml
+      kubectl wait --for=condition=available --timeout=5m \
+        deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: never
+    - changes:
+        - controlplane/**/*
+        - console/**/*
+        - node-sdk/**/*
+        - system-tests/**/*
+        - helm/**/*
+        - .gitlab-ci.yml
 
-# "cleanup / ci-environment":
-#   extends: .helm_template
-#   stage: cleanup
-#   environment:
-#     name: ci
-#     action: stop
-#   needs:
-#     - job: "deploy / ci-environment"
-#       artifacts: false
-#     - job: "system tests / kubernetes"
-#       artifacts: false
-#       optional: true
-#   variables:
-#     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
-#     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
-#   script:
-#     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
-#     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
-#   when: always
-#   rules:
-#     - if: '$CI_COMMIT_BRANCH == "master"'
-#       when: never
-#     - changes:
-#         - controlplane/**/*
-#         - console/**/*
-#         - node-sdk/**/*
-#         - system-tests/**/*
-#         - helm/**/*
-#         - .gitlab-ci.yml
+"cleanup / ci-environment":
+  extends: .helm_template
+  stage: cleanup
+  environment:
+    name: ci
+    action: stop
+  needs:
+    - job: "deploy / ci-environment"
+      artifacts: false
+    - job: "system tests / kubernetes"
+      artifacts: false
+      optional: true
+  variables:
+    NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+    RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
+  script:
+    - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
+    - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
+  when: always
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: never
+    - changes:
+        - controlplane/**/*
+        - console/**/*
+        - node-sdk/**/*
+        - system-tests/**/*
+        - helm/**/*
+        - .gitlab-ci.yml
 
 "system tests / kubernetes":
   extends: .helm_template
