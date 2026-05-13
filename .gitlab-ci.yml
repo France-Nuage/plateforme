@@ -457,7 +457,7 @@ gitleaks:
 "unit tests / migration linting":
   stage: unit-tests
   image:
-    name: registry.france-nuage.fr/arigaio/atlas@sha256:591872655a7758a60edcb6a23e60caee2fd3ae3fb08bceb8bc4e095f6d5013b5
+    name: registry.france-nuage.fr/arigaio/atlas@sha256:dc77873c75abf4e17abd690f1ece7870e014b80f455f5a6738c4cb60751cdebf
     entrypoint: [""]
   needs: []
   services:
