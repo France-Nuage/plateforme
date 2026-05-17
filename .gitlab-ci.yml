@@ -372,11 +372,14 @@ gitleaks:
 
 "code style / controlplane":
   stage: code-style
+  tags: [on-prem-ada6000]
   image: registry.france-nuage.fr/library/rust:1.90-alpine
   services: []
   needs: []
   variables:
     SQLX_OFFLINE: "true"
+    KUBERNETES_CPU_LIMIT: "8000m"
+    KUBERNETES_MEMORY_LIMIT: "16384Mi"
   before_script:
     - apk add --no-cache musl-dev openssl-dev openssl-libs-static protobuf-dev
     - rustup component add rustfmt clippy
@@ -481,6 +484,7 @@ gitleaks:
 
 "unit tests / controlplane":
   stage: unit-tests
+  tags: [on-prem-ada6000]
   image: registry.france-nuage.fr/library/rust:1.90-alpine
   needs: []
   services:
@@ -493,6 +497,8 @@ gitleaks:
     POSTGRES_USER: postgres
     POSTGRES_DB: test
     DATABASE_URL: "postgres://postgres:postgres@test-postgres:5432/test"
+    KUBERNETES_CPU_LIMIT: "8000m"
+    KUBERNETES_MEMORY_LIMIT: "20480Mi"
   before_script:
     - apk add --no-cache musl-dev openssl-dev openssl-libs-static protobuf-dev
     - cd controlplane
