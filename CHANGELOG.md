@@ -1,3 +1,10 @@
+## [1.61.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.61.0...v1.61.1) (2026-05-17)
+
+
+### Reverts
+
+* Revert "ci(runners): offload heavy Rust jobs to on-prem ada6000 runner" ([0184566](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/01845662d3d703ba3e192308ef2c34863d9f8ee1))
+
 # [1.61.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.60.0...v1.61.0) (2026-04-06)
 
 
