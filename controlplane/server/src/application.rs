@@ -217,11 +217,14 @@ impl<L> Application<L> {
         let hypervisors = self.config.app.hypervisors.clone();
         let instances = self.config.app.instances.clone();
         let invitations = self.config.app.invitations.clone();
-        let operations = self.config.app.operations.clone();
         let organizations = self.config.app.organizations.clone();
         let projects = self.config.app.projects.clone();
         let users = self.config.app.users.clone();
         let zones = self.config.app.zones.clone();
+        let auth = self.config.app.auth.clone();
+        let worker_token = self.config.worker_token.clone();
+        let ci_token = self.config.ci_token.clone();
+        let managed_platform_config = self.config.managed_platform_config.clone();
         Self {
             config: self.config,
             router: self
@@ -230,11 +233,18 @@ impl<L> Application<L> {
                 .hypervisors(iam.clone(), pool.clone(), hypervisors.clone())
                 .instances(iam.clone(), pool.clone(), instances.clone())
                 .invitations(iam.clone(), invitations.clone(), users.clone())
-                .operations(iam.clone(), operations.clone())
+                .managed_services(
+                    iam.clone(),
+                    pool.clone(),
+                    auth,
+                    ci_token,
+                    managed_platform_config,
+                )
                 .reflection()
                 .resources(iam.clone(), organizations, pool.clone(), projects.clone())
                 .zero_trust_networks(pool.clone())
                 .zero_trust_network_types(pool.clone())
+                .workflow_engine(pool.clone(), worker_token)
                 .zones(iam.clone(), zones.clone()),
 
             server: self.server,

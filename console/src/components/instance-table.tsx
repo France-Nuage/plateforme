@@ -216,7 +216,7 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
             onClick={() =>
               setConfirmation({
                 action: () => dispatch(removeInstance(row.original.id)),
-                description: `Êtes vous sûr de vouloir supprimer l'instance "${row.original.name}"`,
+                description: `Êtes-vous sûr de vouloir supprimer l'instance "${row.original.name}"`,
                 title: "Supprimer l'instance",
               })
             }

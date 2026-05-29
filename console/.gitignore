@@ -3,3 +3,5 @@ dist/
 
 # Dependencies
 node_modules
+.codegraph
+.codegraph.cache

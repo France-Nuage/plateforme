@@ -29,17 +29,19 @@ services:
     healthcheck:
       test: ["CMD", "pg_isready"]
 
-  operation-worker:
+  worker:
     build:
       args:
         BUILDKIT_INLINE_CACHE: ${BUILDKIT_INLINE_CACHE:-1}
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:master-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:master-${TARGET:-development}
       context: controlplane
       dockerfile: Dockerfile
-      target: ${TARGET:-development}-operation-worker
+      target: ${TARGET:-development}-worker
     depends_on:
+      controlplane:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       postgres-migrate:
@@ -50,12 +52,17 @@ services:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      MANAGED_DEFAULT_STORAGE_CLASS: ${MANAGED_DEFAULT_STORAGE_CLASS:-}
+      RUST_LOG: ${RUST_LOG:-info}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+      WORKER_TOKEN: ${WORKER_TOKEN:-dev-worker-token-secret}
+      WORKFLOW_SERVER_URL: ${WORKFLOW_SERVER_URL:-http://controlplane:80}
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     volumes:
       - ./controlplane:/app
       - /app/target
+      - ${HOME}/.kube:/root/.kube:ro
 
   console:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
@@ -142,11 +149,13 @@ services:
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
       CARGO_BUILD_JOBS: ${CARGO_BUILD_JOBS:-4}
+      CI_SERVICE_TOKEN: ${CI_SERVICE_TOKEN:-dev-ci-token-secret}
       CONSOLE_URL: ${CONSOLE_URL:-https://console.test}
       CONTROLPLANE_ADDR: 0.0.0.0:80
       CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
+      MANAGED_DEFAULT_STORAGE_CLASS: ${MANAGED_DEFAULT_STORAGE_CLASS:-}
       OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
       ROOT_ORGANIZATION_NAME: ${ROOT_ORGANIZATION_NAME:-acme}
       ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:-qDOiI0B686hr0wN479q7jmOQ6nYtSUsq}
@@ -157,6 +166,7 @@ services:
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
       SQLX_OFFLINE: ${SQLX_OFFLINE:-true}
       SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
+      WORKER_TOKEN: ${WORKER_TOKEN:-dev-worker-token-secret}
     expose:
       - 80
     ports:
@@ -297,14 +307,10 @@ services:
     entrypoint: ["sh", "-c"]
     command:
       - |
-        atlas schema apply \
+        atlas migrate apply \
           --url="$${DATABASE_URL}?sslmode=disable" \
-          --dev-url="postgres://postgres:postgres@atlas-dev-database:5432/postgres?sslmode=disable" \
-          --to=file://controlplane/migrations \
-          --auto-approve
+          --dir=file://controlplane/migrations
     depends_on:
-      atlas-dev-database:
-        condition: service_healthy
       postgres:
         condition: service_healthy
     environment:
@@ -429,7 +435,7 @@ services:
       context: .
       dockerfile: system-tests/Dockerfile
     depends_on:
-      operation-worker:
+      worker:
         condition: service_started
       console:
         condition: service_healthy

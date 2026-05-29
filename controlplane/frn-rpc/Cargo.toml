@@ -6,11 +6,15 @@ edition = "2024"
 [dependencies]
 auth = { path = "../auth" }
 frn-core = { path = "../frn-core" }
+chrono = "0.4"
 hypervisor = { path = "../hypervisor" }
 http = "1"
+serde_json = { workspace = true }
+workflow = { path = "../workflow" }
 prost = "0.14"
 prost-types = "0.14"
 sqlx = { workspace = true }
+subtle = "2"
 thiserror = "2"
 tonic = "0.14"
 tonic-prost = "0.14"

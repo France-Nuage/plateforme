@@ -5,6 +5,7 @@ import { AppStore } from '@/store';
 import { configureTransport } from './transport.rpc';
 
 export * from './conversion';
+export * from './managed-services';
 export * from './user-manager';
 
 /**

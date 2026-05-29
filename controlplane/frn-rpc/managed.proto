@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.managed;
+
+import "google/protobuf/timestamp.proto";
+
+// Managed services catalog and version registration.
+// Catalog RPCs are public; RegisterVersion is authenticated via CI service token.
+service ManagedServices {
+    // Lists all active managed services in the catalog.
+    rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
+
+    // Returns a single managed service by slug.
+    rpc GetService(GetServiceRequest) returns (GetServiceResponse);
+
+    // Lists all active versions for a given service.
+    rpc ListVersions(ListVersionsRequest) returns (ListVersionsResponse);
+
+    // Registers a new chart version for a service (called by CI after OCI publish).
+    rpc RegisterVersion(RegisterVersionRequest) returns (RegisterVersionResponse);
+
+    // Creates a managed service instance and schedules deployment.
+    rpc CreateInstance(CreateInstanceRequest) returns (CreateInstanceResponse);
+
+    // Lists instances for a given project.
+    rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse);
+
+    // Returns a single instance by ID.
+    rpc GetInstance(GetInstanceRequest) returns (GetInstanceResponse);
+
+    // Upgrades an instance to a new chart version.
+    rpc UpgradeInstance(UpgradeInstanceRequest) returns (UpgradeInstanceResponse);
+
+    // Deletes an instance and schedules teardown.
+    rpc DeleteInstance(DeleteInstanceRequest) returns (DeleteInstanceResponse);
+}
+
+message ManagedServiceProto {
+    string id = 1;
+    string slug = 2;
+    string name = 3;
+    optional string description = 4;
+    string category = 5;
+    optional string database_engine = 6;
+    optional string icon_url = 7;
+    google.protobuf.Timestamp created_at = 8;
+}
+
+message ManagedServiceVersionProto {
+    string id = 1;
+    string service_id = 2;
+    string chart_version = 3;
+    optional string app_version = 4;
+    string oci_reference = 5;
+    optional string configurable_values_schema = 6;
+    google.protobuf.Timestamp created_at = 7;
+    // rjsf UI Schema, published alongside the JSON Schema by the chart CI.
+    // Used by the console to render the deployment form. Nullable.
+    optional string ui_schema = 8;
+}
+
+// ListServices
+message ListServicesRequest {}
+
+message ListServicesResponse {
+    repeated ManagedServiceProto services = 1;
+}
+
+// GetService
+message GetServiceRequest {
+    string slug = 1;
+}
+
+message GetServiceResponse {
+    ManagedServiceProto service = 1;
+}
+
+// ListVersions
+message ListVersionsRequest {
+    string service_slug = 1;
+}
+
+message ListVersionsResponse {
+    repeated ManagedServiceVersionProto versions = 1;
+}
+
+// RegisterVersion
+message RegisterVersionRequest {
+    string service_slug = 1;
+    string chart_version = 2;
+    optional string app_version = 3;
+    string oci_reference = 4;
+    // JSON Schema of configurable values (validation)
+    optional string configurable_values_schema = 5;
+    // rjsf UI Schema (form rendering hints: titles, widgets, order, sections)
+    optional string ui_schema = 6;
+}
+
+message RegisterVersionResponse {
+    ManagedServiceVersionProto version = 1;
+}
+
+// Instance messages
+message ManagedServiceInstanceProto {
+    string id = 1;
+    string service_id = 2;
+    string version_id = 3;
+    string project_id = 4;
+    string organization_id = 5;
+    string namespace = 6;
+    string release_name = 7;
+    optional string user_values = 8;
+    string status = 9;
+    google.protobuf.Timestamp created_at = 10;
+}
+
+// CreateInstance
+message CreateInstanceRequest {
+    string project_id = 1;
+    string organization_id = 2;
+    string service_slug = 3;
+    string version_id = 4;
+    // JSON object of user-provided values (non-secret)
+    optional string user_values = 5;
+    // JSON object of secret values (passwords, keys)
+    optional string secret_values = 6;
+}
+
+message CreateInstanceResponse {
+    ManagedServiceInstanceProto instance = 1;
+}
+
+// ListInstances
+message ListInstancesRequest {
+    string project_id = 1;
+}
+
+message ListInstancesResponse {
+    repeated ManagedServiceInstanceProto instances = 1;
+}
+
+// GetInstance
+message GetInstanceRequest {
+    string instance_id = 1;
+}
+
+message GetInstanceResponse {
+    ManagedServiceInstanceProto instance = 1;
+}
+
+// UpgradeInstance
+message UpgradeInstanceRequest {
+    string instance_id = 1;
+    string version_id = 2;
+    optional string user_values = 3;
+    optional string secret_values = 4;
+}
+
+message UpgradeInstanceResponse {
+    ManagedServiceInstanceProto instance = 1;
+}
+
+// DeleteInstance
+message DeleteInstanceRequest {
+    string instance_id = 1;
+}
+
+message DeleteInstanceResponse {}

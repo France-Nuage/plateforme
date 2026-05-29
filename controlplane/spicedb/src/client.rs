@@ -215,6 +215,86 @@ impl SpiceDB {
             .map(|response| response.into_inner().written_at)
             .map_err(Into::into)
     }
+
+    pub async fn write_relationships(
+        &mut self,
+        relationships: Vec<(String, String, String, String, String)>,
+    ) -> Result<Option<ZedToken>, Error> {
+        let updates = relationships
+            .into_iter()
+            .map(
+                |(subject_type, subject_id, relation, object_type, object_id)| RelationshipUpdate {
+                    operation: Operation::Touch as i32,
+                    relationship: Some(Relationship {
+                        optional_caveat: None,
+                        resource: Some(ObjectReference {
+                            object_id,
+                            object_type,
+                        }),
+                        relation,
+                        subject: Some(SubjectReference {
+                            object: Some(ObjectReference {
+                                object_id: subject_id,
+                                object_type: subject_type,
+                            }),
+                            optional_relation: "".to_owned(),
+                        }),
+                    }),
+                },
+            )
+            .collect();
+
+        let request = Request::new(WriteRelationshipsRequest {
+            optional_preconditions: vec![],
+            updates,
+        });
+
+        self.client
+            .write_relationships(request)
+            .await
+            .map(|response| response.into_inner().written_at)
+            .map_err(Into::into)
+    }
+
+    pub async fn delete_relationships(
+        &mut self,
+        relationships: Vec<(String, String, String, String, String)>,
+    ) -> Result<Option<ZedToken>, Error> {
+        let updates = relationships
+            .into_iter()
+            .map(
+                |(subject_type, subject_id, relation, object_type, object_id)| RelationshipUpdate {
+                    operation: Operation::Delete as i32,
+                    relationship: Some(Relationship {
+                        optional_caveat: None,
+                        resource: Some(ObjectReference {
+                            object_id,
+                            object_type,
+                        }),
+                        relation,
+                        subject: Some(SubjectReference {
+                            object: Some(ObjectReference {
+                                object_id: subject_id,
+                                object_type: subject_type,
+                            }),
+                            optional_relation: "".to_owned(),
+                        }),
+                    }),
+                },
+            )
+            .collect();
+
+        let request = Request::new(WriteRelationshipsRequest {
+            optional_preconditions: vec![],
+            updates,
+        });
+
+        self.client
+            .write_relationships(request)
+            .await
+            .map(|response| response.into_inner().written_at)
+            .map_err(Into::into)
+    }
 }
 
 /// Interceptor that adds authentication tokens to gRPC requests.

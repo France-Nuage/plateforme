@@ -2,3 +2,6 @@ target/
 # generated at build
 .envrc
 .env
+.codegraph
+.codegraph.cache
+.DS_Store

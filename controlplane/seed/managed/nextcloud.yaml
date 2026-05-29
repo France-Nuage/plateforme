@@ -1,0 +1,123 @@
+service:
+  slug: nextcloud
+  name: Nextcloud
+  description: |
+    Plateforme collaborative complete : fichiers, calendrier, contacts,
+    visioconference. Alternative souveraine a Google Workspace.
+  category: collaboration
+  database_engine: cnpg
+  icon_url: null
+
+dev_mock_version:
+  chart_version: 1.0.0
+  app_version: 32.0.5
+  oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/nextcloud-stack
+  configurable_values_schema:
+    $schema: "http://json-schema.org/draft-07/schema#"
+    type: object
+    required: [domain, adminPassword]
+    properties:
+      domain:
+        type: string
+        format: hostname
+        title: Domaine
+        description: "Nom de domaine sur lequel l'instance sera accessible."
+      adminUser:
+        type: string
+        default: admin
+        title: Administrateur
+        description: "Nom d'utilisateur du compte administrateur initial."
+      adminPassword:
+        type: string
+        format: password
+        title: Mot de passe admin
+        description: "Mot de passe du compte administrateur. Choisissez un mot de passe fort."
+        minLength: 12
+      defaultPhoneRegion:
+        type: string
+        title: "Région téléphonique"
+        description: "Code ISO 3166-1 alpha-2 de la region par defaut pour les numeros de telephone."
+        default: FR
+        enum: [FR, BE, CH, CA, LU, MC]
+      smtp:
+        type: object
+        title: Serveur SMTP
+        description: "Configuration de l'envoi d'e-mails (invitations, notifications, partages)."
+        properties:
+          enabled:
+            type: boolean
+            default: false
+            title: Activer SMTP
+        dependencies:
+          enabled:
+            oneOf:
+              - properties:
+                  enabled: { enum: [false] }
+              - properties:
+                  enabled: { enum: [true] }
+                  host:
+                    type: string
+                    title: "Hôte"
+                    description: "Adresse du serveur SMTP."
+                  port:
+                    type: integer
+                    minimum: 1
+                    maximum: 65535
+                    default: 587
+                    title: Port
+                    description: "Port du serveur SMTP."
+                  secure:
+                    type: string
+                    title: "Sécurité"
+                    description: "Mode de chiffrement de la connexion SMTP."
+                    default: tls
+                    enum: [tls, ssl, ""]
+                  authtype:
+                    type: string
+                    title: "Type d'authentification"
+                    description: "Methode d'authentification SMTP."
+                    default: LOGIN
+                    enum: [LOGIN, PLAIN, NTLM]
+                  username:
+                    type: string
+                    title: Identifiant
+                    description: "Nom d'utilisateur pour l'authentification SMTP."
+                  password:
+                    type: string
+                    format: password
+                    title: Mot de passe
+                    description: "Mot de passe pour l'authentification SMTP."
+                  fromAddress:
+                    type: string
+                    title: "Adresse d'envoi"
+                    description: "Partie locale de l'adresse d'expedition (avant le @)."
+                    default: nextcloud
+                  domain:
+                    type: string
+                    title: "Domaine d'envoi"
+                    description: "Domaine de l'adresse d'expedition (apres le @)."
+                required: [host, username, password, fromAddress, domain]
+  ui_schema:
+    "ui:order": [domain, adminUser, adminPassword, defaultPhoneRegion, smtp]
+    domain:
+      "ui:placeholder": cloud.monorga.com
+      "ui:description": "Doit pointer vers les IPs France Nuage (A / CNAME)."
+    adminUser:
+      "ui:placeholder": admin
+    adminPassword:
+      "ui:description": "Minimum 12 caracteres. Ce mot de passe ne sera plus visible apres la creation."
+    defaultPhoneRegion:
+      "ui:placeholder": FR
+    smtp:
+      "ui:order": [enabled, host, port, secure, authtype, username, password, fromAddress, domain]
+      host:
+        "ui:placeholder": smtp.example.com
+      port:
+        "ui:placeholder": "587"
+      username:
+        "ui:placeholder": "noreply@example.com"
+      fromAddress:
+        "ui:placeholder": nextcloud
+      domain:
+        "ui:placeholder": example.com
+        "ui:description": "Domaine de l'e-mail d'expedition. L'adresse finale sera fromAddress@domain."

@@ -4,6 +4,7 @@ import {
   HypervisorService,
   InstanceService,
   InvitationService,
+  ManagedServiceService,
   OrganizationService,
   ProjectService,
   ZeroTrustNetworkService,
@@ -14,6 +15,7 @@ import {
   hypervisorMockService,
   instanceMockService,
   invitationMockService,
+  managedServiceMockService,
   organizationMockService,
   projectMockService,
   zeroTrustNetworkMockService,
@@ -24,6 +26,7 @@ import {
   HypervisorRpcService,
   InstanceRpcService,
   InvitationRpcService,
+  ManagedServiceRpcService,
   OrganizationRpcService,
   ProjectRpcService,
   ZeroTrustNetworkRpcService,
@@ -37,6 +40,7 @@ export type Services = {
   hypervisor: HypervisorService;
   instance: InstanceService;
   invitation: InvitationService;
+  managedService: ManagedServiceService;
   organization: OrganizationService;
   project: ProjectService;
   zeroTrustNetwork: ZeroTrustNetworkService;
@@ -60,6 +64,7 @@ export function configureResolver(
       hypervisor: hypervisorMockService,
       instance: instanceMockService,
       invitation: invitationMockService,
+      managedService: managedServiceMockService,
       organization: organizationMockService,
       project: projectMockService,
       zeroTrustNetwork: zeroTrustNetworkMockService,
@@ -70,6 +75,7 @@ export function configureResolver(
       hypervisor: new HypervisorRpcService(transport),
       instance: new InstanceRpcService(transport),
       invitation: new InvitationRpcService(transport),
+      managedService: new ManagedServiceRpcService(transport),
       organization: new OrganizationRpcService(transport),
       project: new ProjectRpcService(transport),
       zeroTrustNetwork: new ZeroTrustNetworkRpcService(transport),

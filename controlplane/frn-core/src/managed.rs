@@ -1,0 +1,557 @@
+//! Managed services catalog and versioning.
+//!
+//! Provides entity definitions and the service layer for managing
+//! the marketplace of managed services (Vaultwarden, Nextcloud, etc.).
+
+mod create;
+mod delete;
+mod seed;
+mod upgrade;
+
+pub use create::*;
+pub use delete::*;
+pub use seed::*;
+pub use upgrade::*;
+
+use std::collections::BTreeMap;
+
+use crate::authorization::{Authorize, Resource};
+use crate::resourcemanager::{Organization, Project};
+use chrono::{DateTime, Utc};
+use fabrique::sql::operators::Direction;
+use fabrique::{Factory, Model, Query};
+use fake::Dummy;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use sqlx::{PgConnection, Pool, Postgres};
+use strum_macros::{Display, EnumString};
+use thiserror::Error;
+use uuid::Uuid;
+
+#[derive(
+    Debug, Clone, Dummy, Serialize, Deserialize, sqlx::Type, Display, EnumString, PartialEq,
+)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "managed_service_category", rename_all = "snake_case")]
+pub enum ManagedServiceCategory {
+    Security,
+    Collaboration,
+    Analytics,
+    Database,
+    Automation,
+    Cms,
+    Erp,
+    Storage,
+    Dashboard,
+}
+
+#[derive(
+    Debug, Clone, Dummy, Serialize, Deserialize, sqlx::Type, Display, EnumString, PartialEq,
+)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "managed_database_engine", rename_all = "snake_case")]
+pub enum ManagedDatabaseEngine {
+    Cnpg,
+    Mariadb,
+}
+
+#[derive(Debug, Clone, Factory, Model, Serialize)]
+#[fabrique(table = "managed.service")]
+pub struct ManagedService {
+    #[fabrique(primary_key)]
+    pub id: Uuid,
+    pub slug: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub category: ManagedServiceCategory,
+    pub database_engine: Option<ManagedDatabaseEngine>,
+    pub icon_url: Option<String>,
+    #[fabrique(soft_delete)]
+    pub deactivated_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Model, Serialize)]
+#[fabrique(table = "managed.service_version")]
+pub struct ManagedServiceVersion {
+    #[fabrique(primary_key)]
+    pub id: Uuid,
+    #[fabrique(belongs_to = ManagedService)]
+    pub service_id: Uuid,
+    pub chart_version: String,
+    pub app_version: Option<String>,
+    pub oci_reference: String,
+    pub configurable_values_schema: Option<Value>,
+    pub ui_schema: Option<Value>,
+    #[fabrique(soft_delete)]
+    pub deactivated_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    sqlx::Type,
+    Display,
+    EnumString,
+    Default,
+)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "varchar", rename_all = "snake_case")]
+pub enum ManagedServiceInstanceStatus {
+    #[default]
+    Provisioning,
+    Running,
+    Upgrading,
+    Failed,
+    Deleting,
+    Deleted,
+}
+
+#[derive(Debug, Clone, Model, Resource, Serialize)]
+#[fabrique(table = "managed.service_instance")]
+pub struct ManagedServiceInstance {
+    #[fabrique(primary_key)]
+    pub id: Uuid,
+    #[fabrique(belongs_to = ManagedService)]
+    pub service_id: Uuid,
+    #[fabrique(belongs_to = ManagedServiceVersion)]
+    pub version_id: Uuid,
+    pub project_id: Uuid,
+    pub organization_id: Uuid,
+    pub namespace: String,
+    pub release_name: String,
+    pub user_values: Option<Value>,
+    /// References `lib_fsm.state_machine(state_machine__id)`.
+    pub status: Uuid,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Read-only view that resolves the FSM status UUID to an enum via the
+/// `managed.service_instance_view` database view.
+#[derive(Debug, Clone, Model, Serialize)]
+#[fabrique(table = "managed.service_instance_view")]
+pub struct ManagedServiceInstanceView {
+    #[fabrique(primary_key)]
+    pub id: Uuid,
+    #[fabrique(belongs_to = ManagedService)]
+    pub service_id: Uuid,
+    #[fabrique(belongs_to = ManagedServiceVersion)]
+    pub version_id: Uuid,
+    pub project_id: Uuid,
+    pub organization_id: Uuid,
+    pub namespace: String,
+    pub release_name: String,
+    pub user_values: Option<Value>,
+    pub status: ManagedServiceInstanceStatus,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Deep-merges user values with platform-generated values.
+/// Priority: platform > user (platform overrides user).
+pub fn merge_helm_values(user: &Value, platform: &Value) -> Value {
+    let mut merged = user.clone();
+    deep_merge(&mut merged, platform);
+    merged
+}
+
+fn deep_merge(base: &mut Value, overlay: &Value) {
+    if base.is_object() && overlay.is_object() {
+        let base_map = base.as_object_mut().unwrap();
+        let overlay_map = overlay.as_object().unwrap();
+        for (key, value) in overlay_map {
+            deep_merge(base_map.entry(key.clone()).or_insert(Value::Null), value);
+        }
+    } else {
+        *base = overlay.clone();
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ManagedServiceError {
+    #[error("authorization error: {0}")]
+    Authorization(crate::Error),
+    #[error("database error: {0}")]
+    Database(#[from] sqlx::Error),
+    #[error("fabrique error: {0}")]
+    Fabrique(#[from] fabrique::Error),
+    #[error("service not found: {0}")]
+    ServiceNotFound(String),
+    #[error("version not found: {0}")]
+    VersionNotFound(String),
+    #[error("instance not found: {0}")]
+    InstanceNotFound(Uuid),
+    #[error("organization not found: {0}")]
+    OrganizationNotFound(Uuid),
+    #[error("project not found: {0}")]
+    ProjectNotFound(Uuid),
+    #[error("version already exists: {0}")]
+    VersionAlreadyExists(String),
+    #[error("invalid operation on instance {0}: current status is {1}")]
+    InvalidInstanceStatus(Uuid, ManagedServiceInstanceStatus),
+    #[error("namespace too long ({max_length} chars max): {namespace}")]
+    NamespaceTooLong {
+        namespace: String,
+        max_length: usize,
+    },
+    #[error("workflow scheduling error: {0}")]
+    Workflow(String),
+}
+
+impl From<crate::Error> for ManagedServiceError {
+    fn from(err: crate::Error) -> Self {
+        ManagedServiceError::Authorization(err)
+    }
+}
+
+/// Transitions the FSM of a managed service instance within the given
+/// transaction. Returns `InvalidInstanceStatus` when no valid transition
+/// exists from the current state to `target_status`.
+pub(crate) async fn transition_instance_status(
+    conn: &mut PgConnection,
+    instance_id: Uuid,
+    state_machine_id: Uuid,
+    target_status: ManagedServiceInstanceStatus,
+) -> Result<(), ManagedServiceError> {
+    let target_name = target_status.to_string();
+
+    let event = sqlx::query_scalar::<_, String>(
+        r#"SELECT abt.event
+           FROM lib_fsm.state_machine sm
+           JOIN lib_fsm.abstract_transition abt
+               ON abt.from_abstract_state__id = sm.abstract_state__id
+           JOIN lib_fsm.abstract_state target
+               ON target.abstract_state__id = abt.to_abstract_state__id
+           WHERE sm.state_machine__id = $1
+             AND target.name = $2"#,
+    )
+    .bind(state_machine_id)
+    .bind(&target_name)
+    .fetch_optional(&mut *conn)
+    .await?;
+
+    let Some(event_name) = event else {
+        let current_name = sqlx::query_scalar::<_, String>(
+            r#"SELECT abs.name
+               FROM lib_fsm.state_machine sm
+               INNER JOIN lib_fsm.abstract_state abs
+                   ON abs.abstract_state__id = sm.abstract_state__id
+               WHERE sm.state_machine__id = $1"#,
+        )
+        .bind(state_machine_id)
+        .fetch_one(&mut *conn)
+        .await?;
+
+        let current_status = current_name.parse().unwrap_or_default();
+        return Err(ManagedServiceError::InvalidInstanceStatus(
+            instance_id,
+            current_status,
+        ));
+    };
+
+    sqlx::query(r#"SELECT lib_fsm.state_machine_transition($1, $2)"#)
+        .bind(state_machine_id)
+        .bind(event_name)
+        .execute(conn)
+        .await?;
+
+    Ok(())
+}
+
+const DEFAULT_ENVIRONMENT: &str = "prod";
+const MAX_NAMESPACE_LENGTH: usize = 63;
+
+pub fn generate_namespace(
+    organization_slug: &str,
+    service_slug: &str,
+    instance_number: i64,
+) -> Result<String, ManagedServiceError> {
+    let namespace = if instance_number <= 1 {
+        format!("managed-{organization_slug}-{service_slug}-{DEFAULT_ENVIRONMENT}")
+    } else {
+        format!(
+            "managed-{organization_slug}-{service_slug}-{instance_number}-{DEFAULT_ENVIRONMENT}"
+        )
+    };
+    if namespace.len() > MAX_NAMESPACE_LENGTH {
+        return Err(ManagedServiceError::NamespaceTooLong {
+            namespace,
+            max_length: MAX_NAMESPACE_LENGTH,
+        });
+    }
+    Ok(namespace)
+}
+
+pub fn generate_release_name(service_slug: &str, instance_number: i64) -> String {
+    if instance_number <= 1 {
+        service_slug.to_owned()
+    } else {
+        format!("{service_slug}-{instance_number}")
+    }
+}
+
+pub fn build_instance_labels(
+    service_slug: &str,
+    instance_id: Uuid,
+    project_id: Uuid,
+) -> BTreeMap<String, String> {
+    BTreeMap::from([
+        (
+            "app.kubernetes.io/managed-by".to_owned(),
+            "france-nuage".to_owned(),
+        ),
+        ("france-nuage/service".to_owned(), service_slug.to_owned()),
+        ("france-nuage/instance".to_owned(), instance_id.to_string()),
+        ("france-nuage/project".to_owned(), project_id.to_string()),
+    ])
+}
+
+#[derive(Clone)]
+pub struct PlatformConfig {
+    pub default_storage_class: Option<String>,
+}
+
+#[derive(Clone)]
+pub struct ManagedServices<A: Authorize> {
+    pub(crate) auth: A,
+    pub(crate) db: Pool<Postgres>,
+    pub(crate) platform_config: PlatformConfig,
+}
+
+impl<A: Authorize> ManagedServices<A> {
+    pub fn new(auth: A, db: Pool<Postgres>, platform_config: PlatformConfig) -> Self {
+        Self {
+            auth,
+            db,
+            platform_config,
+        }
+    }
+
+    pub(crate) fn build_platform_values(
+        &self,
+        database_engine: &Option<ManagedDatabaseEngine>,
+    ) -> Value {
+        let mut map = serde_json::Map::new();
+
+        if let Some(sc) = &self.platform_config.default_storage_class {
+            let mut persistence = serde_json::Map::new();
+            persistence.insert("storageClass".to_owned(), Value::String(sc.clone()));
+            map.insert("persistence".to_owned(), Value::Object(persistence.clone()));
+
+            if database_engine.is_some() {
+                let mut cnpg = serde_json::Map::new();
+                cnpg.insert("storageClass".to_owned(), Value::String(sc.clone()));
+                map.insert("cnpg".to_owned(), Value::Object(cnpg));
+            }
+        }
+
+        Value::Object(map)
+    }
+
+    pub async fn begin(&self) -> Result<sqlx::Transaction<'_, Postgres>, sqlx::Error> {
+        self.db.begin().await
+    }
+
+    pub(crate) async fn find_organization(
+        &self,
+        organization_id: Uuid,
+    ) -> Result<Organization, ManagedServiceError> {
+        Organization::query()
+            .select()
+            .r#where(Organization::ID, "=", organization_id)
+            .first(&self.db)
+            .await?
+            .ok_or_else(|| ManagedServiceError::OrganizationNotFound(organization_id))
+    }
+
+    pub(crate) async fn find_project(
+        &self,
+        project_id: Uuid,
+    ) -> Result<Project, ManagedServiceError> {
+        Project::query()
+            .select()
+            .r#where(Project::ID, "=", project_id)
+            .first(&self.db)
+            .await?
+            .ok_or_else(|| ManagedServiceError::ProjectNotFound(project_id))
+    }
+
+    pub(crate) async fn count_instances_for_service(
+        &self,
+        project_id: Uuid,
+        service_id: Uuid,
+    ) -> Result<i64, ManagedServiceError> {
+        let instances = ManagedServiceInstance::query()
+            .select()
+            .r#where(ManagedServiceInstance::PROJECT_ID, "=", project_id)
+            .r#where(ManagedServiceInstance::SERVICE_ID, "=", service_id)
+            .get(&self.db)
+            .await?;
+        Ok(instances.len() as i64)
+    }
+
+    pub async fn list_services(&self) -> Result<Vec<ManagedService>, ManagedServiceError> {
+        ManagedService::query()
+            .select()
+            .where_null(ManagedService::DEACTIVATED_AT)
+            .order_by(ManagedService::NAME, Direction::Asc)
+            .get(&self.db)
+            .await
+            .map_err(Into::into)
+    }
+
+    pub async fn find_service_by_slug(
+        &self,
+        slug: &str,
+    ) -> Result<ManagedService, ManagedServiceError> {
+        ManagedService::query()
+            .select()
+            .r#where(ManagedService::SLUG, "=", slug.to_owned())
+            .where_null(ManagedService::DEACTIVATED_AT)
+            .first(&self.db)
+            .await?
+            .ok_or_else(|| ManagedServiceError::ServiceNotFound(slug.to_owned()))
+    }
+
+    pub async fn find_service_by_id(
+        &self,
+        service_id: Uuid,
+    ) -> Result<ManagedService, ManagedServiceError> {
+        ManagedService::query()
+            .select()
+            .r#where(ManagedService::ID, "=", service_id)
+            .where_null(ManagedService::DEACTIVATED_AT)
+            .first(&self.db)
+            .await?
+            .ok_or_else(|| ManagedServiceError::ServiceNotFound(service_id.to_string()))
+    }
+
+    pub async fn list_versions(
+        &self,
+        service_slug: &str,
+    ) -> Result<Vec<ManagedServiceVersion>, ManagedServiceError> {
+        let service = self.find_service_by_slug(service_slug).await?;
+        ManagedServiceVersion::query()
+            .select()
+            .r#where(ManagedServiceVersion::SERVICE_ID, "=", service.id)
+            .where_null(ManagedServiceVersion::DEACTIVATED_AT)
+            .order_by(ManagedServiceVersion::CREATED_AT, Direction::Desc)
+            .get(&self.db)
+            .await
+            .map_err(Into::into)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub async fn register_version(
+        &self,
+        conn: &mut PgConnection,
+        service_slug: &str,
+        chart_version: &str,
+        app_version: Option<&str>,
+        oci_reference: &str,
+        configurable_values_schema: Option<&Value>,
+        ui_schema: Option<&Value>,
+    ) -> Result<ManagedServiceVersion, ManagedServiceError> {
+        let service = ManagedService::query()
+            .select()
+            .r#where(ManagedService::SLUG, "=", service_slug.to_owned())
+            .where_null(ManagedService::DEACTIVATED_AT)
+            .first(&mut *conn)
+            .await?
+            .ok_or_else(|| ManagedServiceError::ServiceNotFound(service_slug.to_owned()))?;
+
+        let version = sqlx::query_as::<_, ManagedServiceVersion>(
+            r#"INSERT INTO managed.service_version
+                   (id, service_id, chart_version, app_version, oci_reference, configurable_values_schema, ui_schema)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)
+               ON CONFLICT (service_id, chart_version) DO NOTHING
+               RETURNING *"#,
+        )
+        .bind(Uuid::new_v4())
+        .bind(service.id)
+        .bind(chart_version)
+        .bind(app_version)
+        .bind(oci_reference)
+        .bind(configurable_values_schema)
+        .bind(ui_schema)
+        .fetch_optional(&mut *conn)
+        .await?
+        .ok_or_else(|| {
+            ManagedServiceError::VersionAlreadyExists(format!("{}/{}", service_slug, chart_version))
+        })?;
+
+        Ok(version)
+    }
+
+    pub async fn list_instances_by_project(
+        &self,
+        project_id: Uuid,
+    ) -> Result<Vec<ManagedServiceInstanceView>, ManagedServiceError> {
+        ManagedServiceInstanceView::query()
+            .select()
+            .r#where(ManagedServiceInstanceView::PROJECT_ID, "=", project_id)
+            .order_by(ManagedServiceInstanceView::CREATED_AT, Direction::Desc)
+            .get(&self.db)
+            .await
+            .map_err(Into::into)
+    }
+
+    pub async fn find_instance_with_status(
+        &self,
+        instance_id: Uuid,
+    ) -> Result<ManagedServiceInstanceView, ManagedServiceError> {
+        ManagedServiceInstanceView::query()
+            .select()
+            .r#where(ManagedServiceInstanceView::ID, "=", instance_id)
+            .first(&self.db)
+            .await?
+            .ok_or(ManagedServiceError::InstanceNotFound(instance_id))
+    }
+
+    pub async fn find_instance(
+        &self,
+        instance_id: Uuid,
+    ) -> Result<ManagedServiceInstance, ManagedServiceError> {
+        ManagedServiceInstance::query()
+            .select()
+            .r#where(ManagedServiceInstance::ID, "=", instance_id)
+            .first(&self.db)
+            .await?
+            .ok_or(ManagedServiceError::InstanceNotFound(instance_id))
+    }
+
+    pub async fn find_version_by_id(
+        &self,
+        version_id: Uuid,
+    ) -> Result<ManagedServiceVersion, ManagedServiceError> {
+        ManagedServiceVersion::query()
+            .select()
+            .r#where(ManagedServiceVersion::ID, "=", version_id)
+            .where_null(ManagedServiceVersion::DEACTIVATED_AT)
+            .first(&self.db)
+            .await?
+            .ok_or_else(|| ManagedServiceError::VersionNotFound(version_id.to_string()))
+    }
+
+    pub async fn update_instance_version(
+        &self,
+        instance_id: Uuid,
+        version_id: Uuid,
+    ) -> Result<(), ManagedServiceError> {
+        ManagedServiceInstance::query()
+            .update()
+            .set(ManagedServiceInstance::VERSION_ID, version_id)
+            .r#where(ManagedServiceInstance::ID, "=", instance_id)
+            .execute(&self.db)
+            .await?;
+        Ok(())
+    }
+}

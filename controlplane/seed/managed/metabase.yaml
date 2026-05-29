@@ -1,0 +1,29 @@
+service:
+  slug: metabase
+  name: Metabase
+  description: |
+    Outil de Business Intelligence open source. Creez des dashboards
+    et explorez vos donnees sans SQL.
+  category: analytics
+  database_engine: cnpg
+  icon_url: null
+
+dev_mock_version:
+  chart_version: 1.0.0
+  app_version: 0.60.4
+  oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/metabase
+  configurable_values_schema:
+    $schema: "http://json-schema.org/draft-07/schema#"
+    type: object
+    required: [domain]
+    properties:
+      domain:
+        type: string
+        format: hostname
+        title: Domaine
+        description: "Nom de domaine sur lequel l'instance sera accessible."
+  ui_schema:
+    "ui:order": [domain]
+    domain:
+      "ui:placeholder": bi.monorga.com
+      "ui:description": "Doit pointer vers les IPs France Nuage (A / CNAME). Le SMTP se configure directement dans l'interface Metabase."

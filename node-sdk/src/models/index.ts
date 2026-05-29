@@ -1,5 +1,6 @@
 export * from './instance';
 export * from './hypervisor';
+export * from './managed-service';
 export * from './invitation';
 export * from './organization';
 export * from './project';

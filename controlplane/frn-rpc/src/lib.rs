@@ -1,5 +1,7 @@
+pub mod auth;
 mod error;
 pub mod request;
+pub mod timestamp;
 pub mod v1;
 
 /// File descriptor set for gRPC reflection v1.

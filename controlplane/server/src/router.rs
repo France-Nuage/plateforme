@@ -14,12 +14,14 @@ use frn_rpc::v1::compute::instances_server::InstancesServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::iam::Invitations;
 use frn_rpc::v1::iam::invitations_server::InvitationsServer;
-use frn_rpc::v1::longrunning::Operations;
-use frn_rpc::v1::longrunning::operations_server::OperationsServer;
+use frn_rpc::v1::managed::ManagedServicesRpc;
+use frn_rpc::v1::managed::managed_services_server::ManagedServicesServer;
 use frn_rpc::v1::resourcemanager::Organizations;
 use frn_rpc::v1::resourcemanager::Projects;
 use frn_rpc::v1::resourcemanager::organizations_server::OrganizationsServer;
 use frn_rpc::v1::resourcemanager::projects_server::ProjectsServer;
+use frn_rpc::v1::workflow::WorkflowEngine;
+use frn_rpc::v1::workflow::workflow_engine_server::WorkflowEngineServer;
 use infrastructure::ZeroTrustNetworkRpcService;
 use infrastructure::ZeroTrustNetworkTypeRpcService;
 use infrastructure::v1::zero_trust_network_types_server::ZeroTrustNetworkTypesServer;
@@ -85,13 +87,14 @@ impl Router {
                 health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
                 health_reporter.set_serving::<InstancesServer<Instances<SpiceDB>>>(),
                 health_reporter.set_serving::<InvitationsServer<Invitations<SpiceDB>>>(),
-                health_reporter.set_serving::<OperationsServer<Operations<SpiceDB>>>(),
                 health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
                 health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
                 health_reporter
                     .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>(),
                 health_reporter
                     .set_serving::<ZeroTrustNetworksServer<ZeroTrustNetworkRpcService>>(),
+                health_reporter.set_serving::<ManagedServicesServer<ManagedServicesRpc<SpiceDB>>>(),
+                health_reporter.set_serving::<WorkflowEngineServer<WorkflowEngine>>(),
             )
         });
 
@@ -163,22 +166,6 @@ impl Router {
         }
     }
 
-    /// Registers the long-running operations service with the router.
-    ///
-    /// This method adds the operations gRPC service to the router, providing
-    /// endpoints for querying and waiting on long-running operation status.
-    pub fn operations(
-        self,
-        iam: IAM,
-        operations: frn_core::longrunning::Operations<SpiceDB>,
-    ) -> Self {
-        Self {
-            routes: self
-                .routes
-                .add_service(OperationsServer::new(Operations::new(iam, operations))),
-        }
-    }
-
     /// Registers the resources management service with the router.
     ///
     /// This method adds the resources gRPC service to the router, providing
@@ -241,6 +228,35 @@ impl Router {
             routes: self.routes.add_service(ZeroTrustNetworksServer::new(
                 ZeroTrustNetworkRpcService::new(pool),
             )),
+        }
+    }
+
+    pub fn managed_services(
+        self,
+        iam: IAM,
+        pool: Pool<Postgres>,
+        auth: SpiceDB,
+        ci_token: String,
+        platform_config: frn_core::managed::PlatformConfig,
+    ) -> Self {
+        let service = frn_core::managed::ManagedServices::new(auth, pool.clone(), platform_config);
+        Self {
+            routes: self
+                .routes
+                .add_service(ManagedServicesServer::new(ManagedServicesRpc::new(
+                    iam, service, pool, ci_token,
+                ))),
+        }
+    }
+
+    pub fn workflow_engine(self, pool: Pool<Postgres>, worker_token: String) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(WorkflowEngineServer::new(WorkflowEngine::new(
+                    pool,
+                    worker_token,
+                ))),
         }
     }
 

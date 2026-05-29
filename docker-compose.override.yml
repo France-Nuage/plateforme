@@ -1,0 +1,58 @@
+services:
+  controlplane:
+    build:
+      args:
+        RUST_BASE_IMAGE: rust:1.90-alpine
+        ALPINE_BASE_IMAGE: alpine:3.23
+    volumes: !override
+      - ./controlplane:/app
+    extra_hosts: !reset
+      - "console.test:host-gateway"
+      - "controlplane.test:host-gateway"
+    environment:
+      OIDC_URL: http://keycloak.test:8080/realms/francenuage/.well-known/openid-configuration
+
+  worker:
+    build:
+      args:
+        RUST_BASE_IMAGE: rust:1.90-alpine
+        ALPINE_BASE_IMAGE: alpine:3.23
+    extra_hosts:
+      - "kubernetes.zero-trust.tartrau.fr:192.168.1.50"
+    entrypoint: ["sh", "-c", "echo ${HELM_REGISTRY_TOKEN} | helm registry login registry.gitlab.com -u ${HELM_REGISTRY_USER} --password-stdin 2>&1; exec cargo run --bin=worker"]
+
+  synchronizer:
+    build:
+      args:
+        RUST_BASE_IMAGE: rust:1.90-alpine
+        ALPINE_BASE_IMAGE: alpine:3.23
+
+  console:
+    build:
+      args:
+        NODE_BASE_IMAGE: node:22-alpine
+        NGINX_BASE_IMAGE: nginx:1.27-alpine
+
+  node-sdk:
+    build:
+      args:
+        NODE_BASE_IMAGE: node:22-alpine
+
+  keycloak:
+    networks:
+      default:
+        aliases:
+          - keycloak.test
+
+  spicedb:
+    ports: !reset
+      - "60051:50051"
+      - "18443:8443"
+
+  postgres:
+    ports: !reset
+      - "15432:5432"
+
+  spicedb-datastore:
+    ports: !reset
+      - "15433:5432"

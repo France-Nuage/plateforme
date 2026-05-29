@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { HiDesktopComputer } from 'react-icons/hi';
+import { HiCube, HiSquare3Stack3D } from 'react-icons/hi2';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { AppLayout, OrganizationGuard, PageGuard } from '@/components';
@@ -8,6 +9,11 @@ import {
   HomePage,
   InstancesPage,
   LoginPage,
+  ManagedInstanceDetailPage,
+  ManagedInstancesPage,
+  ManagedServiceDeployPage,
+  ManagedServiceDetailPage,
+  ManagedServicesPage,
   OidcRedirectPage,
 } from '@/pages';
 import { Routes as RoutePath } from '@/types';
@@ -17,6 +23,16 @@ const links = [
     Icon: HiDesktopComputer,
     label: 'Instances de VM',
     to: RoutePath.Instances,
+  },
+  {
+    Icon: HiCube,
+    label: 'Services managés',
+    to: RoutePath.ManagedServices,
+  },
+  {
+    Icon: HiSquare3Stack3D,
+    label: 'Mes instances',
+    to: RoutePath.ManagedInstances,
   },
 ];
 
@@ -41,6 +57,26 @@ const Router = () => (
               <Route
                 path={RoutePath.CreateInstance}
                 element={<CreateInstancePage />}
+              />
+              <Route
+                path={RoutePath.ManagedServices}
+                element={<ManagedServicesPage />}
+              />
+              <Route
+                path={RoutePath.ManagedServiceDetail}
+                element={<ManagedServiceDetailPage />}
+              />
+              <Route
+                path={RoutePath.ManagedServiceDeploy}
+                element={<ManagedServiceDeployPage />}
+              />
+              <Route
+                path={RoutePath.ManagedInstances}
+                element={<ManagedInstancesPage />}
+              />
+              <Route
+                path={RoutePath.ManagedInstanceDetail}
+                element={<ManagedInstanceDetailPage />}
               />
             </Route>
           </Route>

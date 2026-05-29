@@ -1,0 +1,149 @@
+# Seed for the Vaultwarden managed service.
+#
+# Loaded by `cargo run --bin seed_managed`. The service + tiers are upserted
+# (idempotent). The optional `dev_mock_version` block is meant for local
+# development before the chart CI is in place; production registers versions
+# through the `RegisterVersion` gRPC call from the charts pipeline.
+
+service:
+  slug: vaultwarden
+  name: Vaultwarden
+  description: |
+    Gestionnaire de mots de passe auto-hebergé, compatible avec les clients
+    Bitwarden. Multi-utilisateur, support du SSO et de l'envoi d'invitations
+    par email.
+  category: security
+  database_engine: cnpg
+  icon_url: null
+
+# Dev-only mock version. Production versions are registered by the charts CI
+# via the RegisterVersion gRPC. Useful to exercise the deploy UI before the
+# pipeline is wired up. The seed binary creates this version only when invoked
+# with `--with-dev-mock`.
+dev_mock_version:
+  chart_version: 0.1.0
+  app_version: 1.35.4
+  oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/vaultwarden
+  configurable_values_schema:
+    $schema: "http://json-schema.org/draft-07/schema#"
+    type: object
+    required: [domain]
+    properties:
+      domain:
+        type: string
+        format: hostname
+        title: Domaine
+        description: "Nom de domaine sur lequel l'instance sera accessible."
+      signupsAllowed:
+        type: boolean
+        default: false
+        title: Inscriptions ouvertes
+        description: "Autorise les nouveaux utilisateurs a creer un compte eux-memes."
+      websocketEnabled:
+        type: boolean
+        default: true
+        title: WebSocket
+        description: "Active les notifications temps reel via WebSocket."
+      logLevel:
+        type: string
+        title: Niveau de log
+        description: "Niveau de verbosité des logs applicatifs."
+        default: info
+        enum: [trace, debug, info, warn, error]
+      smtp:
+        type: object
+        title: Serveur SMTP
+        description: "Configuration de l'envoi d'e-mails (invitations, notifications)."
+        properties:
+          enabled:
+            type: boolean
+            default: false
+            title: Activer SMTP
+        dependencies:
+          enabled:
+            oneOf:
+              - properties:
+                  enabled: { enum: [false] }
+              - properties:
+                  enabled: { enum: [true] }
+                  host:
+                    type: string
+                    title: "Hôte"
+                    description: "Adresse du serveur SMTP."
+                  port:
+                    type: integer
+                    minimum: 1
+                    maximum: 65535
+                    default: 587
+                    title: Port
+                    description: "Port du serveur SMTP."
+                  security:
+                    type: string
+                    title: "Sécurité"
+                    description: "Mode de chiffrement de la connexion SMTP."
+                    default: starttls
+                    enum: [starttls, force_tls, off]
+                  username:
+                    type: string
+                    title: Identifiant
+                    description: "Nom d'utilisateur pour l'authentification SMTP."
+                  password:
+                    type: string
+                    format: password
+                    title: Mot de passe
+                    description: "Mot de passe pour l'authentification SMTP."
+                required: [host, username, password]
+      sso:
+        type: object
+        title: Single Sign-On (OIDC)
+        description: "Connexion via un fournisseur d'identité OpenID Connect."
+        properties:
+          enabled:
+            type: boolean
+            default: false
+            title: Activer le SSO
+        dependencies:
+          enabled:
+            oneOf:
+              - properties:
+                  enabled: { enum: [false] }
+              - properties:
+                  enabled: { enum: [true] }
+                  authority:
+                    type: string
+                    format: uri
+                    title: "Autorité OIDC"
+                    description: "URL du realm OpenID Connect (ex: https://auth.example.com/realms/main)."
+                  clientId:
+                    type: string
+                    title: Client ID
+                    description: "Identifiant du client OIDC."
+                  clientSecret:
+                    type: string
+                    format: password
+                    title: Client Secret
+                    description: "Secret du client OIDC."
+                required: [authority, clientId, clientSecret]
+  ui_schema:
+    "ui:order": [domain, signupsAllowed, websocketEnabled, logLevel, smtp, sso]
+    domain:
+      "ui:placeholder": vault.monorga.com
+      "ui:description": "Doit pointer vers les IPs France Nuage (A / CNAME)."
+    logLevel:
+      "ui:placeholder": info
+    smtp:
+      "ui:order": [enabled, host, port, security, username, password]
+      host:
+        "ui:placeholder": smtp.example.com
+      port:
+        "ui:placeholder": "587"
+      security:
+        "ui:placeholder": starttls
+      username:
+        "ui:placeholder": "noreply@example.com"
+    sso:
+      "ui:order": [enabled, authority, clientId, clientSecret]
+      authority:
+        "ui:placeholder": "https://auth.example.com/realms/main"
+      clientId:
+        "ui:placeholder": vaultwarden

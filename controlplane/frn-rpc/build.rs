@@ -9,8 +9,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &[
                 "compute.proto",
                 "iam.proto",
-                "longrunning.proto",
+                "managed.proto",
                 "resourcemanager.proto",
+                "workflow.proto",
             ],
             &["."],
         )?;

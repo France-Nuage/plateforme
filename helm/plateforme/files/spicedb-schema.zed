@@ -35,6 +35,14 @@ definition instance {
   permission update = get
 }
 
+definition managed_service_instance {
+  relation parent: project
+
+  permission get = parent->get
+  permission delete = get
+  permission update = get
+}
+
 definition service_account {}
 
 definition user {}

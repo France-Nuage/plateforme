@@ -1,0 +1,90 @@
+service:
+  slug: n8n
+  name: n8n
+  description: |
+    Plateforme d'automatisation de workflows. Connectez vos applications
+    et automatisez vos processus metier.
+  category: automation
+  database_engine: cnpg
+  icon_url: null
+
+dev_mock_version:
+  chart_version: 1.0.0
+  app_version: 1.70.1
+  oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/n8n
+  configurable_values_schema:
+    $schema: "http://json-schema.org/draft-07/schema#"
+    type: object
+    required: [domain]
+    properties:
+      domain:
+        type: string
+        format: hostname
+        title: Domaine
+        description: "Nom de domaine sur lequel l'instance sera accessible."
+      webhookUrl:
+        type: string
+        format: uri
+        title: URL des webhooks
+        description: "URL publique utilisee par n8n pour recevoir les webhooks entrants."
+      smtp:
+        type: object
+        title: Serveur SMTP
+        description: "Configuration de l'envoi d'e-mails (notifications de workflows)."
+        properties:
+          enabled:
+            type: boolean
+            default: false
+            title: Activer SMTP
+        dependencies:
+          enabled:
+            oneOf:
+              - properties:
+                  enabled: { enum: [false] }
+              - properties:
+                  enabled: { enum: [true] }
+                  host:
+                    type: string
+                    title: "Hôte"
+                    description: "Adresse du serveur SMTP."
+                  port:
+                    type: integer
+                    minimum: 1
+                    maximum: 65535
+                    default: 587
+                    title: Port
+                    description: "Port du serveur SMTP."
+                  security:
+                    type: string
+                    title: "Sécurité"
+                    description: "Mode de chiffrement de la connexion SMTP."
+                    default: starttls
+                    enum: [starttls, force_tls, off]
+                  username:
+                    type: string
+                    title: Identifiant
+                    description: "Nom d'utilisateur pour l'authentification SMTP."
+                  password:
+                    type: string
+                    format: password
+                    title: Mot de passe
+                    description: "Mot de passe pour l'authentification SMTP."
+                required: [host, username, password]
+  ui_schema:
+    "ui:order": [domain, webhookUrl, smtp]
+    domain:
+      "ui:placeholder": n8n.monorga.com
+      "ui:description": "Doit pointer vers les IPs France Nuage (A / CNAME)."
+    webhookUrl:
+      "ui:placeholder": https://n8n.monorga.com/webhook
+      "ui:description": "Si vide, sera derive automatiquement du domaine."
+    smtp:
+      "ui:order": [enabled, host, port, security, username, password]
+      host:
+        "ui:placeholder": smtp.example.com
+      port:
+        "ui:placeholder": "587"
+      security:
+        "ui:placeholder": starttls
+      username:
+        "ui:placeholder": "noreply@example.com"

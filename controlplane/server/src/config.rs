@@ -86,6 +86,15 @@ pub struct Config {
     /// This field provides the PostgreSQL connection pool that will be shared across
     /// all services for performing persistent storage operations.
     pub pool: Pool<Postgres>,
+
+    /// Pre-shared token for authenticating the workflow worker.
+    pub worker_token: String,
+
+    /// Pre-shared token for authenticating CI service account (managed services version registration).
+    pub ci_token: String,
+
+    /// Platform-level configuration injected into managed service Helm values.
+    pub managed_platform_config: frn_core::managed::PlatformConfig,
 }
 
 impl Config {
@@ -133,6 +142,11 @@ impl Config {
             allow_origin: AllowOrigin::any(),
             expose_headers: ExposeHeaders::any(),
             pool: pool.clone(),
+            worker_token: "test-worker-token".to_owned(),
+            ci_token: "test-ci-token".to_owned(),
+            managed_platform_config: frn_core::managed::PlatformConfig {
+                default_storage_class: None,
+            },
         })
     }
 
@@ -166,6 +180,10 @@ impl Config {
             .await
             .expect("could not connect to database");
 
+        let worker_token = env::var("WORKER_TOKEN").expect("WORKER_TOKEN must be set");
+        let ci_token = env::var("CI_SERVICE_TOKEN").expect("CI_SERVICE_TOKEN must be set");
+        let default_storage_class = env::var("MANAGED_DEFAULT_STORAGE_CLASS").ok();
+
         Ok(Config {
             app,
             addr: Config::reserve_socket_addr(env::var("CONTROLPLANE_ADDR").ok()).await?,
@@ -174,6 +192,11 @@ impl Config {
             allow_origin: AllowOrigin::any(),
             expose_headers: ExposeHeaders::any(),
             pool,
+            worker_token,
+            ci_token,
+            managed_platform_config: frn_core::managed::PlatformConfig {
+                default_storage_class,
+            },
         })
     }
 

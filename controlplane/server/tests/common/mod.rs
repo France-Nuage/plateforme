@@ -1,12 +1,33 @@
 #![allow(dead_code)]
 
 use auth::mock::WithWellKnown;
-use fabrique::Factory;
+use fabrique::{Factory, Persist, SoftDelete};
 use frn_core::identity::ServiceAccount;
+use frn_core::managed::{
+    DeployManagedServiceParams, ManagedService, ManagedServiceCategory, ManagedServiceInstance,
+    ManagedServiceVersion, ManagedServices,
+};
+use frn_core::workflow::WorkflowScheduler;
+use spicedb::SpiceDB;
+use sqlx::PgConnection;
+
+#[derive(Clone)]
+struct NoopWorkflowScheduler;
+
+impl WorkflowScheduler<DeployManagedServiceParams> for NoopWorkflowScheduler {
+    async fn schedule(
+        &self,
+        _conn: &mut PgConnection,
+        _params: DeployManagedServiceParams,
+    ) -> Result<(), String> {
+        Ok(())
+    }
+}
 use frn_rpc::v1::compute::instances_client::InstancesClient;
+use frn_rpc::v1::managed::managed_services_client::ManagedServicesClient;
+use frn_rpc::v1::workflow::workflow_engine_client::WorkflowEngineClient;
 use frn_rpc::v1::{
     compute::hypervisors_client::HypervisorsClient,
-    longrunning::operations_client::OperationsClient,
     resourcemanager::{organizations_client::OrganizationsClient, projects_client::ProjectsClient},
 };
 use hypervisor::mock::{
@@ -16,10 +37,12 @@ use hypervisor::mock::{
 };
 use mock_server::MockServer;
 use server::{Config, error::Error};
+use sqlx::types::chrono::Utc;
 use sqlx::{Pool, Postgres};
 use std::str::FromStr;
 use tokio::sync::oneshot;
 use tonic::{Request, metadata::MetadataValue, transport::Channel};
+use uuid::Uuid;
 
 /// gRPC clients for compute services.
 #[allow(dead_code)]
@@ -29,27 +52,14 @@ pub struct Compute {
 }
 
 impl Compute {
-    pub async fn create(dst: &String) -> Result<Self, Error> {
-        let hypervisors = HypervisorsClient::connect(dst.clone()).await?;
-        let instances = InstancesClient::connect(dst.clone()).await?;
+    pub async fn create(dst: &str) -> Result<Self, Error> {
+        let hypervisors = HypervisorsClient::connect(dst.to_owned()).await?;
+        let instances = InstancesClient::connect(dst.to_owned()).await?;
 
         Ok(Self {
             hypervisors,
             instances,
         })
-    }
-}
-
-#[allow(dead_code)]
-pub struct Longrunning {
-    pub operations: OperationsClient<Channel>,
-}
-
-impl Longrunning {
-    pub async fn create(dst: &String) -> Result<Self, Error> {
-        let operations = OperationsClient::connect(dst.clone()).await?;
-
-        Ok(Self { operations })
     }
 }
 
@@ -60,9 +70,9 @@ pub struct ResourceManager {
 }
 
 impl ResourceManager {
-    pub async fn create(dst: &String) -> Result<Self, Error> {
-        let organizations = OrganizationsClient::connect(dst.clone()).await?;
-        let projects = ProjectsClient::connect(dst.clone()).await?;
+    pub async fn create(dst: &str) -> Result<Self, Error> {
+        let organizations = OrganizationsClient::connect(dst.to_owned()).await?;
+        let projects = ProjectsClient::connect(dst.to_owned()).await?;
 
         Ok(Self {
             organizations,
@@ -71,12 +81,38 @@ impl ResourceManager {
     }
 }
 
+pub struct Managed {
+    pub services: ManagedServicesClient<Channel>,
+}
+
+impl Managed {
+    pub async fn create(dst: &str) -> Result<Self, Error> {
+        let services = ManagedServicesClient::connect(dst.to_owned()).await?;
+        Ok(Self { services })
+    }
+}
+
+pub struct Workflow {
+    pub engine: WorkflowEngineClient<Channel>,
+}
+
+impl Workflow {
+    pub async fn create(dst: &str) -> Result<Self, Error> {
+        let engine = WorkflowEngineClient::connect(dst.to_owned()).await?;
+        Ok(Self { engine })
+    }
+}
+
+pub const TEST_WORKER_TOKEN: &str = "test-worker-token";
+pub const TEST_CI_TOKEN: &str = "test-ci-token";
+
 /// Test API wrapper that manages a gRPC server lifecycle.
 #[allow(dead_code)]
 pub struct Api {
     pub compute: Compute,
-    pub longrunning: Longrunning,
+    pub managed: Managed,
     pub resourcemanager: ResourceManager,
+    pub workflow: Workflow,
     pub mock_server: MockServer,
     pub service_account: ServiceAccount,
     shutdown: Option<oneshot::Sender<()>>,
@@ -110,8 +146,9 @@ impl Api {
 
         Ok(Self {
             compute: Compute::create(&server_url).await?,
-            longrunning: Longrunning::create(&server_url).await?,
+            managed: Managed::create(&server_url).await?,
             resourcemanager: ResourceManager::create(&server_url).await?,
+            workflow: Workflow::create(&server_url).await?,
             mock_server,
             service_account,
             shutdown: Some(shutdown),
@@ -142,4 +179,118 @@ impl<T> OnBehalfOf for Request<T> {
 
         self
     }
+}
+
+/// Adds worker authentication headers to gRPC requests.
+pub trait IntoWorker {
+    fn into_worker(self) -> Self;
+}
+
+impl<T> IntoWorker for Request<T> {
+    fn into_worker(mut self) -> Self {
+        let metadata_value = MetadataValue::from_str(&format!("Bearer {TEST_WORKER_TOKEN}"))
+            .expect("could not create metadata value for worker token");
+        self.metadata_mut().insert("authorization", metadata_value);
+        self
+    }
+}
+
+/// Adds CI service token authentication headers to gRPC requests.
+pub trait IntoCi {
+    fn into_ci(self) -> Self;
+}
+
+impl<T> IntoCi for Request<T> {
+    fn into_ci(mut self) -> Self {
+        let metadata_value = MetadataValue::from_str(&format!("Bearer {TEST_CI_TOKEN}"))
+            .expect("could not create metadata value for CI token");
+        self.metadata_mut().insert("authorization", metadata_value);
+        self
+    }
+}
+
+/// Seeds a managed service in the database for testing.
+pub async fn seed_managed_service(
+    pool: &Pool<Postgres>,
+    slug: &str,
+    name: &str,
+    category: &str,
+) -> Uuid {
+    let category = ManagedServiceCategory::from_str(category).expect("invalid category");
+    let service = ManagedService::factory()
+        .slug(slug.to_owned())
+        .name(name.to_owned())
+        .category(category)
+        .deactivated_at(None)
+        .create(pool)
+        .await
+        .expect("could not seed managed service");
+    service.id
+}
+
+/// Seeds a managed service version in the database for testing.
+pub async fn seed_managed_service_version(
+    pool: &Pool<Postgres>,
+    service_id: Uuid,
+    chart_version: &str,
+    app_version: Option<&str>,
+    oci_reference: &str,
+) -> Uuid {
+    let version = ManagedServiceVersion {
+        id: Uuid::new_v4(),
+        service_id,
+        chart_version: chart_version.to_owned(),
+        app_version: app_version.map(str::to_owned),
+        oci_reference: oci_reference.to_owned(),
+        configurable_values_schema: None,
+        ui_schema: None,
+        deactivated_at: None,
+        created_at: Utc::now(),
+    }
+    .create(pool)
+    .await
+    .expect("could not seed managed service version");
+    version.id
+}
+
+/// Seeds a managed service instance in the database for testing.
+pub async fn seed_managed_service_instance(
+    pool: &Pool<Postgres>,
+    version_id: Uuid,
+    service_slug: &str,
+) -> ManagedServiceInstance {
+    let auth = SpiceDB::mock().await;
+    let principal = ServiceAccount::default();
+    let scheduler = NoopWorkflowScheduler;
+    let mut managed = ManagedServices::new(
+        auth,
+        pool.clone(),
+        frn_core::managed::PlatformConfig {
+            default_storage_class: None,
+        },
+    );
+    let mut conn = pool.acquire().await.expect("could not acquire connection");
+    managed
+        .create_instance(
+            &principal,
+            &mut conn,
+            &scheduler,
+            frn_core::managed::CreateInstanceRequest {
+                project_id: Uuid::new_v4(),
+                organization_id: Uuid::new_v4(),
+                service_slug: service_slug.to_owned(),
+                version_id,
+                user_values: None,
+                secret_values: None,
+            },
+        )
+        .await
+        .expect("could not seed managed service instance")
+}
+
+/// Deactivates a managed service in the database for testing.
+pub async fn deactivate_managed_service(pool: &Pool<Postgres>, service_id: Uuid) {
+    ManagedService::soft_destroy(pool, service_id)
+        .await
+        .expect("could not deactivate managed service");
 }

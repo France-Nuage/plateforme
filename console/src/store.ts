@@ -6,6 +6,7 @@ import {
   hypervisorsSlice,
   infrastructureSlice,
   instancesSlice,
+  managedServicesSlice,
   resourcesSlice,
 } from '@/features';
 import { configureServices } from '@/services';
@@ -32,6 +33,7 @@ export const store = configureStore({
     [hypervisorsSlice.name]: hypervisorsSlice.reducer,
     [infrastructureSlice.name]: infrastructureSlice.reducer,
     [instancesSlice.name]: instancesSlice.reducer,
+    [managedServicesSlice.name]: managedServicesSlice.reducer,
     [resourcesSlice.name]: resourcesSlice.reducer,
   },
 });

@@ -3,4 +3,9 @@ export enum Routes {
   Home = '/',
   Instances = '/compute/instances',
   Login = '/login',
+  ManagedServices = '/managed-services',
+  ManagedServiceDetail = '/managed-services/:slug',
+  ManagedServiceDeploy = '/managed-services/:slug/deploy',
+  ManagedInstances = '/managed-services/instances',
+  ManagedInstanceDetail = '/managed-services/instances/:instanceId',
 }
