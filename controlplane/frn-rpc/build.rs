@@ -9,6 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &[
                 "compute.proto",
                 "iam.proto",
+                "kubernetes.proto",
                 "managed.proto",
                 "resourcemanager.proto",
                 "workflow.proto",

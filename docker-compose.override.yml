@@ -6,6 +6,7 @@ services:
         ALPINE_BASE_IMAGE: alpine:3.23
     volumes: !override
       - ./controlplane:/app
+      - /app/target
     extra_hosts: !reset
       - "console.test:host-gateway"
       - "controlplane.test:host-gateway"

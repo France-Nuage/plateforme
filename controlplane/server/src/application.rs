@@ -225,6 +225,7 @@ impl<L> Application<L> {
         let worker_token = self.config.worker_token.clone();
         let ci_token = self.config.ci_token.clone();
         let managed_platform_config = self.config.managed_platform_config.clone();
+        let kubeconfig_encryption_kek = self.config.kubeconfig_encryption_kek.clone();
         Self {
             config: self.config,
             router: self
@@ -240,6 +241,7 @@ impl<L> Application<L> {
                     ci_token,
                     managed_platform_config,
                 )
+                .kubernetes_clusters(iam.clone(), pool.clone(), kubeconfig_encryption_kek)
                 .reflection()
                 .resources(iam.clone(), organizations, pool.clone(), projects.clone())
                 .zero_trust_networks(pool.clone())

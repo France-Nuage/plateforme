@@ -12,6 +12,7 @@ kube = { workspace = true }
 paste = "1"
 serde = { version = "1", features = ["derive"] }
 frn-core = { path = "../frn-core" }
+frn-crypto = { path = "../frn-crypto" }
 serde_json = { workspace = true }
 spicedb = { path = "../spicedb" }
 sqlx = { workspace = true, features = ["json"] }

@@ -10,20 +10,19 @@ use frn_core::managed::{
 use frn_core::workflow::WorkflowScheduler;
 use spicedb::SpiceDB;
 use sqlx::PgConnection;
+use std::sync::Arc;
 
-#[derive(Clone)]
-struct NoopWorkflowScheduler;
-
-impl WorkflowScheduler<DeployManagedServiceParams> for NoopWorkflowScheduler {
-    async fn schedule(
-        &self,
-        _conn: &mut PgConnection,
-        _params: DeployManagedServiceParams,
-    ) -> Result<(), String> {
-        Ok(())
-    }
-}
+use async_trait::async_trait;
+use auth::OpenID;
+use frn_core::identity::User;
+use frn_core::kubernetes::{
+    ClusterHealthChecker, ClusterHealthError, ClusterHealthInfo, CreateClusterInput,
+    KubernetesCluster, KubernetesClusters,
+};
+use frn_core::resourcemanager::{Organization, Project};
+use frn_crypto::Kek;
 use frn_rpc::v1::compute::instances_client::InstancesClient;
+use frn_rpc::v1::kubernetes::kubernetes_clusters_client::KubernetesClustersClient;
 use frn_rpc::v1::managed::managed_services_client::ManagedServicesClient;
 use frn_rpc::v1::workflow::workflow_engine_client::WorkflowEngineClient;
 use frn_rpc::v1::{
@@ -43,6 +42,19 @@ use std::str::FromStr;
 use tokio::sync::oneshot;
 use tonic::{Request, metadata::MetadataValue, transport::Channel};
 use uuid::Uuid;
+
+#[derive(Clone)]
+struct NoopWorkflowScheduler;
+
+impl WorkflowScheduler<DeployManagedServiceParams> for NoopWorkflowScheduler {
+    async fn schedule(
+        &self,
+        _conn: &mut PgConnection,
+        _params: DeployManagedServiceParams,
+    ) -> Result<(), String> {
+        Ok(())
+    }
+}
 
 /// gRPC clients for compute services.
 #[allow(dead_code)]
@@ -92,6 +104,17 @@ impl Managed {
     }
 }
 
+pub struct Kubernetes {
+    pub clusters: KubernetesClustersClient<Channel>,
+}
+
+impl Kubernetes {
+    pub async fn create(dst: &str) -> Result<Self, Error> {
+        let clusters = KubernetesClustersClient::connect(dst.to_owned()).await?;
+        Ok(Self { clusters })
+    }
+}
+
 pub struct Workflow {
     pub engine: WorkflowEngineClient<Channel>,
 }
@@ -111,6 +134,7 @@ pub const TEST_CI_TOKEN: &str = "test-ci-token";
 pub struct Api {
     pub compute: Compute,
     pub managed: Managed,
+    pub kubernetes: Kubernetes,
     pub resourcemanager: ResourceManager,
     pub workflow: Workflow,
     pub mock_server: MockServer,
@@ -147,6 +171,7 @@ impl Api {
         Ok(Self {
             compute: Compute::create(&server_url).await?,
             managed: Managed::create(&server_url).await?,
+            kubernetes: Kubernetes::create(&server_url).await?,
             resourcemanager: ResourceManager::create(&server_url).await?,
             workflow: Workflow::create(&server_url).await?,
             mock_server,
@@ -209,6 +234,85 @@ impl<T> IntoCi for Request<T> {
     }
 }
 
+/// Attaches a user's OIDC bearer token to a gRPC request.
+pub trait WithUser {
+    fn with_user(self, token: &str) -> Self;
+}
+
+impl<T> WithUser for Request<T> {
+    fn with_user(mut self, token: &str) -> Self {
+        let metadata_value = MetadataValue::from_str(&format!("Bearer {token}"))
+            .expect("could not create metadata value from user token");
+        self.metadata_mut().insert("authorization", metadata_value);
+        self
+    }
+}
+
+/// Seeds a platform-admin user and returns a valid OIDC bearer token for it.
+///
+/// The token is signed with the deterministic mock RSA key, so the test
+/// server's IAM resolves it to the seeded admin user.
+pub async fn seed_admin_token(pool: &Pool<Postgres>, email: &str) -> String {
+    User::factory()
+        .id(Uuid::new_v4())
+        .email(email.to_owned())
+        .is_admin(true)
+        .create(pool)
+        .await
+        .expect("could not seed admin user");
+    OpenID::token(email)
+}
+
+/// Returns a valid OIDC bearer token for a non-admin user. The user row is
+/// created on first authentication with `is_admin = false`.
+pub fn non_admin_token(email: &str) -> String {
+    OpenID::token(email)
+}
+
+/// Reachability checker for seeding: always healthy, never touches the network.
+#[derive(Clone)]
+struct SeedHealthChecker;
+
+#[async_trait]
+impl ClusterHealthChecker for SeedHealthChecker {
+    async fn check(&self, _kubeconfig_yaml: &str) -> Result<ClusterHealthInfo, ClusterHealthError> {
+        Ok(ClusterHealthInfo {
+            api_server_url: "https://cluster.test:6443/".to_owned(),
+        })
+    }
+}
+
+/// Seeds a healthy Kubernetes cluster in the database for testing.
+///
+/// Goes through the cluster service (the repository-equivalent) with a stub
+/// reachability checker, so no real cluster is contacted and the kubeconfig is
+/// stored encrypted exactly as in production.
+pub async fn seed_kubernetes_cluster(pool: &Pool<Postgres>, name: &str) -> KubernetesCluster {
+    let service = KubernetesClusters::with_health_checker(
+        pool.clone(),
+        Arc::new(Kek::from_bytes([42u8; 32])),
+        Arc::new(SeedHealthChecker),
+    );
+    let admin = User {
+        id: Uuid::new_v4(),
+        email: format!("seed-admin-{name}@francenuage.fr"),
+        is_admin: true,
+        created_at: Utc::now(),
+        updated_at: Utc::now(),
+    };
+    service
+        .create_cluster(
+            &admin,
+            CreateClusterInput {
+                name: name.to_owned(),
+                description: None,
+                kubeconfig: "apiVersion: v1\nkind: Config\nclusters: []\n".to_owned(),
+            },
+        )
+        .await
+        .expect("could not seed kubernetes cluster")
+}
+
 /// Seeds a managed service in the database for testing.
 pub async fn seed_managed_service(
     pool: &Pool<Postgres>,
@@ -259,6 +363,22 @@ pub async fn seed_managed_service_instance(
     version_id: Uuid,
     service_slug: &str,
 ) -> ManagedServiceInstance {
+    // A managed instance requires a project bound to a cluster, so seed the full
+    // chain: organization -> cluster -> project -> instance.
+    let organization = Organization::factory()
+        .slug(format!("seed-{}", Uuid::new_v4().simple()))
+        .parent_id(None)
+        .create(pool)
+        .await
+        .expect("could not seed organization");
+    let cluster = seed_kubernetes_cluster(pool, &format!("seed-{}", Uuid::new_v4().simple())).await;
+    let project = Project::factory()
+        .organization_id(organization.id)
+        .cluster_id(Some(cluster.id))
+        .create(pool)
+        .await
+        .expect("could not seed project");
+
     let auth = SpiceDB::mock().await;
     let principal = ServiceAccount::default();
     let scheduler = NoopWorkflowScheduler;
@@ -276,8 +396,8 @@ pub async fn seed_managed_service_instance(
             &mut conn,
             &scheduler,
             frn_core::managed::CreateInstanceRequest {
-                project_id: Uuid::new_v4(),
-                organization_id: Uuid::new_v4(),
+                project_id: project.id,
+                organization_id: organization.id,
                 service_slug: service_slug.to_owned(),
                 version_id,
                 user_values: None,

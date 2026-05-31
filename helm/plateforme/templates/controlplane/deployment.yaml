@@ -78,6 +78,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "plateforme.secretName" . }}
                   key: root-service-account-key
+            - name: KUBECONFIG_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: kubeconfig-encryption-key
             {{- if .Values.secrets.hoopApiKey }}
             - name: HOOP_API_KEY
               valueFrom:

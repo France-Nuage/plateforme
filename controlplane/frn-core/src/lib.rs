@@ -4,6 +4,7 @@ pub mod compute;
 mod config;
 mod error;
 pub mod identity;
+pub mod kubernetes;
 pub mod managed;
 pub mod resourcemanager;
 pub mod workflow;

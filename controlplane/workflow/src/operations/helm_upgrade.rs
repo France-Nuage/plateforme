@@ -1,15 +1,13 @@
 use std::io::Error as IoError;
-use std::process::Stdio;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
-use tokio::io::AsyncWriteExt;
-use tokio::process::Command;
 use tracing::info;
 
 use crate::WorkerContext;
 use crate::execution::WorkflowExecutionId;
+use crate::operations::helm_common::{helm_run, helm_run_with_stdin};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HelmUpgradeOp {
@@ -39,36 +37,30 @@ impl crate::operations::Operation for HelmUpgradeOp {
 
     async fn execute(
         self,
-        _ctx: WorkerContext,
+        ctx: WorkerContext,
         _execution_id: WorkflowExecutionId,
     ) -> Result<Self, Self::Error> {
         let values_json = serde_json::to_vec(&self.values)?;
 
-        let mut child = Command::new("helm")
-            .args([
+        let output = helm_run_with_stdin(
+            &ctx,
+            &[
                 "upgrade",
-                &self.release_name,
-                &self.chart_reference,
+                self.release_name.as_str(),
+                self.chart_reference.as_str(),
                 "--version",
-                &self.chart_version,
+                self.chart_version.as_str(),
                 "--namespace",
-                &self.namespace,
+                self.namespace.as_str(),
                 "--values",
                 "-",
                 "--wait",
                 "--timeout",
                 "5m0s",
-            ])
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-
-        let mut stdin = child.stdin.take().expect("stdin was configured as piped");
-        stdin.write_all(&values_json).await?;
-        drop(stdin);
-
-        let output = child.wait_with_output().await?;
+            ],
+            &values_json,
+        )
+        .await?;
 
         if output.status.success() {
             info!(
@@ -79,7 +71,18 @@ impl crate::operations::Operation for HelmUpgradeOp {
             );
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(HelmUpgradeError::Failed(stderr.into_owned()));
+            // A retry after a worker crash can re-run an upgrade that already
+            // succeeded: helm then reports the release as unchanged (or, when a
+            // prior install never completed, as having no deployed revision).
+            // Both are benign for an idempotent retry, so they must not consume
+            // a hard retry the way a genuine failure does.
+            if stderr.contains("no changes since last release")
+                || stderr.contains("has no deployed releases")
+            {
+                info!(release = %self.release_name, "helm release already up to date");
+            } else {
+                return Err(HelmUpgradeError::Failed(stderr.into_owned()));
+            }
         }
 
         Ok(self)
@@ -87,23 +90,24 @@ impl crate::operations::Operation for HelmUpgradeOp {
 
     async fn rollback(
         self,
-        _ctx: WorkerContext,
+        ctx: WorkerContext,
         _execution_id: WorkflowExecutionId,
     ) -> Result<(), Self::Error> {
         // Helm's built-in rollback reverts to the previous revision.
-        let output = Command::new("helm")
-            .args([
+        let output = helm_run(
+            &ctx,
+            &[
                 "rollback",
-                &self.release_name,
+                self.release_name.as_str(),
                 "0",
                 "--namespace",
-                &self.namespace,
+                self.namespace.as_str(),
                 "--wait",
                 "--timeout",
                 "5m0s",
-            ])
-            .output()
-            .await?;
+            ],
+        )
+        .await?;
 
         if output.status.success() {
             info!(release = %self.release_name, "helm release rolled back");

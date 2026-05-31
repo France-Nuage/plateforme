@@ -30,6 +30,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { parseJsonObject } from '@/services';
 import { Routes } from '@/types';
+import { getErrorMessage } from '@/utils';
 
 /**
  * Form page deploying a new instance of a managed service.
@@ -134,8 +135,8 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
     )
       .unwrap()
       .then(() => navigate(Routes.ManagedInstances))
-      .catch((err: Error) => {
-        setError(err.message ?? 'Une erreur est survenue.');
+      .catch((err: unknown) => {
+        setError(getErrorMessage(err));
         setLoading(false);
       });
   }, [

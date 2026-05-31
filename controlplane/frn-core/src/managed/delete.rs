@@ -14,6 +14,7 @@ use uuid::Uuid;
 pub struct DeleteManagedServiceParams {
     pub instance_id: Uuid,
     pub project_id: Uuid,
+    pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
     pub secret_name: String,
@@ -41,6 +42,7 @@ impl<A: Authorize> ManagedServices<A> {
             .await?;
 
         let instance = self.find_instance(instance_id).await?;
+        let cluster_id = self.resolve_cluster_id(instance.project_id).await?;
 
         transition_instance_status(
             conn,
@@ -66,6 +68,7 @@ impl<A: Authorize> ManagedServices<A> {
                 DeleteManagedServiceParams {
                     instance_id: instance.id,
                     project_id: instance.project_id,
+                    cluster_id,
                     namespace: instance.namespace.clone(),
                     release_name: instance.release_name.clone(),
                     secret_name,

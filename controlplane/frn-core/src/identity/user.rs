@@ -15,15 +15,16 @@ pub struct User {
     /// The user email
     pub email: String,
 
-    /// Administrative privileges flag.
+    /// Platform-administration flag.
     ///
-    /// Indicates whether this user has administrative permissions within their
-    /// organization. This field is part of the transitional authorization model
+    /// Indicates whether this user holds platform-wide administrative
+    /// privileges. This field is part of the transitional authorization model
     /// and will be replaced by fine-grained SpiceDB permissions in the future.
     ///
-    /// **Note**: This flag provides organization-scoped admin rights during the
-    /// interim period before SpiceDB migration. Admin users may have elevated
-    /// access to organization management functions.
+    /// **Note**: despite its historical name, this flag grants platform-level
+    /// access (for example the Kubernetes cluster registry), not
+    /// organization-scoped rights. See
+    /// [`crate::authorization::Principal::is_platform_admin`].
     pub is_admin: bool,
 
     /// Creation time of the instance
@@ -82,6 +83,10 @@ impl Principal for User {
     ) -> Result<Vec<Organization>, crate::Error> {
         Organization::all(connection).await.map_err(Into::into)
     }
+
+    fn is_platform_admin(&self) -> bool {
+        self.is_admin
+    }
 }
 
 #[derive(Clone)]
@@ -100,12 +105,7 @@ impl<Auth: Authorize> Users<Auth> {
         principal: &P,
         email: String,
     ) -> Result<User, Error> {
-        let maybe_user =
-            sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1 LIMIT 1", &email)
-                .fetch_optional(&self.db)
-                .await?;
-
-        match maybe_user {
+        match User::find_one_by_email(&self.db, &email).await? {
             Some(user) => Ok(user),
             None => self.create(principal, email).await,
         }

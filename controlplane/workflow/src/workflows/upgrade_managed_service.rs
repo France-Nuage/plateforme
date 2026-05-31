@@ -17,6 +17,7 @@ use crate::workflows::WorkflowDefinition;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpgradeManagedServiceWorkflow {
     pub instance_id: Uuid,
+    pub cluster_id: Uuid,
     pub version_id: Uuid,
     pub namespace: String,
     pub release_name: String,
@@ -44,6 +45,7 @@ impl UpgradeManagedServiceWorkflow {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         instance_id: Uuid,
+        cluster_id: Uuid,
         version_id: Uuid,
         namespace: String,
         release_name: String,
@@ -55,6 +57,7 @@ impl UpgradeManagedServiceWorkflow {
     ) -> Self {
         Self {
             instance_id,
+            cluster_id,
             version_id,
             namespace,
             release_name,
@@ -117,6 +120,10 @@ impl WorkflowDefinition for UpgradeManagedServiceWorkflow {
             }
             UpgradeStatus::Done => Ok(vec![]),
         }
+    }
+
+    fn target_cluster_id(&self) -> Option<Uuid> {
+        Some(self.cluster_id)
     }
 
     fn name(&self) -> &str {

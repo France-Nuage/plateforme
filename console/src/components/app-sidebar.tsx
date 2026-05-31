@@ -4,17 +4,28 @@ import { IconType } from 'react-icons';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router';
 
+import { useAppSelector } from '@/hooks';
+
+export type SidebarLink = {
+  Icon: IconType;
+  label: string;
+  to: string;
+  /** When true, the link is only shown to platform admins. */
+  adminOnly?: boolean;
+};
+
 export type SidebarSection = {
   title: string;
-  links: { Icon: IconType; label: string; to: string }[];
+  links: SidebarLink[];
 };
 
 export type AppSidebarProps = {
-  links: { Icon: IconType; label: string; to: string }[];
+  links: SidebarLink[];
 };
 
 export const AppSidebar: FunctionComponent<AppSidebarProps> = ({ links }) => {
   const location = useLocation();
+  const isAdmin = useAppSelector((state) => state.authentication.isAdmin);
 
   const activeLink = links
     .filter(
@@ -31,6 +42,12 @@ export const AppSidebar: FunctionComponent<AppSidebarProps> = ({ links }) => {
     {
       links: links.filter((link) => link.to.startsWith('/managed')),
       title: 'Services managés',
+    },
+    {
+      // Admin links are a UX-only hint gated on the Keycloak 'admin' role.
+      // The backend remains authoritative via users.is_admin.
+      links: isAdmin ? links.filter((link) => link.adminOnly) : [],
+      title: 'Administration',
     },
   ];
 

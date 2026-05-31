@@ -1,7 +1,6 @@
 import {
   Button,
   Dialog,
-  IconButton,
   Portal,
   Select,
   Text,
@@ -12,8 +11,8 @@ import {
   ManagedServiceVersion,
 } from '@france-nuage/sdk';
 import { FunctionComponent, useMemo, useState } from 'react';
-import { HiTrash } from 'react-icons/hi';
 
+import { DeleteEntityButton } from '@/components/delete-entity-button';
 import { deleteManagedInstance, upgradeManagedInstance } from '@/features';
 import { useAppDispatch } from '@/hooks';
 
@@ -39,77 +38,19 @@ export const DeleteManagedInstanceButton: FunctionComponent<
   DeleteManagedInstanceButtonProps
 > = ({ instance, onDeleted, label, variant = 'outline', size = 'sm' }) => {
   const dispatch = useAppDispatch();
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleDelete = () => {
-    setLoading(true);
-    dispatch(deleteManagedInstance(instance.id))
-      .then(() => {
-        setOpen(false);
-        setLoading(false);
-        onDeleted?.();
-      })
-      .catch(() => setLoading(false));
-  };
 
   return (
-    <Dialog.Root
-      lazyMount
-      unmountOnExit={false}
-      open={open}
-      onOpenChange={(event) => setOpen(event.open)}
-    >
-      <Dialog.Trigger asChild>
-        {label ? (
-          <Button colorPalette="red" variant={variant} size={size}>
-            <HiTrash />
-            {label}
-          </Button>
-        ) : (
-          <IconButton
-            aria-label="supprimer l'instance"
-            bg={{ _hover: 'bg.error', base: 'transparent' }}
-            color="fg.error"
-          >
-            <HiTrash />
-          </IconButton>
-        )}
-      </Dialog.Trigger>
-      <Portal>
-        <Dialog.Backdrop />
-        <Dialog.Positioner>
-          <Dialog.Content>
-            <Dialog.CloseTrigger />
-            <Dialog.Header>
-              <Dialog.Title>Supprimer l'instance</Dialog.Title>
-            </Dialog.Header>
-            <Dialog.Body>
-              Confirmer la suppression de l'instance{' '}
-              <strong>{instance.releaseName}</strong> ? Cette action est
-              irréversible.
-            </Dialog.Body>
-            <Dialog.Footer>
-              <Dialog.ActionTrigger asChild>
-                <Button disabled={loading} variant="outline">
-                  Annuler
-                </Button>
-              </Dialog.ActionTrigger>
-              <Button
-                colorPalette="red"
-                disabled={loading}
-                loading={loading}
-                loadingText="Suppression en cours..."
-                onClick={handleDelete}
-                variant="solid"
-              >
-                Supprimer
-              </Button>
-            </Dialog.Footer>
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Portal>
-    </Dialog.Root>
+    <DeleteEntityButton
+      entityName={instance.releaseName}
+      onConfirm={() => dispatch(deleteManagedInstance(instance.id))}
+      onDeleted={onDeleted}
+      label={label}
+      variant={variant}
+      size={size}
+      dialogTitle="Supprimer l'instance"
+      confirmationPrefix="Confirmer la suppression de l'instance"
+      iconAriaLabel="supprimer l'instance"
+    />
   );
 };
 

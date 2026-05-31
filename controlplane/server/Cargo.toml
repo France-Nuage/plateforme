@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 bytes = "1"
 frn-core = { path = "../frn-core" }
+frn-crypto = { path = "../frn-crypto" }
 frn-rpc = { path = "../frn-rpc" }
 http = "1"
 http-body = "1"
@@ -32,10 +33,14 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
+async-trait = "0.1"
 auth = { path = "../auth", features = ["mock"] }
+chrono = "0.4"
 database = { path = "../database" }
 fabrique = { workspace = true }
+frn-crypto = { path = "../frn-crypto" }
 hypervisor = { path = "../hypervisor", features = ["mock"] }
 serde_json = { workspace = true }
 tempfile = "3"
 uuid = { workspace = true }
+workflow = { path = "../workflow" }

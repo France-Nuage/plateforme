@@ -10,10 +10,13 @@ export * from './instance-form-create';
 export * from './instance-table';
 
 export * from './forms';
+export * from './delete-entity-button';
+export * from './kubernetes-cluster-actions';
 export * from './managed-instance-actions';
 export * from './managed-instance-status-badge';
 export * from './managed-instance-table';
 export * from './managed-service-card';
 
+export * from './admin-guard';
 export * from './organization-guard';
 export * from './page-guard';

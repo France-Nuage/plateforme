@@ -1,16 +1,60 @@
 mod common;
 
-use common::{Api, OnBehalfOf, seed_managed_service, seed_managed_service_version};
+use std::sync::{Arc, Mutex};
+
+use common::{
+    Api, OnBehalfOf, seed_kubernetes_cluster, seed_managed_service, seed_managed_service_version,
+};
+use fabrique::Factory;
+use frn_core::identity::ServiceAccount;
+use frn_core::managed::{
+    CreateInstanceRequest as CoreCreateInstanceRequest, DeployManagedServiceParams,
+    ManagedServices, PlatformConfig,
+};
+use frn_core::resourcemanager::{Organization, Project};
+use frn_core::workflow::WorkflowScheduler;
 use frn_rpc::v1::managed::CreateInstanceRequest;
 use serde_json::json;
+use spicedb::SpiceDB;
+use sqlx::PgConnection;
 use tonic::{Code, Request};
 use uuid::Uuid;
+
+/// Scheduler that records the cluster_id it was asked to deploy with, so a test
+/// can assert the project's cluster is propagated to the workflow.
+#[derive(Clone)]
+struct CapturingScheduler {
+    captured: Arc<Mutex<Option<Uuid>>>,
+}
+
+impl WorkflowScheduler<DeployManagedServiceParams> for CapturingScheduler {
+    async fn schedule(
+        &self,
+        _conn: &mut PgConnection,
+        params: DeployManagedServiceParams,
+    ) -> Result<(), String> {
+        *self.captured.lock().unwrap() = Some(params.cluster_id);
+        Ok(())
+    }
+}
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_create_instance_returns_instance_with_provisioning_status(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut api = Api::start(&pool).await.expect("could not start api");
+
+    let organization = Organization::factory()
+        .slug("acme".to_owned())
+        .parent_id(None)
+        .create(&pool)
+        .await?;
+    let cluster = seed_kubernetes_cluster(&pool, "prod-eu").await;
+    let project = Project::factory()
+        .organization_id(organization.id)
+        .cluster_id(Some(cluster.id))
+        .create(&pool)
+        .await?;
 
     let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
     let version_id = seed_managed_service_version(
@@ -27,8 +71,8 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
         .services
         .create_instance(
             Request::new(CreateInstanceRequest {
-                project_id: Uuid::new_v4().to_string(),
-                organization_id: Uuid::new_v4().to_string(),
+                project_id: project.id.to_string(),
+                organization_id: organization.id.to_string(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: version_id.to_string(),
                 user_values: Some(json!({"domain": "vault.example.com"}).to_string()),
@@ -42,7 +86,121 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
     let instance = response.unwrap().into_inner().instance.unwrap();
     assert_eq!(instance.status, "provisioning");
     assert_eq!(instance.service_id, service_id.to_string());
-    assert!(instance.namespace.starts_with("managed-vaultwarden-"));
+    assert!(instance.namespace.starts_with("managed-acme-vaultwarden"));
+
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_create_instance_fails_when_project_has_no_cluster(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    let organization = Organization::factory()
+        .slug("acme".to_owned())
+        .parent_id(None)
+        .create(&pool)
+        .await?;
+    // A project deliberately created without any cluster assigned.
+    let project = Project::factory()
+        .organization_id(organization.id)
+        .cluster_id(None)
+        .create(&pool)
+        .await?;
+
+    let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
+    let version_id = seed_managed_service_version(
+        &pool,
+        service_id,
+        "1.0.0",
+        Some("1.32.0"),
+        "oci://registry.example.com/charts/vaultwarden",
+    )
+    .await;
+
+    let status = api
+        .managed
+        .services
+        .create_instance(
+            Request::new(CreateInstanceRequest {
+                project_id: project.id.to_string(),
+                organization_id: organization.id.to_string(),
+                service_slug: "vaultwarden".to_owned(),
+                version_id: version_id.to_string(),
+                user_values: None,
+                secret_values: None,
+            })
+            .on_behalf_of(&api.service_account),
+        )
+        .await
+        .expect_err("must fail when the project has no cluster assigned");
+
+    assert_eq!(status.code(), Code::FailedPrecondition);
+
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_create_instance_propagates_project_cluster_to_workflow(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let organization = Organization::factory()
+        .slug("acme".to_owned())
+        .parent_id(None)
+        .create(&pool)
+        .await?;
+    let cluster = seed_kubernetes_cluster(&pool, "prod-eu").await;
+    let project = Project::factory()
+        .organization_id(organization.id)
+        .cluster_id(Some(cluster.id))
+        .create(&pool)
+        .await?;
+
+    let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
+    let version_id = seed_managed_service_version(
+        &pool,
+        service_id,
+        "1.0.0",
+        Some("1.32.0"),
+        "oci://registry.example.com/charts/vaultwarden",
+    )
+    .await;
+
+    let scheduler = CapturingScheduler {
+        captured: Arc::new(Mutex::new(None)),
+    };
+    let mut managed = ManagedServices::new(
+        SpiceDB::mock().await,
+        pool.clone(),
+        PlatformConfig {
+            default_storage_class: None,
+        },
+    );
+    let mut conn = pool.acquire().await?;
+
+    managed
+        .create_instance(
+            &ServiceAccount::default(),
+            &mut conn,
+            &scheduler,
+            CoreCreateInstanceRequest {
+                project_id: project.id,
+                organization_id: organization.id,
+                service_slug: "vaultwarden".to_owned(),
+                version_id,
+                user_values: None,
+                secret_values: None,
+            },
+        )
+        .await
+        .expect("instance creation should succeed");
+
+    assert_eq!(
+        *scheduler.captured.lock().unwrap(),
+        Some(cluster.id),
+        "the project's cluster must be propagated to the deploy workflow"
+    );
 
     Ok(())
 }

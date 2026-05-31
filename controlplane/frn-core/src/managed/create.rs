@@ -26,6 +26,7 @@ pub struct CreateInstanceRequest {
 pub struct DeployManagedServiceParams {
     pub instance_id: Uuid,
     pub project_id: Uuid,
+    pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
     pub secret_name: String,
@@ -54,7 +55,7 @@ impl<A: Authorize> ManagedServices<A> {
             .await?;
 
         let organization = self.find_organization(request.organization_id).await?;
-        let _project = self.find_project(request.project_id).await?;
+        let cluster_id = self.resolve_cluster_id(request.project_id).await?;
         let service = self.find_service_by_slug(&request.service_slug).await?;
 
         let versions = self.list_versions(&service.slug).await?;
@@ -63,7 +64,7 @@ impl<A: Authorize> ManagedServices<A> {
             .find(|v| v.id == request.version_id)
             .ok_or_else(|| ManagedServiceError::VersionNotFound(request.version_id.to_string()))?;
 
-        let instance_id = Uuid::now_v7();
+        let instance_id = Uuid::new_v4();
         let existing_count = self
             .count_instances_for_service(request.project_id, service.id)
             .await?;
@@ -103,6 +104,7 @@ impl<A: Authorize> ManagedServices<A> {
                 DeployManagedServiceParams {
                     instance_id: instance.id,
                     project_id: request.project_id,
+                    cluster_id,
                     namespace,
                     release_name,
                     secret_name,

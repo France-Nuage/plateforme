@@ -52,6 +52,9 @@ services:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      # Must match the controlplane KEK so the worker can decrypt cluster kubeconfigs.
+      # DEV ONLY: never use this fallback key outside local development.
+      KUBECONFIG_ENCRYPTION_KEY: ${KUBECONFIG_ENCRYPTION_KEY:-ZGV2LWt1YmVjb25maWctZW5jcnlwdGlvbi1rZXkhMzI=}
       MANAGED_DEFAULT_STORAGE_CLASS: ${MANAGED_DEFAULT_STORAGE_CLASS:-}
       RUST_LOG: ${RUST_LOG:-info}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
@@ -154,6 +157,8 @@ services:
       CONTROLPLANE_ADDR: 0.0.0.0:80
       CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      # DEV ONLY: never use this fallback key outside local development.
+      KUBECONFIG_ENCRYPTION_KEY: ${KUBECONFIG_ENCRYPTION_KEY:-ZGV2LWt1YmVjb25maWctZW5jcnlwdGlvbi1rZXkhMzI=}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       MANAGED_DEFAULT_STORAGE_CLASS: ${MANAGED_DEFAULT_STORAGE_CLASS:-}
       OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
@@ -331,6 +336,7 @@ services:
       - donotstart
 
   spicedb:
+    # TODO: pin to a specific version (was latest)
     image: "authzed/spicedb:latest"
     command: serve
     depends_on:
@@ -369,6 +375,7 @@ services:
       - postgres_spicedb_data:/var/lib/postgresql/data
 
   spicedb-migrate:
+    # TODO: pin to a specific version (was latest) - keep in sync with spicedb image above
     image: "authzed/spicedb:latest"
     command: migrate head
     depends_on:
@@ -380,6 +387,7 @@ services:
       SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD:-spicedb}@spicedb-datastore:5432/spicedb?sslmode=disable
 
   spicedb-playground:
+    # TODO: pin to a specific version (was latest)
     image: "ghcr.io/authzed/spicedb-playground:latest"
     ports:
       - "3000:3000"
@@ -515,6 +523,7 @@ services:
       - ./traefik:/etc/traefik/dynamic:ro
 
   zed:
+    # TODO: pin to a specific version (was latest)
     image: authzed/zed:latest
     command: schema write /authz/schema.zed
     depends_on:

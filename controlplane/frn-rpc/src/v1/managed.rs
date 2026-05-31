@@ -108,6 +108,7 @@ fn managed_error_to_status(err: ManagedServiceError) -> Status {
         ManagedServiceError::VersionAlreadyExists(_) => Status::already_exists(message),
         ManagedServiceError::NamespaceTooLong { .. } => Status::invalid_argument(message),
         ManagedServiceError::InvalidInstanceStatus(..) => Status::failed_precondition(message),
+        ManagedServiceError::NoClusterAssigned(_) => Status::failed_precondition(message),
     }
 }
 

@@ -8,10 +8,11 @@
 
 use crate::error::Error;
 use frn_core::App;
+use frn_crypto::Kek;
 use mock_server::MockServer;
 use spicedb::SpiceDB;
 use sqlx::{Pool, Postgres};
-use std::{env, net::SocketAddr};
+use std::{env, net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, ExposeHeaders};
 
@@ -95,7 +96,14 @@ pub struct Config {
 
     /// Platform-level configuration injected into managed service Helm values.
     pub managed_platform_config: frn_core::managed::PlatformConfig,
+
+    /// Key Encryption Key used to wrap per-cluster kubeconfig encryption keys.
+    pub kubeconfig_encryption_kek: Arc<Kek>,
 }
+
+/// Deterministic KEK used only by [`Config::test`]. Not a secret: tests run
+/// against an isolated database, and a fixed value keeps runs reproducible.
+const TEST_KUBECONFIG_ENCRYPTION_KEK: [u8; frn_crypto::KEK_SIZE] = [42u8; 32];
 
 impl Config {
     /// Creates a test configuration with a dynamically allocated port and mock OIDC server.
@@ -147,6 +155,7 @@ impl Config {
             managed_platform_config: frn_core::managed::PlatformConfig {
                 default_storage_class: None,
             },
+            kubeconfig_encryption_kek: Arc::new(Kek::from_bytes(TEST_KUBECONFIG_ENCRYPTION_KEK)),
         })
     }
 
@@ -183,6 +192,13 @@ impl Config {
         let worker_token = env::var("WORKER_TOKEN").expect("WORKER_TOKEN must be set");
         let ci_token = env::var("CI_SERVICE_TOKEN").expect("CI_SERVICE_TOKEN must be set");
         let default_storage_class = env::var("MANAGED_DEFAULT_STORAGE_CLASS").ok();
+        let kubeconfig_encryption_kek = Arc::new(
+            Kek::from_base64(
+                &env::var("KUBECONFIG_ENCRYPTION_KEY")
+                    .expect("KUBECONFIG_ENCRYPTION_KEY must be set"),
+            )
+            .expect("KUBECONFIG_ENCRYPTION_KEY must be base64-encoded 32 bytes"),
+        );
 
         Ok(Config {
             app,
@@ -197,6 +213,7 @@ impl Config {
             managed_platform_config: frn_core::managed::PlatformConfig {
                 default_storage_class,
             },
+            kubeconfig_encryption_kek,
         })
     }
 

@@ -14,4 +14,13 @@ pub trait Principal: Resource + Debug + Send + Sync {
         &self,
         connection: &Pool<Postgres>,
     ) -> impl Future<Output = Result<Vec<Organization>, crate::Error>>;
+
+    /// Whether this principal holds platform-administration privileges.
+    ///
+    /// Defaults to `false`; overridden by [`crate::identity::User`] to expose
+    /// its `is_admin` flag. Gates access to platform-level resources that are
+    /// not scoped to a specific organization.
+    fn is_platform_admin(&self) -> bool {
+        false
+    }
 }

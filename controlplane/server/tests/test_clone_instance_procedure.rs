@@ -29,6 +29,7 @@ async fn test_the_clone_instance_procedure_works(pool: sqlx::PgPool) {
         .expect("could not create hypervisor");
     let project = Project::factory()
         .organization_id(organization.id)
+        .cluster_id(None)
         .create(&pool)
         .await
         .expect("could not create project");

@@ -32,9 +32,12 @@ impl Resource for Principal {
         }
     }
 
+    /// `some()` builds a placeholder resource for relationship writes, which is
+    /// only ever done against concrete `User`/`ServiceAccount` resources, never
+    /// against the `Principal` enum itself. Reaching this is a programming bug.
     #[allow(refining_impl_trait)]
     fn some(_id: Self::Id) -> User {
-        panic!("`some()` should not be called on the `Principal` enum")
+        unreachable!("`some()` is not valid on the `Principal` enum; use a concrete resource type")
     }
 }
 
@@ -43,6 +46,13 @@ impl frn_core::authorization::Principal for Principal {
         match self {
             Principal::ServiceAccount(principal) => principal.organizations(connection).await,
             Principal::User(principal) => principal.organizations(connection).await,
+        }
+    }
+
+    fn is_platform_admin(&self) -> bool {
+        match self {
+            Principal::ServiceAccount(principal) => principal.is_platform_admin(),
+            Principal::User(principal) => principal.is_platform_admin(),
         }
     }
 }

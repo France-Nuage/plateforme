@@ -1,11 +1,14 @@
 use std::env;
 use std::error::Error as StdError;
+use std::io::Write;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
+use frn_core::kubernetes::KubernetesClusters;
+use frn_crypto::Kek;
 use frn_rpc::v1::workflow::WorkflowExecution as ProtoExecution;
 use frn_rpc::v1::workflow::{
     GetStatusRequest, GetStatusResponse, Initiator, NextRequest, ScheduleRequest, ScheduleResponse,
@@ -16,10 +19,12 @@ use futures::FutureExt;
 use kube::Client as KubeClient;
 use spicedb::SpiceDB;
 use sqlx::PgPool;
+use tempfile::NamedTempFile;
 use tokio::signal;
 use tokio::time::sleep;
 use tonic::Status;
 use tracing::{debug, error, info};
+use uuid::Uuid;
 
 use workflow::WorkerContext;
 use workflow::execution::{
@@ -66,6 +71,12 @@ async fn main() -> Result<(), Box<dyn StdError>> {
         .expect("POLL_INTERVAL_MS must be a number");
 
     let default_storage_class = env::var("MANAGED_DEFAULT_STORAGE_CLASS").ok();
+    let kek = Arc::new(
+        Kek::from_base64(
+            &env::var("KUBECONFIG_ENCRYPTION_KEY").expect("KUBECONFIG_ENCRYPTION_KEY must be set"),
+        )
+        .expect("KUBECONFIG_ENCRYPTION_KEY must be base64-encoded 32 bytes"),
+    );
 
     let pool = PgPool::connect(&database_url).await?;
     let spicedb = SpiceDB::connect(&spicedb_url, &spicedb_token).await?;
@@ -78,6 +89,8 @@ async fn main() -> Result<(), Box<dyn StdError>> {
         platform_config: workflow::PlatformConfig {
             default_storage_class,
         },
+        kek,
+        kubeconfig_path: None,
     };
 
     let shutdown = Arc::new(AtomicBool::new(false));
@@ -200,12 +213,21 @@ async fn worker_loop(
 async fn process_execution(
     client: &mut Client,
     worker_token: &str,
-    ctx: WorkerContext,
+    mut ctx: WorkerContext,
     execution: &mut WorkflowExecution,
 ) -> Result<ProcessOutcome, ProcessError> {
     if execution.hard_try_count >= execution.max_try_count {
         return Err(ProcessError::MaxRetriesExceeded);
     }
+
+    let _kubeconfig_guard = match execution.definition.target_cluster_id() {
+        Some(cluster_id) => Some(
+            resolve_cluster_kubeconfig(&mut ctx, cluster_id)
+                .await
+                .map_err(ProcessError::WorkflowError)?,
+        ),
+        None => None,
+    };
 
     // Phase 1: Check dependencies
     for dependency in &execution.dependencies {
@@ -300,8 +322,8 @@ async fn process_execution(
         .await;
 
         let (errors, successes): (Vec<_>, Vec<_>) = results.into_iter().partition(Result::is_err);
-        let errors: Vec<_> = errors.into_iter().map(|e| e.unwrap_err()).collect();
-        let successes: Vec<_> = successes.into_iter().map(|s| s.unwrap()).collect();
+        let errors: Vec<_> = errors.into_iter().filter_map(Result::err).collect();
+        let successes: Vec<_> = successes.into_iter().filter_map(Result::ok).collect();
         rollbacks.extend(successes);
 
         if !errors.is_empty() {
@@ -356,6 +378,29 @@ async fn process_execution(
 
     info!(execution_id = %execution.execution_id, "workflow completed");
     Ok(ProcessOutcome::Completed)
+}
+
+async fn resolve_cluster_kubeconfig(
+    ctx: &mut WorkerContext,
+    cluster_id: Uuid,
+) -> Result<NamedTempFile, Box<dyn StdError>> {
+    let clusters = KubernetesClusters::new(ctx.pool.clone(), ctx.kek.clone());
+    let kubeconfig_yaml = clusters.decrypt_kubeconfig(cluster_id).await?;
+    let kube = KubernetesClusters::client_from_kubeconfig(&kubeconfig_yaml).await?;
+    let mut file = NamedTempFile::new()?;
+    // The kubeconfig holds live cluster credentials in plaintext on disk; lock
+    // the file to the worker user before writing so no other local process can
+    // read it during its short lifetime.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        file.as_file()
+            .set_permissions(std::fs::Permissions::from_mode(0o600))?;
+    }
+    file.write_all(kubeconfig_yaml.as_bytes())?;
+    ctx.kube = kube;
+    ctx.kubeconfig_path = Some(file.path().to_path_buf());
+    Ok(file)
 }
 
 fn apply_outcome(execution: &mut WorkflowExecution, outcome: ProcessOutcome) {

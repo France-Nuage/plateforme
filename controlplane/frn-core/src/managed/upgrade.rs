@@ -21,6 +21,7 @@ pub struct UpgradeInstanceRequest {
 #[derive(Debug)]
 pub struct UpgradeManagedServiceParams {
     pub instance_id: Uuid,
+    pub cluster_id: Uuid,
     pub version_id: Uuid,
     pub namespace: String,
     pub release_name: String,
@@ -49,6 +50,7 @@ impl<A: Authorize> ManagedServices<A> {
             .await?;
 
         let instance = self.find_instance(request.instance_id).await?;
+        let cluster_id = self.resolve_cluster_id(instance.project_id).await?;
 
         transition_instance_status(
             conn,
@@ -77,6 +79,7 @@ impl<A: Authorize> ManagedServices<A> {
                 conn,
                 UpgradeManagedServiceParams {
                     instance_id: instance.id,
+                    cluster_id,
                     version_id: request.version_id,
                     namespace: instance.namespace.clone(),
                     release_name: instance.release_name.clone(),

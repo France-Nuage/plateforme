@@ -1,4 +1,4 @@
-h1:4rnNYn3xdsjBKjcgTBNpTWzWw+zexXHGz/b6ABKIi84=
+h1:OMHZuUxp6C6dDJA6ys82CgtzGhrKUyKAxY4LRDOHsUQ=
 20250901201631_initial.sql h1:I+fkuCn9NMpmL/AwF1y/wsmW2+IcPhAfSxGEH9Y2Seo=
 20250905065156_create_users.sql h1:tKKPDZycejUig1fxcYo+gDlLeZugn45InwitZubLDME=
 20250924143151_create_relationship_queue.sql h1:pjj8Bxl7ybKoq6/2j03x6WxdNODyBTp4dn1JXLnaXwY=
@@ -15,3 +15,5 @@ h1:4rnNYn3xdsjBKjcgTBNpTWzWw+zexXHGz/b6ABKIi84=
 20260513120000_create_managed_services.sql h1:Ksio5Molc012LYbwkv18pXYLoQQUWZMzGUFeX4uW0xo=
 20260514120000_create_managed_instance_view.sql h1:1ZXRqu9lwfCIPiblbCtf58hi0ug/VUvMPbZnmvgIQVg=
 20260515120000_add_ui_schema_to_managed_service_version.sql h1:YnlVcXptHtak7lUDsqhOQU9ukZ52DSuGE9+onbcH7vA=
+20260529120000_create_kubernetes_clusters.sql h1:zDCS3SjcTc6/JQezHug0Vn2O703w/JyKLznVL5bJfgY=
+20260530120000_add_cluster_id_to_projects.sql h1:UfQdp+/bIBFlDX90htxEpoMGru6VP3p2Sgpx0b/P07w=

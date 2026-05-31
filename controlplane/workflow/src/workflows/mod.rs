@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
 use crate::WorkerContext;
 use crate::operations::Operations;
@@ -58,6 +59,15 @@ pub trait WorkflowDefinition: Debug + Sized + Send {
         async { Ok(vec![]) }
     }
 
+    /// The Kubernetes cluster this workflow must run against, if any.
+    ///
+    /// Returns `Some` for workflows that deploy to a specific cluster so the
+    /// worker can resolve the matching kube client before executing operations.
+    /// Defaults to `None` for cluster-agnostic workflows.
+    fn target_cluster_id(&self) -> Option<Uuid> {
+        None
+    }
+
     fn name(&self) -> &str;
 }
 
@@ -96,6 +106,12 @@ macro_rules! workflow_enum {
                 async fn next_workflows(&self, ctx: $crate::WorkerContext) -> Result<Vec<$crate::workflows::ScheduledWorkflow>, Self::Error> {
                     match self {
                         $(Self::$workflow_name(workflow) => workflow.next_workflows(ctx).await.map_err(|e| e.into())),*
+                    }
+                }
+
+                fn target_cluster_id(&self) -> Option<::uuid::Uuid> {
+                    match self {
+                        $(Self::$workflow_name(workflow) => workflow.target_cluster_id()),*
                     }
                 }
 

@@ -20,6 +20,7 @@ use crate::workflows::WorkflowDefinition;
 pub struct DeployManagedServiceWorkflow {
     pub instance_id: Uuid,
     pub project_id: Uuid,
+    pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
     pub secret_name: String,
@@ -49,6 +50,7 @@ impl DeployManagedServiceWorkflow {
     pub fn new(
         instance_id: Uuid,
         project_id: Uuid,
+        cluster_id: Uuid,
         namespace: String,
         release_name: String,
         secret_name: String,
@@ -61,6 +63,7 @@ impl DeployManagedServiceWorkflow {
         Self {
             instance_id,
             project_id,
+            cluster_id,
             namespace,
             release_name,
             secret_name,
@@ -131,6 +134,10 @@ impl WorkflowDefinition for DeployManagedServiceWorkflow {
             }
             DeployStatus::Done => Ok(vec![]),
         }
+    }
+
+    fn target_cluster_id(&self) -> Option<Uuid> {
+        Some(self.cluster_id)
     }
 
     fn name(&self) -> &str {

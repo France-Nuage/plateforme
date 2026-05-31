@@ -1,15 +1,13 @@
 use std::io::Error as IoError;
-use std::process::Stdio;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
-use tokio::io::AsyncWriteExt;
-use tokio::process::Command;
 use tracing::info;
 
 use crate::WorkerContext;
 use crate::execution::WorkflowExecutionId;
+use crate::operations::helm_common::{helm_run, helm_run_with_stdin};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HelmInstallOp {
@@ -39,36 +37,30 @@ impl crate::operations::Operation for HelmInstallOp {
 
     async fn execute(
         self,
-        _ctx: WorkerContext,
+        ctx: WorkerContext,
         _execution_id: WorkflowExecutionId,
     ) -> Result<Self, Self::Error> {
         let values_json = serde_json::to_vec(&self.values)?;
 
-        let mut child = Command::new("helm")
-            .args([
+        let output = helm_run_with_stdin(
+            &ctx,
+            &[
                 "install",
-                &self.release_name,
-                &self.chart_reference,
+                self.release_name.as_str(),
+                self.chart_reference.as_str(),
                 "--version",
-                &self.chart_version,
+                self.chart_version.as_str(),
                 "--namespace",
-                &self.namespace,
+                self.namespace.as_str(),
                 "--values",
                 "-",
                 "--wait",
                 "--timeout",
                 "5m0s",
-            ])
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-
-        let mut stdin = child.stdin.take().expect("stdin was configured as piped");
-        stdin.write_all(&values_json).await?;
-        drop(stdin);
-
-        let output = child.wait_with_output().await?;
+            ],
+            &values_json,
+        )
+        .await?;
 
         if output.status.success() {
             info!(
@@ -92,18 +84,19 @@ impl crate::operations::Operation for HelmInstallOp {
 
     async fn rollback(
         self,
-        _ctx: WorkerContext,
+        ctx: WorkerContext,
         _execution_id: WorkflowExecutionId,
     ) -> Result<(), Self::Error> {
-        let output = Command::new("helm")
-            .args([
+        let output = helm_run(
+            &ctx,
+            &[
                 "uninstall",
-                &self.release_name,
+                self.release_name.as_str(),
                 "--namespace",
-                &self.namespace,
-            ])
-            .output()
-            .await?;
+                self.namespace.as_str(),
+            ],
+        )
+        .await?;
 
         if output.status.success() {
             info!(release = %self.release_name, "helm release uninstalled (rollback)");

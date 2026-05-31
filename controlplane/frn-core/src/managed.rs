@@ -193,6 +193,8 @@ pub enum ManagedServiceError {
     OrganizationNotFound(Uuid),
     #[error("project not found: {0}")]
     ProjectNotFound(Uuid),
+    #[error("project {0} has no kubernetes cluster assigned")]
+    NoClusterAssigned(Uuid),
     #[error("version already exists: {0}")]
     VersionAlreadyExists(String),
     #[error("invalid operation on instance {0}: current status is {1}")]
@@ -384,18 +386,30 @@ impl<A: Authorize> ManagedServices<A> {
             .ok_or_else(|| ManagedServiceError::ProjectNotFound(project_id))
     }
 
+    pub(crate) async fn resolve_cluster_id(
+        &self,
+        project_id: Uuid,
+    ) -> Result<Uuid, ManagedServiceError> {
+        self.find_project(project_id)
+            .await?
+            .cluster_id
+            .ok_or(ManagedServiceError::NoClusterAssigned(project_id))
+    }
+
     pub(crate) async fn count_instances_for_service(
         &self,
         project_id: Uuid,
         service_id: Uuid,
     ) -> Result<i64, ManagedServiceError> {
-        let instances = ManagedServiceInstance::query()
-            .select()
-            .r#where(ManagedServiceInstance::PROJECT_ID, "=", project_id)
-            .r#where(ManagedServiceInstance::SERVICE_ID, "=", service_id)
-            .get(&self.db)
-            .await?;
-        Ok(instances.len() as i64)
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM managed.service_instance \
+             WHERE project_id = $1 AND service_id = $2",
+        )
+        .bind(project_id)
+        .bind(service_id)
+        .fetch_one(&self.db)
+        .await?;
+        Ok(count)
     }
 
     pub async fn list_services(&self) -> Result<Vec<ManagedService>, ManagedServiceError> {

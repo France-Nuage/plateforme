@@ -1,13 +1,21 @@
 import { Suspense } from 'react';
 import { HiDesktopComputer } from 'react-icons/hi';
-import { HiCube, HiSquare3Stack3D } from 'react-icons/hi2';
+import { HiCube, HiServer, HiSquare3Stack3D } from 'react-icons/hi2';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
-import { AppLayout, OrganizationGuard, PageGuard } from '@/components';
+import {
+  AdminGuard,
+  AppLayout,
+  OrganizationGuard,
+  PageGuard,
+} from '@/components';
 import {
   CreateInstancePage,
   HomePage,
   InstancesPage,
+  KubernetesClusterCreatePage,
+  KubernetesClusterEditPage,
+  KubernetesClustersPage,
   LoginPage,
   ManagedInstanceDetailPage,
   ManagedInstancesPage,
@@ -33,6 +41,12 @@ const links = [
     Icon: HiSquare3Stack3D,
     label: 'Mes instances',
     to: RoutePath.ManagedInstances,
+  },
+  {
+    adminOnly: true,
+    Icon: HiServer,
+    label: 'Clusters Kubernetes',
+    to: RoutePath.KubernetesClusters,
   },
 ];
 
@@ -78,6 +92,21 @@ const Router = () => (
                 path={RoutePath.ManagedInstanceDetail}
                 element={<ManagedInstanceDetailPage />}
               />
+              {/* Admin routes — server enforces authorization; AdminGuard is a UX hint */}
+              <Route element={<AdminGuard />}>
+                <Route
+                  path={RoutePath.KubernetesClusters}
+                  element={<KubernetesClustersPage />}
+                />
+                <Route
+                  path={RoutePath.KubernetesClusterCreate}
+                  element={<KubernetesClusterCreatePage />}
+                />
+                <Route
+                  path={RoutePath.KubernetesClusterEdit}
+                  element={<KubernetesClusterEditPage />}
+                />
+              </Route>
             </Route>
           </Route>
         </Route>

@@ -4,6 +4,7 @@ import {
   HypervisorService,
   InstanceService,
   InvitationService,
+  KubernetesClusterService,
   ManagedServiceService,
   OrganizationService,
   ProjectService,
@@ -15,6 +16,7 @@ import {
   hypervisorMockService,
   instanceMockService,
   invitationMockService,
+  kubernetesClusterMockService,
   managedServiceMockService,
   organizationMockService,
   projectMockService,
@@ -26,6 +28,7 @@ import {
   HypervisorRpcService,
   InstanceRpcService,
   InvitationRpcService,
+  KubernetesClusterRpcService,
   ManagedServiceRpcService,
   OrganizationRpcService,
   ProjectRpcService,
@@ -40,6 +43,7 @@ export type Services = {
   hypervisor: HypervisorService;
   instance: InstanceService;
   invitation: InvitationService;
+  kubernetesCluster: KubernetesClusterService;
   managedService: ManagedServiceService;
   organization: OrganizationService;
   project: ProjectService;
@@ -64,6 +68,7 @@ export function configureResolver(
       hypervisor: hypervisorMockService,
       instance: instanceMockService,
       invitation: invitationMockService,
+      kubernetesCluster: kubernetesClusterMockService,
       managedService: managedServiceMockService,
       organization: organizationMockService,
       project: projectMockService,
@@ -75,6 +80,7 @@ export function configureResolver(
       hypervisor: new HypervisorRpcService(transport),
       instance: new InstanceRpcService(transport),
       invitation: new InvitationRpcService(transport),
+      kubernetesCluster: new KubernetesClusterRpcService(transport),
       managedService: new ManagedServiceRpcService(transport),
       organization: new OrganizationRpcService(transport),
       project: new ProjectRpcService(transport),

@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.kubernetes;
+
+import "google/protobuf/timestamp.proto";
+
+// Platform-admin registry of Kubernetes clusters.
+//
+// All RPCs are restricted to platform administrators. Each cluster carries an
+// encrypted-at-rest kubeconfig; before a cluster is created or its kubeconfig
+// changed, the control plane performs a synchronous reachability check against
+// the cluster API server. The kubeconfig and its ciphertext are never returned.
+service KubernetesClusters {
+    // Lists every registered cluster (admin only).
+    rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
+
+    // Returns a single cluster by id (admin only).
+    rpc GetCluster(GetClusterRequest) returns (GetClusterResponse);
+
+    // Registers a cluster after verifying it is reachable (admin only).
+    rpc CreateCluster(CreateClusterRequest) returns (CreateClusterResponse);
+
+    // Updates a cluster, re-checking reachability when a new kubeconfig is sent
+    // (admin only).
+    rpc UpdateCluster(UpdateClusterRequest) returns (UpdateClusterResponse);
+
+    // Deletes a cluster (admin only).
+    rpc DeleteCluster(DeleteClusterRequest) returns (DeleteClusterResponse);
+}
+
+// Non-sensitive view of a cluster. Never exposes the kubeconfig or any
+// encrypted material.
+message KubernetesClusterProto {
+    string id = 1;
+    string name = 2;
+    optional string description = 3;
+    string api_server_url = 4;
+    optional string ca_fingerprint = 5;
+    string health_status = 6;
+    google.protobuf.Timestamp last_health_check_at = 7;
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp updated_at = 9;
+}
+
+// ListClusters
+message ListClustersRequest {}
+
+message ListClustersResponse {
+    repeated KubernetesClusterProto clusters = 1;
+}
+
+// GetCluster
+message GetClusterRequest {
+    string cluster_id = 1;
+}
+
+message GetClusterResponse {
+    KubernetesClusterProto cluster = 1;
+}
+
+// CreateCluster
+message CreateClusterRequest {
+    string name = 1;
+    optional string description = 2;
+    // Full kubeconfig YAML granting access to the cluster API server.
+    string kubeconfig = 3;
+}
+
+message CreateClusterResponse {
+    KubernetesClusterProto cluster = 1;
+}
+
+// UpdateCluster
+message UpdateClusterRequest {
+    string cluster_id = 1;
+    string name = 2;
+    optional string description = 3;
+    // When set, replaces the stored kubeconfig and triggers a reachability check.
+    optional string kubeconfig = 4;
+}
+
+message UpdateClusterResponse {
+    KubernetesClusterProto cluster = 1;
+}
+
+// DeleteCluster
+message DeleteClusterRequest {
+    string cluster_id = 1;
+}
+
+message DeleteClusterResponse {}

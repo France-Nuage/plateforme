@@ -1,5 +1,6 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship};
+use crate::kubernetes::KubernetesClusters;
 use crate::resourcemanager::{Organization, OrganizationFactory, OrganizationIdColumn};
 use fabrique::{Factory, Model};
 use frn_core::authorization::Resource;
@@ -21,6 +22,13 @@ pub struct Project {
     /// The organization this project belongs to
     #[fabrique(belongs_to = "Organization")]
     pub organization_id: Uuid,
+
+    /// The Kubernetes cluster hosting this project's managed services.
+    ///
+    /// Assigned at random among the healthy clusters when the project is
+    /// created. `None` for the system 'unattributed' project and for projects
+    /// created before cluster assignment was introduced.
+    pub cluster_id: Option<Uuid>,
 
     /// Creation time of the project
     pub created_at: chrono::DateTime<chrono::Utc>,
@@ -59,10 +67,25 @@ impl<Auth: Authorize> Projects<Auth> {
         _principal: &P,
         request: ProjectCreateRequest,
     ) -> Result<Project, Error> {
+        // A project is bound to exactly one Kubernetes cluster, picked at random
+        // among the healthy ones to spread managed-service load across clusters.
+        // Cluster selection lives here as a deliberate intra-crate call into the
+        // cluster registry: it is an internal domain rule, not a transport
+        // concern, so it is not pushed up to the caller. Without any healthy
+        // cluster there is nowhere to deploy, so creation fails with a typed
+        // error instead of producing an unusable project.
+        let cluster = KubernetesClusters::pick_random_healthy_cluster(&self.db)
+            .await
+            .inspect_err(|error| {
+                tracing::error!(?error, "failed to select a healthy cluster for new project")
+            })?
+            .ok_or(Error::NoClusterAvailable)?;
+
         let project = Project::factory()
             .id(Uuid::new_v4())
             .name(request.name)
             .organization_id(request.organization_id)
+            .cluster_id(Some(cluster.id))
             .create(&self.db)
             .await?;
 

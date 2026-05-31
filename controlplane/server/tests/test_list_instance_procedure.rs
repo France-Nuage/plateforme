@@ -28,6 +28,7 @@ async fn test_the_list_instances_procedure_works(pool: sqlx::PgPool) {
     let project = Project::factory()
         .name(DEFAULT_PROJECT_NAME.into())
         .organization_id(organization.id)
+        .cluster_id(None)
         .create(&pool)
         .await
         .expect("could not create project");

@@ -101,7 +101,10 @@ controlplane:
     oidcUrl: ""
     logLevel: "info"
     rootOrganizationName: "acme"
-    rootServiceAccountKey: "changeme"  
+    rootServiceAccountKey: "changeme"
+    # Base64-encoded 32-byte key encrypting cluster kubeconfigs at rest.
+    # Generate with: openssl rand -base64 32. Override in prod via the sealed secret.
+    kubeconfigEncryptionKey: ""
     hoopApiKey: ""
     hoopApiUrl: "https://bastion.ssh.france-nuage.fr"
   resources:

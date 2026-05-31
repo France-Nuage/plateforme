@@ -8,4 +8,7 @@ export enum Routes {
   ManagedServiceDeploy = '/managed-services/:slug/deploy',
   ManagedInstances = '/managed-services/instances',
   ManagedInstanceDetail = '/managed-services/instances/:instanceId',
+  KubernetesClusters = '/admin/kubernetes-clusters',
+  KubernetesClusterCreate = '/admin/kubernetes-clusters/create',
+  KubernetesClusterEdit = '/admin/kubernetes-clusters/:clusterId/edit',
 }

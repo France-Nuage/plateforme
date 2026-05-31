@@ -1,5 +1,6 @@
 export * from './hypervisor.rpc';
 export * from './instance.rpc';
+export * from './kubernetes-cluster.rpc';
 export * from './managed-service.rpc';
 export * from './invitation.rpc';
 export * from './organization.rpc';

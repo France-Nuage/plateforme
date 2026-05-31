@@ -9,6 +9,7 @@ pub mod create_namespace;
 pub mod delete_k8s_secret;
 pub mod delete_namespace;
 pub mod delete_relationships;
+pub mod helm_common;
 pub mod helm_install;
 pub mod helm_uninstall;
 pub mod helm_upgrade;

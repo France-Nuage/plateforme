@@ -27,6 +27,7 @@ impl WorkflowScheduler<DeployManagedServiceParams> for ManagedWorkflowScheduler 
             WorkflowDefinitions::DeployManagedService(DeployManagedServiceWorkflow::new(
                 params.instance_id,
                 params.project_id,
+                params.cluster_id,
                 params.namespace,
                 params.release_name,
                 params.secret_name,
@@ -56,6 +57,7 @@ impl WorkflowScheduler<UpgradeManagedServiceParams> for ManagedWorkflowScheduler
             conn,
             WorkflowDefinitions::UpgradeManagedService(UpgradeManagedServiceWorkflow::new(
                 params.instance_id,
+                params.cluster_id,
                 params.version_id,
                 params.namespace,
                 params.release_name,
@@ -86,6 +88,7 @@ impl WorkflowScheduler<DeleteManagedServiceParams> for ManagedWorkflowScheduler 
             WorkflowDefinitions::DeleteManagedService(DeleteManagedServiceWorkflow::new(
                 params.instance_id,
                 params.project_id,
+                params.cluster_id,
                 params.namespace,
                 params.release_name,
                 params.secret_name,

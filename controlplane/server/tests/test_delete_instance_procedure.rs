@@ -7,6 +7,7 @@ use common::{
 use frn_rpc::v1::managed::DeleteInstanceRequest;
 use tonic::{Code, Request};
 use uuid::Uuid;
+use workflow::fsm::FsmRepository;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_delete_instance_schedules_workflow(
@@ -25,6 +26,14 @@ async fn test_delete_instance_schedules_workflow(
     .await;
 
     let instance = seed_managed_service_instance(&pool, version_id, "vaultwarden").await;
+
+    // A freshly created instance is in 'provisioning'; the FSM only allows
+    // deletion from 'running' or 'failed', so advance it to 'running' first.
+    let mut conn = pool.acquire().await?;
+    FsmRepository::state_machine_transition(&mut conn, &instance.status, "running".to_owned())
+        .await
+        .expect("could not transition instance to running");
+    drop(conn);
 
     let response = api
         .managed

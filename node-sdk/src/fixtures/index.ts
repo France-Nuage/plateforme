@@ -1,5 +1,6 @@
 export * from './hypervisor';
 export * from './instance';
+export * from './kubernetes-cluster';
 export * from './managed-service';
 export * from './organization';
 export * from './project';

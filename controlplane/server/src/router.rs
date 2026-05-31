@@ -5,7 +5,10 @@
 //! and provides a builder pattern for progressive service registration with
 //! proper dependency injection.
 
+use std::sync::Arc;
+
 use frn_core::identity::IAM;
+use frn_crypto::Kek;
 use frn_rpc::v1::compute::Hypervisors;
 use frn_rpc::v1::compute::Instances;
 use frn_rpc::v1::compute::Zones;
@@ -14,6 +17,8 @@ use frn_rpc::v1::compute::instances_server::InstancesServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::iam::Invitations;
 use frn_rpc::v1::iam::invitations_server::InvitationsServer;
+use frn_rpc::v1::kubernetes::KubernetesClustersRpc;
+use frn_rpc::v1::kubernetes::kubernetes_clusters_server::KubernetesClustersServer;
 use frn_rpc::v1::managed::ManagedServicesRpc;
 use frn_rpc::v1::managed::managed_services_server::ManagedServicesServer;
 use frn_rpc::v1::resourcemanager::Organizations;
@@ -94,6 +99,7 @@ impl Router {
                 health_reporter
                     .set_serving::<ZeroTrustNetworksServer<ZeroTrustNetworkRpcService>>(),
                 health_reporter.set_serving::<ManagedServicesServer<ManagedServicesRpc<SpiceDB>>>(),
+                health_reporter.set_serving::<KubernetesClustersServer<KubernetesClustersRpc>>(),
                 health_reporter.set_serving::<WorkflowEngineServer<WorkflowEngine>>(),
             )
         });
@@ -246,6 +252,22 @@ impl Router {
                 .add_service(ManagedServicesServer::new(ManagedServicesRpc::new(
                     iam, service, pool, ci_token,
                 ))),
+        }
+    }
+
+    /// Registers the platform-admin Kubernetes cluster registry service.
+    ///
+    /// # Parameters
+    ///
+    /// * `iam` - Identity resolver used to authenticate the calling principal
+    /// * `pool` - PostgreSQL connection pool for cluster persistence
+    /// * `kek` - Key Encryption Key wrapping each cluster's kubeconfig DEK
+    pub fn kubernetes_clusters(self, iam: IAM, pool: Pool<Postgres>, kek: Arc<Kek>) -> Self {
+        let service = frn_core::kubernetes::KubernetesClusters::new(pool, kek);
+        Self {
+            routes: self.routes.add_service(KubernetesClustersServer::new(
+                KubernetesClustersRpc::new(iam, service),
+            )),
         }
     }
 

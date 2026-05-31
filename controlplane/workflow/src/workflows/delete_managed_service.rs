@@ -20,6 +20,7 @@ use crate::workflows::WorkflowDefinition;
 pub struct DeleteManagedServiceWorkflow {
     pub instance_id: Uuid,
     pub project_id: Uuid,
+    pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
     pub secret_name: String,
@@ -48,6 +49,7 @@ impl DeleteManagedServiceWorkflow {
     pub fn new(
         instance_id: Uuid,
         project_id: Uuid,
+        cluster_id: Uuid,
         namespace: String,
         release_name: String,
         secret_name: String,
@@ -59,6 +61,7 @@ impl DeleteManagedServiceWorkflow {
         Self {
             instance_id,
             project_id,
+            cluster_id,
             namespace,
             release_name,
             secret_name,
@@ -130,6 +133,10 @@ impl WorkflowDefinition for DeleteManagedServiceWorkflow {
             }
             DeleteStatus::Done => Ok(vec![]),
         }
+    }
+
+    fn target_cluster_id(&self) -> Option<Uuid> {
+        Some(self.cluster_id)
     }
 
     fn name(&self) -> &str {

@@ -47,12 +47,16 @@ message Project {
         pattern: "^[a-zA-Z0-9_\\- ]+$"
     }];
     string organization_id = 3 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
+        min_len: 1,
+        max_len: 36,
         pattern: "^[a-zA-Z0-9_-]+$"
     }];
     google.protobuf.Timestamp created_at = 4;
     google.protobuf.Timestamp updated_at = 5;
+    // UUID of the Kubernetes cluster hosting this project's managed services.
+    // Absent for the system 'unattributed' project and projects created before
+    // cluster assignment was introduced.
+    optional string cluster_id = 6;
 }
 
 message ListOrganizationsRequest {}
