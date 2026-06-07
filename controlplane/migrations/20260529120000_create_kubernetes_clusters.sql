@@ -30,6 +30,12 @@ CREATE TABLE kubernetes.cluster (
     api_server_url TEXT NOT NULL UNIQUE,
     ca_fingerprint TEXT,
 
+    -- Version information reported by the API server during the last successful
+    -- health check (GET /version). Nullable because the first health check may
+    -- not have run yet or could have failed before returning version data.
+    kubernetes_version TEXT,
+    platform TEXT,
+
     -- Result of the most recent reachability check performed by the control
     -- plane. Defaults to 'unreachable' so a row that has never passed a check is
     -- never treated as healthy (create_cluster sets 'healthy' explicitly once

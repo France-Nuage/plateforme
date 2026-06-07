@@ -234,6 +234,7 @@ impl<L> Application<L> {
                 .hypervisors(iam.clone(), pool.clone(), hypervisors.clone())
                 .instances(iam.clone(), pool.clone(), instances.clone())
                 .invitations(iam.clone(), invitations.clone(), users.clone())
+                .profile(iam.clone())
                 .managed_services(
                     iam.clone(),
                     pool.clone(),

@@ -12,6 +12,12 @@ export const kubernetesCluster = (
   caFingerprint: faker.datatype.boolean()
     ? faker.string.hexadecimal({ length: 64, prefix: '' })
     : undefined,
+  kubernetesVersion: faker.helpers.arrayElement([
+    'v1.30.4',
+    'v1.31.1',
+    'v1.32.2',
+  ]),
+  platform: faker.helpers.arrayElement(['linux/amd64', 'linux/arm64']),
   healthStatus: faker.helpers.arrayElement(
     Object.values(KubernetesClusterHealthStatus),
   ),

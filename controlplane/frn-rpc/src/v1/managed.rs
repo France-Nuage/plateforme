@@ -9,8 +9,8 @@ use crate::timestamp::to_timestamp;
 use frn_core::authorization::Authorize;
 use frn_core::identity::IAM;
 use frn_core::managed::{
-    ManagedService, ManagedServiceError, ManagedServiceInstanceView, ManagedServiceVersion,
-    ManagedServices,
+    ManagedService, ManagedServiceError, ManagedServiceInstanceView, ManagedServicePlan,
+    ManagedServiceVersion, ManagedServices, PlanEntitlement,
 };
 use workflow::scheduler::ManagedWorkflowScheduler;
 
@@ -89,6 +89,35 @@ impl From<&ManagedServiceInstanceView> for ManagedServiceInstanceProto {
             user_values: i.user_values.as_ref().map(|v| v.to_string()),
             status: i.status.to_string(),
             created_at: Some(to_timestamp(i.created_at)),
+            plan_id: i.plan_id.map(|id| id.to_string()),
+        }
+    }
+}
+
+impl From<&ManagedServicePlan> for ManagedServicePlanProto {
+    fn from(plan: &ManagedServicePlan) -> Self {
+        let entitlements: Vec<PlanEntitlement> = serde_json::from_value(plan.entitlements.clone())
+            .unwrap_or_default();
+        Self {
+            id: plan.id.to_string(),
+            service_id: plan.service_id.to_string(),
+            slug: plan.slug.clone(),
+            name: plan.name.clone(),
+            description: plan.description.clone(),
+            status: plan.status.clone(),
+            highlighted: plan.highlighted,
+            values_override: plan.values_override.as_ref().map(|v| v.to_string()),
+            entitlements: entitlements
+                .iter()
+                .map(|e| ManagedServicePlanEntitlementProto {
+                    key: e.key.clone(),
+                    label: e.label.clone(),
+                    value: e.value.clone(),
+                })
+                .collect(),
+            price_monthly_cents: plan.price_monthly_cents,
+            price_yearly_cents: plan.price_yearly_cents,
+            created_at: Some(to_timestamp(plan.created_at)),
         }
     }
 }
@@ -109,6 +138,9 @@ fn managed_error_to_status(err: ManagedServiceError) -> Status {
         ManagedServiceError::NamespaceTooLong { .. } => Status::invalid_argument(message),
         ManagedServiceError::InvalidInstanceStatus(..) => Status::failed_precondition(message),
         ManagedServiceError::NoClusterAssigned(_) => Status::failed_precondition(message),
+        ManagedServiceError::PlanNotFound(_) => Status::not_found(message),
+        ManagedServiceError::PlanNotActive(_) => Status::failed_precondition(message),
+        ManagedServiceError::PlanServiceMismatch { .. } => Status::invalid_argument(message),
     }
 }
 
@@ -179,6 +211,33 @@ impl<A: Authorize + 'static> managed_services_server::ManagedServices for Manage
         }))
     }
 
+    async fn list_plans(
+        &self,
+        request: Request<ListPlansRequest>,
+    ) -> Result<Response<ListPlansResponse>, Status> {
+        let service_slug = request.into_inner().service_slug;
+
+        if service_slug.is_empty() {
+            return Err(Error::InvalidInput("service_slug is required".to_owned()))?;
+        }
+
+        let service = self
+            .service
+            .find_service_by_slug(&service_slug)
+            .await
+            .map_err(managed_error_to_status)?;
+
+        let plans = self
+            .service
+            .list_plans(service.id)
+            .await
+            .map_err(managed_error_to_status)?;
+
+        Ok(Response::new(ListPlansResponse {
+            plans: plans.iter().map(Into::into).collect(),
+        }))
+    }
+
     async fn register_version(
         &self,
         request: Request<RegisterVersionRequest>,
@@ -235,6 +294,80 @@ impl<A: Authorize + 'static> managed_services_server::ManagedServices for Manage
         }))
     }
 
+    async fn sync_plans(
+        &self,
+        request: Request<SyncPlansRequest>,
+    ) -> Result<Response<SyncPlansResponse>, Status> {
+        self.authenticate_ci(&request)?;
+
+        let req = request.into_inner();
+
+        if req.service_slug.is_empty() {
+            return Err(Error::InvalidInput("service_slug is required".to_owned()))?;
+        }
+
+        let service = self
+            .service
+            .find_service_by_slug(&req.service_slug)
+            .await
+            .map_err(managed_error_to_status)?;
+
+        let mut tx = self.service.begin().await.map_err(Error::from)?;
+
+        let mut synced = Vec::new();
+        for entry in &req.plans {
+            if entry.slug.is_empty() {
+                return Err(Error::InvalidInput("plan slug is required".to_owned()))?;
+            }
+
+            let values_override = parse_json(&entry.values_override)?;
+            let entitlements: Value = serde_json::to_value(
+                entry
+                    .entitlements
+                    .iter()
+                    .map(|e| PlanEntitlement {
+                        key: e.key.clone(),
+                        label: e.label.clone(),
+                        value: e.value.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .map_err(|e| Error::InvalidInput(format!("invalid entitlements: {e}")))?;
+
+            let status = if entry.status.is_empty() {
+                "active"
+            } else {
+                &entry.status
+            };
+
+            let plan = self
+                .service
+                .upsert_plan(
+                    &mut tx,
+                    service.id,
+                    &entry.slug,
+                    &entry.name,
+                    entry.description.as_deref(),
+                    status,
+                    entry.highlighted,
+                    values_override.as_ref(),
+                    &entitlements,
+                    entry.price_monthly_cents,
+                    entry.price_yearly_cents,
+                )
+                .await
+                .map_err(managed_error_to_status)?;
+
+            synced.push(plan);
+        }
+
+        tx.commit().await.map_err(Error::from)?;
+
+        Ok(Response::new(SyncPlansResponse {
+            plans: synced.iter().map(Into::into).collect(),
+        }))
+    }
+
     async fn create_instance(
         &self,
         request: Request<CreateInstanceRequest>,
@@ -254,6 +387,13 @@ impl<A: Authorize + 'static> managed_services_server::ManagedServices for Manage
             .version_id
             .parse::<Uuid>()
             .map_err(|_| Error::MalformedId(req.version_id))?;
+        if req.plan_id.is_empty() {
+            return Err(Error::InvalidInput("plan_id is required".to_owned()))?;
+        }
+        let plan_id = req
+            .plan_id
+            .parse::<Uuid>()
+            .map_err(|_| Error::MalformedId(req.plan_id))?;
         let user_values = parse_json(&req.user_values)?;
         let secret_values = parse_json(&req.secret_values)?;
 
@@ -272,6 +412,7 @@ impl<A: Authorize + 'static> managed_services_server::ManagedServices for Manage
                     organization_id,
                     service_slug: req.service_slug,
                     version_id,
+                    plan_id,
                     user_values,
                     secret_values,
                 },

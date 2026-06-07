@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Flex,
+  Grid,
   HStack,
   Heading,
   Select,
@@ -21,10 +22,11 @@ import {
 import { HiArrowLeft } from 'react-icons/hi';
 import { Link, useNavigate, useParams } from 'react-router';
 
-import { RjsfDeployForm } from '@/components';
+import { ManagedServicePlanCard, RjsfDeployForm } from '@/components';
 import {
   createManagedInstance,
   fetchManagedService,
+  fetchManagedServicePlans,
   fetchManagedServiceVersions,
 } from '@/features';
 import { useAppDispatch, useAppSelector } from '@/hooks';
@@ -35,9 +37,8 @@ import { getErrorMessage } from '@/utils';
 /**
  * Form page deploying a new instance of a managed service.
  *
- * The form is fed by the service catalog versions. Default selection is
- * computed from the current data via `useMemo` rather than `useEffect`,
- * keeping the UI deterministic.
+ * The user must first select a plan, then a version, then optionally
+ * configure user values through the RJSF form before deploying.
  */
 export const ManagedServiceDeployPage: FunctionComponent = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -48,6 +49,7 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
     (state) => state.managedServices.currentService,
   );
   const versions = useAppSelector((state) => state.managedServices.versions);
+  const plans = useAppSelector((state) => state.managedServices.plans);
   const activeProject = useAppSelector(
     (state) => state.application.activeProject,
   );
@@ -59,6 +61,7 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
     if (slug) {
       dispatch(fetchManagedService(slug));
       dispatch(fetchManagedServiceVersions(slug));
+      dispatch(fetchManagedServicePlans(slug));
     }
   }, [dispatch, slug]);
 
@@ -73,6 +76,7 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
 
   const defaultVersionId = versions[0]?.id ?? '';
 
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedVersionId, setSelectedVersionId] = useState<string[]>([]);
   const [userValues, setUserValues] = useState('');
   const [secretValues, setSecretValues] = useState('');
@@ -116,7 +120,13 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
   );
 
   const handleDeploy = useCallback(() => {
-    if (!slug || !activeProject || !activeOrganization || !effectiveVersionId) {
+    if (
+      !slug ||
+      !activeProject ||
+      !activeOrganization ||
+      !effectiveVersionId ||
+      !selectedPlanId
+    ) {
       return;
     }
 
@@ -127,6 +137,7 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
       createManagedInstance({
         organizationId: activeOrganization.id,
         projectId: activeProject.id,
+        planId: selectedPlanId,
         secretValues: secretValues || undefined,
         serviceSlug: slug,
         userValues: userValues || undefined,
@@ -144,6 +155,7 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
     activeProject,
     activeOrganization,
     effectiveVersionId,
+    selectedPlanId,
     userValues,
     secretValues,
     dispatch,
@@ -159,24 +171,46 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
   }
 
   return (
-    <Stack gap={6} maxW="640px">
+    <Stack gap={6} maxW="800px">
       <HStack>
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/managed-services/${slug}`}>
             <HiArrowLeft />
-            Retour à {service.name}
+            Retour a {service.name}
           </Link>
         </Button>
       </HStack>
 
-      <Heading>Déployer {service.name}</Heading>
+      <Heading>Deployer {service.name}</Heading>
+
+      {plans.length > 0 && (
+        <Stack gap={3}>
+          <Heading size="md">Plan</Heading>
+          <Grid
+            templateColumns={{
+              base: '1fr',
+              md: `repeat(${Math.min(plans.length, 3)}, 1fr)`,
+            }}
+            gap={4}
+          >
+            {plans.map((plan) => (
+              <ManagedServicePlanCard
+                key={plan.id}
+                plan={plan}
+                selected={selectedPlanId === plan.id}
+                onSelect={() => setSelectedPlanId(plan.id)}
+              />
+            ))}
+          </Grid>
+        </Stack>
+      )}
 
       <Card.Root>
         <Card.Body>
           <Stack gap={4}>
             <DeployFormSelect
               label="Version"
-              placeholder="Sélectionner une version"
+              placeholder="Selectionner une version"
               items={versionItems}
               collection={versionCollection}
               value={
@@ -206,12 +240,12 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
             <Flex justify="end">
               <Button
                 colorPalette="blue"
-                disabled={loading || !effectiveVersionId}
+                disabled={loading || !effectiveVersionId || !selectedPlanId}
                 loading={loading}
-                loadingText="Déploiement en cours..."
+                loadingText="Deploiement en cours..."
                 onClick={handleDeploy}
               >
-                Déployer
+                Deployer
               </Button>
             </Flex>
           </Stack>

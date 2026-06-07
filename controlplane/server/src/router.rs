@@ -16,7 +16,9 @@ use frn_rpc::v1::compute::hypervisors_server::HypervisorsServer;
 use frn_rpc::v1::compute::instances_server::InstancesServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::iam::Invitations;
+use frn_rpc::v1::iam::Profile;
 use frn_rpc::v1::iam::invitations_server::InvitationsServer;
+use frn_rpc::v1::iam::profile_server::ProfileServer;
 use frn_rpc::v1::kubernetes::KubernetesClustersRpc;
 use frn_rpc::v1::kubernetes::kubernetes_clusters_server::KubernetesClustersServer;
 use frn_rpc::v1::managed::ManagedServicesRpc;
@@ -92,6 +94,7 @@ impl Router {
                 health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
                 health_reporter.set_serving::<InstancesServer<Instances<SpiceDB>>>(),
                 health_reporter.set_serving::<InvitationsServer<Invitations<SpiceDB>>>(),
+                health_reporter.set_serving::<ProfileServer<Profile>>(),
                 health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
                 health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
                 health_reporter
@@ -169,6 +172,16 @@ impl Router {
                     invitations,
                     users,
                 ))),
+        }
+    }
+
+    /// Registers the profile service exposing the caller's own identity
+    /// (`GetCurrentUser`), the authoritative source of the platform-admin flag.
+    pub fn profile(self, iam: IAM) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(ProfileServer::new(Profile::new(iam))),
         }
     }
 

@@ -35,6 +35,8 @@ impl From<&KubernetesCluster> for KubernetesClusterProto {
             description: cluster.description.clone(),
             api_server_url: cluster.api_server_url.clone(),
             ca_fingerprint: cluster.ca_fingerprint.clone(),
+            kubernetes_version: cluster.kubernetes_version.clone(),
+            platform: cluster.platform.clone(),
             health_status: cluster.health_status.to_string(),
             last_health_check_at: cluster.last_health_check_at.map(to_timestamp),
             created_at: Some(to_timestamp(cluster.created_at)),

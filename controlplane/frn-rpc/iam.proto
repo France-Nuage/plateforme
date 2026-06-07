@@ -11,6 +11,21 @@ service Invitations {
   rpc Answer(AnswerInvitationRequest) returns (AnswerInvitationResponse);
 }
 
+// Exposes the authenticated caller's own identity. GetCurrentUser is the single
+// authoritative source for the frontend's platform-admin status: it reflects
+// the control plane database (users.is_admin) rather than an OIDC token claim.
+service Profile {
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse);
+}
+
+message GetCurrentUserRequest {}
+
+message GetCurrentUserResponse {
+  string id = 1;
+  string email = 2;
+  bool is_admin = 3;
+}
+
 message ListInvitationsRequest {}
 
 message ListInvitationsResponse {

@@ -16,6 +16,45 @@ service:
   database_engine: cnpg
   icon_url: null
 
+plans:
+  - id: vaultwarden-standard
+    name: "Vaultwarden Standard"
+    description: "Instance mutualisee, sauvegarde quotidienne, support email."
+    status: active
+    highlighted: false
+    entitlements:
+      - key: support_level
+        label: "Support"
+        value: "Email"
+      - key: gti
+        label: "Temps d'intervention garanti"
+        value: "24h"
+      - key: backup
+        label: "Sauvegarde"
+        value: "Quotidienne"
+    prices:
+      monthly: 999
+      yearly: 10789
+
+  - id: vaultwarden-enterprise
+    name: "Vaultwarden Enterprise"
+    description: "Haute disponibilite, support prioritaire, sauvegarde continue."
+    status: active
+    highlighted: true
+    entitlements:
+      - key: support_level
+        label: "Support"
+        value: "Email + astreinte"
+      - key: gti
+        label: "Temps d'intervention garanti"
+        value: "1h"
+      - key: backup
+        label: "Sauvegarde"
+        value: "Continue (PITR)"
+    prices:
+      monthly: 2999
+      yearly: 32389
+
 # Dev-only mock version. Production versions are registered by the charts CI
 # via the RegisterVersion gRPC. Useful to exercise the deploy UI before the
 # pipeline is wired up. The seed binary creates this version only when invoked

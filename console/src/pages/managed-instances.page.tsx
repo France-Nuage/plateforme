@@ -1,5 +1,6 @@
-import { Button, HStack, Heading } from '@chakra-ui/react';
+import { Button, EmptyState, HStack, Heading } from '@chakra-ui/react';
 import { FunctionComponent, useEffect, useMemo } from 'react';
+import { HiSquare3Stack3D } from 'react-icons/hi2';
 import { Link } from 'react-router';
 
 import { ManagedInstanceTable } from '@/components';
@@ -56,7 +57,26 @@ export const ManagedInstancesPage: FunctionComponent = () => {
         </Button>
       </HStack>
 
-      <ManagedInstanceTable instances={scopedInstances} services={services} />
+      {scopedInstances.length === 0 ? (
+        <EmptyState.Root>
+          <EmptyState.Content>
+            <EmptyState.Indicator>
+              <HiSquare3Stack3D />
+            </EmptyState.Indicator>
+            <EmptyState.Title>Aucune instance déployée</EmptyState.Title>
+            <EmptyState.Description>
+              Déployez une application prête à l'emploi depuis le catalogue de
+              services managés. Chaque instance est isolée et entièrement gérée
+              pour vous.
+            </EmptyState.Description>
+            <Button asChild colorPalette="blue">
+              <Link to={Routes.ManagedServices}>Déployer un service</Link>
+            </Button>
+          </EmptyState.Content>
+        </EmptyState.Root>
+      ) : (
+        <ManagedInstanceTable instances={scopedInstances} services={services} />
+      )}
     </>
   );
 };

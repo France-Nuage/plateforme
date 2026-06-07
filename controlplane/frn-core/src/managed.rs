@@ -90,6 +90,38 @@ pub struct ManagedServiceVersion {
     pub created_at: DateTime<Utc>,
 }
 
+/// A single entitlement entry within a plan (support level, GTI, etc.).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlanEntitlement {
+    pub key: String,
+    pub label: String,
+    pub value: String,
+}
+
+/// A pricing tier for a managed service.
+///
+/// Each service can offer multiple plans with different Helm values,
+/// entitlements (SLA guarantees), and pricing. Plans are synced from
+/// the charts repository `catalogue.yaml` via the `SyncPlans` RPC.
+#[derive(Debug, Clone, Model, Serialize)]
+#[fabrique(table = "managed.service_plan")]
+pub struct ManagedServicePlan {
+    #[fabrique(primary_key)]
+    pub id: Uuid,
+    #[fabrique(belongs_to = ManagedService)]
+    pub service_id: Uuid,
+    pub slug: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub status: String,
+    pub highlighted: bool,
+    pub values_override: Option<Value>,
+    pub entitlements: Value,
+    pub price_monthly_cents: Option<i64>,
+    pub price_yearly_cents: Option<i64>,
+    pub created_at: DateTime<Utc>,
+}
+
 #[derive(
     Debug,
     Clone,
@@ -125,6 +157,8 @@ pub struct ManagedServiceInstance {
     pub service_id: Uuid,
     #[fabrique(belongs_to = ManagedServiceVersion)]
     pub version_id: Uuid,
+    #[fabrique(belongs_to = ManagedServicePlan)]
+    pub plan_id: Option<Uuid>,
     pub project_id: Uuid,
     pub organization_id: Uuid,
     pub namespace: String,
@@ -146,6 +180,7 @@ pub struct ManagedServiceInstanceView {
     pub service_id: Uuid,
     #[fabrique(belongs_to = ManagedServiceVersion)]
     pub version_id: Uuid,
+    pub plan_id: Option<Uuid>,
     pub project_id: Uuid,
     pub organization_id: Uuid,
     pub namespace: String,
@@ -204,6 +239,12 @@ pub enum ManagedServiceError {
         namespace: String,
         max_length: usize,
     },
+    #[error("plan not found: {0}")]
+    PlanNotFound(String),
+    #[error("plan is not active: {0}")]
+    PlanNotActive(String),
+    #[error("plan {plan_id} does not belong to service {service_id}")]
+    PlanServiceMismatch { plan_id: Uuid, service_id: Uuid },
     #[error("workflow scheduling error: {0}")]
     Workflow(String),
 }
@@ -567,5 +608,94 @@ impl<A: Authorize> ManagedServices<A> {
             .execute(&self.db)
             .await?;
         Ok(())
+    }
+
+    /// Lists active plans for a given service, ordered by creation date.
+    pub async fn list_plans(
+        &self,
+        service_id: Uuid,
+    ) -> Result<Vec<ManagedServicePlan>, ManagedServiceError> {
+        ManagedServicePlan::query()
+            .select()
+            .r#where(ManagedServicePlan::SERVICE_ID, "=", service_id)
+            .r#where(ManagedServicePlan::STATUS, "=", "active".to_owned())
+            .order_by(ManagedServicePlan::CREATED_AT, Direction::Asc)
+            .get(&self.db)
+            .await
+            .map_err(Into::into)
+    }
+
+    /// Lists all plans (including archived) for a given service.
+    pub async fn list_all_plans(
+        &self,
+        service_id: Uuid,
+    ) -> Result<Vec<ManagedServicePlan>, ManagedServiceError> {
+        ManagedServicePlan::query()
+            .select()
+            .r#where(ManagedServicePlan::SERVICE_ID, "=", service_id)
+            .order_by(ManagedServicePlan::CREATED_AT, Direction::Asc)
+            .get(&self.db)
+            .await
+            .map_err(Into::into)
+    }
+
+    /// Finds a plan by its UUID.
+    pub async fn find_plan_by_id(
+        &self,
+        plan_id: Uuid,
+    ) -> Result<ManagedServicePlan, ManagedServiceError> {
+        ManagedServicePlan::query()
+            .select()
+            .r#where(ManagedServicePlan::ID, "=", plan_id)
+            .first(&self.db)
+            .await?
+            .ok_or_else(|| ManagedServiceError::PlanNotFound(plan_id.to_string()))
+    }
+
+    /// Upserts a plan for a service. Used by the `SyncPlans` RPC and the seed.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn upsert_plan(
+        &self,
+        conn: &mut PgConnection,
+        service_id: Uuid,
+        slug: &str,
+        name: &str,
+        description: Option<&str>,
+        status: &str,
+        highlighted: bool,
+        values_override: Option<&Value>,
+        entitlements: &Value,
+        price_monthly_cents: Option<i64>,
+        price_yearly_cents: Option<i64>,
+    ) -> Result<ManagedServicePlan, ManagedServiceError> {
+        let plan = sqlx::query_as::<_, ManagedServicePlan>(
+            r#"INSERT INTO managed.service_plan
+                   (id, service_id, slug, name, description, status, highlighted,
+                    values_override, entitlements, price_monthly_cents, price_yearly_cents)
+               VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+               ON CONFLICT (service_id, slug) DO UPDATE SET
+                   name = EXCLUDED.name,
+                   description = EXCLUDED.description,
+                   status = EXCLUDED.status,
+                   highlighted = EXCLUDED.highlighted,
+                   values_override = EXCLUDED.values_override,
+                   entitlements = EXCLUDED.entitlements,
+                   price_monthly_cents = EXCLUDED.price_monthly_cents,
+                   price_yearly_cents = EXCLUDED.price_yearly_cents
+               RETURNING *"#,
+        )
+        .bind(service_id)
+        .bind(slug)
+        .bind(name)
+        .bind(description)
+        .bind(status)
+        .bind(highlighted)
+        .bind(values_override)
+        .bind(entitlements)
+        .bind(price_monthly_cents)
+        .bind(price_yearly_cents)
+        .fetch_one(&mut *conn)
+        .await?;
+        Ok(plan)
     }
 }

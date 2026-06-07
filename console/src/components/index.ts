@@ -16,6 +16,7 @@ export * from './managed-instance-actions';
 export * from './managed-instance-status-badge';
 export * from './managed-instance-table';
 export * from './managed-service-card';
+export * from './managed-service-plan-card';
 
 export * from './admin-guard';
 export * from './organization-guard';

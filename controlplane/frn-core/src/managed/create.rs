@@ -18,6 +18,7 @@ pub struct CreateInstanceRequest {
     pub organization_id: Uuid,
     pub service_slug: String,
     pub version_id: Uuid,
+    pub plan_id: Uuid,
     pub user_values: Option<Value>,
     pub secret_values: Option<Value>,
 }
@@ -58,6 +59,17 @@ impl<A: Authorize> ManagedServices<A> {
         let cluster_id = self.resolve_cluster_id(request.project_id).await?;
         let service = self.find_service_by_slug(&request.service_slug).await?;
 
+        let plan = self.find_plan_by_id(request.plan_id).await?;
+        if plan.service_id != service.id {
+            return Err(ManagedServiceError::PlanServiceMismatch {
+                plan_id: plan.id,
+                service_id: service.id,
+            });
+        }
+        if plan.status != "active" {
+            return Err(ManagedServiceError::PlanNotActive(plan.slug.clone()));
+        }
+
         let versions = self.list_versions(&service.slug).await?;
         let version = versions
             .iter()
@@ -75,8 +87,10 @@ impl<A: Authorize> ManagedServices<A> {
 
         let empty_obj = Value::Object(serde_json::Map::new());
         let user_vals = request.user_values.as_ref().unwrap_or(&empty_obj);
+        let plan_vals = plan.values_override.as_ref().unwrap_or(&empty_obj);
+        let user_plus_plan = merge_helm_values(user_vals, plan_vals);
         let platform_values = self.build_platform_values(&service.database_engine);
-        let merged_values = merge_helm_values(user_vals, &platform_values);
+        let merged_values = merge_helm_values(&user_plus_plan, &platform_values);
         let secret_data = secret_values_to_map(&request.secret_values);
         let labels = build_instance_labels(&service.slug, instance_id, request.project_id);
 
@@ -85,6 +99,10 @@ impl<A: Authorize> ManagedServices<A> {
             .set(ManagedServiceInstance::ID, instance_id)
             .set(ManagedServiceInstance::SERVICE_ID, service.id)
             .set(ManagedServiceInstance::VERSION_ID, request.version_id)
+            .set(
+                ManagedServiceInstance::PLAN_ID,
+                Some(request.plan_id) as Option<Uuid>,
+            )
             .set(ManagedServiceInstance::PROJECT_ID, request.project_id)
             .set(
                 ManagedServiceInstance::ORGANIZATION_ID,

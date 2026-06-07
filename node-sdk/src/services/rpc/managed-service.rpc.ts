@@ -2,6 +2,7 @@ import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
 import {
   ManagedServiceInstanceProto,
+  ManagedServicePlanProto,
   ManagedServiceProto,
   ManagedServiceVersionProto,
 } from '../../generated/rpc/managed';
@@ -11,6 +12,8 @@ import {
   ManagedInstanceStatus,
   ManagedService,
   ManagedServiceInstance,
+  ManagedServicePlan,
+  ManagedServicePlanEntitlement,
   ManagedServiceVersion,
   UpgradeManagedInstanceInput,
 } from '../../models';
@@ -32,6 +35,7 @@ export class ManagedServiceRpcService implements ManagedServiceService {
         organizationId: data.organizationId,
         serviceSlug: data.serviceSlug,
         versionId: data.versionId,
+        planId: data.planId,
         userValues: data.userValues,
         secretValues: data.secretValues,
       })
@@ -70,6 +74,12 @@ export class ManagedServiceRpcService implements ManagedServiceService {
     return this.client
       .listVersions({ serviceSlug })
       .response.then(({ versions }) => versions.map(fromRpcVersion));
+  }
+
+  public listPlans(serviceSlug: string): Promise<ManagedServicePlan[]> {
+    return this.client
+      .listPlans({ serviceSlug })
+      .response.then(({ plans }) => plans.map(fromRpcPlan));
   }
 
   public upgradeInstance(
@@ -118,6 +128,35 @@ function fromRpcVersion(
   };
 }
 
+function fromRpcPlan(plan: ManagedServicePlanProto): ManagedServicePlan {
+  return {
+    id: plan.id,
+    serviceId: plan.serviceId,
+    slug: plan.slug,
+    name: plan.name,
+    description: plan.description,
+    status: plan.status as 'active' | 'archived',
+    highlighted: plan.highlighted,
+    valuesOverride: plan.valuesOverride,
+    entitlements: plan.entitlements.map(
+      (e): ManagedServicePlanEntitlement => ({
+        key: e.key,
+        label: e.label,
+        value: e.value,
+      }),
+    ),
+    priceMonthlyCents: plan.priceMonthlyCents
+      ? Number(plan.priceMonthlyCents)
+      : undefined,
+    priceYearlyCents: plan.priceYearlyCents
+      ? Number(plan.priceYearlyCents)
+      : undefined,
+    createdAt: plan.createdAt
+      ? new Date(Number(plan.createdAt.seconds) * 1000).toISOString()
+      : new Date().toISOString(),
+  };
+}
+
 function fromRpcInstance(
   instance: ManagedServiceInstanceProto,
 ): ManagedServiceInstance {
@@ -134,6 +173,7 @@ function fromRpcInstance(
     id: instance.id,
     serviceId: instance.serviceId,
     versionId: instance.versionId,
+    planId: instance.planId,
     projectId: instance.projectId,
     organizationId: instance.organizationId,
     namespace: instance.namespace,

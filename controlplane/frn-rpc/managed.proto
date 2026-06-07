@@ -16,8 +16,14 @@ service ManagedServices {
     // Lists all active versions for a given service.
     rpc ListVersions(ListVersionsRequest) returns (ListVersionsResponse);
 
+    // Lists active plans for a given service.
+    rpc ListPlans(ListPlansRequest) returns (ListPlansResponse);
+
     // Registers a new chart version for a service (called by CI after OCI publish).
     rpc RegisterVersion(RegisterVersionRequest) returns (RegisterVersionResponse);
+
+    // Syncs (upserts) all plans for a service from the catalogue.yaml (called by CI).
+    rpc SyncPlans(SyncPlansRequest) returns (SyncPlansResponse);
 
     // Creates a managed service instance and schedules deployment.
     rpc CreateInstance(CreateInstanceRequest) returns (CreateInstanceResponse);
@@ -59,6 +65,29 @@ message ManagedServiceVersionProto {
     optional string ui_schema = 8;
 }
 
+// Plan entitlement (SLA guarantee displayed on the pricing page).
+message ManagedServicePlanEntitlementProto {
+    string key = 1;
+    string label = 2;
+    string value = 3;
+}
+
+// A pricing tier for a managed service.
+message ManagedServicePlanProto {
+    string id = 1;
+    string service_id = 2;
+    string slug = 3;
+    string name = 4;
+    optional string description = 5;
+    string status = 6;
+    bool highlighted = 7;
+    optional string values_override = 8;
+    repeated ManagedServicePlanEntitlementProto entitlements = 9;
+    optional int64 price_monthly_cents = 10;
+    optional int64 price_yearly_cents = 11;
+    google.protobuf.Timestamp created_at = 12;
+}
+
 // ListServices
 message ListServicesRequest {}
 
@@ -84,6 +113,15 @@ message ListVersionsResponse {
     repeated ManagedServiceVersionProto versions = 1;
 }
 
+// ListPlans
+message ListPlansRequest {
+    string service_slug = 1;
+}
+
+message ListPlansResponse {
+    repeated ManagedServicePlanProto plans = 1;
+}
+
 // RegisterVersion
 message RegisterVersionRequest {
     string service_slug = 1;
@@ -100,6 +138,28 @@ message RegisterVersionResponse {
     ManagedServiceVersionProto version = 1;
 }
 
+// SyncPlans
+message SyncPlansRequest {
+    string service_slug = 1;
+    repeated SyncPlanEntry plans = 2;
+}
+
+message SyncPlanEntry {
+    string slug = 1;
+    string name = 2;
+    optional string description = 3;
+    string status = 4;
+    bool highlighted = 5;
+    optional string values_override = 6;
+    repeated ManagedServicePlanEntitlementProto entitlements = 7;
+    optional int64 price_monthly_cents = 8;
+    optional int64 price_yearly_cents = 9;
+}
+
+message SyncPlansResponse {
+    repeated ManagedServicePlanProto plans = 1;
+}
+
 // Instance messages
 message ManagedServiceInstanceProto {
     string id = 1;
@@ -112,6 +172,7 @@ message ManagedServiceInstanceProto {
     optional string user_values = 8;
     string status = 9;
     google.protobuf.Timestamp created_at = 10;
+    optional string plan_id = 11;
 }
 
 // CreateInstance
@@ -124,6 +185,8 @@ message CreateInstanceRequest {
     optional string user_values = 5;
     // JSON object of secret values (passwords, keys)
     optional string secret_values = 6;
+    // Plan ID (required for new instances)
+    string plan_id = 7;
 }
 
 message CreateInstanceResponse {

@@ -4,6 +4,7 @@ import {
   ManagedInstanceStatus,
   ManagedService,
   ManagedServiceInstance,
+  ManagedServicePlan,
   ManagedServiceVersion,
 } from '../models';
 
@@ -54,12 +55,47 @@ export const managedServiceVersion = (
   ...preset,
 });
 
+export const managedServicePlan = (
+  preset?: Partial<ManagedServicePlan>,
+): ManagedServicePlan => ({
+  id: faker.string.uuid(),
+  serviceId: faker.string.uuid(),
+  slug: faker.helpers.arrayElement([
+    'standard',
+    'enterprise',
+    'ha',
+  ]),
+  name: faker.helpers.arrayElement([
+    'Standard',
+    'Enterprise',
+    'Haute Disponibilite',
+  ]),
+  description: faker.lorem.sentence(),
+  status: 'active',
+  highlighted: faker.datatype.boolean(),
+  entitlements: [
+    { key: 'support_level', label: 'Support', value: 'Email' },
+    { key: 'gti', label: "Temps d'intervention garanti", value: '24h' },
+  ],
+  priceMonthlyCents: faker.number.int({ min: 500, max: 50000 }),
+  priceYearlyCents: faker.number.int({ min: 5000, max: 500000 }),
+  createdAt: faker.date.recent().toISOString(),
+  ...preset,
+});
+
+export const managedServicePlans = (
+  count: number,
+  preset?: Partial<ManagedServicePlan>,
+): ManagedServicePlan[] =>
+  [...Array(count)].map(() => managedServicePlan(preset));
+
 export const managedServiceInstance = (
   preset?: Partial<ManagedServiceInstance>,
 ): ManagedServiceInstance => ({
   id: faker.string.uuid(),
   serviceId: faker.string.uuid(),
   versionId: faker.string.uuid(),
+  planId: faker.string.uuid(),
   projectId: faker.string.uuid(),
   organizationId: faker.string.uuid(),
   namespace: `managed-${faker.string.alphanumeric(8)}`,

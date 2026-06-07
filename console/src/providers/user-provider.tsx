@@ -2,6 +2,7 @@ import { FunctionComponent, ReactNode, useEffect, useState } from 'react';
 
 import {
   clearAuthenticationState,
+  fetchCurrentUser,
   parseOidcUser,
   setOIDCUser,
 } from '@/features';
@@ -35,7 +36,14 @@ export const UserProvider: FunctionComponent<UserProviderProps> = ({
   // Attempt to retrieve the persisted user, then mark the app as loaded
   useEffect(() => {
     pickAction()
-      .then((action) => dispatch(action))
+      .then((action) => {
+        dispatch(action);
+        // Once authenticated, resolve the authoritative admin status from the
+        // control plane (the token is now in the store for the bearer header).
+        if (action.type === setOIDCUser.type) {
+          dispatch(fetchCurrentUser());
+        }
+      })
       .catch((error) => {
         console.error('[UserProvider] Failed to load user:', error);
         toaster.create({

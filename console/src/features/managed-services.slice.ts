@@ -3,6 +3,7 @@ import {
   ManagedInstanceStatus,
   ManagedService,
   ManagedServiceInstance,
+  ManagedServicePlan,
   ManagedServiceVersion,
   UpgradeManagedInstanceInput,
 } from '@france-nuage/sdk';
@@ -32,6 +33,14 @@ export const fetchManagedServiceVersions = createAsyncThunk<
   { extra: ExtraArgument }
 >('managedServices/fetchVersions', (serviceSlug, { extra }) =>
   extra.services.managedService.listVersions(serviceSlug),
+);
+
+export const fetchManagedServicePlans = createAsyncThunk<
+  ManagedServicePlan[],
+  string,
+  { extra: ExtraArgument }
+>('managedServices/fetchPlans', (serviceSlug, { extra }) =>
+  extra.services.managedService.listPlans(serviceSlug),
 );
 
 export const fetchManagedInstances = createAsyncThunk<
@@ -81,6 +90,7 @@ export type ManagedServicesState = {
   currentService: ManagedService | undefined;
   instances: ManagedServiceInstance[];
   loading: boolean;
+  plans: ManagedServicePlan[];
   services: ManagedService[];
   versions: ManagedServiceVersion[];
 };
@@ -90,6 +100,7 @@ const initialState: ManagedServicesState = {
   currentService: undefined,
   instances: [],
   loading: false,
+  plans: [],
   services: [],
   versions: [],
 };
@@ -113,6 +124,10 @@ export const managedServicesSlice = createSlice({
 
     builder.addCase(fetchManagedServiceVersions.fulfilled, (state, action) => {
       state.versions = action.payload;
+    });
+
+    builder.addCase(fetchManagedServicePlans.fulfilled, (state, action) => {
+      state.plans = action.payload;
     });
 
     builder.addCase(fetchManagedInstances.fulfilled, (state, action) => {

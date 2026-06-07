@@ -2,6 +2,7 @@ import {
   Badge,
   Button,
   ButtonGroup,
+  EmptyState,
   Flex,
   HStack,
   Heading,
@@ -14,6 +15,7 @@ import {
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { FunctionComponent, useEffect } from 'react';
 import { HiPencil, HiPlus } from 'react-icons/hi';
+import { HiServer } from 'react-icons/hi2';
 import { Link } from 'react-router';
 
 import { AppTable, DeleteKubernetesClusterButton } from '@/components';
@@ -127,6 +129,25 @@ export const KubernetesClustersPage: FunctionComponent = () => {
         <Flex justify="center" py={12}>
           <Spinner size="lg" />
         </Flex>
+      ) : clusters.length === 0 ? (
+        <EmptyState.Root>
+          <EmptyState.Content>
+            <EmptyState.Indicator>
+              <HiServer />
+            </EmptyState.Indicator>
+            <EmptyState.Title>Aucun cluster enregistré</EmptyState.Title>
+            <EmptyState.Description>
+              Les clusters servent de cible de déploiement pour les utilisateurs
+              de la plateforme. Ajoutez-en un pour commencer.
+            </EmptyState.Description>
+            <Button asChild colorPalette="blue">
+              <Link to={Routes.KubernetesClusterCreate}>
+                <HiPlus />
+                Nouveau cluster
+              </Link>
+            </Button>
+          </EmptyState.Content>
+        </EmptyState.Root>
       ) : (
         <AppTable columns={columns} data={clusters} />
       )}

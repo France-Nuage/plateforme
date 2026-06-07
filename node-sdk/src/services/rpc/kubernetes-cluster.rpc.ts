@@ -100,6 +100,8 @@ function fromRpcCluster(cluster: KubernetesClusterProto): KubernetesCluster {
     description: cluster.description,
     apiServerUrl: cluster.apiServerUrl,
     caFingerprint: cluster.caFingerprint,
+    kubernetesVersion: cluster.kubernetesVersion,
+    platform: cluster.platform,
     healthStatus:
       resolvedHealthStatus ?? KubernetesClusterHealthStatus.Unreachable,
     lastHealthCheckAt: cluster.lastHealthCheckAt

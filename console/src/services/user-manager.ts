@@ -1,7 +1,7 @@
 import { UserManager } from 'oidc-client-ts';
 
 import config from '@/config';
-import { parseOidcUser, setOIDCUser } from '@/features';
+import { fetchCurrentUser, parseOidcUser, setOIDCUser } from '@/features';
 import { AppDispatch } from '@/store';
 
 export const userManager = new UserManager({
@@ -18,5 +18,6 @@ export const userManager = new UserManager({
 export function registerUserEvents(dispatch: AppDispatch) {
   userManager.events.addUserLoaded((user) => {
     dispatch(setOIDCUser(parseOidcUser(user)));
+    dispatch(fetchCurrentUser());
   });
 }

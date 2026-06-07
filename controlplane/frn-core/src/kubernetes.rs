@@ -73,6 +73,8 @@ pub struct KubernetesCluster {
     pub encryption_algorithm: String,
     pub api_server_url: String,
     pub ca_fingerprint: Option<String>,
+    pub kubernetes_version: Option<String>,
+    pub platform: Option<String>,
     pub health_status: KubernetesClusterHealthStatus,
     pub last_health_check_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
@@ -84,6 +86,10 @@ pub struct KubernetesCluster {
 pub struct ClusterHealthInfo {
     /// API server URL parsed from the kubeconfig current context.
     pub api_server_url: String,
+    /// Kubernetes semver version reported by `GET /version` (e.g. `v1.32.2`).
+    pub kubernetes_version: String,
+    /// OS/arch pair reported by the API server (e.g. `linux/amd64`).
+    pub platform: String,
 }
 
 /// Reasons a cluster reachability check can fail.
@@ -145,7 +151,11 @@ impl ClusterHealthChecker for KubeHealthChecker {
                     Err(ClusterHealthError::Unreachable(message))
                 }
             }
-            Ok(Ok(_)) => Ok(ClusterHealthInfo { api_server_url }),
+            Ok(Ok(info)) => Ok(ClusterHealthInfo {
+                api_server_url,
+                kubernetes_version: info.git_version,
+                platform: info.platform,
+            }),
         }
     }
 }
@@ -289,6 +299,11 @@ impl KubernetesClusters {
             )
             .set(KubernetesCluster::API_SERVER_URL, health.api_server_url)
             .set(
+                KubernetesCluster::KUBERNETES_VERSION,
+                Some(health.kubernetes_version),
+            )
+            .set(KubernetesCluster::PLATFORM, Some(health.platform))
+            .set(
                 KubernetesCluster::HEALTH_STATUS,
                 KubernetesClusterHealthStatus::Healthy,
             )
@@ -346,6 +361,11 @@ impl KubernetesClusters {
                         frn_crypto::ALGORITHM.to_owned(),
                     )
                     .set(KubernetesCluster::API_SERVER_URL, health.api_server_url)
+                    .set(
+                        KubernetesCluster::KUBERNETES_VERSION,
+                        Some(health.kubernetes_version),
+                    )
+                    .set(KubernetesCluster::PLATFORM, Some(health.platform))
                     .set(
                         KubernetesCluster::HEALTH_STATUS,
                         KubernetesClusterHealthStatus::Healthy,

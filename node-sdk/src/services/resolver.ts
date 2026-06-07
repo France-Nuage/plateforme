@@ -7,6 +7,7 @@ import {
   KubernetesClusterService,
   ManagedServiceService,
   OrganizationService,
+  ProfileService,
   ProjectService,
   ZeroTrustNetworkService,
   ZeroTrustNetworkTypeService,
@@ -19,6 +20,7 @@ import {
   kubernetesClusterMockService,
   managedServiceMockService,
   organizationMockService,
+  profileMockService,
   projectMockService,
   zeroTrustNetworkMockService,
   zeroTrustNetworkTypeMockService,
@@ -31,6 +33,7 @@ import {
   KubernetesClusterRpcService,
   ManagedServiceRpcService,
   OrganizationRpcService,
+  ProfileRpcService,
   ProjectRpcService,
   ZeroTrustNetworkRpcService,
   ZeroTrustNetworkTypeRpcService,
@@ -46,6 +49,7 @@ export type Services = {
   kubernetesCluster: KubernetesClusterService;
   managedService: ManagedServiceService;
   organization: OrganizationService;
+  profile: ProfileService;
   project: ProjectService;
   zeroTrustNetwork: ZeroTrustNetworkService;
   zeroTrustNetworkType: ZeroTrustNetworkTypeService;
@@ -71,6 +75,7 @@ export function configureResolver(
       kubernetesCluster: kubernetesClusterMockService,
       managedService: managedServiceMockService,
       organization: organizationMockService,
+      profile: profileMockService,
       project: projectMockService,
       zeroTrustNetwork: zeroTrustNetworkMockService,
       zeroTrustNetworkType: zeroTrustNetworkTypeMockService,
@@ -83,6 +88,7 @@ export function configureResolver(
       kubernetesCluster: new KubernetesClusterRpcService(transport),
       managedService: new ManagedServiceRpcService(transport),
       organization: new OrganizationRpcService(transport),
+      profile: new ProfileRpcService(transport),
       project: new ProjectRpcService(transport),
       zeroTrustNetwork: new ZeroTrustNetworkRpcService(transport),
       zeroTrustNetworkType: new ZeroTrustNetworkTypeRpcService(transport),

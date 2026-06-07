@@ -2,11 +2,13 @@ import {
   managedService,
   managedServiceInstance,
   managedServiceInstances,
+  managedServicePlans,
   managedServiceVersion,
   managedServices,
 } from '../../fixtures';
 import {
   CreateManagedInstanceInput,
+  ManagedServicePlan,
   UpgradeManagedInstanceInput,
 } from '../../models';
 import { ManagedServiceService } from '../api';
@@ -19,6 +21,7 @@ export class ManagedServiceMockService implements ManagedServiceService {
         organizationId: data.organizationId,
         serviceId: data.serviceSlug,
         versionId: data.versionId,
+        planId: data.planId,
       }),
     );
   }
@@ -48,6 +51,12 @@ export class ManagedServiceMockService implements ManagedServiceService {
       [...Array(3)].map(() =>
         managedServiceVersion({ serviceId: serviceSlug }),
       ),
+    );
+  }
+
+  listPlans(serviceSlug: string): Promise<ManagedServicePlan[]> {
+    return Promise.resolve(
+      managedServicePlans(2, { serviceId: serviceSlug }),
     );
   }
 

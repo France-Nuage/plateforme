@@ -92,14 +92,19 @@ async fn main() -> ExitCode {
             }
             println!("seeded {} service(s) from {}", reports.len(), dir.display());
             for report in &reports {
+                let plans_info = if report.plans_upserted > 0 {
+                    format!(", {} plan(s) upserted", report.plans_upserted)
+                } else {
+                    String::new()
+                };
+                let mock_info = if report.mock_version_inserted {
+                    ", dev mock version inserted"
+                } else {
+                    ""
+                };
                 println!(
-                    "  - {}{}",
-                    report.service_slug,
-                    if report.mock_version_inserted {
-                        " (dev mock version inserted)"
-                    } else {
-                        ""
-                    },
+                    "  - {}{}{}",
+                    report.service_slug, plans_info, mock_info,
                 );
             }
             ExitCode::SUCCESS

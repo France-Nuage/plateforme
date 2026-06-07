@@ -4,6 +4,7 @@ export * from './kubernetes-cluster.rpc';
 export * from './managed-service.rpc';
 export * from './invitation.rpc';
 export * from './organization.rpc';
+export * from './profile.rpc';
 export * from './project.rpc';
 export * from './zero-trust-network-type.rpc';
 export * from './zero-trust-network.rpc';

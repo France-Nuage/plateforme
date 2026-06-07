@@ -4,6 +4,7 @@ export * from './kubernetes-cluster.mock';
 export * from './managed-service.mock';
 export * from './invitation.mock';
 export * from './organization.mock';
+export * from './profile.mock';
 export * from './project.mock';
 export * from './zero-trust-network-type.mock';
 export * from './zero-trust-network.mock';

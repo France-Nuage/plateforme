@@ -4,6 +4,8 @@ export type KubernetesCluster = {
   description?: string;
   apiServerUrl: string;
   caFingerprint?: string;
+  kubernetesVersion?: string;
+  platform?: string;
   healthStatus: KubernetesClusterHealthStatus;
   lastHealthCheckAt?: string;
   createdAt: string;

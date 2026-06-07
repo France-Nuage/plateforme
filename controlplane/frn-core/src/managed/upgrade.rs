@@ -68,9 +68,18 @@ impl<A: Authorize> ManagedServices<A> {
             .as_ref()
             .or(instance.user_values.as_ref())
             .unwrap_or(&empty_obj);
+
+        let plan_vals = if let Some(plan_id) = instance.plan_id {
+            let plan = self.find_plan_by_id(plan_id).await?;
+            plan.values_override.unwrap_or_else(|| empty_obj.clone())
+        } else {
+            empty_obj.clone()
+        };
+        let user_plus_plan = merge_helm_values(user_vals, &plan_vals);
+
         let service = self.find_service_by_id(instance.service_id).await?;
         let platform_values = self.build_platform_values(&service.database_engine);
-        let merged_values = merge_helm_values(user_vals, &platform_values);
+        let merged_values = merge_helm_values(&user_plus_plan, &platform_values);
         let secret_data = secret_values_to_map(&request.secret_values);
         let secret_name = format!("{}-secrets", instance.release_name);
 

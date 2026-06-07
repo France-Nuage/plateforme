@@ -25,7 +25,7 @@ async fn test_delete_instance_schedules_workflow(
     )
     .await;
 
-    let instance = seed_managed_service_instance(&pool, version_id, "vaultwarden").await;
+    let instance = seed_managed_service_instance(&pool, service_id, version_id, "vaultwarden").await;
 
     // A freshly created instance is in 'provisioning'; the FSM only allows
     // deletion from 'running' or 'failed', so advance it to 'running' first.

@@ -1,6 +1,7 @@
 use std::time::SystemTime;
 
-use frn_core::{authorization::Authorize, identity::IAM};
+use frn_core::authorization::{Authorize, Principal as _, Resource as _};
+use frn_core::identity::{IAM, Principal};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
@@ -100,5 +101,49 @@ impl<Auth: Authorize + 'static> invitations_server::Invitations for Invitations<
         _: Request<AnswerInvitationRequest>,
     ) -> Result<Response<AnswerInvitationResponse>, Status> {
         unimplemented!()
+    }
+}
+
+/// Service exposing the authenticated caller's own identity.
+///
+/// `GetCurrentUser` lets the frontend read its platform-admin status from the
+/// authoritative source (the control plane database, via the resolved
+/// principal) instead of decoding it from the OIDC token. Keycloak
+/// authenticates the caller; the control plane decides what it can do.
+pub struct Profile {
+    iam: IAM,
+}
+
+impl Profile {
+    pub fn new(iam: IAM) -> Self {
+        Self { iam }
+    }
+}
+
+#[tonic::async_trait]
+impl profile_server::Profile for Profile {
+    /// Returns the calling principal's id, email and platform-admin flag.
+    ///
+    /// The principal is resolved from the Bearer token and read straight from
+    /// the database, so `is_admin` reflects `users.is_admin` at request time.
+    /// Service accounts have no email and are never platform admins.
+    async fn get_current_user(
+        &self,
+        request: Request<GetCurrentUserRequest>,
+    ) -> Result<Response<GetCurrentUserResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+
+        let id = principal.id().to_string();
+        let is_admin = principal.is_platform_admin();
+        let email = match &principal {
+            Principal::User(user) => user.email.clone(),
+            Principal::ServiceAccount(_) => String::new(),
+        };
+
+        Ok(Response::new(GetCurrentUserResponse {
+            id,
+            email,
+            is_admin,
+        }))
     }
 }

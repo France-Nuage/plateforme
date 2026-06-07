@@ -7,6 +7,7 @@ use frn_core::managed::{
     DeployManagedServiceParams, ManagedService, ManagedServiceCategory, ManagedServiceInstance,
     ManagedServiceVersion, ManagedServices,
 };
+use serde_json::json;
 use frn_core::workflow::WorkflowScheduler;
 use spicedb::SpiceDB;
 use sqlx::PgConnection;
@@ -22,6 +23,7 @@ use frn_core::kubernetes::{
 use frn_core::resourcemanager::{Organization, Project};
 use frn_crypto::Kek;
 use frn_rpc::v1::compute::instances_client::InstancesClient;
+use frn_rpc::v1::iam::profile_client::ProfileClient;
 use frn_rpc::v1::kubernetes::kubernetes_clusters_client::KubernetesClustersClient;
 use frn_rpc::v1::managed::managed_services_client::ManagedServicesClient;
 use frn_rpc::v1::workflow::workflow_engine_client::WorkflowEngineClient;
@@ -137,6 +139,7 @@ pub struct Api {
     pub kubernetes: Kubernetes,
     pub resourcemanager: ResourceManager,
     pub workflow: Workflow,
+    pub profile: ProfileClient<Channel>,
     pub mock_server: MockServer,
     pub service_account: ServiceAccount,
     shutdown: Option<oneshot::Sender<()>>,
@@ -174,6 +177,7 @@ impl Api {
             kubernetes: Kubernetes::create(&server_url).await?,
             resourcemanager: ResourceManager::create(&server_url).await?,
             workflow: Workflow::create(&server_url).await?,
+            profile: ProfileClient::connect(server_url.clone()).await?,
             mock_server,
             service_account,
             shutdown: Some(shutdown),
@@ -278,6 +282,8 @@ impl ClusterHealthChecker for SeedHealthChecker {
     async fn check(&self, _kubeconfig_yaml: &str) -> Result<ClusterHealthInfo, ClusterHealthError> {
         Ok(ClusterHealthInfo {
             api_server_url: "https://cluster.test:6443/".to_owned(),
+            kubernetes_version: "v1.32.2".to_owned(),
+            platform: "linux/amd64".to_owned(),
         })
     }
 }
@@ -360,11 +366,14 @@ pub async fn seed_managed_service_version(
 /// Seeds a managed service instance in the database for testing.
 pub async fn seed_managed_service_instance(
     pool: &Pool<Postgres>,
+    service_id: Uuid,
     version_id: Uuid,
     service_slug: &str,
 ) -> ManagedServiceInstance {
-    // A managed instance requires a project bound to a cluster, so seed the full
-    // chain: organization -> cluster -> project -> instance.
+    let plan_id =
+        seed_managed_service_plan(pool, service_id, &format!("{service_slug}-standard"), "Standard")
+            .await;
+
     let organization = Organization::factory()
         .slug(format!("seed-{}", Uuid::new_v4().simple()))
         .parent_id(None)
@@ -400,12 +409,37 @@ pub async fn seed_managed_service_instance(
                 organization_id: organization.id,
                 service_slug: service_slug.to_owned(),
                 version_id,
+                plan_id,
                 user_values: None,
                 secret_values: None,
             },
         )
         .await
         .expect("could not seed managed service instance")
+}
+
+/// Seeds a managed service plan in the database for testing.
+pub async fn seed_managed_service_plan(
+    pool: &Pool<Postgres>,
+    service_id: Uuid,
+    slug: &str,
+    name: &str,
+) -> Uuid {
+    let row = sqlx::query_as::<_, (Uuid,)>(
+        r#"INSERT INTO managed.service_plan
+               (id, service_id, slug, name, status, entitlements,
+                price_monthly_cents, price_yearly_cents)
+           VALUES (gen_random_uuid(), $1, $2, $3, 'active', $4, 999, 10789)
+           RETURNING id"#,
+    )
+    .bind(service_id)
+    .bind(slug)
+    .bind(name)
+    .bind(json!([{"key": "support_level", "label": "Support", "value": "Email"}]))
+    .fetch_one(pool)
+    .await
+    .expect("could not seed managed service plan");
+    row.0
 }
 
 /// Deactivates a managed service in the database for testing.

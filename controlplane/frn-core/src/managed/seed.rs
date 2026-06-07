@@ -1,8 +1,8 @@
 //! Seed loader for the managed services catalog.
 //!
 //! Reads YAML files under a directory (one per service) and upserts the
-//! corresponding `managed.service` rows. Versions are NOT seeded in
-//! production: they are registered by the charts CI through the
+//! corresponding `managed.service` rows and their plans. Versions are NOT
+//! seeded in production: they are registered by the charts CI through the
 //! `RegisterVersion` gRPC. A YAML file may declare a `dev_mock_version`
 //! block for local development before the pipeline is wired up; the seed
 //! only creates it when explicitly asked.
@@ -17,6 +17,16 @@
 //!   database_engine: cnpg   # optional
 //!   description: ...        # optional
 //!   icon_url: null          # optional
+//! plans:                    # optional, always upserted
+//!   - id: vaultwarden-standard
+//!     name: Standard
+//!     entitlements:
+//!       - key: support_level
+//!         label: Support
+//!         value: Email
+//!     prices:
+//!       monthly: 999
+//!       yearly: 10789
 //! dev_mock_version:         # optional, dev-only
 //!   chart_version: 0.0.1-mock
 //!   app_version: 1.35.4     # optional
@@ -32,6 +42,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use sqlx::{Pool, Postgres};
 use thiserror::Error;
+use uuid::Uuid;
 
 use crate::managed::{ManagedDatabaseEngine, ManagedServiceCategory};
 
@@ -47,6 +58,9 @@ pub enum SeedError {
         source: serde_yaml::Error,
     },
 
+    #[error("json serialization error: {0}")]
+    Json(#[from] serde_json::Error),
+
     #[error("database error: {0}")]
     Sqlx(#[from] sqlx::Error),
 }
@@ -54,6 +68,8 @@ pub enum SeedError {
 #[derive(Debug, Deserialize)]
 struct SeedFile {
     service: ServiceSeed,
+    #[serde(default)]
+    plans: Vec<PlanSeed>,
     #[serde(default)]
     dev_mock_version: Option<DevMockVersionSeed>,
 }
@@ -69,6 +85,45 @@ struct ServiceSeed {
     database_engine: Option<ManagedDatabaseEngine>,
     #[serde(default)]
     icon_url: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct PlanSeed {
+    id: String,
+    name: String,
+    #[serde(default)]
+    description: Option<String>,
+    #[serde(default = "default_active")]
+    status: String,
+    #[serde(default)]
+    highlighted: bool,
+    #[serde(default)]
+    values: Option<Value>,
+    #[serde(default)]
+    entitlements: Vec<EntitlementSeed>,
+    #[serde(default)]
+    prices: Option<PricesSeed>,
+}
+
+fn default_active() -> String {
+    "active".to_owned()
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct EntitlementSeed {
+    key: String,
+    label: String,
+    value: String,
+}
+
+use serde::Serialize;
+
+#[derive(Debug, Deserialize)]
+struct PricesSeed {
+    #[serde(default)]
+    monthly: Option<i64>,
+    #[serde(default)]
+    yearly: Option<i64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -88,6 +143,7 @@ struct DevMockVersionSeed {
 #[derive(Debug, Default)]
 pub struct SeedReport {
     pub service_slug: String,
+    pub plans_upserted: usize,
     pub mock_version_inserted: bool,
 }
 
@@ -130,6 +186,12 @@ async fn seed_file(
 
     let service_id = upsert_service(pool, &file.service).await?;
 
+    let mut plans_upserted = 0;
+    for plan in &file.plans {
+        upsert_plan(pool, service_id, plan).await?;
+        plans_upserted += 1;
+    }
+
     let mut mock_version_inserted = false;
     if with_dev_mock && let Some(mock) = &file.dev_mock_version {
         mock_version_inserted = insert_dev_mock_version(pool, service_id, mock).await?;
@@ -137,15 +199,13 @@ async fn seed_file(
 
     Ok(SeedReport {
         service_slug: file.service.slug,
+        plans_upserted,
         mock_version_inserted,
     })
 }
 
-async fn upsert_service(
-    pool: &Pool<Postgres>,
-    service: &ServiceSeed,
-) -> Result<uuid::Uuid, SeedError> {
-    let row = sqlx::query_as::<_, (uuid::Uuid,)>(
+async fn upsert_service(pool: &Pool<Postgres>, service: &ServiceSeed) -> Result<Uuid, SeedError> {
+    let row = sqlx::query_as::<_, (Uuid,)>(
         r#"INSERT INTO managed.service
                (id, slug, name, description, category, database_engine, icon_url)
            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6)
@@ -169,9 +229,45 @@ async fn upsert_service(
     Ok(row.0)
 }
 
+async fn upsert_plan(
+    pool: &Pool<Postgres>,
+    service_id: Uuid,
+    plan: &PlanSeed,
+) -> Result<(), SeedError> {
+    let entitlements = serde_json::to_value(&plan.entitlements)?;
+    sqlx::query(
+        r#"INSERT INTO managed.service_plan
+               (id, service_id, slug, name, description, status, highlighted,
+                values_override, entitlements, price_monthly_cents, price_yearly_cents)
+           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           ON CONFLICT (service_id, slug) DO UPDATE SET
+               name = EXCLUDED.name,
+               description = EXCLUDED.description,
+               status = EXCLUDED.status,
+               highlighted = EXCLUDED.highlighted,
+               values_override = EXCLUDED.values_override,
+               entitlements = EXCLUDED.entitlements,
+               price_monthly_cents = EXCLUDED.price_monthly_cents,
+               price_yearly_cents = EXCLUDED.price_yearly_cents"#,
+    )
+    .bind(service_id)
+    .bind(&plan.id)
+    .bind(&plan.name)
+    .bind(&plan.description)
+    .bind(&plan.status)
+    .bind(plan.highlighted)
+    .bind(&plan.values)
+    .bind(&entitlements)
+    .bind(plan.prices.as_ref().and_then(|p| p.monthly))
+    .bind(plan.prices.as_ref().and_then(|p| p.yearly))
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 async fn insert_dev_mock_version(
     pool: &Pool<Postgres>,
-    service_id: uuid::Uuid,
+    service_id: Uuid,
     mock: &DevMockVersionSeed,
 ) -> Result<bool, SeedError> {
     let inserted = sqlx::query(

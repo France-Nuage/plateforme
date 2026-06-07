@@ -36,6 +36,10 @@ message KubernetesClusterProto {
     optional string description = 3;
     string api_server_url = 4;
     optional string ca_fingerprint = 5;
+    // Kubernetes semver version reported by GET /version (e.g. "v1.32.2").
+    optional string kubernetes_version = 10;
+    // OS/arch pair reported by the API server (e.g. "linux/amd64").
+    optional string platform = 11;
     string health_status = 6;
     google.protobuf.Timestamp last_health_check_at = 7;
     google.protobuf.Timestamp created_at = 8;

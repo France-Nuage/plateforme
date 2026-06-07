@@ -24,6 +24,7 @@ export type ManagedServiceInstance = {
   id: string;
   serviceId: string;
   versionId: string;
+  planId?: string;
   projectId: string;
   organizationId: string;
   namespace: string;
@@ -42,11 +43,33 @@ export enum ManagedInstanceStatus {
   Deleted = 'deleted',
 }
 
+export type ManagedServicePlanEntitlement = {
+  key: string;
+  label: string;
+  value: string;
+};
+
+export type ManagedServicePlan = {
+  id: string;
+  serviceId: string;
+  slug: string;
+  name: string;
+  description?: string;
+  status: 'active' | 'archived';
+  highlighted: boolean;
+  valuesOverride?: string;
+  entitlements: ManagedServicePlanEntitlement[];
+  priceMonthlyCents?: number;
+  priceYearlyCents?: number;
+  createdAt: string;
+};
+
 export type CreateManagedInstanceInput = {
   projectId: string;
   organizationId: string;
   serviceSlug: string;
   versionId: string;
+  planId: string;
   userValues?: string;
   secretValues?: string;
 };

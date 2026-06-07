@@ -20,6 +20,8 @@ use uuid::Uuid;
 
 const SAMPLE_KUBECONFIG: &str = "apiVersion: v1\nkind: Config\nclusters: []\n";
 const API_SERVER_URL: &str = "https://cluster.example:6443/";
+const KUBERNETES_VERSION: &str = "v1.32.2";
+const PLATFORM: &str = "linux/amd64";
 
 /// Deterministic reachability checker: returns success (with a fixed API
 /// server URL) or a failure, without touching the network.
@@ -36,6 +38,8 @@ impl ClusterHealthChecker for StubChecker {
         } else {
             Ok(ClusterHealthInfo {
                 api_server_url: API_SERVER_URL.to_owned(),
+                kubernetes_version: KUBERNETES_VERSION.to_owned(),
+                platform: PLATFORM.to_owned(),
             })
         }
     }
@@ -79,6 +83,8 @@ async fn create_persists_encrypts_and_round_trips(pool: sqlx::PgPool) {
 
     assert_eq!(cluster.name, "prod-eu");
     assert_eq!(cluster.api_server_url, API_SERVER_URL);
+    assert_eq!(cluster.kubernetes_version.as_deref(), Some(KUBERNETES_VERSION));
+    assert_eq!(cluster.platform.as_deref(), Some(PLATFORM));
     assert_eq!(
         cluster.health_status,
         KubernetesClusterHealthStatus::Healthy

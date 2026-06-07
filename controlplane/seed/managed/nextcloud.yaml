@@ -8,6 +8,26 @@ service:
   database_engine: cnpg
   icon_url: null
 
+plans:
+  - id: nextcloud-standard
+    name: "Nextcloud Standard"
+    description: "Instance collaborative, 100 Go de stockage, support email."
+    status: active
+    highlighted: true
+    entitlements:
+      - key: support_level
+        label: "Support"
+        value: "Email"
+      - key: gti
+        label: "Temps d'intervention garanti"
+        value: "24h"
+      - key: storage
+        label: "Stockage"
+        value: "100 Go"
+    prices:
+      monthly: 1999
+      yearly: 21589
+
 dev_mock_version:
   chart_version: 1.0.0
   app_version: 32.0.5

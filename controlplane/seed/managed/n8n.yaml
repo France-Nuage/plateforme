@@ -8,6 +8,23 @@ service:
   database_engine: cnpg
   icon_url: null
 
+plans:
+  - id: n8n-standard
+    name: "n8n Standard"
+    description: "Workflows illimites, support email."
+    status: active
+    highlighted: true
+    entitlements:
+      - key: support_level
+        label: "Support"
+        value: "Email"
+      - key: gti
+        label: "Temps d'intervention garanti"
+        value: "24h"
+    prices:
+      monthly: 1499
+      yearly: 16189
+
 dev_mock_version:
   chart_version: 1.0.0
   app_version: 1.70.1

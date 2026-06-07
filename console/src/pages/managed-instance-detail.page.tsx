@@ -20,7 +20,11 @@ import {
   ManagedInstanceStatusBadge,
   UpgradeManagedInstanceButton,
 } from '@/components';
-import { fetchManagedInstance, fetchManagedServiceVersions } from '@/features';
+import {
+  fetchManagedInstance,
+  fetchManagedServicePlans,
+  fetchManagedServiceVersions,
+} from '@/features';
 import { useAppDispatch, useAppSelector, usePolling } from '@/hooks';
 import { MANAGED_INSTANCE_POLL_INTERVAL_MS, parseJsonObject } from '@/services';
 import { Routes } from '@/types';
@@ -42,6 +46,7 @@ export const ManagedInstanceDetailPage: FunctionComponent = () => {
   );
   const services = useAppSelector((state) => state.managedServices.services);
   const versions = useAppSelector((state) => state.managedServices.versions);
+  const plans = useAppSelector((state) => state.managedServices.plans);
 
   useEffect(() => {
     if (instanceId) {
@@ -66,6 +71,7 @@ export const ManagedInstanceDetailPage: FunctionComponent = () => {
     );
     if (service) {
       dispatch(fetchManagedServiceVersions(service.slug));
+      dispatch(fetchManagedServicePlans(service.slug));
     }
   }, [dispatch, instance, services]);
 
@@ -80,6 +86,11 @@ export const ManagedInstanceDetailPage: FunctionComponent = () => {
   const currentVersion = useMemo(
     () => versions.find((version) => version.id === instance?.versionId),
     [versions, instance],
+  );
+
+  const planName = useMemo(
+    () => plans.find((plan) => plan.id === instance?.planId)?.name,
+    [plans, instance],
   );
 
   const userValues = useMemo(
@@ -144,6 +155,7 @@ export const ManagedInstanceDetailPage: FunctionComponent = () => {
               <InfoRow label="ID" value={instance.id} mono />
               <InfoRow label="Namespace" value={instance.namespace} mono />
               <InfoRow label="Release" value={instance.releaseName} mono />
+              {planName && <InfoRow label="Plan" value={planName} />}
               <InfoRow
                 label="Version chart"
                 value={currentVersion?.chartVersion ?? instance.versionId}

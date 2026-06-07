@@ -3,7 +3,8 @@ mod common;
 use std::sync::{Arc, Mutex};
 
 use common::{
-    Api, OnBehalfOf, seed_kubernetes_cluster, seed_managed_service, seed_managed_service_version,
+    Api, OnBehalfOf, seed_kubernetes_cluster, seed_managed_service, seed_managed_service_plan,
+    seed_managed_service_version,
 };
 use fabrique::Factory;
 use frn_core::identity::ServiceAccount;
@@ -65,6 +66,8 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
         "oci://registry.example.com/charts/vaultwarden",
     )
     .await;
+    let plan_id =
+        seed_managed_service_plan(&pool, service_id, "vaultwarden-standard", "Standard").await;
 
     let response = api
         .managed
@@ -75,6 +78,7 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
                 organization_id: organization.id.to_string(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: version_id.to_string(),
+                plan_id: plan_id.to_string(),
                 user_values: Some(json!({"domain": "vault.example.com"}).to_string()),
                 secret_values: Some(json!({"smtp.password": "secret123"}).to_string()),
             })
@@ -86,6 +90,7 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
     let instance = response.unwrap().into_inner().instance.unwrap();
     assert_eq!(instance.status, "provisioning");
     assert_eq!(instance.service_id, service_id.to_string());
+    assert_eq!(instance.plan_id, Some(plan_id.to_string()));
     assert!(instance.namespace.starts_with("managed-acme-vaultwarden"));
 
     Ok(())
@@ -102,7 +107,6 @@ async fn test_create_instance_fails_when_project_has_no_cluster(
         .parent_id(None)
         .create(&pool)
         .await?;
-    // A project deliberately created without any cluster assigned.
     let project = Project::factory()
         .organization_id(organization.id)
         .cluster_id(None)
@@ -118,6 +122,8 @@ async fn test_create_instance_fails_when_project_has_no_cluster(
         "oci://registry.example.com/charts/vaultwarden",
     )
     .await;
+    let plan_id =
+        seed_managed_service_plan(&pool, service_id, "vaultwarden-standard", "Standard").await;
 
     let status = api
         .managed
@@ -128,6 +134,7 @@ async fn test_create_instance_fails_when_project_has_no_cluster(
                 organization_id: organization.id.to_string(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: version_id.to_string(),
+                plan_id: plan_id.to_string(),
                 user_values: None,
                 secret_values: None,
             })
@@ -166,6 +173,8 @@ async fn test_create_instance_propagates_project_cluster_to_workflow(
         "oci://registry.example.com/charts/vaultwarden",
     )
     .await;
+    let plan_id =
+        seed_managed_service_plan(&pool, service_id, "vaultwarden-standard", "Standard").await;
 
     let scheduler = CapturingScheduler {
         captured: Arc::new(Mutex::new(None)),
@@ -189,6 +198,7 @@ async fn test_create_instance_propagates_project_cluster_to_workflow(
                 organization_id: organization.id,
                 service_slug: "vaultwarden".to_owned(),
                 version_id,
+                plan_id,
                 user_values: None,
                 secret_values: None,
             },
@@ -220,6 +230,7 @@ async fn test_create_instance_returns_error_when_service_not_found(
                 organization_id: Uuid::new_v4().to_string(),
                 service_slug: "nonexistent".to_owned(),
                 version_id: Uuid::new_v4().to_string(),
+                plan_id: Uuid::new_v4().to_string(),
                 user_values: None,
                 secret_values: None,
             })
@@ -248,6 +259,36 @@ async fn test_create_instance_returns_error_when_project_id_is_empty(
                 organization_id: Uuid::new_v4().to_string(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: Uuid::new_v4().to_string(),
+                plan_id: Uuid::new_v4().to_string(),
+                user_values: None,
+                secret_values: None,
+            })
+            .on_behalf_of(&api.service_account),
+        )
+        .await;
+
+    assert!(response.is_err());
+    assert_eq!(response.unwrap_err().code(), Code::InvalidArgument);
+
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_create_instance_returns_error_when_plan_id_is_empty(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    let response = api
+        .managed
+        .services
+        .create_instance(
+            Request::new(CreateInstanceRequest {
+                project_id: Uuid::new_v4().to_string(),
+                organization_id: Uuid::new_v4().to_string(),
+                service_slug: "vaultwarden".to_owned(),
+                version_id: Uuid::new_v4().to_string(),
+                plan_id: String::new(),
                 user_values: None,
                 secret_values: None,
             })

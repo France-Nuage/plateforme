@@ -8,6 +8,23 @@ service:
   database_engine: cnpg
   icon_url: null
 
+plans:
+  - id: metabase-standard
+    name: "Metabase Standard"
+    description: "Dashboards illimites, support email."
+    status: active
+    highlighted: true
+    entitlements:
+      - key: support_level
+        label: "Support"
+        value: "Email"
+      - key: gti
+        label: "Temps d'intervention garanti"
+        value: "24h"
+    prices:
+      monthly: 1499
+      yearly: 16189
+
 dev_mock_version:
   chart_version: 1.0.0
   app_version: 0.60.4
