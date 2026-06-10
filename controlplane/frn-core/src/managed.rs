@@ -16,6 +16,7 @@ pub use upgrade::*;
 use std::collections::BTreeMap;
 
 use crate::authorization::{Authorize, Resource};
+use crate::kubernetes::KubernetesClusters;
 use crate::resourcemanager::{Organization, Project};
 use chrono::{DateTime, Utc};
 use fabrique::sql::operators::Direction;
@@ -68,6 +69,12 @@ pub struct ManagedService {
     pub category: ManagedServiceCategory,
     pub database_engine: Option<ManagedDatabaseEngine>,
     pub icon_url: Option<String>,
+    /// Label selector resolved at instance deployment: a JSON object of
+    /// key/value pairs (e.g. `{"availability": "ft"}`). Only healthy clusters
+    /// carrying every pair are eligible to host instances of this service.
+    /// `None` or `{}` means the service cannot be deployed
+    /// ([`ManagedServiceError::MissingDeployTarget`]).
+    pub deploy_target: Option<Value>,
     #[fabrique(soft_delete)]
     pub deactivated_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
@@ -161,6 +168,9 @@ pub struct ManagedServiceInstance {
     pub plan_id: Option<Uuid>,
     pub project_id: Uuid,
     pub organization_id: Uuid,
+    /// The Kubernetes cluster hosting this instance, resolved at creation by
+    /// matching the service `deploy_target` against the cluster labels.
+    pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
     pub user_values: Option<Value>,
@@ -183,6 +193,7 @@ pub struct ManagedServiceInstanceView {
     pub plan_id: Option<Uuid>,
     pub project_id: Uuid,
     pub organization_id: Uuid,
+    pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
     pub user_values: Option<Value>,
@@ -228,8 +239,12 @@ pub enum ManagedServiceError {
     OrganizationNotFound(Uuid),
     #[error("project not found: {0}")]
     ProjectNotFound(Uuid),
-    #[error("project {0} has no kubernetes cluster assigned")]
-    NoClusterAssigned(Uuid),
+    #[error("service {0} declares no deploy_target and cannot be deployed")]
+    MissingDeployTarget(String),
+    #[error("service {0} has an invalid deploy_target: {1}")]
+    InvalidDeployTarget(String, String),
+    #[error("no healthy cluster matches the deploy_target of service {0}")]
+    NoClusterMatchingDeployTarget(String),
     #[error("version already exists: {0}")]
     VersionAlreadyExists(String),
     #[error("invalid operation on instance {0}: current status is {1}")]
@@ -341,6 +356,42 @@ pub fn generate_release_name(service_slug: &str, instance_number: i64) -> String
     }
 }
 
+/// Parses a service `deploy_target` JSON object into the label pairs a
+/// hosting cluster must carry. Rejects a missing or empty target and any
+/// non-string value with a typed error.
+pub(crate) fn parse_deploy_target(
+    service: &ManagedService,
+) -> Result<BTreeMap<String, String>, ManagedServiceError> {
+    let slug = &service.slug;
+    let target = service
+        .deploy_target
+        .as_ref()
+        .ok_or_else(|| ManagedServiceError::MissingDeployTarget(slug.clone()))?;
+
+    let object = target.as_object().ok_or_else(|| {
+        ManagedServiceError::InvalidDeployTarget(slug.clone(), "expected a JSON object".to_owned())
+    })?;
+
+    if object.is_empty() {
+        return Err(ManagedServiceError::MissingDeployTarget(slug.clone()));
+    }
+
+    object
+        .iter()
+        .map(|(key, value)| {
+            value
+                .as_str()
+                .map(|v| (key.clone(), v.to_owned()))
+                .ok_or_else(|| {
+                    ManagedServiceError::InvalidDeployTarget(
+                        slug.clone(),
+                        format!("value of '{key}' must be a string"),
+                    )
+                })
+        })
+        .collect()
+}
+
 pub fn build_instance_labels(
     service_slug: &str,
     instance_id: Uuid,
@@ -427,14 +478,22 @@ impl<A: Authorize> ManagedServices<A> {
             .ok_or_else(|| ManagedServiceError::ProjectNotFound(project_id))
     }
 
-    pub(crate) async fn resolve_cluster_id(
+    /// Resolves the cluster that will host a new instance of `service`.
+    ///
+    /// Parses the service `deploy_target` into required labels, then picks a
+    /// random healthy cluster carrying all of them. Fails with a typed error
+    /// when the service declares no target
+    /// ([`ManagedServiceError::MissingDeployTarget`]) or when no cluster
+    /// matches ([`ManagedServiceError::NoClusterMatchingDeployTarget`]).
+    pub(crate) async fn resolve_deploy_cluster(
         &self,
-        project_id: Uuid,
+        service: &ManagedService,
     ) -> Result<Uuid, ManagedServiceError> {
-        self.find_project(project_id)
+        let required_labels = parse_deploy_target(service)?;
+        KubernetesClusters::pick_healthy_cluster_matching(&self.db, &required_labels)
             .await?
-            .cluster_id
-            .ok_or(ManagedServiceError::NoClusterAssigned(project_id))
+            .map(|cluster| cluster.id)
+            .ok_or_else(|| ManagedServiceError::NoClusterMatchingDeployTarget(service.slug.clone()))
     }
 
     pub(crate) async fn count_instances_for_service(

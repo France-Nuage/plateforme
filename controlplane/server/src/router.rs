@@ -276,10 +276,11 @@ impl Router {
     /// * `pool` - PostgreSQL connection pool for cluster persistence
     /// * `kek` - Key Encryption Key wrapping each cluster's kubeconfig DEK
     pub fn kubernetes_clusters(self, iam: IAM, pool: Pool<Postgres>, kek: Arc<Kek>) -> Self {
-        let service = frn_core::kubernetes::KubernetesClusters::new(pool, kek);
+        let service = frn_core::kubernetes::KubernetesClusters::new(pool.clone(), kek);
+        let labels = frn_core::kubernetes::KubernetesLabels::new(pool);
         Self {
             routes: self.routes.add_service(KubernetesClustersServer::new(
-                KubernetesClustersRpc::new(iam, service),
+                KubernetesClustersRpc::new(iam, service, labels),
             )),
         }
     }

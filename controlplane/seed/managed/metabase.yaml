@@ -7,6 +7,10 @@ service:
   category: analytics
   database_engine: cnpg
   icon_url: null
+  # Labels qu'un cluster doit porter pour heberger ce service (voir
+  # kubernetes.label) ; sans deploy_target le service ne peut pas etre deploye.
+  deploy_target:
+    availability: ft
 
 plans:
   - id: metabase-standard

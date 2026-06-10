@@ -57,17 +57,6 @@
             "name": "updated_at"
           }
         }
-      },
-      {
-        "ordinal": 5,
-        "name": "cluster_id",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "projects",
-            "name": "cluster_id"
-          }
-        }
       }
     ],
     "parameters": {
@@ -81,8 +70,7 @@
       false,
       false,
       false,
-      false,
-      true
+      false
     ]
   },
   "hash": "e1157dafa940ce24aa7948d0264c31e6e949a3972265e06c05ab362c97774278"

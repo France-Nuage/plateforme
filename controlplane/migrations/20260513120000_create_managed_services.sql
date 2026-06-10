@@ -31,6 +31,13 @@ CREATE TABLE managed.service (
     category managed_service_category NOT NULL,
     database_engine managed_database_engine,
     icon_url TEXT,
+    -- Label selector resolved at instance deployment: a JSONB object of
+    -- key/value pairs (e.g. {"availability": "ft"}). Only clusters carrying
+    -- every pair are eligible to host instances of this service. NULL or {}
+    -- means the service declares no target and cannot be deployed (the
+    -- service layer rejects it with a typed error).
+    deploy_target JSONB
+        CHECK (deploy_target IS NULL OR jsonb_typeof(deploy_target) = 'object'),
     deactivated_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

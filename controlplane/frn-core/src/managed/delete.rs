@@ -41,8 +41,11 @@ impl<A: Authorize> ManagedServices<A> {
             .over::<ManagedServiceInstance>(&instance_id)
             .await?;
 
+        // The instance stores the cluster its release lives on: the deletion
+        // must target that exact cluster, not re-run the deploy_target
+        // matching.
         let instance = self.find_instance(instance_id).await?;
-        let cluster_id = self.resolve_cluster_id(instance.project_id).await?;
+        let cluster_id = instance.cluster_id;
 
         transition_instance_status(
             conn,

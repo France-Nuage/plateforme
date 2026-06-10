@@ -10,7 +10,9 @@ use tonic::{Code, Request};
 async fn test_list_plans_returns_empty_when_no_plans(
     pool: PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
 
@@ -33,7 +35,9 @@ async fn test_list_plans_returns_empty_when_no_plans(
 async fn test_list_plans_returns_active_plans(
     pool: PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
     seed_managed_service_plan(&pool, service_id, "vaultwarden-standard", "Standard").await;
@@ -57,10 +61,10 @@ async fn test_list_plans_returns_active_plans(
 }
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_list_plans_excludes_archived(
-    pool: PgPool,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+async fn test_list_plans_excludes_archived(pool: PgPool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
     seed_managed_service_plan(&pool, service_id, "vaultwarden-standard", "Standard").await;
@@ -95,7 +99,9 @@ async fn test_list_plans_excludes_archived(
 async fn test_list_plans_returns_not_found_for_unknown_service(
     pool: PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     let response = api
         .managed
@@ -115,7 +121,9 @@ async fn test_list_plans_returns_not_found_for_unknown_service(
 async fn test_list_plans_returns_error_when_slug_is_empty(
     pool: PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     let response = api
         .managed
@@ -135,7 +143,9 @@ async fn test_list_plans_returns_error_when_slug_is_empty(
 async fn test_list_plans_returns_entitlements_and_prices(
     pool: PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
     seed_managed_service_plan(&pool, service_id, "vaultwarden-standard", "Standard").await;

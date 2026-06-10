@@ -96,8 +96,8 @@ impl From<&ManagedServiceInstanceView> for ManagedServiceInstanceProto {
 
 impl From<&ManagedServicePlan> for ManagedServicePlanProto {
     fn from(plan: &ManagedServicePlan) -> Self {
-        let entitlements: Vec<PlanEntitlement> = serde_json::from_value(plan.entitlements.clone())
-            .unwrap_or_default();
+        let entitlements: Vec<PlanEntitlement> =
+            serde_json::from_value(plan.entitlements.clone()).unwrap_or_default();
         Self {
             id: plan.id.to_string(),
             service_id: plan.service_id.to_string(),
@@ -128,7 +128,10 @@ fn managed_error_to_status(err: ManagedServiceError) -> Status {
         ManagedServiceError::Authorization(_) => Status::permission_denied(message),
         ManagedServiceError::Database(_)
         | ManagedServiceError::Fabrique(_)
-        | ManagedServiceError::Workflow(_) => Status::internal(message),
+        | ManagedServiceError::Workflow(_) => {
+            tracing::error!(error = %message, "internal managed service error");
+            Status::internal("internal error")
+        }
         ManagedServiceError::ServiceNotFound(_)
         | ManagedServiceError::VersionNotFound(_)
         | ManagedServiceError::InstanceNotFound(_)
@@ -137,7 +140,11 @@ fn managed_error_to_status(err: ManagedServiceError) -> Status {
         ManagedServiceError::VersionAlreadyExists(_) => Status::already_exists(message),
         ManagedServiceError::NamespaceTooLong { .. } => Status::invalid_argument(message),
         ManagedServiceError::InvalidInstanceStatus(..) => Status::failed_precondition(message),
-        ManagedServiceError::NoClusterAssigned(_) => Status::failed_precondition(message),
+        ManagedServiceError::MissingDeployTarget(_)
+        | ManagedServiceError::InvalidDeployTarget(..)
+        | ManagedServiceError::NoClusterMatchingDeployTarget(_) => {
+            Status::failed_precondition(message)
+        }
         ManagedServiceError::PlanNotFound(_) => Status::not_found(message),
         ManagedServiceError::PlanNotActive(_) => Status::failed_precondition(message),
         ManagedServiceError::PlanServiceMismatch { .. } => Status::invalid_argument(message),

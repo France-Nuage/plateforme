@@ -18,6 +18,9 @@ Le kubeconfig est chiffre au repos et n'est jamais re-expose via l'API (write-on
   - Parse le kubeconfig, construit un client kube-rs
   - Appelle `GET /version` avec timeouts (connect 5s, read 10s, total 20s)
   - Extrait `api_server_url`, `kubernetes_version`, `platform`
+  - `kubernetes_version` est normalisee en semver strict : le prefixe `v` du gitVersion
+    (ex: `v1.32.2+k3s1` -> `1.32.2+k3s1`) est retire ; si la valeur n'est pas du semver
+    parseable, NULL est stocke (le health check reussit quand meme)
   - Si le cluster est injoignable, la creation echoue immediatement (rien n'est persiste)
 - Le kubeconfig est chiffre via envelope encryption (voir section suivante)
 - Le cluster est insere en base avec `health_status = healthy`
@@ -47,18 +50,38 @@ Le kubeconfig est chiffre au repos et n'est jamais re-expose via l'API (write-on
 
 ## Suppression
 
-- Refusee si des projets sont encore assignes au cluster (`ClusterHasProjects`)
+- Refusee si des instances de services manages sont encore hebergees sur le
+  cluster (`ClusterHasInstances`)
 - Sinon, suppression directe de la ligne
+
+## Labels de cluster
+
+- Table `kubernetes.label` : paires cle/valeur reutilisables (ex: `availability=ft`),
+  CITEXT (insensibles a la casse), contraintes `length < 50` et charset `[a-zA-Z0-9-]`
+- Table de jointure `kubernetes.cluster_label` : attache un label a un cluster
+  (attach/detach idempotents)
+- Flag `system` : un label `system = true` appartient au control plane ; l'API
+  refuse create/delete/attach/detach dessus, meme pour les admins
+  (`SystemLabelReadOnly`)
+- RPCs admin : ListLabels, CreateLabel, DeleteLabel, AttachClusterLabel,
+  DetachClusterLabel ; les labels d'un cluster sont retournes dans
+  `KubernetesClusterProto.labels`
 
 ## Selection d'un cluster
 
-- `pick_random_healthy_cluster` : selectionne aleatoirement un cluster avec `health_status = healthy`
-- Utilise lors de la creation d'un projet pour repartir la charge
+- `pick_healthy_cluster_matching` : selectionne un cluster `health_status = healthy`
+  qui porte TOUS les labels requis par le `deploy_target` du service manage
+- Aucun candidat -> erreur typee `NoClusterMatchingDeployTarget` (pas de fallback)
+- Plusieurs candidats -> choix aleatoire pour repartir la charge
+- Utilise au deploiement d'une instance (voir SPEC-004) ; les projets ne sont
+  plus lies a un cluster
 
 ## Stockage en base
 
 - Schema `kubernetes`, table `kubernetes.cluster`
 - Colonnes chiffrees : `encrypted_kubeconfig`, `kubeconfig_nonce`, `dek_encrypted`, `dek_nonce`
 - Colonnes metadonnees : `name`, `description`, `api_server_url`, `ca_fingerprint`, `kubernetes_version`, `platform`
+- `kubernetes_version` porte une contrainte CHECK semver strict (NULL autorise) ; la
+  normalisation applicative garantit qu'une valeur non parseable devient NULL
 - Colonnes sante : `health_status` (enum healthy/unreachable), `last_health_check_at`
 - Index sur `key_version` pour les jobs de re-chiffrement lors de rotation de cle

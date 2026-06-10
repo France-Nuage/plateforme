@@ -903,6 +903,7 @@ dependencies = [
  "dummy",
  "either",
  "rand 0.9.0",
+ "serde_json",
  "uuid",
 ]
 
@@ -1010,6 +1011,7 @@ dependencies = [
  "moka",
  "rand 0.8.5",
  "reqwest",
+ "semver",
  "serde",
  "serde_json",
  "serde_plain",

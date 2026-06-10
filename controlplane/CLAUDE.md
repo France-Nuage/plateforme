@@ -3,6 +3,35 @@
 This document contains instructions for maintaining high-quality documentation
 across the controlplane cargo workspace.
 
+## Data Access: fabrique First
+
+All database access in this workspace goes through the `fabrique` ORM. Raw SQL
+is the exception, never the default.
+
+- Entities derive `Model` (and `Factory` when tests seed them) with
+  `#[fabrique(table = "...")]`; foreign key fields carry
+  `#[fabrique(belongs_to = Parent)]` so typed joins are available.
+- Reads and writes use the typestate query builder
+  (`Entity::query().select() / .insert() / .update()`, `r#where`,
+  `join::<Child>()`, `on_conflict`, `returning`) and the `Persist` / `Delete`
+  traits (`create`, `save`, `delete`, `destroy`). Tests seed through factories
+  and the builder, not hand-written SQL.
+- Raw SQL (`sqlx::query`, `sqlx::query_as`, `sqlx::query_scalar`) is allowed
+  ONLY when the builder cannot express the statement, and every raw query MUST
+  carry a comment naming the limitation that forces it. Known legitimate
+  cases:
+  - casts on bind parameters (e.g. `$1::citext`);
+  - jsonb functions and anti-joins (`jsonb_each_text`, `NOT EXISTS`);
+  - `ON CONFLICT` targeting a non-primary-key unique constraint (the builder
+    only supports conflicts on the primary key);
+  - `DELETE` statements whose `rows_affected()` result drives the logic;
+  - aggregates (`COUNT`, `SUM`, ...). When a count is only compared to zero,
+    prefer an existence check with `.first()` instead.
+- Design around builder limitations instead of falling back to raw SQL:
+  `order_by` accepts a single column (sort multi-column orderings in Rust when
+  the result set is small), and a query returns the columns of a single model
+  (fetch related models separately and pair them in memory).
+
 ## Documentation Style Standards
 
 ### Module-Level Documentation (`//!`)

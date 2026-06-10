@@ -10,12 +10,17 @@ un workflow de deploiement execute par le worker.
 
 - L'utilisateur doit avoir la permission `CreateInstance` sur le projet
 - Le service, la version et le plan doivent exister et etre actifs
-- Le projet doit etre assigne a un cluster Kubernetes sain
+- Le service doit declarer un `deploy_target` (sinon `MissingDeployTarget`)
+- Un cluster Kubernetes sain doit porter TOUS les labels du `deploy_target`
+  (sinon `NoClusterMatchingDeployTarget`)
 
 ## Flux de creation (API)
 
 - L'utilisateur fournit : service_slug, version_id, plan_id, project_id, user_values, secret_values
-- Le serveur resout l'organisation et le cluster_id depuis le projet
+- Le serveur resout l'organisation et verifie que le projet existe
+- Le serveur resout le cluster hote : matching du `deploy_target` du service
+  contre les labels des clusters sains (choix aleatoire si plusieurs candidats),
+  et persiste `cluster_id` sur l'instance
 - Le serveur valide le plan (doit appartenir au service, status = active)
 - Generation du namespace : `managed-{org_slug}-{service_slug}-{env}` (suffixe `-{n}` si n > 1, max 63 chars)
 - Generation du release_name : `{service_slug}` (suffixe `-{n}` si n > 1, max 53 chars)

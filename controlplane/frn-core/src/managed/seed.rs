@@ -35,6 +35,7 @@
 //!   ui_schema: {...}                   # optional rjsf UI Schema
 //! ```
 
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
@@ -85,6 +86,10 @@ struct ServiceSeed {
     database_engine: Option<ManagedDatabaseEngine>,
     #[serde(default)]
     icon_url: Option<String>,
+    /// Labels a hosting cluster must carry (e.g. `availability: ft`). A
+    /// service without deploy_target cannot be deployed.
+    #[serde(default)]
+    deploy_target: Option<BTreeMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -205,16 +210,22 @@ async fn seed_file(
 }
 
 async fn upsert_service(pool: &Pool<Postgres>, service: &ServiceSeed) -> Result<Uuid, SeedError> {
+    let deploy_target = service
+        .deploy_target
+        .as_ref()
+        .map(serde_json::to_value)
+        .transpose()?;
     let row = sqlx::query_as::<_, (Uuid,)>(
         r#"INSERT INTO managed.service
-               (id, slug, name, description, category, database_engine, icon_url)
-           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6)
+               (id, slug, name, description, category, database_engine, icon_url, deploy_target)
+           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
            ON CONFLICT (slug) DO UPDATE SET
                name = EXCLUDED.name,
                description = EXCLUDED.description,
                category = EXCLUDED.category,
                database_engine = EXCLUDED.database_engine,
                icon_url = EXCLUDED.icon_url,
+               deploy_target = EXCLUDED.deploy_target,
                deactivated_at = NULL
            RETURNING id"#,
     )
@@ -224,6 +235,7 @@ async fn upsert_service(pool: &Pool<Postgres>, service: &ServiceSeed) -> Result<
     .bind(&service.category)
     .bind(&service.database_engine)
     .bind(&service.icon_url)
+    .bind(&deploy_target)
     .fetch_one(pool)
     .await?;
     Ok(row.0)

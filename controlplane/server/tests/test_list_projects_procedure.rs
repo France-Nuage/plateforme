@@ -20,7 +20,6 @@ async fn test_the_list_projects_procedure_works(pool: sqlx::PgPool) {
     Project::factory()
         .id(Uuid::default())
         .organization_id(organization.id)
-        .cluster_id(None)
         .create(&pool)
         .await
         .expect("could not create project");

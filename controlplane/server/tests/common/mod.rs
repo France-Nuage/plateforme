@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 
 use auth::mock::WithWellKnown;
-use fabrique::{Factory, Persist, SoftDelete};
+use fabrique::{Factory, Persist, Query, SoftDelete};
 use frn_core::identity::ServiceAccount;
 use frn_core::managed::{
     DeployManagedServiceParams, ManagedService, ManagedServiceCategory, ManagedServiceInstance,
     ManagedServiceVersion, ManagedServices,
 };
-use serde_json::json;
 use frn_core::workflow::WorkflowScheduler;
+use serde_json::json;
 use spicedb::SpiceDB;
 use sqlx::PgConnection;
 use std::sync::Arc;
@@ -18,7 +18,7 @@ use auth::OpenID;
 use frn_core::identity::User;
 use frn_core::kubernetes::{
     ClusterHealthChecker, ClusterHealthError, ClusterHealthInfo, CreateClusterInput,
-    KubernetesCluster, KubernetesClusters,
+    KubernetesCluster, KubernetesClusterLabel, KubernetesClusters, KubernetesLabel,
 };
 use frn_core::resourcemanager::{Organization, Project};
 use frn_crypto::Kek;
@@ -319,7 +319,62 @@ pub async fn seed_kubernetes_cluster(pool: &Pool<Postgres>, name: &str) -> Kuber
         .expect("could not seed kubernetes cluster")
 }
 
-/// Seeds a managed service in the database for testing.
+/// Label every seeded managed service requires through its deploy_target, and
+/// that [`attach_test_deploy_label`] attaches to seeded clusters.
+pub const TEST_DEPLOY_LABEL: (&str, &str) = ("availability", "test");
+
+/// Attaches a (key, value) label to a cluster, creating the label on first
+/// use. Inserts directly: the service-layer path is covered by the label
+/// service tests. The find-then-insert sequence is race-free because each
+/// `#[sqlx::test]` runs against its own database and the helper is called
+/// sequentially within a test.
+pub async fn attach_cluster_label(pool: &Pool<Postgres>, cluster_id: Uuid, key: &str, value: &str) {
+    let existing = KubernetesLabel::query()
+        .select()
+        .r#where(KubernetesLabel::KEY, "=", key.to_owned())
+        .r#where(KubernetesLabel::VALUE, "=", value.to_owned())
+        .first(pool)
+        .await
+        .expect("could not look up kubernetes label");
+    let label = match existing {
+        Some(label) => label,
+        None => KubernetesLabel::factory()
+            .key(key.to_owned())
+            .value(value.to_owned())
+            .system(false)
+            .create(pool)
+            .await
+            .expect("could not seed kubernetes label"),
+    };
+
+    let attached = KubernetesClusterLabel::query()
+        .select()
+        .r#where(KubernetesClusterLabel::CLUSTER_ID, "=", cluster_id)
+        .r#where(KubernetesClusterLabel::LABEL_ID, "=", label.id)
+        .first(pool)
+        .await
+        .expect("could not look up kubernetes label attachment");
+    if attached.is_none() {
+        KubernetesClusterLabel::query()
+            .insert()
+            .set(KubernetesClusterLabel::ID, Uuid::new_v4())
+            .set(KubernetesClusterLabel::CLUSTER_ID, cluster_id)
+            .set(KubernetesClusterLabel::LABEL_ID, label.id)
+            .execute(pool)
+            .await
+            .expect("could not attach kubernetes label");
+    }
+}
+
+/// Attaches the [`TEST_DEPLOY_LABEL`] to a cluster so it matches the
+/// deploy_target of services seeded by [`seed_managed_service`].
+pub async fn attach_test_deploy_label(pool: &Pool<Postgres>, cluster_id: Uuid) {
+    attach_cluster_label(pool, cluster_id, TEST_DEPLOY_LABEL.0, TEST_DEPLOY_LABEL.1).await;
+}
+
+/// Seeds a managed service in the database for testing. The service requires
+/// the [`TEST_DEPLOY_LABEL`] through its deploy_target; pair it with
+/// [`attach_test_deploy_label`] on the hosting cluster.
 pub async fn seed_managed_service(
     pool: &Pool<Postgres>,
     slug: &str,
@@ -331,6 +386,7 @@ pub async fn seed_managed_service(
         .slug(slug.to_owned())
         .name(name.to_owned())
         .category(category)
+        .deploy_target(Some(json!({TEST_DEPLOY_LABEL.0: TEST_DEPLOY_LABEL.1})))
         .deactivated_at(None)
         .create(pool)
         .await
@@ -370,9 +426,13 @@ pub async fn seed_managed_service_instance(
     version_id: Uuid,
     service_slug: &str,
 ) -> ManagedServiceInstance {
-    let plan_id =
-        seed_managed_service_plan(pool, service_id, &format!("{service_slug}-standard"), "Standard")
-            .await;
+    let plan_id = seed_managed_service_plan(
+        pool,
+        service_id,
+        &format!("{service_slug}-standard"),
+        "Standard",
+    )
+    .await;
 
     let organization = Organization::factory()
         .slug(format!("seed-{}", Uuid::new_v4().simple()))
@@ -381,9 +441,9 @@ pub async fn seed_managed_service_instance(
         .await
         .expect("could not seed organization");
     let cluster = seed_kubernetes_cluster(pool, &format!("seed-{}", Uuid::new_v4().simple())).await;
+    attach_test_deploy_label(pool, cluster.id).await;
     let project = Project::factory()
         .organization_id(organization.id)
-        .cluster_id(Some(cluster.id))
         .create(pool)
         .await
         .expect("could not seed project");

@@ -18,6 +18,8 @@ service:
   category: security
   database_engine: cnpg       # optionnel (cnpg ou mariadb)
   icon_url: null              # optionnel
+  deploy_target:              # labels requis sur le cluster hote (SPEC-004) ;
+    availability: ft          # sans deploy_target le service n'est pas deployable
 
 plans:                        # optionnel, upsert a chaque execution
   - id: vaultwarden-standard
@@ -58,7 +60,7 @@ DATABASE_URL=postgres://... cargo run --bin seed_managed -- \
 
 ## Idempotence
 
-- Services : `ON CONFLICT (slug) DO UPDATE` -- met a jour name, description, category, etc.
+- Services : `ON CONFLICT (slug) DO UPDATE` -- met a jour name, description, category, deploy_target, etc.
 - Plans : upsert par (service_id, slug) -- met a jour name, status, values, entitlements, prix
 - Versions mock : `ON CONFLICT (service_id, chart_version) DO UPDATE` -- met a jour oci_ref, schema
 - Re-executer le seed plusieurs fois produit le meme resultat

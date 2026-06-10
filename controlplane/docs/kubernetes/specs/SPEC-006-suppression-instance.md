@@ -14,7 +14,7 @@ les ressources Kubernetes et les relations d'acces.
 ## Flux de suppression (API)
 
 - L'utilisateur fournit : instance_id
-- Le serveur charge l'instance et le cluster_id
+- Le serveur charge l'instance et son cluster_id (le cluster ou la release vit, persiste a la creation ; pas de nouveau matching de labels)
 - Transition FSM `running -> deleting` (ou `failed -> deleting`)
 - Calcul des values mergees existantes (user + platform) pour le rollback eventuel
 - Planification du workflow `DeleteManagedService`

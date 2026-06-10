@@ -26,6 +26,34 @@ service KubernetesClusters {
 
     // Deletes a cluster (admin only).
     rpc DeleteCluster(DeleteClusterRequest) returns (DeleteClusterResponse);
+
+    // Lists every cluster label (admin only).
+    rpc ListLabels(ListLabelsRequest) returns (ListLabelsResponse);
+
+    // Creates a user-managed label (admin only). Labels flagged `system` are
+    // owned by the control plane and cannot be created through the API.
+    rpc CreateLabel(CreateLabelRequest) returns (CreateLabelResponse);
+
+    // Deletes a user-managed label and its attachments (admin only).
+    rpc DeleteLabel(DeleteLabelRequest) returns (DeleteLabelResponse);
+
+    // Attaches a user-managed label to a cluster (admin only, idempotent).
+    rpc AttachClusterLabel(AttachClusterLabelRequest) returns (AttachClusterLabelResponse);
+
+    // Detaches a user-managed label from a cluster (admin only, idempotent).
+    rpc DetachClusterLabel(DetachClusterLabelRequest) returns (DetachClusterLabelResponse);
+}
+
+// A cluster label: a reusable key/value pair (e.g. availability=ft) attached
+// to clusters and matched against managed-service deploy targets. Labels with
+// `system = true` are owned by the control plane and read-only via the API.
+message KubernetesLabelProto {
+    string id = 1;
+    string key = 2;
+    string value = 3;
+    bool system = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
 }
 
 // Non-sensitive view of a cluster. Never exposes the kubeconfig or any
@@ -44,6 +72,8 @@ message KubernetesClusterProto {
     google.protobuf.Timestamp last_health_check_at = 7;
     google.protobuf.Timestamp created_at = 8;
     google.protobuf.Timestamp updated_at = 9;
+    // Labels attached to the cluster, ordered by key then value.
+    repeated KubernetesLabelProto labels = 12;
 }
 
 // ListClusters
@@ -93,3 +123,45 @@ message DeleteClusterRequest {
 }
 
 message DeleteClusterResponse {}
+
+// ListLabels
+message ListLabelsRequest {}
+
+message ListLabelsResponse {
+    repeated KubernetesLabelProto labels = 1;
+}
+
+// CreateLabel
+message CreateLabelRequest {
+    // Max 49 chars, charset [a-zA-Z0-9-], case-insensitive.
+    string key = 1;
+    // Max 49 chars, charset [a-zA-Z0-9-], case-insensitive.
+    string value = 2;
+}
+
+message CreateLabelResponse {
+    KubernetesLabelProto label = 1;
+}
+
+// DeleteLabel
+message DeleteLabelRequest {
+    string label_id = 1;
+}
+
+message DeleteLabelResponse {}
+
+// AttachClusterLabel
+message AttachClusterLabelRequest {
+    string cluster_id = 1;
+    string label_id = 2;
+}
+
+message AttachClusterLabelResponse {}
+
+// DetachClusterLabel
+message DetachClusterLabelRequest {
+    string cluster_id = 1;
+    string label_id = 2;
+}
+
+message DetachClusterLabelResponse {}

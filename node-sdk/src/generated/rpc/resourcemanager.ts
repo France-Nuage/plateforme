@@ -53,14 +53,6 @@ export interface Project {
      * @generated from protobuf field: google.protobuf.Timestamp updated_at = 5
      */
     updatedAt?: Timestamp;
-    /**
-     * UUID of the Kubernetes cluster hosting this project's managed services.
-     * Absent for the system 'unattributed' project and projects created before
-     * cluster assignment was introduced.
-     *
-     * @generated from protobuf field: optional string cluster_id = 6
-     */
-    clusterId?: string;
 }
 /**
  * @generated from protobuf message francenuage.fr.resourcemanager.v1.ListOrganizationsRequest
@@ -158,8 +150,7 @@ class Project$Type extends MessageType<Project> {
             { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1", maxLen: "64", pattern: "^[a-zA-Z0-9_\\- ]+$" } } } },
             { no: 3, name: "organization_id", kind: "scalar", T: 9 /*ScalarType.STRING*/, options: { "validate.rules": { string: { minLen: "1", maxLen: "36", pattern: "^[a-zA-Z0-9_-]+$" } } } },
             { no: 4, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 5, name: "updated_at", kind: "message", T: () => Timestamp },
-            { no: 6, name: "cluster_id", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "updated_at", kind: "message", T: () => Timestamp }
         ]);
     }
 }

@@ -16,7 +16,7 @@ la FSM vers `upgrading` et planifie un workflow de mise a jour.
 
 - L'utilisateur fournit : instance_id, version_id, user_values (optionnel), secret_values (optionnel)
 - Si user_values n'est pas fourni, les valeurs existantes de l'instance sont conservees
-- Le serveur charge l'instance et le cluster_id
+- Le serveur charge l'instance et son cluster_id (le cluster ou la release vit, persiste a la creation ; pas de nouveau matching de labels)
 - Transition FSM `running -> upgrading` (evenement `upgrade`)
 - Merge des nouvelles values (voir SPEC-008)
 - Planification du workflow `UpgradeManagedService`

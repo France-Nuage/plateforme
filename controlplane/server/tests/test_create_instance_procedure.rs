@@ -3,13 +3,13 @@ mod common;
 use std::sync::{Arc, Mutex};
 
 use common::{
-    Api, OnBehalfOf, seed_kubernetes_cluster, seed_managed_service, seed_managed_service_plan,
-    seed_managed_service_version,
+    Api, OnBehalfOf, attach_test_deploy_label, seed_kubernetes_cluster, seed_managed_service,
+    seed_managed_service_plan, seed_managed_service_version,
 };
-use fabrique::Factory;
+use fabrique::{Factory, Query};
 use frn_core::identity::ServiceAccount;
 use frn_core::managed::{
-    CreateInstanceRequest as CoreCreateInstanceRequest, DeployManagedServiceParams,
+    CreateInstanceRequest as CoreCreateInstanceRequest, DeployManagedServiceParams, ManagedService,
     ManagedServices, PlatformConfig,
 };
 use frn_core::resourcemanager::{Organization, Project};
@@ -22,7 +22,8 @@ use tonic::{Code, Request};
 use uuid::Uuid;
 
 /// Scheduler that records the cluster_id it was asked to deploy with, so a test
-/// can assert the project's cluster is propagated to the workflow.
+/// can assert the cluster resolved from the deploy_target is propagated to the
+/// workflow.
 #[derive(Clone)]
 struct CapturingScheduler {
     captured: Arc<Mutex<Option<Uuid>>>,
@@ -51,9 +52,9 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
         .create(&pool)
         .await?;
     let cluster = seed_kubernetes_cluster(&pool, "prod-eu").await;
+    attach_test_deploy_label(&pool, cluster.id).await;
     let project = Project::factory()
         .organization_id(organization.id)
-        .cluster_id(Some(cluster.id))
         .create(&pool)
         .await?;
 
@@ -97,7 +98,7 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
 }
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_create_instance_fails_when_project_has_no_cluster(
+async fn test_create_instance_fails_when_no_cluster_matches_deploy_target(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut api = Api::start(&pool).await.expect("could not start api");
@@ -107,9 +108,11 @@ async fn test_create_instance_fails_when_project_has_no_cluster(
         .parent_id(None)
         .create(&pool)
         .await?;
+    // The cluster exists and is healthy but does not carry the label required
+    // by the service deploy_target.
+    seed_kubernetes_cluster(&pool, "prod-eu").await;
     let project = Project::factory()
         .organization_id(organization.id)
-        .cluster_id(None)
         .create(&pool)
         .await?;
 
@@ -141,7 +144,7 @@ async fn test_create_instance_fails_when_project_has_no_cluster(
             .on_behalf_of(&api.service_account),
         )
         .await
-        .expect_err("must fail when the project has no cluster assigned");
+        .expect_err("must fail when no cluster matches the deploy_target");
 
     assert_eq!(status.code(), Code::FailedPrecondition);
 
@@ -149,7 +152,68 @@ async fn test_create_instance_fails_when_project_has_no_cluster(
 }
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_create_instance_propagates_project_cluster_to_workflow(
+async fn test_create_instance_fails_when_service_has_no_deploy_target(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    let organization = Organization::factory()
+        .slug("acme".to_owned())
+        .parent_id(None)
+        .create(&pool)
+        .await?;
+    let cluster = seed_kubernetes_cluster(&pool, "prod-eu").await;
+    attach_test_deploy_label(&pool, cluster.id).await;
+    let project = Project::factory()
+        .organization_id(organization.id)
+        .create(&pool)
+        .await?;
+
+    let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
+    // A service without deploy_target cannot be deployed, even when matching
+    // clusters exist.
+    ManagedService::query()
+        .update()
+        .set(ManagedService::DEPLOY_TARGET, None)
+        .r#where(ManagedService::ID, "=", service_id)
+        .execute(&pool)
+        .await?;
+    let version_id = seed_managed_service_version(
+        &pool,
+        service_id,
+        "1.0.0",
+        Some("1.32.0"),
+        "oci://registry.example.com/charts/vaultwarden",
+    )
+    .await;
+    let plan_id =
+        seed_managed_service_plan(&pool, service_id, "vaultwarden-standard", "Standard").await;
+
+    let status = api
+        .managed
+        .services
+        .create_instance(
+            Request::new(CreateInstanceRequest {
+                project_id: project.id.to_string(),
+                organization_id: organization.id.to_string(),
+                service_slug: "vaultwarden".to_owned(),
+                version_id: version_id.to_string(),
+                plan_id: plan_id.to_string(),
+                user_values: None,
+                secret_values: None,
+            })
+            .on_behalf_of(&api.service_account),
+        )
+        .await
+        .expect_err("must fail when the service declares no deploy_target");
+
+    assert_eq!(status.code(), Code::FailedPrecondition);
+
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_create_instance_propagates_matching_cluster_to_workflow(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let organization = Organization::factory()
@@ -158,9 +222,9 @@ async fn test_create_instance_propagates_project_cluster_to_workflow(
         .create(&pool)
         .await?;
     let cluster = seed_kubernetes_cluster(&pool, "prod-eu").await;
+    attach_test_deploy_label(&pool, cluster.id).await;
     let project = Project::factory()
         .organization_id(organization.id)
-        .cluster_id(Some(cluster.id))
         .create(&pool)
         .await?;
 
@@ -188,7 +252,7 @@ async fn test_create_instance_propagates_project_cluster_to_workflow(
     );
     let mut conn = pool.acquire().await?;
 
-    managed
+    let instance = managed
         .create_instance(
             &ServiceAccount::default(),
             &mut conn,
@@ -207,9 +271,13 @@ async fn test_create_instance_propagates_project_cluster_to_workflow(
         .expect("instance creation should succeed");
 
     assert_eq!(
+        instance.cluster_id, cluster.id,
+        "the instance must persist the cluster matching the deploy_target"
+    );
+    assert_eq!(
         *scheduler.captured.lock().unwrap(),
         Some(cluster.id),
-        "the project's cluster must be propagated to the deploy workflow"
+        "the matching cluster must be propagated to the deploy workflow"
     );
 
     Ok(())

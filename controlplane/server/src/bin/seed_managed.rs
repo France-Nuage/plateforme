@@ -102,10 +102,7 @@ async fn main() -> ExitCode {
                 } else {
                     ""
                 };
-                println!(
-                    "  - {}{}{}",
-                    report.service_slug, plans_info, mock_info,
-                );
+                println!("  - {}{}{}", report.service_slug, plans_info, mock_info,);
             }
             ExitCode::SUCCESS
         }

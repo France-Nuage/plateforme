@@ -119,14 +119,10 @@ impl<A: Authorize> Organizations<A> {
                 .await?;
         }
 
-        // The system 'unattributed' project is never deployed to, so it carries
-        // no cluster. Set it explicitly: the factory would otherwise generate a
-        // random cluster_id that violates the foreign key.
         let project = Project::factory()
             .id(Uuid::new_v4())
             .name(DEFAULT_PROJECT_NAME.to_owned())
             .organization_id(organization.id)
-            .cluster_id(None)
             .create(&self.db)
             .await?;
 

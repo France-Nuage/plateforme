@@ -56,8 +56,14 @@ impl<A: Authorize> ManagedServices<A> {
             .await?;
 
         let organization = self.find_organization(request.organization_id).await?;
-        let cluster_id = self.resolve_cluster_id(request.project_id).await?;
+        self.find_project(request.project_id).await?;
         let service = self.find_service_by_slug(&request.service_slug).await?;
+
+        // The hosting cluster is resolved here, at deployment time, by
+        // matching the service deploy_target against the cluster labels (not
+        // inherited from the project): each instance can land on a different
+        // cluster as the fleet evolves.
+        let cluster_id = self.resolve_deploy_cluster(&service).await?;
 
         let plan = self.find_plan_by_id(request.plan_id).await?;
         if plan.service_id != service.id {
@@ -108,6 +114,7 @@ impl<A: Authorize> ManagedServices<A> {
                 ManagedServiceInstance::ORGANIZATION_ID,
                 request.organization_id,
             )
+            .set(ManagedServiceInstance::CLUSTER_ID, cluster_id)
             .set(ManagedServiceInstance::NAMESPACE, namespace.clone())
             .set(ManagedServiceInstance::RELEASE_NAME, release_name.clone())
             .set(ManagedServiceInstance::USER_VALUES, request.user_values)

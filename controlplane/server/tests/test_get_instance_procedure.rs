@@ -24,7 +24,8 @@ async fn test_get_instance_returns_instance(
     )
     .await;
 
-    let instance = seed_managed_service_instance(&pool, service_id, version_id, "vaultwarden").await;
+    let instance =
+        seed_managed_service_instance(&pool, service_id, version_id, "vaultwarden").await;
 
     let response = api
         .managed

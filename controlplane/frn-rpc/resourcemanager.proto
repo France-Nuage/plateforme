@@ -53,10 +53,6 @@ message Project {
     }];
     google.protobuf.Timestamp created_at = 4;
     google.protobuf.Timestamp updated_at = 5;
-    // UUID of the Kubernetes cluster hosting this project's managed services.
-    // Absent for the system 'unattributed' project and projects created before
-    // cluster assignment was introduced.
-    optional string cluster_id = 6;
 }
 
 message ListOrganizationsRequest {}

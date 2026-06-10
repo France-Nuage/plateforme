@@ -8,18 +8,24 @@
 //! [`KubernetesClusters::decrypt_kubeconfig`], which the deployment worker will
 //! consume in a later iteration to deploy managed services onto these clusters.
 
+mod label;
+
+pub use label::*;
+
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use fabrique::sql::operators::Direction;
-use fabrique::{Error as FabriqueError, Model, Query};
+use fabrique::{Model, Query};
 use frn_crypto::{CURRENT_KEY_VERSION, EnvelopeCiphertext, Kek};
 use kube::config::{KubeConfigOptions, Kubeconfig};
 use kube::{Client, Config};
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
+use semver::Version;
 use serde::Serialize;
 use sqlx::{Pool, Postgres};
 use strum_macros::{Display, EnumString};
@@ -28,6 +34,7 @@ use tokio::time::timeout;
 use uuid::Uuid;
 
 use crate::authorization::Principal;
+use crate::managed::{ManagedServiceInstanceStatus, ManagedServiceInstanceView};
 
 /// Maximum length of a cluster name, matching the DNS-label database CHECK.
 const MAX_NAME_LENGTH: usize = 63;
@@ -86,7 +93,8 @@ pub struct KubernetesCluster {
 pub struct ClusterHealthInfo {
     /// API server URL parsed from the kubeconfig current context.
     pub api_server_url: String,
-    /// Kubernetes semver version reported by `GET /version` (e.g. `v1.32.2`).
+    /// Kubernetes version reported by `GET /version` (e.g. `v1.32.2+k3s1`).
+    /// Normalized to strict semver by the service layer before storage.
     pub kubernetes_version: String,
     /// OS/arch pair reported by the API server (e.g. `linux/amd64`).
     pub platform: String,
@@ -181,8 +189,8 @@ pub enum KubernetesClusterError {
     HealthCheck(#[from] ClusterHealthError),
     #[error("stored kubeconfig is not valid UTF-8")]
     InvalidUtf8,
-    #[error("cluster has assigned projects and cannot be deleted: {0}")]
-    ClusterHasProjects(Uuid),
+    #[error("cluster still hosts managed service instances and cannot be deleted: {0}")]
+    ClusterHasInstances(Uuid),
     #[error("invalid kubeconfig: {0}")]
     InvalidKubeconfig(String),
     #[error("failed to build kubernetes client: {0}")]
@@ -300,7 +308,7 @@ impl KubernetesClusters {
             .set(KubernetesCluster::API_SERVER_URL, health.api_server_url)
             .set(
                 KubernetesCluster::KUBERNETES_VERSION,
-                Some(health.kubernetes_version),
+                normalize_kubernetes_version(&health.kubernetes_version),
             )
             .set(KubernetesCluster::PLATFORM, Some(health.platform))
             .set(
@@ -363,7 +371,7 @@ impl KubernetesClusters {
                     .set(KubernetesCluster::API_SERVER_URL, health.api_server_url)
                     .set(
                         KubernetesCluster::KUBERNETES_VERSION,
-                        Some(health.kubernetes_version),
+                        normalize_kubernetes_version(&health.kubernetes_version),
                     )
                     .set(KubernetesCluster::PLATFORM, Some(health.platform))
                     .set(
@@ -388,17 +396,40 @@ impl KubernetesClusters {
     ) -> Result<(), KubernetesClusterError> {
         require_admin(principal)?;
 
-        // Refuse to delete a cluster that still hosts projects: removing it would
-        // orphan their managed services. Callers must reassign or delete those
-        // projects first. The FK also enforces this at the database level.
-        let assigned_projects =
-            sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM projects WHERE cluster_id = $1")
-                .bind(cluster_id)
-                .fetch_one(&self.db)
-                .await?;
-        if assigned_projects > 0 {
-            return Err(KubernetesClusterError::ClusterHasProjects(cluster_id));
+        // Refuse to delete a cluster that still hosts active managed
+        // service instances: removing it would orphan the deployed releases.
+        // Callers must delete those instances first. Instances in the
+        // terminal "deleted" FSM state are cleaned up below so the FK does
+        // not block the cluster removal.
+        let active_instance = ManagedServiceInstanceView::query()
+            .select()
+            .r#where(ManagedServiceInstanceView::CLUSTER_ID, "=", cluster_id)
+            .r#where(
+                ManagedServiceInstanceView::STATUS,
+                "!=",
+                ManagedServiceInstanceStatus::Deleted,
+            )
+            .first(&self.db)
+            .await?;
+        if active_instance.is_some() {
+            return Err(KubernetesClusterError::ClusterHasInstances(cluster_id));
         }
+
+        // Raw SQL: the DELETE requires a JOIN through the FSM tables to
+        // resolve the abstract state name, which the query builder cannot
+        // express.
+        sqlx::query(
+            "DELETE FROM managed.service_instance si
+             USING lib_fsm.state_machine sm
+             JOIN lib_fsm.abstract_state abs
+                 ON abs.abstract_state__id = sm.abstract_state__id
+             WHERE si.status = sm.state_machine__id
+               AND si.cluster_id = $1
+               AND abs.name = 'deleted'",
+        )
+        .bind(cluster_id)
+        .execute(&self.db)
+        .await?;
 
         let deleted = sqlx::query("DELETE FROM kubernetes.cluster WHERE id = $1")
             .bind(cluster_id)
@@ -434,26 +465,56 @@ impl KubernetesClusters {
         String::from_utf8(plaintext).map_err(|_| KubernetesClusterError::InvalidUtf8)
     }
 
-    /// Picks a random healthy cluster, or `None` when none is registered.
+    /// Picks a random healthy cluster carrying every required label, or
+    /// `None` when no cluster matches.
     ///
-    /// Used when creating a project to spread managed-service load across
-    /// clusters. Only healthy clusters are eligible so a project is never bound
-    /// to an unreachable one. This is an internal selection helper: it needs no
-    /// KEK (no decryption) and performs no admin check, so it takes the pool
-    /// directly rather than a constructed service.
-    pub async fn pick_random_healthy_cluster(
+    /// Used at managed-service deployment: the service's `deploy_target`
+    /// declares the labels a hosting cluster must carry (e.g.
+    /// `availability=ft`). Only healthy clusters are eligible so an instance
+    /// is never bound to an unreachable one; when several clusters match, one
+    /// is picked at random to spread the load. `required_labels` must not be
+    /// empty: the caller is expected to reject services without a
+    /// deploy_target before reaching this helper. This is an internal
+    /// selection helper: it needs no KEK (no decryption) and performs no
+    /// admin check, so it takes the pool directly rather than a constructed
+    /// service.
+    pub async fn pick_healthy_cluster_matching(
         db: &Pool<Postgres>,
-    ) -> Result<Option<KubernetesCluster>, FabriqueError> {
-        let clusters = KubernetesCluster::query()
-            .select()
-            .r#where(
-                KubernetesCluster::HEALTH_STATUS,
-                "=",
-                KubernetesClusterHealthStatus::Healthy,
-            )
-            .get(db)
-            .await?;
-        Ok(clusters.into_iter().choose(&mut thread_rng()))
+        required_labels: &BTreeMap<String, String>,
+    ) -> Result<Option<KubernetesCluster>, sqlx::Error> {
+        let required = serde_json::to_value(required_labels)
+            .expect("a map of strings always serializes to JSON");
+
+        // Raw SQL: the query builder cannot express jsonb_each_text, the
+        // double NOT EXISTS anti-join, or the ::citext parameter casts.
+        // A cluster matches when no required pair is missing from its
+        // attached labels; CITEXT columns make the comparison
+        // case-insensitive.
+        let candidates = sqlx::query_as::<_, KubernetesCluster>(
+            r#"SELECT c.*
+               FROM kubernetes.cluster c
+               WHERE c.health_status = 'healthy'
+                 AND NOT EXISTS (
+                     SELECT 1
+                     FROM jsonb_each_text($1) AS required(key, value)
+                     WHERE NOT EXISTS (
+                         SELECT 1
+                         FROM kubernetes.cluster_label cl
+                         JOIN kubernetes.label l ON l.id = cl.label_id
+                         WHERE cl.cluster_id = c.id
+                           -- ::citext keeps the comparison case-insensitive:
+                           -- without the cast Postgres resolves citext = text
+                           -- to the case-sensitive text = text operator.
+                           AND l.key = required.key::citext
+                           AND l.value = required.value::citext
+                     )
+                 )"#,
+        )
+        .bind(required)
+        .fetch_all(db)
+        .await?;
+
+        Ok(candidates.into_iter().choose(&mut thread_rng()))
     }
 
     /// Builds a kube-rs client from a decrypted kubeconfig YAML.
@@ -507,6 +568,19 @@ impl KubernetesClusters {
             .await
             .map_err(Into::into)
     }
+}
+
+/// Normalizes the version reported by `GET /version` into strict semver.
+///
+/// Kubernetes reports a `gitVersion` such as `v1.32.2+k3s1`: the leading `v`
+/// is not valid semver and is stripped. Returns `None` when the remainder is
+/// not parseable semver, so the database (whose CHECK enforces the format)
+/// stores NULL instead of failing the whole create/update.
+fn normalize_kubernetes_version(git_version: &str) -> Option<String> {
+    let stripped = git_version.strip_prefix('v').unwrap_or(git_version);
+    Version::parse(stripped)
+        .ok()
+        .map(|version| version.to_string())
 }
 
 /// Binds a ciphertext to its row by authenticating the cluster id and key

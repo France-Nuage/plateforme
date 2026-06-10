@@ -1,0 +1,4 @@
+schemaFile: "./schema.zed"
+relationships: |-
+  organization:88f42823-2724-4d3f-a42b-659ba6aa2b6c#member@user:01965d6b-0000-7000-8000-000000000001
+  project:01965d6b-0000-7000-8000-000000000002#parent@organization:88f42823-2724-4d3f-a42b-659ba6aa2b6c

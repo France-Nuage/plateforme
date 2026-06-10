@@ -28,7 +28,6 @@ impl From<frn_core::resourcemanager::Project> for Project {
             organization_id: project.organization_id.to_string(),
             created_at: Some(SystemTime::from(project.created_at).into()),
             updated_at: Some(SystemTime::from(project.updated_at).into()),
-            cluster_id: project.cluster_id.map(|id| id.to_string()),
         }
     }
 }

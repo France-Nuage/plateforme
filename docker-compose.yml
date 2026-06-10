@@ -138,6 +138,8 @@ services:
         condition: service_healthy
       postgres-migrate:
         condition: service_completed_successfully
+      postgres-seed:
+        condition: service_completed_successfully
       spicedb:
         condition: service_healthy
       traefik:
@@ -522,10 +524,26 @@ services:
       - ./certs:/etc/traefik/certs:ro
       - ./traefik:/etc/traefik/dynamic:ro
 
+  postgres-seed:
+    image: postgres:16-alpine
+    entrypoint: ["sh", "-c"]
+    command:
+      - psql "$${DATABASE_URL}" -f /home/seed.sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+    restart: no
+    volumes:
+      - ./seed.sql:/home/seed.sql:ro
+
   zed:
     # TODO: pin to a specific version (was latest)
     image: authzed/zed:latest
-    command: schema write /authz/schema.zed
+    command: import /authz/seed.yaml
     depends_on:
       spicedb:
         condition: service_healthy

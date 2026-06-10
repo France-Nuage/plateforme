@@ -23,7 +23,6 @@ async fn test_the_update_instance_procedure_can_change_project(pool: sqlx::PgPoo
     let project_a = Project::factory()
         .name("project-a".into())
         .organization_id(organization.id)
-        .cluster_id(None)
         .create(&pool)
         .await
         .expect("could not create project A");
@@ -32,7 +31,6 @@ async fn test_the_update_instance_procedure_can_change_project(pool: sqlx::PgPoo
     let project_b = Project::factory()
         .name("project-b".into())
         .organization_id(organization.id)
-        .cluster_id(None)
         .create(&pool)
         .await
         .expect("could not create project B");
@@ -103,11 +101,7 @@ async fn test_the_update_instance_procedure_can_change_name(pool: sqlx::PgPool) 
                 .organization_id(organization.id)
                 .url(mock_url),
         )
-        .for_project(
-            Project::factory()
-                .organization_id(organization.id)
-                .cluster_id(None),
-        )
+        .for_project(Project::factory().organization_id(organization.id))
         .name("old-name".into())
         .distant_id("101".into())
         .zero_trust_network_id(None)

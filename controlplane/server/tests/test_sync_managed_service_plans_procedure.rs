@@ -1,6 +1,6 @@
 mod common;
 
-use common::{seed_managed_service, IntoCi};
+use common::{IntoCi, seed_managed_service};
 use frn_rpc::v1::managed::{
     ListPlansRequest, ManagedServicePlanEntitlementProto, SyncPlanEntry, SyncPlansRequest,
 };
@@ -8,10 +8,10 @@ use sqlx::PgPool;
 use tonic::{Code, Request};
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_sync_plans_creates_plans(
-    pool: PgPool,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+async fn test_sync_plans_creates_plans(pool: PgPool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
 
@@ -55,7 +55,9 @@ async fn test_sync_plans_creates_plans(
 async fn test_sync_plans_upserts_existing_plan(
     pool: PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
 
@@ -122,7 +124,9 @@ async fn test_sync_plans_upserts_existing_plan(
 async fn test_sync_plans_rejects_unauthenticated(
     pool: PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
 
@@ -147,7 +151,9 @@ async fn test_sync_plans_rejects_wrong_token(
 ) -> Result<(), Box<dyn std::error::Error>> {
     use tonic::metadata::MetadataValue;
 
-    let mut api = common::Api::start(&pool).await.expect("could not start api");
+    let mut api = common::Api::start(&pool)
+        .await
+        .expect("could not start api");
 
     seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
 

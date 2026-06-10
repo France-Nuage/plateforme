@@ -33,7 +33,14 @@ CREATE TABLE kubernetes.cluster (
     -- Version information reported by the API server during the last successful
     -- health check (GET /version). Nullable because the first health check may
     -- not have run yet or could have failed before returning version data.
-    kubernetes_version TEXT,
+    -- The reported gitVersion (e.g. "v1.32.2+k3s1") is normalized to strict
+    -- semver by the service layer (leading "v" stripped, NULL when not
+    -- parseable); the CHECK keeps every write strict.
+    kubernetes_version TEXT
+        CHECK (
+            kubernetes_version IS NULL
+            OR kubernetes_version ~ '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'
+        ),
     platform TEXT,
 
     -- Result of the most recent reachability check performed by the control

@@ -4,6 +4,16 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { KubernetesClusters } from "./kubernetes";
+import type { DetachClusterLabelResponse } from "./kubernetes";
+import type { DetachClusterLabelRequest } from "./kubernetes";
+import type { AttachClusterLabelResponse } from "./kubernetes";
+import type { AttachClusterLabelRequest } from "./kubernetes";
+import type { DeleteLabelResponse } from "./kubernetes";
+import type { DeleteLabelRequest } from "./kubernetes";
+import type { CreateLabelResponse } from "./kubernetes";
+import type { CreateLabelRequest } from "./kubernetes";
+import type { ListLabelsResponse } from "./kubernetes";
+import type { ListLabelsRequest } from "./kubernetes";
 import type { DeleteClusterResponse } from "./kubernetes";
 import type { DeleteClusterRequest } from "./kubernetes";
 import type { UpdateClusterResponse } from "./kubernetes";
@@ -59,6 +69,37 @@ export interface IKubernetesClustersClient {
      * @generated from protobuf rpc: DeleteCluster
      */
     deleteCluster(input: DeleteClusterRequest, options?: RpcOptions): UnaryCall<DeleteClusterRequest, DeleteClusterResponse>;
+    /**
+     * Lists every cluster label (admin only).
+     *
+     * @generated from protobuf rpc: ListLabels
+     */
+    listLabels(input: ListLabelsRequest, options?: RpcOptions): UnaryCall<ListLabelsRequest, ListLabelsResponse>;
+    /**
+     * Creates a user-managed label (admin only). Labels flagged `system` are
+     * owned by the control plane and cannot be created through the API.
+     *
+     * @generated from protobuf rpc: CreateLabel
+     */
+    createLabel(input: CreateLabelRequest, options?: RpcOptions): UnaryCall<CreateLabelRequest, CreateLabelResponse>;
+    /**
+     * Deletes a user-managed label and its attachments (admin only).
+     *
+     * @generated from protobuf rpc: DeleteLabel
+     */
+    deleteLabel(input: DeleteLabelRequest, options?: RpcOptions): UnaryCall<DeleteLabelRequest, DeleteLabelResponse>;
+    /**
+     * Attaches a user-managed label to a cluster (admin only, idempotent).
+     *
+     * @generated from protobuf rpc: AttachClusterLabel
+     */
+    attachClusterLabel(input: AttachClusterLabelRequest, options?: RpcOptions): UnaryCall<AttachClusterLabelRequest, AttachClusterLabelResponse>;
+    /**
+     * Detaches a user-managed label from a cluster (admin only, idempotent).
+     *
+     * @generated from protobuf rpc: DetachClusterLabel
+     */
+    detachClusterLabel(input: DetachClusterLabelRequest, options?: RpcOptions): UnaryCall<DetachClusterLabelRequest, DetachClusterLabelResponse>;
 }
 /**
  * Platform-admin registry of Kubernetes clusters.
@@ -121,5 +162,51 @@ export class KubernetesClustersClient implements IKubernetesClustersClient, Serv
     deleteCluster(input: DeleteClusterRequest, options?: RpcOptions): UnaryCall<DeleteClusterRequest, DeleteClusterResponse> {
         const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<DeleteClusterRequest, DeleteClusterResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Lists every cluster label (admin only).
+     *
+     * @generated from protobuf rpc: ListLabels
+     */
+    listLabels(input: ListLabelsRequest, options?: RpcOptions): UnaryCall<ListLabelsRequest, ListLabelsResponse> {
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListLabelsRequest, ListLabelsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Creates a user-managed label (admin only). Labels flagged `system` are
+     * owned by the control plane and cannot be created through the API.
+     *
+     * @generated from protobuf rpc: CreateLabel
+     */
+    createLabel(input: CreateLabelRequest, options?: RpcOptions): UnaryCall<CreateLabelRequest, CreateLabelResponse> {
+        const method = this.methods[6], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateLabelRequest, CreateLabelResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Deletes a user-managed label and its attachments (admin only).
+     *
+     * @generated from protobuf rpc: DeleteLabel
+     */
+    deleteLabel(input: DeleteLabelRequest, options?: RpcOptions): UnaryCall<DeleteLabelRequest, DeleteLabelResponse> {
+        const method = this.methods[7], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeleteLabelRequest, DeleteLabelResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Attaches a user-managed label to a cluster (admin only, idempotent).
+     *
+     * @generated from protobuf rpc: AttachClusterLabel
+     */
+    attachClusterLabel(input: AttachClusterLabelRequest, options?: RpcOptions): UnaryCall<AttachClusterLabelRequest, AttachClusterLabelResponse> {
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
+        return stackIntercept<AttachClusterLabelRequest, AttachClusterLabelResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Detaches a user-managed label from a cluster (admin only, idempotent).
+     *
+     * @generated from protobuf rpc: DetachClusterLabel
+     */
+    detachClusterLabel(input: DetachClusterLabelRequest, options?: RpcOptions): UnaryCall<DetachClusterLabelRequest, DetachClusterLabelResponse> {
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DetachClusterLabelRequest, DetachClusterLabelResponse>("unary", this._transport, method, opt, input);
     }
 }

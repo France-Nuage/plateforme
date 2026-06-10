@@ -1,33 +1,34 @@
 BEGIN;
 
-WITH organization AS (
-  INSERT INTO organizations (name, slug)
-  VALUES ('acme', 'acme')
-  ON CONFLICT (slug)
-  DO UPDATE SET name = EXCLUDED.name
-  RETURNING id
-) ,
-zone AS (
-  INSERT INTO zones (name)
-  VALUES ('ACME Mesa Data Facility')
-  RETURNING id
-)
-INSERT INTO hypervisors (
-  url,
-  authorization_token,
-  storage_name,
-  organization_id,
-  zone_id
-)
-SELECT
-  :url,
-  :token,
-  :storage,
-  organization.id,
-  zone.id
-FROM organization, zone;
+INSERT INTO organizations (id, name, slug)
+VALUES ('88f42823-2724-4d3f-a42b-659ba6aa2b6c', 'acme', 'acme')
+ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name;
+
+INSERT INTO users (id, email, is_admin)
+VALUES ('01965d6b-0000-7000-8000-000000000001', 'wile.coyote@acme.org', true)
+ON CONFLICT (email) DO UPDATE SET is_admin = EXCLUDED.is_admin;
+
+INSERT INTO organization_user (organization_id, user_id)
+VALUES ('88f42823-2724-4d3f-a42b-659ba6aa2b6c', '01965d6b-0000-7000-8000-000000000001')
+ON CONFLICT (organization_id, user_id) DO NOTHING;
+
+INSERT INTO projects (id, name, organization_id)
+VALUES ('01965d6b-0000-7000-8000-000000000002', 'unattributed', '88f42823-2724-4d3f-a42b-659ba6aa2b6c')
+ON CONFLICT (id) DO NOTHING;
 
 COMMIT;
+
+-- Hypervisor seeding (run manually with: psql -v url=... -v token=... -v storage=...)
+-- BEGIN;
+-- WITH zone AS (
+--   INSERT INTO zones (name)
+--   VALUES ('ACME Mesa Data Facility')
+--   RETURNING id
+-- )
+-- INSERT INTO hypervisors (url, authorization_token, storage_name, organization_id, zone_id)
+-- SELECT :url, :token, :storage, '88f42823-2724-4d3f-a42b-659ba6aa2b6c', zone.id
+-- FROM zone;
+-- COMMIT;
 
 -- Seed managed services catalog
 BEGIN;

@@ -4,30 +4,40 @@
 //! checker (there is no real cluster in CI): encryption round-trips, the
 //! platform-admin gate, name validation, uniqueness, and the full CRUD.
 
+mod common;
+
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::Utc;
-use fabrique::Factory;
+use common::{attach_cluster_label, seed_managed_service, seed_managed_service_version};
+use fabrique::Query;
 use frn_core::identity::User;
 use frn_core::kubernetes::{
     ClusterHealthChecker, ClusterHealthError, ClusterHealthInfo, CreateClusterInput,
-    KubernetesClusterError, KubernetesClusterHealthStatus, KubernetesClusters, UpdateClusterInput,
+    KubernetesCluster, KubernetesClusterError, KubernetesClusterHealthStatus, KubernetesClusters,
+    UpdateClusterInput,
 };
-use frn_core::resourcemanager::{Organization, Project};
+use frn_core::managed::ManagedServiceInstance;
 use frn_crypto::Kek;
 use uuid::Uuid;
 
 const SAMPLE_KUBECONFIG: &str = "apiVersion: v1\nkind: Config\nclusters: []\n";
 const API_SERVER_URL: &str = "https://cluster.example:6443/";
 const KUBERNETES_VERSION: &str = "v1.32.2";
+/// What the service stores after stripping the non-semver `v` prefix.
+const NORMALIZED_KUBERNETES_VERSION: &str = "1.32.2";
 const PLATFORM: &str = "linux/amd64";
 
-/// Deterministic reachability checker: returns success (with a fixed API
-/// server URL) or a failure, without touching the network.
+/// Deterministic reachability checker: returns success (with configurable API
+/// server URL and reported version) or a failure, without touching the
+/// network.
 #[derive(Clone)]
 struct StubChecker {
     fail: bool,
+    kubernetes_version: String,
+    api_server_url: String,
 }
 
 #[async_trait]
@@ -37,8 +47,8 @@ impl ClusterHealthChecker for StubChecker {
             Err(ClusterHealthError::Unreachable("stub failure".to_owned()))
         } else {
             Ok(ClusterHealthInfo {
-                api_server_url: API_SERVER_URL.to_owned(),
-                kubernetes_version: KUBERNETES_VERSION.to_owned(),
+                api_server_url: self.api_server_url.clone(),
+                kubernetes_version: self.kubernetes_version.clone(),
                 platform: PLATFORM.to_owned(),
             })
         }
@@ -46,10 +56,32 @@ impl ClusterHealthChecker for StubChecker {
 }
 
 fn service(pool: &sqlx::PgPool, fail: bool) -> KubernetesClusters {
+    service_with_version(pool, fail, KUBERNETES_VERSION)
+}
+
+fn service_with_version(pool: &sqlx::PgPool, fail: bool, version: &str) -> KubernetesClusters {
     KubernetesClusters::with_health_checker(
         pool.clone(),
         Arc::new(Kek::from_bytes([42u8; 32])),
-        Arc::new(StubChecker { fail }),
+        Arc::new(StubChecker {
+            fail,
+            kubernetes_version: version.to_owned(),
+            api_server_url: API_SERVER_URL.to_owned(),
+        }),
+    )
+}
+
+/// Service whose stub reports a distinct API server URL, so tests can register
+/// several clusters without tripping the api_server_url unique constraint.
+fn service_with_url(pool: &sqlx::PgPool, api_server_url: &str) -> KubernetesClusters {
+    KubernetesClusters::with_health_checker(
+        pool.clone(),
+        Arc::new(Kek::from_bytes([42u8; 32])),
+        Arc::new(StubChecker {
+            fail: false,
+            kubernetes_version: KUBERNETES_VERSION.to_owned(),
+            api_server_url: api_server_url.to_owned(),
+        }),
     )
 }
 
@@ -83,7 +115,10 @@ async fn create_persists_encrypts_and_round_trips(pool: sqlx::PgPool) {
 
     assert_eq!(cluster.name, "prod-eu");
     assert_eq!(cluster.api_server_url, API_SERVER_URL);
-    assert_eq!(cluster.kubernetes_version.as_deref(), Some(KUBERNETES_VERSION));
+    assert_eq!(
+        cluster.kubernetes_version.as_deref(),
+        Some(NORMALIZED_KUBERNETES_VERSION)
+    );
     assert_eq!(cluster.platform.as_deref(), Some(PLATFORM));
     assert_eq!(
         cluster.health_status,
@@ -175,6 +210,62 @@ async fn create_fails_when_cluster_is_unreachable(pool: sqlx::PgPool) {
     // Nothing should have been persisted.
     let clusters = service.list_clusters(&admin).await.expect("list");
     assert!(clusters.is_empty());
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn create_normalizes_kubernetes_version_to_semver(pool: sqlx::PgPool) {
+    let service = service_with_version(&pool, false, "v1.31.4+k3s1");
+    let admin = user(true);
+
+    let cluster = service
+        .create_cluster(&admin, create_input("prod-eu"))
+        .await
+        .expect("cluster should be created");
+
+    // The non-semver "v" prefix is stripped, build metadata is preserved.
+    assert_eq!(cluster.kubernetes_version.as_deref(), Some("1.31.4+k3s1"));
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn create_clears_non_semver_kubernetes_version(pool: sqlx::PgPool) {
+    let service = service_with_version(&pool, false, "not-a-version");
+    let admin = user(true);
+
+    let cluster = service
+        .create_cluster(&admin, create_input("prod-eu"))
+        .await
+        .expect("cluster should be created despite the exotic version");
+
+    // An unparseable version is stored as NULL, never raw (the database CHECK
+    // only accepts strict semver).
+    assert_eq!(cluster.kubernetes_version, None);
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn update_with_new_kubeconfig_normalizes_kubernetes_version(pool: sqlx::PgPool) {
+    let admin = user(true);
+    let cluster = service(&pool, false)
+        .create_cluster(&admin, create_input("prod-eu"))
+        .await
+        .expect("create");
+
+    let updated = service_with_version(&pool, false, "v1.33.0-rc.1+vmware.1")
+        .update_cluster(
+            &admin,
+            cluster.id,
+            UpdateClusterInput {
+                name: "prod-eu".to_owned(),
+                description: None,
+                kubeconfig: Some(SAMPLE_KUBECONFIG.to_owned()),
+            },
+        )
+        .await
+        .expect("update with new kubeconfig");
+
+    assert_eq!(
+        updated.kubernetes_version.as_deref(),
+        Some("1.33.0-rc.1+vmware.1")
+    );
 }
 
 #[sqlx::test(migrations = "../migrations")]
@@ -281,28 +372,93 @@ async fn list_is_rejected_for_non_admins(pool: sqlx::PgPool) {
     assert!(matches!(error, KubernetesClusterError::Forbidden));
 }
 
+/// Shorthand: builds the required-labels map of a deploy_target.
+fn required(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
+    pairs
+        .iter()
+        .map(|(key, value)| ((*key).to_owned(), (*value).to_owned()))
+        .collect()
+}
+
 #[sqlx::test(migrations = "../migrations")]
-async fn pick_random_healthy_cluster_returns_the_only_cluster(pool: sqlx::PgPool) {
+async fn pick_matching_returns_the_cluster_carrying_all_labels(pool: sqlx::PgPool) {
+    let service = service(&pool, false);
+    let admin = user(true);
+
+    let matching = service
+        .create_cluster(&admin, create_input("prod-eu"))
+        .await
+        .expect("create matching cluster");
+    let other = service_with_url(&pool, "https://other.example:6443/")
+        .create_cluster(
+            &admin,
+            CreateClusterInput {
+                name: "prod-us".to_owned(),
+                description: None,
+                kubeconfig: SAMPLE_KUBECONFIG.to_owned(),
+            },
+        )
+        .await
+        .expect("create other cluster");
+
+    attach_cluster_label(&pool, matching.id, "availability", "ft").await;
+    attach_cluster_label(&pool, matching.id, "region", "fr").await;
+    attach_cluster_label(&pool, other.id, "availability", "standard").await;
+
+    let picked = KubernetesClusters::pick_healthy_cluster_matching(
+        &pool,
+        &required(&[("availability", "ft"), ("region", "fr")]),
+    )
+    .await
+    .expect("pick should not error")
+    .expect("the labeled cluster should be returned");
+
+    assert_eq!(picked.id, matching.id);
+    assert_eq!(picked.health_status, KubernetesClusterHealthStatus::Healthy);
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn pick_matching_requires_every_label(pool: sqlx::PgPool) {
     let service = service(&pool, false);
     let cluster = service
         .create_cluster(&user(true), create_input("prod-eu"))
         .await
         .expect("create");
 
-    let picked = KubernetesClusters::pick_random_healthy_cluster(&pool)
-        .await
-        .expect("pick should not error")
-        .expect("a healthy cluster should be returned");
+    // The cluster carries only one of the two required labels.
+    attach_cluster_label(&pool, cluster.id, "availability", "ft").await;
 
+    let picked = KubernetesClusters::pick_healthy_cluster_matching(
+        &pool,
+        &required(&[("availability", "ft"), ("region", "fr")]),
+    )
+    .await
+    .expect("pick should not error");
+    assert!(
+        picked.is_none(),
+        "a cluster missing one required label must not match"
+    );
+
+    // Attaching the missing label makes it eligible.
+    attach_cluster_label(&pool, cluster.id, "region", "fr").await;
+    let picked = KubernetesClusters::pick_healthy_cluster_matching(
+        &pool,
+        &required(&[("availability", "ft"), ("region", "fr")]),
+    )
+    .await
+    .expect("pick should not error")
+    .expect("the cluster now carries every required label");
     assert_eq!(picked.id, cluster.id);
-    assert_eq!(picked.health_status, KubernetesClusterHealthStatus::Healthy);
 }
 
 #[sqlx::test(migrations = "../migrations")]
-async fn pick_random_healthy_cluster_returns_none_when_empty(pool: sqlx::PgPool) {
-    let picked = KubernetesClusters::pick_random_healthy_cluster(&pool)
-        .await
-        .expect("pick should not error");
+async fn pick_matching_returns_none_when_no_cluster_exists(pool: sqlx::PgPool) {
+    let picked = KubernetesClusters::pick_healthy_cluster_matching(
+        &pool,
+        &required(&[("availability", "ft")]),
+    )
+    .await
+    .expect("pick should not error");
 
     assert!(
         picked.is_none(),
@@ -311,7 +467,99 @@ async fn pick_random_healthy_cluster_returns_none_when_empty(pool: sqlx::PgPool)
 }
 
 #[sqlx::test(migrations = "../migrations")]
-async fn delete_is_rejected_when_projects_are_assigned(pool: sqlx::PgPool) {
+async fn pick_matching_ignores_unhealthy_clusters(pool: sqlx::PgPool) {
+    let service = service(&pool, false);
+    let cluster = service
+        .create_cluster(&user(true), create_input("prod-eu"))
+        .await
+        .expect("create");
+    attach_cluster_label(&pool, cluster.id, "availability", "ft").await;
+
+    KubernetesCluster::query()
+        .update()
+        .set(
+            KubernetesCluster::HEALTH_STATUS,
+            KubernetesClusterHealthStatus::Unreachable,
+        )
+        .r#where(KubernetesCluster::ID, "=", cluster.id)
+        .execute(&pool)
+        .await
+        .expect("mark cluster unreachable");
+
+    let picked = KubernetesClusters::pick_healthy_cluster_matching(
+        &pool,
+        &required(&[("availability", "ft")]),
+    )
+    .await
+    .expect("pick should not error");
+
+    assert!(
+        picked.is_none(),
+        "an unreachable cluster must never be picked even when its labels match"
+    );
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn pick_matching_picks_among_all_candidates(pool: sqlx::PgPool) {
+    let service = service(&pool, false);
+    let admin = user(true);
+
+    let first = service
+        .create_cluster(&admin, create_input("prod-eu"))
+        .await
+        .expect("create first cluster");
+    let second = service_with_url(&pool, "https://other.example:6443/")
+        .create_cluster(
+            &admin,
+            CreateClusterInput {
+                name: "prod-us".to_owned(),
+                description: None,
+                kubeconfig: SAMPLE_KUBECONFIG.to_owned(),
+            },
+        )
+        .await
+        .expect("create second cluster");
+    attach_cluster_label(&pool, first.id, "availability", "ft").await;
+    attach_cluster_label(&pool, second.id, "availability", "ft").await;
+
+    let picked = KubernetesClusters::pick_healthy_cluster_matching(
+        &pool,
+        &required(&[("availability", "ft")]),
+    )
+    .await
+    .expect("pick should not error")
+    .expect("one of the matching clusters should be returned");
+
+    assert!(
+        picked.id == first.id || picked.id == second.id,
+        "the picked cluster must be one of the matching candidates"
+    );
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn pick_matching_is_case_insensitive(pool: sqlx::PgPool) {
+    let service = service(&pool, false);
+    let cluster = service
+        .create_cluster(&user(true), create_input("prod-eu"))
+        .await
+        .expect("create");
+
+    // CITEXT columns: AVAILABILITY=FT and availability=ft are the same label.
+    attach_cluster_label(&pool, cluster.id, "AVAILABILITY", "FT").await;
+
+    let picked = KubernetesClusters::pick_healthy_cluster_matching(
+        &pool,
+        &required(&[("availability", "ft")]),
+    )
+    .await
+    .expect("pick should not error")
+    .expect("matching must ignore the casing of keys and values");
+
+    assert_eq!(picked.id, cluster.id);
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn delete_is_rejected_when_instances_are_hosted(pool: sqlx::PgPool) {
     let service = service(&pool, false);
     let admin = user(true);
 
@@ -320,25 +568,43 @@ async fn delete_is_rejected_when_projects_are_assigned(pool: sqlx::PgPool) {
         .await
         .expect("create");
 
-    let organization = Organization::factory()
-        .parent_id(None)
-        .create(&pool)
+    // A managed service instance hosted on the cluster (inserted directly:
+    // the full creation flow is covered by the instance procedure tests).
+    let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
+    let version_id = seed_managed_service_version(
+        &pool,
+        service_id,
+        "1.0.0",
+        None,
+        "oci://registry.test/charts/vaultwarden",
+    )
+    .await;
+    ManagedServiceInstance::query()
+        .insert()
+        .set(ManagedServiceInstance::SERVICE_ID, service_id)
+        .set(ManagedServiceInstance::VERSION_ID, version_id)
+        .set(ManagedServiceInstance::PROJECT_ID, Uuid::new_v4())
+        .set(ManagedServiceInstance::ORGANIZATION_ID, Uuid::new_v4())
+        .set(ManagedServiceInstance::CLUSTER_ID, cluster.id)
+        .set(
+            ManagedServiceInstance::NAMESPACE,
+            "managed-acme-vaultwarden-prod".to_owned(),
+        )
+        .set(
+            ManagedServiceInstance::RELEASE_NAME,
+            "vaultwarden".to_owned(),
+        )
+        .execute(&pool)
         .await
-        .expect("create organization");
-    Project::factory()
-        .organization_id(organization.id)
-        .cluster_id(Some(cluster.id))
-        .create(&pool)
-        .await
-        .expect("create project assigned to the cluster");
+        .expect("insert instance hosted on the cluster");
 
     let error = service
         .delete_cluster(&admin, cluster.id)
         .await
-        .expect_err("deleting a cluster with assigned projects must be rejected");
+        .expect_err("deleting a cluster hosting instances must be rejected");
     assert!(matches!(
         error,
-        KubernetesClusterError::ClusterHasProjects(_)
+        KubernetesClusterError::ClusterHasInstances(_)
     ));
 
     // The cluster must still exist.

@@ -9,9 +9,13 @@ stocke les artefacts (charts Helm).
 ## Structure d'un service manage
 
 - **Service** (`managed.service`) : entree catalogue identifiee par un `slug` unique (kebab-case)
-  - Champs : slug, name, description, category, database_engine (optionnel), icon_url
+  - Champs : slug, name, description, category, database_engine (optionnel), icon_url, deploy_target
   - Categories : security, collaboration, analytics, database, automation, cms, erp, storage, dashboard
   - Moteurs DB : cnpg (CloudNativePG) ou mariadb
+  - `deploy_target` (JSONB) : selecteur de labels resolu au deploiement, objet
+    cle/valeur (ex: `{"availability": "ft"}`). Seuls les clusters sains portant
+    TOUTES les paires sont eligibles. NULL ou `{}` = service non deployable
+    (erreur typee `MissingDeployTarget`). Non expose par l'API catalogue.
   - Soft-delete via `deactivated_at` (null = actif, timestamp = desactive)
 
 - **Version** (`managed.service_version`) : une version precise d'un chart Helm publie par le CI
@@ -27,7 +31,8 @@ stocke les artefacts (charts Helm).
   - `price_monthly_cents`, `price_yearly_cents` : prix en centimes (optionnels)
 
 - **Instance** (`managed.service_instance`) : un deploiement concret pour un projet client
-  - Liee a un service, une version, un plan, un projet, une organisation
+  - Liee a un service, une version, un plan, un projet, une organisation, et au
+    cluster qui l'heberge (`cluster_id`, resolu a la creation via le deploy_target)
   - Possede un namespace K8s unique et un release_name Helm unique
   - Stocke les `user_values` (JSONB) non-secrets
   - Statut gere par FSM (voir SPEC-004/005/006)

@@ -5,6 +5,39 @@ import { ServiceType } from "@protobuf-ts/runtime-rpc";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "./google/protobuf/timestamp";
 /**
+ * A cluster label: a reusable key/value pair (e.g. availability=ft) attached
+ * to clusters and matched against managed-service deploy targets. Labels with
+ * `system = true` are owned by the control plane and read-only via the API.
+ *
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.KubernetesLabelProto
+ */
+export interface KubernetesLabelProto {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string key = 2
+     */
+    key: string;
+    /**
+     * @generated from protobuf field: string value = 3
+     */
+    value: string;
+    /**
+     * @generated from protobuf field: bool system = 4
+     */
+    system: boolean;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp created_at = 5
+     */
+    createdAt?: Timestamp;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp updated_at = 6
+     */
+    updatedAt?: Timestamp;
+}
+/**
  * Non-sensitive view of a cluster. Never exposes the kubeconfig or any
  * encrypted material.
  *
@@ -59,6 +92,12 @@ export interface KubernetesClusterProto {
      * @generated from protobuf field: google.protobuf.Timestamp updated_at = 9
      */
     updatedAt?: Timestamp;
+    /**
+     * Labels attached to the cluster, ordered by key then value.
+     *
+     * @generated from protobuf field: repeated francenuage.fr.v1.kubernetes.KubernetesLabelProto labels = 12
+     */
+    labels: KubernetesLabelProto[];
 }
 /**
  * ListClusters
@@ -176,6 +215,123 @@ export interface DeleteClusterRequest {
  */
 export interface DeleteClusterResponse {
 }
+/**
+ * ListLabels
+ *
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.ListLabelsRequest
+ */
+export interface ListLabelsRequest {
+}
+/**
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.ListLabelsResponse
+ */
+export interface ListLabelsResponse {
+    /**
+     * @generated from protobuf field: repeated francenuage.fr.v1.kubernetes.KubernetesLabelProto labels = 1
+     */
+    labels: KubernetesLabelProto[];
+}
+/**
+ * CreateLabel
+ *
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.CreateLabelRequest
+ */
+export interface CreateLabelRequest {
+    /**
+     * Max 49 chars, charset [a-zA-Z0-9-], case-insensitive.
+     *
+     * @generated from protobuf field: string key = 1
+     */
+    key: string;
+    /**
+     * Max 49 chars, charset [a-zA-Z0-9-], case-insensitive.
+     *
+     * @generated from protobuf field: string value = 2
+     */
+    value: string;
+}
+/**
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.CreateLabelResponse
+ */
+export interface CreateLabelResponse {
+    /**
+     * @generated from protobuf field: francenuage.fr.v1.kubernetes.KubernetesLabelProto label = 1
+     */
+    label?: KubernetesLabelProto;
+}
+/**
+ * DeleteLabel
+ *
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.DeleteLabelRequest
+ */
+export interface DeleteLabelRequest {
+    /**
+     * @generated from protobuf field: string label_id = 1
+     */
+    labelId: string;
+}
+/**
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.DeleteLabelResponse
+ */
+export interface DeleteLabelResponse {
+}
+/**
+ * AttachClusterLabel
+ *
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.AttachClusterLabelRequest
+ */
+export interface AttachClusterLabelRequest {
+    /**
+     * @generated from protobuf field: string cluster_id = 1
+     */
+    clusterId: string;
+    /**
+     * @generated from protobuf field: string label_id = 2
+     */
+    labelId: string;
+}
+/**
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.AttachClusterLabelResponse
+ */
+export interface AttachClusterLabelResponse {
+}
+/**
+ * DetachClusterLabel
+ *
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.DetachClusterLabelRequest
+ */
+export interface DetachClusterLabelRequest {
+    /**
+     * @generated from protobuf field: string cluster_id = 1
+     */
+    clusterId: string;
+    /**
+     * @generated from protobuf field: string label_id = 2
+     */
+    labelId: string;
+}
+/**
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.DetachClusterLabelResponse
+ */
+export interface DetachClusterLabelResponse {
+}
+// @generated message type with reflection information, may provide speed optimized methods
+class KubernetesLabelProto$Type extends MessageType<KubernetesLabelProto> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.KubernetesLabelProto", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "value", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "system", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "created_at", kind: "message", T: () => Timestamp },
+            { no: 6, name: "updated_at", kind: "message", T: () => Timestamp }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.KubernetesLabelProto
+ */
+export const KubernetesLabelProto = new KubernetesLabelProto$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class KubernetesClusterProto$Type extends MessageType<KubernetesClusterProto> {
     constructor() {
@@ -190,7 +346,8 @@ class KubernetesClusterProto$Type extends MessageType<KubernetesClusterProto> {
             { no: 6, name: "health_status", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "last_health_check_at", kind: "message", T: () => Timestamp },
             { no: 8, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 9, name: "updated_at", kind: "message", T: () => Timestamp }
+            { no: 9, name: "updated_at", kind: "message", T: () => Timestamp },
+            { no: 12, name: "labels", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => KubernetesLabelProto }
         ]);
     }
 }
@@ -319,6 +476,121 @@ class DeleteClusterResponse$Type extends MessageType<DeleteClusterResponse> {
  * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.DeleteClusterResponse
  */
 export const DeleteClusterResponse = new DeleteClusterResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListLabelsRequest$Type extends MessageType<ListLabelsRequest> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.ListLabelsRequest", []);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.ListLabelsRequest
+ */
+export const ListLabelsRequest = new ListLabelsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListLabelsResponse$Type extends MessageType<ListLabelsResponse> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.ListLabelsResponse", [
+            { no: 1, name: "labels", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => KubernetesLabelProto }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.ListLabelsResponse
+ */
+export const ListLabelsResponse = new ListLabelsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateLabelRequest$Type extends MessageType<CreateLabelRequest> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.CreateLabelRequest", [
+            { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "value", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.CreateLabelRequest
+ */
+export const CreateLabelRequest = new CreateLabelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateLabelResponse$Type extends MessageType<CreateLabelResponse> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.CreateLabelResponse", [
+            { no: 1, name: "label", kind: "message", T: () => KubernetesLabelProto }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.CreateLabelResponse
+ */
+export const CreateLabelResponse = new CreateLabelResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteLabelRequest$Type extends MessageType<DeleteLabelRequest> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.DeleteLabelRequest", [
+            { no: 1, name: "label_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.DeleteLabelRequest
+ */
+export const DeleteLabelRequest = new DeleteLabelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteLabelResponse$Type extends MessageType<DeleteLabelResponse> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.DeleteLabelResponse", []);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.DeleteLabelResponse
+ */
+export const DeleteLabelResponse = new DeleteLabelResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AttachClusterLabelRequest$Type extends MessageType<AttachClusterLabelRequest> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.AttachClusterLabelRequest", [
+            { no: 1, name: "cluster_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "label_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.AttachClusterLabelRequest
+ */
+export const AttachClusterLabelRequest = new AttachClusterLabelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AttachClusterLabelResponse$Type extends MessageType<AttachClusterLabelResponse> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.AttachClusterLabelResponse", []);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.AttachClusterLabelResponse
+ */
+export const AttachClusterLabelResponse = new AttachClusterLabelResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DetachClusterLabelRequest$Type extends MessageType<DetachClusterLabelRequest> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.DetachClusterLabelRequest", [
+            { no: 1, name: "cluster_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "label_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.DetachClusterLabelRequest
+ */
+export const DetachClusterLabelRequest = new DetachClusterLabelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DetachClusterLabelResponse$Type extends MessageType<DetachClusterLabelResponse> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.DetachClusterLabelResponse", []);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.DetachClusterLabelResponse
+ */
+export const DetachClusterLabelResponse = new DetachClusterLabelResponse$Type();
 /**
  * @generated ServiceType for protobuf service francenuage.fr.v1.kubernetes.KubernetesClusters
  */
@@ -327,5 +599,10 @@ export const KubernetesClusters = new ServiceType("francenuage.fr.v1.kubernetes.
     { name: "GetCluster", options: {}, I: GetClusterRequest, O: GetClusterResponse },
     { name: "CreateCluster", options: {}, I: CreateClusterRequest, O: CreateClusterResponse },
     { name: "UpdateCluster", options: {}, I: UpdateClusterRequest, O: UpdateClusterResponse },
-    { name: "DeleteCluster", options: {}, I: DeleteClusterRequest, O: DeleteClusterResponse }
+    { name: "DeleteCluster", options: {}, I: DeleteClusterRequest, O: DeleteClusterResponse },
+    { name: "ListLabels", options: {}, I: ListLabelsRequest, O: ListLabelsResponse },
+    { name: "CreateLabel", options: {}, I: CreateLabelRequest, O: CreateLabelResponse },
+    { name: "DeleteLabel", options: {}, I: DeleteLabelRequest, O: DeleteLabelResponse },
+    { name: "AttachClusterLabel", options: {}, I: AttachClusterLabelRequest, O: AttachClusterLabelResponse },
+    { name: "DetachClusterLabel", options: {}, I: DetachClusterLabelRequest, O: DetachClusterLabelResponse }
 ]);
