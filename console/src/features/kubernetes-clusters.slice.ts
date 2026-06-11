@@ -1,6 +1,9 @@
 import {
   CreateKubernetesClusterInput,
+  CreateKubernetesLabelInput,
   KubernetesCluster,
+  KubernetesLabel,
+  ManagedServiceRef,
   UpdateKubernetesClusterInput,
 } from '@france-nuage/sdk';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
@@ -74,19 +77,132 @@ export const deleteKubernetesCluster = createAsyncThunk<
 );
 
 /**
+ * Fetch every label of the platform registry (attached or not).
+ */
+export const fetchKubernetesLabels = createAsyncThunk<
+  KubernetesLabel[],
+  void,
+  { extra: ExtraArgument }
+>('kubernetesClusters/fetchLabels', (_, { extra }) =>
+  extra.services.kubernetesCluster.listLabels(),
+);
+
+/**
+ * Create a new label in the registry (without attaching it to a cluster).
+ */
+export const createKubernetesLabel = createAsyncThunk<
+  KubernetesLabel,
+  CreateKubernetesLabelInput,
+  { extra: ExtraArgument }
+>('kubernetesClusters/createLabel', (data, { extra }) =>
+  extra.services.kubernetesCluster.createLabel(data),
+);
+
+/**
+ * Delete a label from the registry. The backend cascades the deletion to
+ * every cluster attachment; the reducer mirrors that cascade locally.
+ *
+ * Returns the deleted label's ID so the slice can prune it from the state.
+ */
+export const deleteKubernetesLabel = createAsyncThunk<
+  string,
+  string,
+  { extra: ExtraArgument }
+>('kubernetesClusters/deleteLabel', (labelId, { extra }) =>
+  extra.services.kubernetesCluster.deleteLabel(labelId).then(() => labelId),
+);
+
+/**
+ * Attach a registry label to a cluster, then refetch the cluster so the
+ * state reflects the authoritative label list (ordering included).
+ */
+export const attachKubernetesClusterLabel = createAsyncThunk<
+  KubernetesCluster,
+  { clusterId: string; labelId: string },
+  { extra: ExtraArgument }
+>('kubernetesClusters/attachLabel', ({ clusterId, labelId }, { extra }) =>
+  extra.services.kubernetesCluster
+    .attachClusterLabel(clusterId, labelId)
+    .then(() => extra.services.kubernetesCluster.getCluster(clusterId)),
+);
+
+/**
+ * Detach a label from a cluster, then refetch the cluster.
+ *
+ * Detaching is always allowed, even when a managed service's deploy_target
+ * requires the label: placement happens at deployment time only, so running
+ * instances are unaffected. The UI surfaces the impacted services through
+ * `fetchServicesReferencingLabel` before dispatching this thunk.
+ */
+export const detachKubernetesClusterLabel = createAsyncThunk<
+  KubernetesCluster,
+  { clusterId: string; labelId: string },
+  { extra: ExtraArgument }
+>('kubernetesClusters/detachLabel', ({ clusterId, labelId }, { extra }) =>
+  extra.services.kubernetesCluster
+    .detachClusterLabel(clusterId, labelId)
+    .then(() => extra.services.kubernetesCluster.getCluster(clusterId)),
+);
+
+/**
+ * List the active managed services whose deploy_target requires a label.
+ *
+ * Used by the detach/delete confirmation dialogs to warn the operator; the
+ * result is consumed via `.unwrap()` and never stored in the slice.
+ */
+export const fetchServicesReferencingLabel = createAsyncThunk<
+  ManagedServiceRef[],
+  string,
+  { extra: ExtraArgument }
+>('kubernetesClusters/fetchServicesReferencingLabel', (labelId, { extra }) =>
+  extra.services.kubernetesCluster.listServicesReferencingLabel(labelId),
+);
+
+/**
  * Shape of the Kubernetes clusters feature slice state.
  */
 export type KubernetesClustersState = {
   clusters: KubernetesCluster[];
   currentCluster: KubernetesCluster | undefined;
+  /** Platform-wide label registry, ordered by key then value. */
+  labels: KubernetesLabel[];
   loading: boolean;
 };
 
 const initialState: KubernetesClustersState = {
   clusters: [],
   currentCluster: undefined,
+  labels: [],
   loading: false,
 };
+
+/**
+ * Mirrors the backend ordering (CITEXT `ORDER BY key, value`) so labels
+ * created client-side slot in at the right position.
+ */
+function compareLabels(a: KubernetesLabel, b: KubernetesLabel): number {
+  return (
+    a.key.toLowerCase().localeCompare(b.key.toLowerCase()) ||
+    a.value.toLowerCase().localeCompare(b.value.toLowerCase())
+  );
+}
+
+/**
+ * Replaces a cluster in the list and the current cluster (when it matches)
+ * with a fresh server-side snapshot.
+ */
+function replaceCluster(
+  state: KubernetesClustersState,
+  cluster: KubernetesCluster,
+): void {
+  const index = state.clusters.findIndex((entry) => entry.id === cluster.id);
+  if (index !== -1) {
+    state.clusters[index] = cluster;
+  }
+  if (state.currentCluster?.id === cluster.id) {
+    state.currentCluster = cluster;
+  }
+}
 
 /**
  * The Kubernetes clusters feature slice.
@@ -117,15 +233,41 @@ export const kubernetesClustersSlice = createSlice({
     });
 
     builder.addCase(updateKubernetesCluster.fulfilled, (state, action) => {
-      const index = state.clusters.findIndex(
-        (cluster) => cluster.id === action.payload.id,
+      replaceCluster(state, action.payload);
+    });
+
+    builder.addCase(fetchKubernetesLabels.fulfilled, (state, action) => {
+      state.labels = action.payload;
+    });
+
+    builder.addCase(createKubernetesLabel.fulfilled, (state, action) => {
+      state.labels.push(action.payload);
+      state.labels.sort(compareLabels);
+    });
+
+    builder.addCase(deleteKubernetesLabel.fulfilled, (state, action) => {
+      state.labels = state.labels.filter(
+        (label) => label.id !== action.payload,
       );
-      if (index !== -1) {
-        state.clusters[index] = action.payload;
+      // Mirror the backend ON DELETE CASCADE on cluster attachments.
+      for (const cluster of state.clusters) {
+        cluster.labels = cluster.labels.filter(
+          (label) => label.id !== action.payload,
+        );
       }
-      if (state.currentCluster?.id === action.payload.id) {
-        state.currentCluster = action.payload;
+      if (state.currentCluster) {
+        state.currentCluster.labels = state.currentCluster.labels.filter(
+          (label) => label.id !== action.payload,
+        );
       }
+    });
+
+    builder.addCase(attachKubernetesClusterLabel.fulfilled, (state, action) => {
+      replaceCluster(state, action.payload);
+    });
+
+    builder.addCase(detachKubernetesClusterLabel.fulfilled, (state, action) => {
+      replaceCluster(state, action.payload);
     });
 
     builder.addCase(deleteKubernetesCluster.fulfilled, (state, action) => {

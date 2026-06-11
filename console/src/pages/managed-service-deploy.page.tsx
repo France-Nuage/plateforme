@@ -136,8 +136,8 @@ export const ManagedServiceDeployPage: FunctionComponent = () => {
     dispatch(
       createManagedInstance({
         organizationId: activeOrganization.id,
-        projectId: activeProject.id,
         planId: selectedPlanId,
+        projectId: activeProject.id,
         secretValues: secretValues || undefined,
         serviceSlug: slug,
         userValues: userValues || undefined,

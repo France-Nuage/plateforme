@@ -101,6 +101,7 @@ async fn create_rejects_empty_name(pool: sqlx::PgPool) -> Result<(), Box<dyn std
                 name: String::new(),
                 description: None,
                 kubeconfig: UNREACHABLE_KUBECONFIG.to_owned(),
+                label_ids: vec![],
             })
             .with_user(&token),
         )
@@ -125,6 +126,7 @@ async fn create_rejects_empty_kubeconfig(
                 name: "prod-eu".to_owned(),
                 description: None,
                 kubeconfig: "   ".to_owned(),
+                label_ids: vec![],
             })
             .with_user(&token),
         )
@@ -149,6 +151,7 @@ async fn create_is_forbidden_for_non_admins(
                 name: "prod-eu".to_owned(),
                 description: None,
                 kubeconfig: UNREACHABLE_KUBECONFIG.to_owned(),
+                label_ids: vec![],
             })
             .with_user(&token),
         )
@@ -173,6 +176,7 @@ async fn create_fails_precondition_when_cluster_unreachable(
                 name: "prod-eu".to_owned(),
                 description: None,
                 kubeconfig: UNREACHABLE_KUBECONFIG.to_owned(),
+                label_ids: vec![],
             })
             .with_user(&token),
         )

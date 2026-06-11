@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use fabrique::{Delete, Factory, Model, Query};
 use serde::Serialize;
-use sqlx::{Pool, Postgres};
+use sqlx::{FromRow, Pool, Postgres};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -42,6 +42,17 @@ pub struct KubernetesLabel {
     pub system: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+/// Minimal reference to a managed service whose `deploy_target` requires a
+/// label. Returned by [`KubernetesLabels::list_services_referencing_label`]
+/// so operators can see which services lose deployment eligibility before
+/// detaching or deleting the label.
+#[derive(Debug, Clone, FromRow, Serialize)]
+pub struct ManagedServiceRef {
+    pub id: Uuid,
+    pub slug: String,
+    pub name: String,
 }
 
 /// Attachment of a label to a cluster (join row).
@@ -191,6 +202,39 @@ impl KubernetesLabels {
         Ok(())
     }
 
+    /// Validates that every id maps to an existing user-managed label.
+    ///
+    /// Used to fail fast before an expensive operation (e.g. the cluster
+    /// reachability check at creation) when a label id is unknown or points
+    /// to a system label.
+    pub async fn ensure_user_labels_exist<P: Principal + Sync>(
+        &self,
+        principal: &P,
+        label_ids: &[Uuid],
+    ) -> Result<(), KubernetesLabelError> {
+        require_admin(principal)?;
+        for label_id in label_ids {
+            self.find_user_label(*label_id).await?;
+        }
+        Ok(())
+    }
+
+    /// Attaches several user-managed labels to a cluster, validating all of
+    /// them before attaching any. Each attachment is idempotent, like
+    /// [`Self::attach_label`].
+    pub async fn attach_labels<P: Principal + Sync>(
+        &self,
+        principal: &P,
+        cluster_id: Uuid,
+        label_ids: &[Uuid],
+    ) -> Result<(), KubernetesLabelError> {
+        self.ensure_user_labels_exist(principal, label_ids).await?;
+        for label_id in label_ids {
+            self.attach_label(principal, cluster_id, *label_id).await?;
+        }
+        Ok(())
+    }
+
     /// Lists the labels attached to a single cluster, ordered by key then
     /// value.
     pub async fn list_cluster_labels<P: Principal + Sync>(
@@ -237,6 +281,47 @@ impl KubernetesLabels {
             .collect();
         pairs.sort_by_key(|(_, label)| label_sort_key(label));
         Ok(pairs)
+    }
+
+    /// Lists the active managed services whose `deploy_target` requires the
+    /// label's key/value pair, ordered by name.
+    ///
+    /// Read-only guard used by the console before detaching or deleting a
+    /// label: removing it never breaks running instances (placement happens
+    /// at deployment only), but the listed services may lose every eligible
+    /// cluster for future deployments. Works on any label, including system
+    /// ones.
+    pub async fn list_services_referencing_label<P: Principal + Sync>(
+        &self,
+        principal: &P,
+        label_id: Uuid,
+    ) -> Result<Vec<ManagedServiceRef>, KubernetesLabelError> {
+        require_admin(principal)?;
+        let label = self.find_label(label_id).await?;
+
+        // Raw SQL: the query builder cannot express jsonb_each_text or the
+        // ::citext parameter casts. A service references the label when its
+        // deploy_target carries the pair; ::citext keeps the comparison
+        // case-insensitive, mirroring pick_healthy_cluster_matching. A NULL
+        // deploy_target yields no rows from jsonb_each_text, so undeployable
+        // services are naturally excluded.
+        sqlx::query_as::<_, ManagedServiceRef>(
+            "SELECT s.id, s.slug, s.name
+             FROM managed.service s
+             WHERE s.deactivated_at IS NULL
+               AND EXISTS (
+                   SELECT 1
+                   FROM jsonb_each_text(s.deploy_target) AS target(key, value)
+                   WHERE target.key::citext = $1::citext
+                     AND target.value::citext = $2::citext
+               )
+             ORDER BY s.name",
+        )
+        .bind(&label.key)
+        .bind(&label.value)
+        .fetch_all(&self.db)
+        .await
+        .map_err(Into::into)
     }
 
     async fn find_label(&self, label_id: Uuid) -> Result<KubernetesLabel, KubernetesLabelError> {

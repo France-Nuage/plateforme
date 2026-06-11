@@ -62,6 +62,15 @@ const columns: ColumnDef<KubernetesCluster, any>[] = [
     header: 'Etat',
     id: 'healthStatus',
   }),
+  columnHelper.accessor('labels', {
+    cell: ({ getValue }) => (
+      <Badge colorPalette="blue" variant="subtle">
+        {getValue().length}
+      </Badge>
+    ),
+    header: 'Labels',
+    id: 'labels',
+  }),
   columnHelper.accessor('lastHealthCheckAt', {
     cell: ({ getValue }) => {
       const v = getValue();

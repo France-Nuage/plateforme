@@ -8,7 +8,7 @@ use crate::timestamp::to_timestamp;
 use frn_core::identity::IAM;
 use frn_core::kubernetes::{
     CreateClusterInput, KubernetesCluster, KubernetesClusterError, KubernetesClusters,
-    KubernetesLabel, KubernetesLabelError, KubernetesLabels, UpdateClusterInput,
+    KubernetesLabel, KubernetesLabelError, KubernetesLabels, ManagedServiceRef, UpdateClusterInput,
 };
 
 tonic::include_proto!("francenuage.fr.v1.kubernetes");
@@ -66,6 +66,16 @@ impl From<&KubernetesCluster> for KubernetesClusterProto {
             created_at: Some(to_timestamp(cluster.created_at)),
             updated_at: Some(to_timestamp(cluster.updated_at)),
             labels: Vec::new(),
+        }
+    }
+}
+
+impl From<&ManagedServiceRef> for ManagedServiceRefProto {
+    fn from(service: &ManagedServiceRef) -> Self {
+        Self {
+            id: service.id.to_string(),
+            slug: service.slug.clone(),
+            name: service.name.clone(),
         }
     }
 }
@@ -202,6 +212,18 @@ impl kubernetes_clusters_server::KubernetesClusters for KubernetesClustersRpc {
         if req.kubeconfig.trim().is_empty() {
             return Err(Error::InvalidInput("kubeconfig is required".to_owned()))?;
         }
+        let label_ids = req
+            .label_ids
+            .iter()
+            .map(|raw| parse_id(raw))
+            .collect::<Result<Vec<Uuid>, Error>>()?;
+
+        // Validate the labels before the slow reachability check so a bad id
+        // rejects the request without creating anything.
+        self.labels
+            .ensure_user_labels_exist(&principal, &label_ids)
+            .await
+            .map_err(kubernetes_label_error_to_status)?;
 
         let cluster = self
             .service
@@ -216,8 +238,15 @@ impl kubernetes_clusters_server::KubernetesClusters for KubernetesClustersRpc {
             .await
             .map_err(kubernetes_error_to_status)?;
 
+        self.labels
+            .attach_labels(&principal, cluster.id, &label_ids)
+            .await
+            .map_err(kubernetes_label_error_to_status)?;
+
+        let proto = self.hydrate_cluster_proto(&principal, &cluster).await?;
+
         Ok(Response::new(CreateClusterResponse {
-            cluster: Some((&cluster).into()),
+            cluster: Some(proto),
         }))
     }
 
@@ -365,5 +394,23 @@ impl kubernetes_clusters_server::KubernetesClusters for KubernetesClustersRpc {
             .map_err(kubernetes_label_error_to_status)?;
 
         Ok(Response::new(DetachClusterLabelResponse {}))
+    }
+
+    async fn list_services_referencing_label(
+        &self,
+        request: Request<ListServicesReferencingLabelRequest>,
+    ) -> Result<Response<ListServicesReferencingLabelResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+        let label_id = parse_id(&request.into_inner().label_id)?;
+
+        let services = self
+            .labels
+            .list_services_referencing_label(&principal, label_id)
+            .await
+            .map_err(kubernetes_label_error_to_status)?;
+
+        Ok(Response::new(ListServicesReferencingLabelResponse {
+            services: services.iter().map(Into::into).collect(),
+        }))
     }
 }

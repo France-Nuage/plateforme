@@ -1,11 +1,17 @@
 import { GrpcWebFetchTransport } from '@protobuf-ts/grpcweb-transport';
 
-import { KubernetesClusterProto } from '../../generated/rpc/kubernetes';
+import {
+  KubernetesClusterProto,
+  KubernetesLabelProto,
+} from '../../generated/rpc/kubernetes';
 import { KubernetesClustersClient } from '../../generated/rpc/kubernetes.client';
 import {
   CreateKubernetesClusterInput,
+  CreateKubernetesLabelInput,
   KubernetesCluster,
   KubernetesClusterHealthStatus,
+  KubernetesLabel,
+  ManagedServiceRef,
   UpdateKubernetesClusterInput,
 } from '../../models';
 import { KubernetesClusterService } from '../api';
@@ -25,6 +31,7 @@ export class KubernetesClusterRpcService implements KubernetesClusterService {
         name: data.name,
         description: data.description,
         kubeconfig: data.kubeconfig,
+        labelIds: data.labelIds ?? [],
       })
       .response.then(({ cluster }) => {
         if (!cluster) {
@@ -72,6 +79,55 @@ export class KubernetesClusterRpcService implements KubernetesClusterService {
         return fromRpcCluster(cluster);
       });
   }
+
+  public listLabels(): Promise<KubernetesLabel[]> {
+    return this.client
+      .listLabels({})
+      .response.then(({ labels }) => labels.map(fromRpcLabel));
+  }
+
+  public createLabel(
+    data: CreateKubernetesLabelInput,
+  ): Promise<KubernetesLabel> {
+    return this.client
+      .createLabel({ key: data.key, value: data.value })
+      .response.then(({ label }) => {
+        if (!label) {
+          return Promise.reject(new Error('missing label in response'));
+        }
+        return fromRpcLabel(label);
+      });
+  }
+
+  public deleteLabel(labelId: string): Promise<void> {
+    return this.client.deleteLabel({ labelId }).response.then(() => {});
+  }
+
+  public attachClusterLabel(clusterId: string, labelId: string): Promise<void> {
+    return this.client
+      .attachClusterLabel({ clusterId, labelId })
+      .response.then(() => {});
+  }
+
+  public detachClusterLabel(clusterId: string, labelId: string): Promise<void> {
+    return this.client
+      .detachClusterLabel({ clusterId, labelId })
+      .response.then(() => {});
+  }
+
+  public listServicesReferencingLabel(
+    labelId: string,
+  ): Promise<ManagedServiceRef[]> {
+    return this.client
+      .listServicesReferencingLabel({ labelId })
+      .response.then(({ services }) =>
+        services.map((service) => ({
+          id: service.id,
+          slug: service.slug,
+          name: service.name,
+        })),
+      );
+  }
 }
 
 function fromRpcCluster(cluster: KubernetesClusterProto): KubernetesCluster {
@@ -109,5 +165,24 @@ function fromRpcCluster(cluster: KubernetesClusterProto): KubernetesCluster {
       : undefined,
     createdAt: new Date(Number(cluster.createdAt.seconds) * 1000).toISOString(),
     updatedAt: new Date(Number(cluster.updatedAt.seconds) * 1000).toISOString(),
+    labels: cluster.labels.map(fromRpcLabel),
+  };
+}
+
+function fromRpcLabel(label: KubernetesLabelProto): KubernetesLabel {
+  if (!label.createdAt) {
+    throw new Error('createdAt missing in label response');
+  }
+  if (!label.updatedAt) {
+    throw new Error('updatedAt missing in label response');
+  }
+
+  return {
+    id: label.id,
+    key: label.key,
+    value: label.value,
+    system: label.system,
+    createdAt: new Date(Number(label.createdAt.seconds) * 1000).toISOString(),
+    updatedAt: new Date(Number(label.updatedAt.seconds) * 1000).toISOString(),
   };
 }

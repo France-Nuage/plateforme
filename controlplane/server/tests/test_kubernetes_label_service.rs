@@ -17,7 +17,9 @@ use frn_core::kubernetes::{
     ClusterHealthChecker, ClusterHealthError, ClusterHealthInfo, CreateClusterInput,
     KubernetesCluster, KubernetesClusters, KubernetesLabel, KubernetesLabelError, KubernetesLabels,
 };
+use frn_core::managed::{ManagedService, ManagedServiceCategory};
 use frn_crypto::Kek;
+use serde_json::{Value, json};
 use uuid::Uuid;
 
 fn labels(pool: &sqlx::PgPool) -> KubernetesLabels {
@@ -66,6 +68,25 @@ async fn seed_cluster(pool: &sqlx::PgPool, name: &str) -> KubernetesCluster {
         )
         .await
         .expect("could not seed cluster")
+}
+
+/// Seeds an active managed service declaring the given deploy_target.
+async fn seed_service_with_target(
+    pool: &sqlx::PgPool,
+    slug: &str,
+    name: &str,
+    deploy_target: Option<Value>,
+) -> Uuid {
+    ManagedService::factory()
+        .slug(slug.to_owned())
+        .name(name.to_owned())
+        .category(ManagedServiceCategory::Security)
+        .deploy_target(deploy_target)
+        .deactivated_at(None)
+        .create(pool)
+        .await
+        .expect("could not seed managed service")
+        .id
 }
 
 /// Inserts a control-plane-owned label directly (the API refuses to create
@@ -299,6 +320,210 @@ async fn system_labels_are_read_only_through_the_api(pool: sqlx::PgPool) {
     let all = service.list_labels(&admin).await.expect("list");
     assert_eq!(all.len(), 1);
     assert!(all[0].system);
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn attach_labels_attaches_every_label(pool: sqlx::PgPool) {
+    let service = labels(&pool);
+    let admin = user(true);
+    let cluster = seed_cluster(&pool, "prod-eu").await;
+
+    let availability = service
+        .create_label(&admin, "availability".to_owned(), "ft".to_owned())
+        .await
+        .expect("create label");
+    let region = service
+        .create_label(&admin, "region".to_owned(), "eu".to_owned())
+        .await
+        .expect("create label");
+
+    service
+        .attach_labels(&admin, cluster.id, &[availability.id, region.id])
+        .await
+        .expect("attach_labels should succeed");
+
+    let attached = service
+        .list_cluster_labels(&admin, cluster.id)
+        .await
+        .expect("list cluster labels");
+    assert_eq!(attached.len(), 2);
+
+    // Idempotent, like single attachments.
+    service
+        .attach_labels(&admin, cluster.id, &[availability.id, region.id])
+        .await
+        .expect("re-attaching must be idempotent");
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn attach_labels_validates_every_label_before_attaching_any(pool: sqlx::PgPool) {
+    let service = labels(&pool);
+    let admin = user(true);
+    let cluster = seed_cluster(&pool, "prod-eu").await;
+
+    let valid = service
+        .create_label(&admin, "availability".to_owned(), "ft".to_owned())
+        .await
+        .expect("create label");
+    let unknown = Uuid::new_v4();
+
+    let error = service
+        .attach_labels(&admin, cluster.id, &[valid.id, unknown])
+        .await
+        .expect_err("an unknown label must reject the whole batch");
+    assert!(matches!(error, KubernetesLabelError::NotFound(id) if id == unknown));
+
+    let attached = service
+        .list_cluster_labels(&admin, cluster.id)
+        .await
+        .expect("list cluster labels");
+    assert!(
+        attached.is_empty(),
+        "no label may be attached when the batch is rejected"
+    );
+
+    let system_label_id = seed_system_label(&pool, "creator", "frn").await;
+    let error = service
+        .attach_labels(&admin, cluster.id, &[system_label_id])
+        .await
+        .expect_err("system labels must be rejected");
+    assert!(matches!(
+        error,
+        KubernetesLabelError::SystemLabelReadOnly(_)
+    ));
+
+    let error = service
+        .attach_labels(&user(false), cluster.id, &[valid.id])
+        .await
+        .expect_err("non-admins must be rejected");
+    assert!(matches!(error, KubernetesLabelError::Forbidden));
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn list_services_referencing_label_returns_matching_active_services(pool: sqlx::PgPool) {
+    let service = labels(&pool);
+    let admin = user(true);
+
+    let label = service
+        .create_label(&admin, "availability".to_owned(), "ft".to_owned())
+        .await
+        .expect("create label");
+
+    // Referenced twice (once among other pairs), plus two non-matching
+    // services: a different target and no target at all.
+    seed_service_with_target(
+        &pool,
+        "vaultwarden",
+        "Vaultwarden",
+        Some(json!({"availability": "ft"})),
+    )
+    .await;
+    seed_service_with_target(
+        &pool,
+        "nextcloud",
+        "Nextcloud",
+        Some(json!({"availability": "ft", "region": "eu"})),
+    )
+    .await;
+    seed_service_with_target(
+        &pool,
+        "gitea",
+        "Gitea",
+        Some(json!({"availability": "best-effort"})),
+    )
+    .await;
+    seed_service_with_target(&pool, "umami", "Umami", None).await;
+
+    let references = service
+        .list_services_referencing_label(&admin, label.id)
+        .await
+        .expect("list references");
+
+    let names: Vec<&str> = references.iter().map(|s| s.name.as_str()).collect();
+    assert_eq!(
+        names,
+        vec!["Nextcloud", "Vaultwarden"],
+        "only services whose deploy_target carries the pair are returned, ordered by name"
+    );
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn list_services_referencing_label_matches_case_insensitively(pool: sqlx::PgPool) {
+    let service = labels(&pool);
+    let admin = user(true);
+
+    let label = service
+        .create_label(&admin, "availability".to_owned(), "ft".to_owned())
+        .await
+        .expect("create label");
+    seed_service_with_target(
+        &pool,
+        "vaultwarden",
+        "Vaultwarden",
+        Some(json!({"AVAILABILITY": "FT"})),
+    )
+    .await;
+
+    let references = service
+        .list_services_referencing_label(&admin, label.id)
+        .await
+        .expect("list references");
+    assert_eq!(
+        references.len(),
+        1,
+        "deploy_target matching is case-insensitive, like cluster selection"
+    );
+    assert_eq!(references[0].slug, "vaultwarden");
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn list_services_referencing_label_ignores_deactivated_services(pool: sqlx::PgPool) {
+    let service = labels(&pool);
+    let admin = user(true);
+
+    let label = service
+        .create_label(&admin, "availability".to_owned(), "ft".to_owned())
+        .await
+        .expect("create label");
+    let service_id = seed_service_with_target(
+        &pool,
+        "vaultwarden",
+        "Vaultwarden",
+        Some(json!({"availability": "ft"})),
+    )
+    .await;
+    sqlx::query("UPDATE managed.service SET deactivated_at = NOW() WHERE id = $1")
+        .bind(service_id)
+        .execute(&pool)
+        .await
+        .expect("deactivate service");
+
+    let references = service
+        .list_services_referencing_label(&admin, label.id)
+        .await
+        .expect("list references");
+    assert!(
+        references.is_empty(),
+        "deactivated services can no longer be deployed, so they are not impacted"
+    );
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn list_services_referencing_label_rejects_non_admins_and_unknown_labels(pool: sqlx::PgPool) {
+    let service = labels(&pool);
+
+    let error = service
+        .list_services_referencing_label(&user(false), Uuid::new_v4())
+        .await
+        .expect_err("non-admins must be rejected");
+    assert!(matches!(error, KubernetesLabelError::Forbidden));
+
+    let unknown = Uuid::new_v4();
+    let error = service
+        .list_services_referencing_label(&user(true), unknown)
+        .await
+        .expect_err("unknown labels must be reported");
+    assert!(matches!(error, KubernetesLabelError::NotFound(id) if id == unknown));
 }
 
 #[sqlx::test(migrations = "../migrations")]

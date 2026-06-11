@@ -10,10 +10,12 @@ import {
   Text,
   Textarea,
 } from '@chakra-ui/react';
+import { KubernetesLabel } from '@france-nuage/sdk';
 import { FunctionComponent, useCallback, useState } from 'react';
 import { HiArrowLeft } from 'react-icons/hi';
 import { Link, useNavigate } from 'react-router';
 
+import { KubernetesLabelsPicker } from '@/components';
 import { createKubernetesCluster } from '@/features';
 import { useAppDispatch } from '@/hooks';
 import { Routes } from '@/types';
@@ -36,6 +38,7 @@ export const KubernetesClusterCreatePage: FunctionComponent = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [kubeconfig, setKubeconfig] = useState('');
+  const [labels, setLabels] = useState<KubernetesLabel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +52,7 @@ export const KubernetesClusterCreatePage: FunctionComponent = () => {
       createKubernetesCluster({
         description: description || undefined,
         kubeconfig,
+        labelIds: labels.map((label) => label.id),
         name,
       }),
     )
@@ -61,7 +65,7 @@ export const KubernetesClusterCreatePage: FunctionComponent = () => {
         setError(getErrorMessage(err));
         setLoading(false);
       });
-  }, [name, description, kubeconfig, dispatch, navigate]);
+  }, [name, description, kubeconfig, labels, dispatch, navigate]);
 
   return (
     <Stack gap={6} maxW="640px">
@@ -116,6 +120,20 @@ export const KubernetesClusterCreatePage: FunctionComponent = () => {
                 rows={10}
                 fontFamily="mono"
                 fontSize="sm"
+              />
+            </Field.Root>
+
+            <Field.Root>
+              <Field.Label>Labels</Field.Label>
+              <Field.HelperText>
+                Les labels déterminent quelles ressources de la plateforme
+                peuvent être déployées sur ce cluster via leur cible de
+                déploiement.
+              </Field.HelperText>
+              <KubernetesLabelsPicker
+                disabled={loading}
+                value={labels}
+                onChange={setLabels}
               />
             </Field.Root>
 

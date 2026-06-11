@@ -1,6 +1,37 @@
 import { faker } from '@faker-js/faker';
 
-import { KubernetesCluster, KubernetesClusterHealthStatus } from '../models';
+import {
+  KubernetesCluster,
+  KubernetesClusterHealthStatus,
+  KubernetesLabel,
+  ManagedServiceRef,
+} from '../models';
+
+export const kubernetesLabel = (
+  preset?: Partial<KubernetesLabel>,
+): KubernetesLabel => ({
+  id: faker.string.uuid(),
+  key: faker.helpers.arrayElement(['availability', 'region', 'tier']),
+  value: faker.helpers.arrayElement(['ft', 'best-effort', 'eu', 'us']),
+  system: false,
+  createdAt: faker.date.recent().toISOString(),
+  updatedAt: faker.date.recent().toISOString(),
+  ...preset,
+});
+
+export const kubernetesLabels = (
+  count: number,
+  preset?: Partial<KubernetesLabel>,
+): KubernetesLabel[] => [...Array(count)].map(() => kubernetesLabel(preset));
+
+export const managedServiceRef = (
+  preset?: Partial<ManagedServiceRef>,
+): ManagedServiceRef => ({
+  id: faker.string.uuid(),
+  slug: faker.helpers.slugify(faker.commerce.productName()).toLowerCase(),
+  name: faker.commerce.productName(),
+  ...preset,
+});
 
 export const kubernetesCluster = (
   preset?: Partial<KubernetesCluster>,
@@ -26,6 +57,7 @@ export const kubernetesCluster = (
     : undefined,
   createdAt: faker.date.recent().toISOString(),
   updatedAt: faker.date.recent().toISOString(),
+  labels: kubernetesLabels(faker.number.int({ min: 0, max: 3 })),
   ...preset,
 });
 

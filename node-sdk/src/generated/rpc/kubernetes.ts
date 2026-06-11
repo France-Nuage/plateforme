@@ -155,6 +155,14 @@ export interface CreateClusterRequest {
      * @generated from protobuf field: string kubeconfig = 3
      */
     kubeconfig: string;
+    /**
+     * IDs of existing user-managed labels to attach to the cluster at
+     * creation. Validated before the reachability check: an unknown or
+     * system label rejects the whole request and no cluster is created.
+     *
+     * @generated from protobuf field: repeated string label_ids = 4
+     */
+    labelIds: string[];
 }
 /**
  * @generated from protobuf message francenuage.fr.v1.kubernetes.CreateClusterResponse
@@ -315,6 +323,47 @@ export interface DetachClusterLabelRequest {
  */
 export interface DetachClusterLabelResponse {
 }
+/**
+ * ListServicesReferencingLabel
+ *
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.ListServicesReferencingLabelRequest
+ */
+export interface ListServicesReferencingLabelRequest {
+    /**
+     * @generated from protobuf field: string label_id = 1
+     */
+    labelId: string;
+}
+/**
+ * Minimal reference to a managed service impacted by a label removal.
+ *
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.ManagedServiceRefProto
+ */
+export interface ManagedServiceRefProto {
+    /**
+     * @generated from protobuf field: string id = 1
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string slug = 2
+     */
+    slug: string;
+    /**
+     * @generated from protobuf field: string name = 3
+     */
+    name: string;
+}
+/**
+ * @generated from protobuf message francenuage.fr.v1.kubernetes.ListServicesReferencingLabelResponse
+ */
+export interface ListServicesReferencingLabelResponse {
+    /**
+     * Active services whose deploy_target requires the label, ordered by name.
+     *
+     * @generated from protobuf field: repeated francenuage.fr.v1.kubernetes.ManagedServiceRefProto services = 1
+     */
+    services: ManagedServiceRefProto[];
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class KubernetesLabelProto$Type extends MessageType<KubernetesLabelProto> {
     constructor() {
@@ -407,7 +456,8 @@ class CreateClusterRequest$Type extends MessageType<CreateClusterRequest> {
         super("francenuage.fr.v1.kubernetes.CreateClusterRequest", [
             { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "description", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "kubeconfig", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "kubeconfig", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "label_ids", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
 }
@@ -591,6 +641,44 @@ class DetachClusterLabelResponse$Type extends MessageType<DetachClusterLabelResp
  * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.DetachClusterLabelResponse
  */
 export const DetachClusterLabelResponse = new DetachClusterLabelResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListServicesReferencingLabelRequest$Type extends MessageType<ListServicesReferencingLabelRequest> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.ListServicesReferencingLabelRequest", [
+            { no: 1, name: "label_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.ListServicesReferencingLabelRequest
+ */
+export const ListServicesReferencingLabelRequest = new ListServicesReferencingLabelRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ManagedServiceRefProto$Type extends MessageType<ManagedServiceRefProto> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.ManagedServiceRefProto", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "slug", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.ManagedServiceRefProto
+ */
+export const ManagedServiceRefProto = new ManagedServiceRefProto$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListServicesReferencingLabelResponse$Type extends MessageType<ListServicesReferencingLabelResponse> {
+    constructor() {
+        super("francenuage.fr.v1.kubernetes.ListServicesReferencingLabelResponse", [
+            { no: 1, name: "services", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => ManagedServiceRefProto }
+        ]);
+    }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.kubernetes.ListServicesReferencingLabelResponse
+ */
+export const ListServicesReferencingLabelResponse = new ListServicesReferencingLabelResponse$Type();
 /**
  * @generated ServiceType for protobuf service francenuage.fr.v1.kubernetes.KubernetesClusters
  */
@@ -604,5 +692,6 @@ export const KubernetesClusters = new ServiceType("francenuage.fr.v1.kubernetes.
     { name: "CreateLabel", options: {}, I: CreateLabelRequest, O: CreateLabelResponse },
     { name: "DeleteLabel", options: {}, I: DeleteLabelRequest, O: DeleteLabelResponse },
     { name: "AttachClusterLabel", options: {}, I: AttachClusterLabelRequest, O: AttachClusterLabelResponse },
-    { name: "DetachClusterLabel", options: {}, I: DetachClusterLabelRequest, O: DetachClusterLabelResponse }
+    { name: "DetachClusterLabel", options: {}, I: DetachClusterLabelRequest, O: DetachClusterLabelResponse },
+    { name: "ListServicesReferencingLabel", options: {}, I: ListServicesReferencingLabelRequest, O: ListServicesReferencingLabelResponse }
 ]);

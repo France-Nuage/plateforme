@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { KubernetesClusters } from "./kubernetes";
+import type { ListServicesReferencingLabelResponse } from "./kubernetes";
+import type { ListServicesReferencingLabelRequest } from "./kubernetes";
 import type { DetachClusterLabelResponse } from "./kubernetes";
 import type { DetachClusterLabelRequest } from "./kubernetes";
 import type { AttachClusterLabelResponse } from "./kubernetes";
@@ -100,6 +102,16 @@ export interface IKubernetesClustersClient {
      * @generated from protobuf rpc: DetachClusterLabel
      */
     detachClusterLabel(input: DetachClusterLabelRequest, options?: RpcOptions): UnaryCall<DetachClusterLabelRequest, DetachClusterLabelResponse>;
+    /**
+     * Lists the active managed services whose deploy_target references the
+     * label's key/value pair (admin only). Detaching or deleting such a label
+     * is allowed but may leave those services without an eligible cluster for
+     * future deployments; callers surface this list to the operator before
+     * confirming the removal.
+     *
+     * @generated from protobuf rpc: ListServicesReferencingLabel
+     */
+    listServicesReferencingLabel(input: ListServicesReferencingLabelRequest, options?: RpcOptions): UnaryCall<ListServicesReferencingLabelRequest, ListServicesReferencingLabelResponse>;
 }
 /**
  * Platform-admin registry of Kubernetes clusters.
@@ -208,5 +220,18 @@ export class KubernetesClustersClient implements IKubernetesClustersClient, Serv
     detachClusterLabel(input: DetachClusterLabelRequest, options?: RpcOptions): UnaryCall<DetachClusterLabelRequest, DetachClusterLabelResponse> {
         const method = this.methods[9], opt = this._transport.mergeOptions(options);
         return stackIntercept<DetachClusterLabelRequest, DetachClusterLabelResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Lists the active managed services whose deploy_target references the
+     * label's key/value pair (admin only). Detaching or deleting such a label
+     * is allowed but may leave those services without an eligible cluster for
+     * future deployments; callers surface this list to the operator before
+     * confirming the removal.
+     *
+     * @generated from protobuf rpc: ListServicesReferencingLabel
+     */
+    listServicesReferencingLabel(input: ListServicesReferencingLabelRequest, options?: RpcOptions): UnaryCall<ListServicesReferencingLabelRequest, ListServicesReferencingLabelResponse> {
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListServicesReferencingLabelRequest, ListServicesReferencingLabelResponse>("unary", this._transport, method, opt, input);
     }
 }

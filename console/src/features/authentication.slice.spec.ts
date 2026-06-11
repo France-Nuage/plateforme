@@ -25,9 +25,13 @@ function buildUser(overrides: {
     access_token: 'access',
     id_token: overrides.id_token,
     profile: {
+      aud: 'audience',
       email: overrides.email,
+      exp: 0,
       family_name: overrides.family_name,
       given_name: overrides.given_name,
+      iat: 0,
+      iss: 'issuer',
       sub: 'user-sub',
     },
     session_state: null,
@@ -79,7 +83,7 @@ describe('authentication reducer admin status', () => {
     const state = reducer(
       undefined,
       fetchCurrentUser.fulfilled(
-        { id: 'id', email: 'a@b.c', isAdmin: true },
+        { email: 'a@b.c', id: 'id', isAdmin: true },
         'req',
         undefined,
       ),
@@ -91,7 +95,7 @@ describe('authentication reducer admin status', () => {
     const state = reducer(
       undefined,
       fetchCurrentUser.fulfilled(
-        { id: 'id', email: 'a@b.c', isAdmin: false },
+        { email: 'a@b.c', id: 'id', isAdmin: false },
         'req',
         undefined,
       ),
@@ -103,7 +107,7 @@ describe('authentication reducer admin status', () => {
     const admin = reducer(
       undefined,
       fetchCurrentUser.fulfilled(
-        { id: 'id', email: 'a@b.c', isAdmin: true },
+        { email: 'a@b.c', id: 'id', isAdmin: true },
         'req',
         undefined,
       ),
@@ -119,7 +123,7 @@ describe('authentication reducer admin status', () => {
     const admin = reducer(
       undefined,
       fetchCurrentUser.fulfilled(
-        { id: 'id', email: 'a@b.c', isAdmin: true },
+        { email: 'a@b.c', id: 'id', isAdmin: true },
         'req',
         undefined,
       ),
@@ -139,7 +143,7 @@ describe('authentication reducer admin status', () => {
     const admin = reducer(
       undefined,
       fetchCurrentUser.fulfilled(
-        { id: 'id', email: 'a@b.c', isAdmin: true },
+        { email: 'a@b.c', id: 'id', isAdmin: true },
         'req',
         undefined,
       ),
@@ -153,7 +157,7 @@ describe('authentication reducer admin status', () => {
     const admin = reducer(
       undefined,
       fetchCurrentUser.fulfilled(
-        { id: 'id', email: 'a@b.c', isAdmin: true },
+        { email: 'a@b.c', id: 'id', isAdmin: true },
         'req',
         undefined,
       ),

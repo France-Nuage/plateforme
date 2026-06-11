@@ -42,6 +42,13 @@ service KubernetesClusters {
 
     // Detaches a user-managed label from a cluster (admin only, idempotent).
     rpc DetachClusterLabel(DetachClusterLabelRequest) returns (DetachClusterLabelResponse);
+
+    // Lists the active managed services whose deploy_target references the
+    // label's key/value pair (admin only). Detaching or deleting such a label
+    // is allowed but may leave those services without an eligible cluster for
+    // future deployments; callers surface this list to the operator before
+    // confirming the removal.
+    rpc ListServicesReferencingLabel(ListServicesReferencingLabelRequest) returns (ListServicesReferencingLabelResponse);
 }
 
 // A cluster label: a reusable key/value pair (e.g. availability=ft) attached
@@ -98,6 +105,10 @@ message CreateClusterRequest {
     optional string description = 2;
     // Full kubeconfig YAML granting access to the cluster API server.
     string kubeconfig = 3;
+    // IDs of existing user-managed labels to attach to the cluster at
+    // creation. Validated before the reachability check: an unknown or
+    // system label rejects the whole request and no cluster is created.
+    repeated string label_ids = 4;
 }
 
 message CreateClusterResponse {
@@ -165,3 +176,20 @@ message DetachClusterLabelRequest {
 }
 
 message DetachClusterLabelResponse {}
+
+// ListServicesReferencingLabel
+message ListServicesReferencingLabelRequest {
+    string label_id = 1;
+}
+
+// Minimal reference to a managed service impacted by a label removal.
+message ManagedServiceRefProto {
+    string id = 1;
+    string slug = 2;
+    string name = 3;
+}
+
+message ListServicesReferencingLabelResponse {
+    // Active services whose deploy_target requires the label, ordered by name.
+    repeated ManagedServiceRefProto services = 1;
+}

@@ -15,6 +15,7 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react';
 import { HiArrowLeft } from 'react-icons/hi';
 import { Link, useNavigate, useParams } from 'react-router';
 
+import { ClusterLabelsEditor } from '@/components';
 import {
   clearCurrentCluster,
   fetchKubernetesCluster,
@@ -172,6 +173,19 @@ export const KubernetesClusterEditPage: FunctionComponent = () => {
               </Button>
             </Flex>
           </Stack>
+        </Card.Body>
+      </Card.Root>
+
+      <Card.Root>
+        <Card.Header>
+          <Heading size="md">Labels</Heading>
+          <Text color="fg.muted" fontSize="sm">
+            Les labels déterminent quelles ressources de la plateforme peuvent
+            être déployées sur ce cluster via leur cible de déploiement.
+          </Text>
+        </Card.Header>
+        <Card.Body>
+          <ClusterLabelsEditor clusterId={cluster.id} />
         </Card.Body>
       </Card.Root>
     </Stack>

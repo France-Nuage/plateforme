@@ -1,6 +1,13 @@
-import { kubernetesCluster, kubernetesClusters } from '../../fixtures';
+import {
+  kubernetesCluster,
+  kubernetesClusters,
+  kubernetesLabel,
+  kubernetesLabels,
+  managedServiceRef,
+} from '../../fixtures';
 import {
   CreateKubernetesClusterInput,
+  CreateKubernetesLabelInput,
   KubernetesClusterHealthStatus,
   UpdateKubernetesClusterInput,
 } from '../../models';
@@ -37,6 +44,32 @@ export class KubernetesClusterMockService implements KubernetesClusterService {
         description: data.description,
       }),
     );
+  }
+
+  listLabels() {
+    return Promise.resolve(kubernetesLabels(5));
+  }
+
+  createLabel(data: CreateKubernetesLabelInput) {
+    return Promise.resolve(
+      kubernetesLabel({ key: data.key, value: data.value }),
+    );
+  }
+
+  deleteLabel() {
+    return Promise.resolve();
+  }
+
+  attachClusterLabel() {
+    return Promise.resolve();
+  }
+
+  detachClusterLabel() {
+    return Promise.resolve();
+  }
+
+  listServicesReferencingLabel() {
+    return Promise.resolve([managedServiceRef()]);
   }
 }
 

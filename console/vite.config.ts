@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
 // Validate required environment variables
 const requiredEnvVars = [
@@ -10,26 +10,31 @@ const requiredEnvVars = [
   'VITE_OIDC_PROVIDER_URL',
 ];
 
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    throw new Error(`Missing required environment variable: ${envVar}`);
-  }
-}
-
 // https://vite.dev/config/
-export default defineConfig({
-  build: {
-    sourcemap: true,
-  },
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+export default defineConfig(({ mode }) => {
+  // Merge .env files with process.env, matching what the app sees in import.meta.env
+  const env = loadEnv(mode, process.cwd(), '');
+
+  for (const envVar of requiredEnvVars) {
+    if (!env[envVar]) {
+      throw new Error(`Missing required environment variable: ${envVar}`);
+    }
+  }
+
+  return {
+    build: {
+      sourcemap: true,
     },
-  },
-  server: {
-    allowedHosts: ['console.test'],
-    host: '0.0.0.0',
-    port: process.env.PORT ? Number(process.env.PORT) : 5173,
-  },
+    plugins: [react()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
+    server: {
+      allowedHosts: ['console.test'],
+      host: '0.0.0.0',
+      port: env.PORT ? Number(env.PORT) : 5173,
+    },
+  };
 });

@@ -21,3 +21,5 @@ export * from './managed-service-plan-card';
 export * from './admin-guard';
 export * from './organization-guard';
 export * from './page-guard';
+export * from './cluster-labels-editor';
+export * from './kubernetes-labels-picker';
