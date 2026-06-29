@@ -38,18 +38,12 @@ impl User {
     pub async fn find_one_by_email(
         pool: &sqlx::Pool<Postgres>,
         email: &str,
-    ) -> Result<Option<User>, sqlx::Error> {
-        sqlx::query_as!(
-            User,
-            r#"
-            SELECT id, email, is_admin, created_at, updated_at 
-            FROM users
-            WHERE email = $1
-            "#,
-            email
-        )
-        .fetch_optional(pool)
-        .await
+    ) -> Result<Option<User>, fabrique::Error> {
+        User::query()
+            .select()
+            .r#where(User::EMAIL, "=", email.to_owned())
+            .first(pool)
+            .await
     }
 
     pub async fn find_or_create_one_by_email(

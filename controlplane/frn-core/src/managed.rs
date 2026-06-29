@@ -166,8 +166,8 @@ pub struct ManagedServiceInstance {
     pub version_id: Uuid,
     #[fabrique(belongs_to = ManagedServicePlan)]
     pub plan_id: Option<Uuid>,
-    pub project_id: Uuid,
-    pub organization_id: Uuid,
+    pub project_slug: String,
+    pub organization_slug: String,
     /// The Kubernetes cluster hosting this instance, resolved at creation by
     /// matching the service `deploy_target` against the cluster labels.
     pub cluster_id: Uuid,
@@ -191,8 +191,8 @@ pub struct ManagedServiceInstanceView {
     #[fabrique(belongs_to = ManagedServiceVersion)]
     pub version_id: Uuid,
     pub plan_id: Option<Uuid>,
-    pub project_id: Uuid,
-    pub organization_id: Uuid,
+    pub project_slug: String,
+    pub organization_slug: String,
     pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
@@ -236,9 +236,9 @@ pub enum ManagedServiceError {
     #[error("instance not found: {0}")]
     InstanceNotFound(Uuid),
     #[error("organization not found: {0}")]
-    OrganizationNotFound(Uuid),
+    OrganizationNotFound(String),
     #[error("project not found: {0}")]
-    ProjectNotFound(Uuid),
+    ProjectNotFound(String),
     #[error("service {0} declares no deploy_target and cannot be deployed")]
     MissingDeployTarget(String),
     #[error("service {0} has an invalid deploy_target: {1}")]
@@ -395,7 +395,7 @@ pub(crate) fn parse_deploy_target(
 pub fn build_instance_labels(
     service_slug: &str,
     instance_id: Uuid,
-    project_id: Uuid,
+    project_slug: String,
 ) -> BTreeMap<String, String> {
     BTreeMap::from([
         (
@@ -404,7 +404,7 @@ pub fn build_instance_labels(
         ),
         ("france-nuage/service".to_owned(), service_slug.to_owned()),
         ("france-nuage/instance".to_owned(), instance_id.to_string()),
-        ("france-nuage/project".to_owned(), project_id.to_string()),
+        ("france-nuage/project".to_owned(), project_slug),
     ])
 }
 
@@ -456,26 +456,26 @@ impl<A: Authorize> ManagedServices<A> {
 
     pub(crate) async fn find_organization(
         &self,
-        organization_id: Uuid,
+        organization_slug: &str,
     ) -> Result<Organization, ManagedServiceError> {
         Organization::query()
             .select()
-            .r#where(Organization::ID, "=", organization_id)
+            .r#where(Organization::SLUG, "=", organization_slug.to_owned())
             .first(&self.db)
             .await?
-            .ok_or_else(|| ManagedServiceError::OrganizationNotFound(organization_id))
+            .ok_or_else(|| ManagedServiceError::OrganizationNotFound(organization_slug.to_owned()))
     }
 
     pub(crate) async fn find_project(
         &self,
-        project_id: Uuid,
+        project_slug: &str,
     ) -> Result<Project, ManagedServiceError> {
         Project::query()
             .select()
-            .r#where(Project::ID, "=", project_id)
+            .r#where(Project::SLUG, "=", project_slug.to_owned())
             .first(&self.db)
             .await?
-            .ok_or_else(|| ManagedServiceError::ProjectNotFound(project_id))
+            .ok_or_else(|| ManagedServiceError::ProjectNotFound(project_slug.to_owned()))
     }
 
     /// Resolves the cluster that will host a new instance of `service`.
@@ -498,15 +498,16 @@ impl<A: Authorize> ManagedServices<A> {
 
     pub(crate) async fn count_instances_for_service(
         &self,
-        project_id: Uuid,
+        project_slug: &str,
         service_id: Uuid,
     ) -> Result<i64, ManagedServiceError> {
-        let count = sqlx::query_scalar::<_, i64>(
-            "SELECT COUNT(*) FROM managed.service_instance \
-             WHERE project_id = $1 AND service_id = $2",
+        // Raw SQL: aggregate COUNT not supported by fabrique query builder
+        let count: i64 = sqlx::query_scalar!(
+            "SELECT COUNT(*) as \"count!\" FROM managed.service_instance \
+             WHERE project_slug = $1::citext AND service_id = $2",
+            project_slug,
+            service_id,
         )
-        .bind(project_id)
-        .bind(service_id)
         .fetch_one(&self.db)
         .await?;
         Ok(count)
@@ -607,11 +608,15 @@ impl<A: Authorize> ManagedServices<A> {
 
     pub async fn list_instances_by_project(
         &self,
-        project_id: Uuid,
+        project_slug: &str,
     ) -> Result<Vec<ManagedServiceInstanceView>, ManagedServiceError> {
         ManagedServiceInstanceView::query()
             .select()
-            .r#where(ManagedServiceInstanceView::PROJECT_ID, "=", project_id)
+            .r#where(
+                ManagedServiceInstanceView::PROJECT_SLUG,
+                "=",
+                project_slug.to_owned(),
+            )
             .order_by(ManagedServiceInstanceView::CREATED_AT, Direction::Desc)
             .get(&self.db)
             .await

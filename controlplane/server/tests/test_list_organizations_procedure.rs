@@ -2,7 +2,6 @@ use crate::common::{Api, OnBehalfOf};
 use fabrique::Factory;
 use frn_core::resourcemanager::Organization;
 use frn_rpc::v1::resourcemanager::ListOrganizationsRequest;
-use sqlx::types::Uuid;
 use tonic::Request;
 
 mod common;
@@ -13,8 +12,8 @@ async fn test_the_list_organizations_procedure_works(pool: sqlx::PgPool) {
 
     // Arrange the grpc server and a client
     Organization::factory()
-        .id(Uuid::default())
-        .parent_id(None)
+        .slug("test-org".to_owned())
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");

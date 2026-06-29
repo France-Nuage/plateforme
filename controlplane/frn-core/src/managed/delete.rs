@@ -13,7 +13,7 @@ use uuid::Uuid;
 #[derive(Debug)]
 pub struct DeleteManagedServiceParams {
     pub instance_id: Uuid,
-    pub project_id: Uuid,
+    pub project_slug: String,
     pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
@@ -63,14 +63,15 @@ impl<A: Authorize> ManagedServices<A> {
         let platform_values = self.build_platform_values(&service.database_engine);
         let merged_values = merge_helm_values(user_vals, &platform_values);
         let secret_name = format!("{}-secrets", instance.release_name);
-        let labels = build_instance_labels(&service.slug, instance.id, instance.project_id);
+        let labels =
+            build_instance_labels(&service.slug, instance.id, instance.project_slug.clone());
 
         scheduler
             .schedule(
                 conn,
                 DeleteManagedServiceParams {
                     instance_id: instance.id,
-                    project_id: instance.project_id,
+                    project_slug: instance.project_slug,
                     cluster_id,
                     namespace: instance.namespace.clone(),
                     release_name: instance.release_name.clone(),

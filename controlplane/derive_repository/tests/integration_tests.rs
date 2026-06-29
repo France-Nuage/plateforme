@@ -1,17 +1,14 @@
 use database_core::Persistable;
 use derive_repository::Repository;
 use sqlx::prelude::FromRow;
-use uuid::Uuid;
 
 #[derive(Debug, Default, FromRow, Repository)]
 struct Organization {
     #[repository(primary)]
-    pub id: Uuid,
+    pub slug: String,
 
     #[sqlx(try_from = "String")]
     pub name: OrganizationName,
-
-    pub slug: String,
 }
 
 #[derive(Debug, Default)]
@@ -34,12 +31,12 @@ impl From<OrganizationName> for String {
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_a_repository_can_be_derived_from_a_struct(pool: sqlx::PgPool) {
-    // Arrange a missile
-    let missile = Organization::default();
+    let missile = Organization {
+        slug: "test-org".to_owned(),
+        ..Default::default()
+    };
 
-    // Act the call to the create method
     let result = missile.create(&pool).await;
 
-    // Assert the result
     assert!(result.is_ok());
 }

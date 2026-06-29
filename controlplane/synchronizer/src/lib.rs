@@ -1,3 +1,4 @@
+use fabrique::Query;
 use frn_core::authorization::{Relation, Relationship, Resource};
 use frn_core::resourcemanager::Project;
 use frn_core::{
@@ -24,16 +25,18 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
             hypervisor.url.clone(),
             hypervisor.authorization_token.clone(),
         );
-        let root_organization: Organization = sqlx::query_as!(
-            Organization,
-            "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE name = $1",
-            &app.config.root_organization.name
-        )
-        .fetch_one(&app.db)
-        .await?;
+        let root_organization = Organization::query()
+            .select()
+            .r#where(
+                Organization::NAME,
+                "=",
+                app.config.root_organization.name.clone(),
+            )
+            .first_or_fail(&app.db)
+            .await?;
         let default_project = app
             .projects
-            .get_default_project(&principal, &root_organization.id)
+            .get_default_project(&principal, &root_organization.slug)
             .await?;
 
         let distant_instances = service.list().await?;
@@ -41,21 +44,20 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
             .map(|distant| {
                 let pool = app.db.clone();
                 let service = Clone::clone(&service);
+                let default_slug = default_project.slug.clone();
 
                 async move {
-                    let mut existing = sqlx::query_as!(
-                        Instance,
-                        "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
-                        distant.id,
-                        hypervisor.id
-                    )
-                    .fetch_optional(&pool)
-                    .await?
-                    .unwrap_or(Instance {
-                        id: Uuid::new_v4(),
-                        project_id: default_project.id,
-                        ..Default::default()
-                    });
+                    let mut existing = Instance::query()
+                        .select()
+                        .r#where(Instance::DISTANT_ID, "=", distant.id.clone())
+                        .r#where(Instance::HYPERVISOR_ID, "=", hypervisor.id)
+                        .first(&pool)
+                        .await?
+                        .unwrap_or(Instance {
+                            id: Uuid::new_v4(),
+                            project_slug: default_slug.clone(),
+                            ..Default::default()
+                        });
 
                     // Try to retrieve the ip address if it is not known yet
                     if existing.ip_v4.is_empty() {
@@ -73,7 +75,7 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
                     Ok::<Instance, Error>(Instance {
                         id: existing.id,
                         hypervisor_id: hypervisor.id,
-                        project_id: existing.project_id,
+                        project_slug: existing.project_slug.clone(),
                         zero_trust_network_id: existing.zero_trust_network_id,
                         distant_id: distant.id,
                         cpu_usage_percent: distant.cpu_usage_percent as f64,
@@ -100,7 +102,7 @@ pub async fn synchronize<Auth: Authorize>(app: &mut App<Auth>) -> Result<(), Err
             .iter()
             .map(|instance| {
                 Relationship::new(
-                    &Project::some(instance.project_id),
+                    &Project::some(instance.project_slug.clone()),
                     Relation::Parent,
                     instance,
                 )

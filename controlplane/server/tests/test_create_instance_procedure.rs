@@ -48,13 +48,13 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
 
     let organization = Organization::factory()
         .slug("acme".to_owned())
-        .parent_id(None)
+        .parent_slug(None)
         .create(&pool)
         .await?;
     let cluster = seed_kubernetes_cluster(&pool, "prod-eu").await;
     attach_test_deploy_label(&pool, cluster.id).await;
     let project = Project::factory()
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await?;
 
@@ -75,8 +75,8 @@ async fn test_create_instance_returns_instance_with_provisioning_status(
         .services
         .create_instance(
             Request::new(CreateInstanceRequest {
-                project_id: project.id.to_string(),
-                organization_id: organization.id.to_string(),
+                project_slug: project.slug.clone(),
+                organization_slug: organization.slug.clone(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: version_id.to_string(),
                 plan_id: plan_id.to_string(),
@@ -105,14 +105,14 @@ async fn test_create_instance_fails_when_no_cluster_matches_deploy_target(
 
     let organization = Organization::factory()
         .slug("acme".to_owned())
-        .parent_id(None)
+        .parent_slug(None)
         .create(&pool)
         .await?;
     // The cluster exists and is healthy but does not carry the label required
     // by the service deploy_target.
     seed_kubernetes_cluster(&pool, "prod-eu").await;
     let project = Project::factory()
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await?;
 
@@ -133,8 +133,8 @@ async fn test_create_instance_fails_when_no_cluster_matches_deploy_target(
         .services
         .create_instance(
             Request::new(CreateInstanceRequest {
-                project_id: project.id.to_string(),
-                organization_id: organization.id.to_string(),
+                project_slug: project.slug.clone(),
+                organization_slug: organization.slug.clone(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: version_id.to_string(),
                 plan_id: plan_id.to_string(),
@@ -159,13 +159,13 @@ async fn test_create_instance_fails_when_service_has_no_deploy_target(
 
     let organization = Organization::factory()
         .slug("acme".to_owned())
-        .parent_id(None)
+        .parent_slug(None)
         .create(&pool)
         .await?;
     let cluster = seed_kubernetes_cluster(&pool, "prod-eu").await;
     attach_test_deploy_label(&pool, cluster.id).await;
     let project = Project::factory()
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await?;
 
@@ -194,8 +194,8 @@ async fn test_create_instance_fails_when_service_has_no_deploy_target(
         .services
         .create_instance(
             Request::new(CreateInstanceRequest {
-                project_id: project.id.to_string(),
-                organization_id: organization.id.to_string(),
+                project_slug: project.slug.clone(),
+                organization_slug: organization.slug.clone(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: version_id.to_string(),
                 plan_id: plan_id.to_string(),
@@ -218,13 +218,13 @@ async fn test_create_instance_propagates_matching_cluster_to_workflow(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let organization = Organization::factory()
         .slug("acme".to_owned())
-        .parent_id(None)
+        .parent_slug(None)
         .create(&pool)
         .await?;
     let cluster = seed_kubernetes_cluster(&pool, "prod-eu").await;
     attach_test_deploy_label(&pool, cluster.id).await;
     let project = Project::factory()
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await?;
 
@@ -258,8 +258,8 @@ async fn test_create_instance_propagates_matching_cluster_to_workflow(
             &mut conn,
             &scheduler,
             CoreCreateInstanceRequest {
-                project_id: project.id,
-                organization_id: organization.id,
+                project_slug: project.slug.clone(),
+                organization_slug: organization.slug.clone(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id,
                 plan_id,
@@ -294,8 +294,8 @@ async fn test_create_instance_returns_error_when_service_not_found(
         .services
         .create_instance(
             Request::new(CreateInstanceRequest {
-                project_id: Uuid::new_v4().to_string(),
-                organization_id: Uuid::new_v4().to_string(),
+                project_slug: "nonexistent-project".to_owned(),
+                organization_slug: "nonexistent-org".to_owned(),
                 service_slug: "nonexistent".to_owned(),
                 version_id: Uuid::new_v4().to_string(),
                 plan_id: Uuid::new_v4().to_string(),
@@ -313,7 +313,7 @@ async fn test_create_instance_returns_error_when_service_not_found(
 }
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_create_instance_returns_error_when_project_id_is_empty(
+async fn test_create_instance_returns_error_when_project_slug_is_empty(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut api = Api::start(&pool).await.expect("could not start api");
@@ -323,8 +323,8 @@ async fn test_create_instance_returns_error_when_project_id_is_empty(
         .services
         .create_instance(
             Request::new(CreateInstanceRequest {
-                project_id: String::new(),
-                organization_id: Uuid::new_v4().to_string(),
+                project_slug: String::new(),
+                organization_slug: "some-org".to_owned(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: Uuid::new_v4().to_string(),
                 plan_id: Uuid::new_v4().to_string(),
@@ -352,8 +352,8 @@ async fn test_create_instance_returns_error_when_plan_id_is_empty(
         .services
         .create_instance(
             Request::new(CreateInstanceRequest {
-                project_id: Uuid::new_v4().to_string(),
-                organization_id: Uuid::new_v4().to_string(),
+                project_slug: "some-project".to_owned(),
+                organization_slug: "some-org".to_owned(),
                 service_slug: "vaultwarden".to_owned(),
                 version_id: Uuid::new_v4().to_string(),
                 plan_id: String::new(),

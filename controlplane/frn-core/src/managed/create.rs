@@ -14,8 +14,8 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct CreateInstanceRequest {
-    pub project_id: Uuid,
-    pub organization_id: Uuid,
+    pub project_slug: String,
+    pub organization_slug: String,
     pub service_slug: String,
     pub version_id: Uuid,
     pub plan_id: Uuid,
@@ -26,7 +26,7 @@ pub struct CreateInstanceRequest {
 #[derive(Debug)]
 pub struct DeployManagedServiceParams {
     pub instance_id: Uuid,
-    pub project_id: Uuid,
+    pub project_slug: String,
     pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
@@ -52,11 +52,11 @@ impl<A: Authorize> ManagedServices<A> {
         self.auth
             .can(principal)
             .perform(Permission::CreateInstance)
-            .over::<Project>(&request.project_id)
+            .over::<Project>(&request.project_slug)
             .await?;
 
-        let organization = self.find_organization(request.organization_id).await?;
-        self.find_project(request.project_id).await?;
+        let organization = self.find_organization(&request.organization_slug).await?;
+        self.find_project(&request.project_slug).await?;
         let service = self.find_service_by_slug(&request.service_slug).await?;
 
         // The hosting cluster is resolved here, at deployment time, by
@@ -84,7 +84,7 @@ impl<A: Authorize> ManagedServices<A> {
 
         let instance_id = Uuid::new_v4();
         let existing_count = self
-            .count_instances_for_service(request.project_id, service.id)
+            .count_instances_for_service(&request.project_slug, service.id)
             .await?;
         let instance_number = existing_count + 1;
         let namespace = generate_namespace(&organization.slug, &service.slug, instance_number)?;
@@ -98,7 +98,8 @@ impl<A: Authorize> ManagedServices<A> {
         let platform_values = self.build_platform_values(&service.database_engine);
         let merged_values = merge_helm_values(&user_plus_plan, &platform_values);
         let secret_data = secret_values_to_map(&request.secret_values);
-        let labels = build_instance_labels(&service.slug, instance_id, request.project_id);
+        let labels =
+            build_instance_labels(&service.slug, instance_id, request.project_slug.clone());
 
         let instance = ManagedServiceInstance::query()
             .insert()
@@ -109,10 +110,13 @@ impl<A: Authorize> ManagedServices<A> {
                 ManagedServiceInstance::PLAN_ID,
                 Some(request.plan_id) as Option<Uuid>,
             )
-            .set(ManagedServiceInstance::PROJECT_ID, request.project_id)
             .set(
-                ManagedServiceInstance::ORGANIZATION_ID,
-                request.organization_id,
+                ManagedServiceInstance::PROJECT_SLUG,
+                request.project_slug.clone(),
+            )
+            .set(
+                ManagedServiceInstance::ORGANIZATION_SLUG,
+                request.organization_slug,
             )
             .set(ManagedServiceInstance::CLUSTER_ID, cluster_id)
             .set(ManagedServiceInstance::NAMESPACE, namespace.clone())
@@ -128,7 +132,7 @@ impl<A: Authorize> ManagedServices<A> {
                 conn,
                 DeployManagedServiceParams {
                     instance_id: instance.id,
-                    project_id: request.project_id,
+                    project_slug: request.project_slug,
                     cluster_id,
                     namespace,
                     release_name,

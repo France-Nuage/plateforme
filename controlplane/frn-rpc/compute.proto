@@ -63,7 +63,7 @@ message ListHypervisorsResponse {
 message RegisterHypervisorRequest {
     // Authorization token for secure API access
     string authorization_token = 1;
- 
+
     // Name of the storage to use for instances
     string storage_name = 2;
 
@@ -73,8 +73,8 @@ message RegisterHypervisorRequest {
     // Id of the zone this hypervisor belongs to
     string zone_id = 4;
 
-    // Id of the organization this hypervisor belongs to
-    string organization_id = 5;
+    // Slug of the organization this hypervisor belongs to
+    string organization_slug = 5;
 }
 
 // RegisterHypervisorResponse contains the result of a register hypervisor operation.
@@ -106,8 +106,8 @@ message Hypervisor {
     // Id of the zone the hypervisor belongs to
     string zone_id = 4;
 
-    // Id of the organization the hypervisor belongs to
-    string organization_id = 5;
+    // Slug of the organization the hypervisor belongs to
+    string organization_slug = 5;
 }
 
 // InstanceConfig contains basic configuration information for a virtual machine instance.
@@ -192,11 +192,11 @@ message Instance {
         pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
     }];
 
-    // Unique identifier for the instance project
-    string project_id = 101 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    // Slug of the project this instance belongs to
+    string project_slug = 101 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
 
     // Unique identifier for the instance zero trust network
@@ -323,11 +323,11 @@ message CreateInstanceRequest {
     // The snippet to use to bootstrap the instance
     string snippet = 5;
 
-    // The id of the project the instance belongs to
-    string project_id = 7 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    // The slug of the project the instance belongs to
+    string project_slug = 7 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
 }
 
@@ -373,11 +373,11 @@ message UpdateInstanceRequest {
         pattern: "^[a-zA-Z0-9_-]+$"
     }];
 
-    // Optional new project id to move the instance to
-    optional string project_id = 3 [(validate.rules).string = {
+    // Optional new project slug to move the instance to
+    optional string project_slug = 3 [(validate.rules).string = {
         min_len: 1,
-        max_len: 36,
-        pattern: "^[a-zA-Z0-9_-]+$"
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
 }
 

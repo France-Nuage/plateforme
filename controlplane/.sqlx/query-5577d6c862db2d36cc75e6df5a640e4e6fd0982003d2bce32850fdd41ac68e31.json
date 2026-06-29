@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
+  "query": "\n            UPDATE instances\n            SET\n                name = COALESCE($2, name),\n                project_slug = COALESCE($3, project_slug),\n                updated_at = NOW()\n            WHERE id = $1\n            RETURNING *\n            ",
   "describe": {
     "columns": [
       {
@@ -126,17 +126,6 @@
       },
       {
         "ordinal": 11,
-        "name": "project_id",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "project_id"
-          }
-        }
-      },
-      {
-        "ordinal": 12,
         "name": "max_disk_bytes",
         "type_info": "Int8",
         "origin": {
@@ -147,7 +136,7 @@
         }
       },
       {
-        "ordinal": 13,
+        "ordinal": 12,
         "name": "disk_usage_bytes",
         "type_info": "Int8",
         "origin": {
@@ -158,7 +147,7 @@
         }
       },
       {
-        "ordinal": 14,
+        "ordinal": 13,
         "name": "ip_v4",
         "type_info": "Varchar",
         "origin": {
@@ -169,7 +158,7 @@
         }
       },
       {
-        "ordinal": 15,
+        "ordinal": 14,
         "name": "zero_trust_network_id",
         "type_info": "Uuid",
         "origin": {
@@ -178,12 +167,34 @@
             "name": "zero_trust_network_id"
           }
         }
+      },
+      {
+        "ordinal": 15,
+        "name": "project_slug",
+        "type_info": {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "project_slug"
+          }
+        }
       }
     ],
     "parameters": {
       "Left": [
-        "Text",
-        "Uuid"
+        "Uuid",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        }
       ]
     },
     "nullable": [
@@ -201,9 +212,9 @@
       false,
       false,
       false,
-      false,
-      true
+      true,
+      false
     ]
   },
-  "hash": "ffe303dcb8fa4fab32c696cfb22a9fd7ccfa3ebc90ffd6f044c31b0e85b5a7c6"
+  "hash": "5577d6c862db2d36cc75e6df5a640e4e6fd0982003d2bce32850fdd41ac68e31"
 }

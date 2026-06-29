@@ -583,8 +583,14 @@ async fn delete_is_rejected_when_instances_are_hosted(pool: sqlx::PgPool) {
         .insert()
         .set(ManagedServiceInstance::SERVICE_ID, service_id)
         .set(ManagedServiceInstance::VERSION_ID, version_id)
-        .set(ManagedServiceInstance::PROJECT_ID, Uuid::new_v4())
-        .set(ManagedServiceInstance::ORGANIZATION_ID, Uuid::new_v4())
+        .set(
+            ManagedServiceInstance::PROJECT_SLUG,
+            "test-project".to_owned(),
+        )
+        .set(
+            ManagedServiceInstance::ORGANIZATION_SLUG,
+            "test-org".to_owned(),
+        )
         .set(ManagedServiceInstance::CLUSTER_ID, cluster.id)
         .set(
             ManagedServiceInstance::NAMESPACE,

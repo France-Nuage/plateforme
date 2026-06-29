@@ -435,15 +435,15 @@ pub async fn seed_managed_service_instance(
     .await;
 
     let organization = Organization::factory()
-        .slug(format!("seed-{}", Uuid::new_v4().simple()))
-        .parent_id(None)
+        .slug("seed-org".to_owned())
+        .parent_slug(None)
         .create(pool)
         .await
         .expect("could not seed organization");
-    let cluster = seed_kubernetes_cluster(pool, &format!("seed-{}", Uuid::new_v4().simple())).await;
+    let cluster = seed_kubernetes_cluster(pool, "seed-cluster").await;
     attach_test_deploy_label(pool, cluster.id).await;
     let project = Project::factory()
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .create(pool)
         .await
         .expect("could not seed project");
@@ -465,8 +465,8 @@ pub async fn seed_managed_service_instance(
             &mut conn,
             &scheduler,
             frn_core::managed::CreateInstanceRequest {
-                project_id: project.id,
-                organization_id: organization.id,
+                project_slug: project.slug.clone(),
+                organization_slug: organization.slug.clone(),
                 service_slug: service_slug.to_owned(),
                 version_id,
                 plan_id,

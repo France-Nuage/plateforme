@@ -3,9 +3,6 @@ use std::time::SystemTime;
 use frn_core::authorization::{Authorize, Principal as _, Resource as _};
 use frn_core::identity::{IAM, Principal};
 use tonic::{Request, Response, Status};
-use uuid::Uuid;
-
-use crate::error::Error;
 
 tonic::include_proto!("francenuage.fr.v1.iam");
 
@@ -25,7 +22,7 @@ impl From<frn_core::identity::Invitation> for Invitation {
     fn from(value: frn_core::identity::Invitation) -> Self {
         Invitation {
             id: value.id.to_string(),
-            organization_id: value.organization_id.to_string(),
+            organization_slug: value.organization_slug.clone(),
             user_id: value.user_id.to_string(),
             state: InvitationState::from(value.state) as i32,
             created_at: Some(SystemTime::from(value.created_at).into()),
@@ -77,18 +74,15 @@ impl<Auth: Authorize + 'static> invitations_server::Invitations for Invitations<
 
         let CreateInvitationRequest {
             email,
-            organization_id,
+            organization_slug,
         } = request.into_inner();
-
-        let organization_id =
-            Uuid::parse_str(&organization_id).map_err(|_| Error::MalformedId(organization_id))?;
 
         let user_id = self.users.find_or_create(&principal, email).await?.id;
 
         let invitation = self
             .invitations
             .clone()
-            .create(&principal, organization_id, user_id)
+            .create(&principal, organization_slug, user_id)
             .await?;
 
         Ok(Response::new(CreateInvitationResponse {

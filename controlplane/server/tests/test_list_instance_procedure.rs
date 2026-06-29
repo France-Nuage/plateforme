@@ -14,26 +14,26 @@ async fn test_the_list_instances_procedure_works(pool: sqlx::PgPool) {
     let mock_url = api.mock_server.url();
 
     let organization = Organization::factory()
-        .parent_id(None)
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");
     let hypervisor = Hypervisor::factory()
         .for_zone(Zone::factory())
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .url(mock_url)
         .create(&pool)
         .await
         .expect("could not create hypervisor");
     let project = Project::factory()
         .name(DEFAULT_PROJECT_NAME.into())
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await
         .expect("could not create project");
     Instance::factory()
         .hypervisor_id(hypervisor.id)
-        .project_id(project.id)
+        .project_slug(project.slug.clone())
         .zero_trust_network_id(None)
         .create(&pool)
         .await

@@ -2,7 +2,6 @@ use crate::common::{Api, OnBehalfOf};
 use fabrique::Factory;
 use frn_core::resourcemanager::{Organization, Project};
 use frn_rpc::v1::resourcemanager::ListProjectsRequest;
-use sqlx::types::Uuid;
 use tonic::Request;
 
 mod common;
@@ -13,13 +12,13 @@ async fn test_the_list_projects_procedure_works(pool: sqlx::PgPool) {
     let mut api = Api::start(&pool).await.expect("could not start api");
 
     let organization = Organization::factory()
-        .parent_id(None)
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");
     Project::factory()
-        .id(Uuid::default())
-        .organization_id(organization.id)
+        .slug("test-project".to_owned())
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await
         .expect("could not create project");

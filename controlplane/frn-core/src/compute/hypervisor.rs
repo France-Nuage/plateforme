@@ -1,8 +1,8 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::compute::{Zone, ZoneFactory, ZoneIdColumn};
-use crate::resourcemanager::{Organization, OrganizationFactory, OrganizationIdColumn};
-use fabrique::{Factory, Model, Query};
+use crate::resourcemanager::Organization;
+use fabrique::{Delete, Factory, Model, Query};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
@@ -15,9 +15,8 @@ pub struct Hypervisor {
     #[fabrique(belongs_to = Zone)]
     pub zone_id: Uuid,
 
-    /// The id of the organization the hypervisor belongs to
-    #[fabrique(belongs_to = Organization)]
-    pub organization_id: Uuid,
+    /// The slug of the organization the hypervisor belongs to
+    pub organization_slug: String,
 
     /// The hypervisor url
     pub url: String,
@@ -29,19 +28,10 @@ pub struct Hypervisor {
     pub storage_name: String,
 }
 
-impl Hypervisor {
-    pub async fn find_one_by_id(
-        pool: &Pool<Postgres>,
-        id: Uuid,
-    ) -> Result<Hypervisor, sqlx::Error> {
-        sqlx::query_as!(Hypervisor, "SELECT id, zone_id, organization_id, url, authorization_token, storage_name FROM hypervisors WHERE id = $1", id).fetch_one(pool).await
-    }
-}
-
 pub struct HypervisorCreateRequest {
     pub authorization_token: String,
     pub storage_name: String,
-    pub organization_id: Uuid,
+    pub organization_slug: String,
     pub url: String,
     pub zone_id: Uuid,
 }
@@ -88,13 +78,13 @@ impl<Auth: Authorize> Hypervisors<Auth> {
             .url(request.url)
             .authorization_token(request.authorization_token)
             .zone_id(request.zone_id)
-            .organization_id(request.organization_id)
+            .organization_slug(request.organization_slug.clone())
             .create(&self.db)
             .await?;
 
         self.auth
             .write_relationship(&Relationship::new(
-                &Organization::some(request.organization_id),
+                &Organization::some(request.organization_slug.clone()),
                 Relation::Parent,
                 &hypervisor,
             ))
@@ -114,9 +104,7 @@ impl<Auth: Authorize> Hypervisors<Auth> {
             .over::<Hypervisor>(&id)
             .await?;
 
-        Hypervisor::find_one_by_id(&self.db, id)
-            .await
-            .map_err(Into::into)
+        Hypervisor::find(&self.db, id).await.map_err(Into::into)
     }
 
     /// Deletes a hypervisor.
@@ -127,10 +115,6 @@ impl<Auth: Authorize> Hypervisors<Auth> {
             .over::<Hypervisor>(&id)
             .await?;
 
-        sqlx::query!("DELETE FROM hypervisors WHERE id = $1", id)
-            .execute(&self.db)
-            .await
-            .map(|_| ())
-            .map_err(Into::into)
+        Hypervisor::destroy(&self.db, id).await.map_err(Into::into)
     }
 }

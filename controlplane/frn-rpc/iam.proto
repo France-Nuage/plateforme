@@ -33,7 +33,7 @@ message ListInvitationsResponse {
 }
 
 message CreateInvitationRequest {
-  string organization_id = 1;
+  string organization_slug = 1;
   string email = 2;
 }
 
@@ -52,7 +52,7 @@ message AnswerInvitationResponse {
 
 message Invitation {
   string id = 1;
-  string organization_id = 2;
+  string organization_slug = 2;
   string user_id = 3;
   InvitationState state = 4;
   google.protobuf.Timestamp created_at = 8;

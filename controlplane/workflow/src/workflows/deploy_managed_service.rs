@@ -19,7 +19,7 @@ use crate::workflows::WorkflowDefinition;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeployManagedServiceWorkflow {
     pub instance_id: Uuid,
-    pub project_id: Uuid,
+    pub project_slug: String,
     pub cluster_id: Uuid,
     pub namespace: String,
     pub release_name: String,
@@ -49,7 +49,7 @@ impl DeployManagedServiceWorkflow {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         instance_id: Uuid,
-        project_id: Uuid,
+        project_slug: String,
         cluster_id: Uuid,
         namespace: String,
         release_name: String,
@@ -62,7 +62,7 @@ impl DeployManagedServiceWorkflow {
     ) -> Self {
         Self {
             instance_id,
-            project_id,
+            project_slug,
             cluster_id,
             namespace,
             release_name,
@@ -115,7 +115,7 @@ impl WorkflowDefinition for DeployManagedServiceWorkflow {
                 Ok(vec![Operations::WriteRelationships(WriteRelationshipsOp {
                     relationships: vec![Relationship {
                         subject_type: "project".to_owned(),
-                        subject_id: self.project_id.to_string(),
+                        subject_id: self.project_slug.clone(),
                         relation: Relation::Parent,
                         object_type: "managed_service_instance".to_owned(),
                         object_id: self.instance_id.to_string(),

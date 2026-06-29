@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)\n        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes\n        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)\n        ON CONFLICT (id) DO UPDATE\n        SET\n            hypervisor_id = EXCLUDED.hypervisor_id,\n            project_id = EXCLUDED.project_id,\n            distant_id = EXCLUDED.distant_id,\n            cpu_usage_percent = EXCLUDED.cpu_usage_percent,\n            max_cpu_cores = EXCLUDED.max_cpu_cores,\n            max_memory_bytes = EXCLUDED.max_memory_bytes,\n            memory_usage_bytes = EXCLUDED.memory_usage_bytes,\n            name = EXCLUDED.name,\n            status = EXCLUDED.status,\n            ip_v4 = EXCLUDED.ip_v4,\n            disk_usage_bytes = EXCLUDED.disk_usage_bytes,\n            max_disk_bytes = EXCLUDED.max_disk_bytes,\n            updated_at = NOW()\n        RETURNING *\n    ",
+  "query": "\n        INSERT INTO instances (id, hypervisor_id, project_slug, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)\n        SELECT id, hypervisor_id, project_slug, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes\n        FROM UNNEST($1::uuid[], $2::uuid[], $3::citext[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[]) AS t(id, hypervisor_id, project_slug, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)\n        ON CONFLICT (id) DO UPDATE\n        SET\n            hypervisor_id = EXCLUDED.hypervisor_id,\n            project_slug = EXCLUDED.project_slug,\n            distant_id = EXCLUDED.distant_id,\n            cpu_usage_percent = EXCLUDED.cpu_usage_percent,\n            max_cpu_cores = EXCLUDED.max_cpu_cores,\n            max_memory_bytes = EXCLUDED.max_memory_bytes,\n            memory_usage_bytes = EXCLUDED.memory_usage_bytes,\n            name = EXCLUDED.name,\n            status = EXCLUDED.status,\n            ip_v4 = EXCLUDED.ip_v4,\n            disk_usage_bytes = EXCLUDED.disk_usage_bytes,\n            max_disk_bytes = EXCLUDED.max_disk_bytes,\n            updated_at = NOW()\n        RETURNING *\n    ",
   "describe": {
     "columns": [
       {
@@ -126,17 +126,6 @@
       },
       {
         "ordinal": 11,
-        "name": "project_id",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "instances",
-            "name": "project_id"
-          }
-        }
-      },
-      {
-        "ordinal": 12,
         "name": "max_disk_bytes",
         "type_info": "Int8",
         "origin": {
@@ -147,7 +136,7 @@
         }
       },
       {
-        "ordinal": 13,
+        "ordinal": 12,
         "name": "disk_usage_bytes",
         "type_info": "Int8",
         "origin": {
@@ -158,7 +147,7 @@
         }
       },
       {
-        "ordinal": 14,
+        "ordinal": 13,
         "name": "ip_v4",
         "type_info": "Varchar",
         "origin": {
@@ -169,7 +158,7 @@
         }
       },
       {
-        "ordinal": 15,
+        "ordinal": 14,
         "name": "zero_trust_network_id",
         "type_info": "Uuid",
         "origin": {
@@ -178,13 +167,41 @@
             "name": "zero_trust_network_id"
           }
         }
+      },
+      {
+        "ordinal": 15,
+        "name": "project_slug",
+        "type_info": {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "instances",
+            "name": "project_slug"
+          }
+        }
       }
     ],
     "parameters": {
       "Left": [
         "UuidArray",
         "UuidArray",
-        "UuidArray",
+        {
+          "Custom": {
+            "name": "citext[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "citext",
+                  "kind": "Simple"
+                }
+              }
+            }
+          }
+        },
         "TextArray",
         "Float8Array",
         "Int4Array",
@@ -212,9 +229,9 @@
       false,
       false,
       false,
-      false,
-      true
+      true,
+      false
     ]
   },
-  "hash": "06dae50e2f79f761540007449eb52edfc51b5256a28dab95f9c1863a6dbdd720"
+  "hash": "ae5dc23a2645111c9ef3d60c94615fef526dfe5c38566b6d89035a83bdd9ce30"
 }

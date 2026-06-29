@@ -28,10 +28,14 @@ pub fn build_method_update(
         .collect::<Vec<String>>()
         .join(", ");
 
-    // Compute the actual SQL query
+    let primary_name = primary_idents
+        .first()
+        .expect("at least one #[repository(primary)] field is required")
+        .to_string();
+
     let query = format!(
-        "UPDATE {} SET {} WHERE id = $1 RETURNING {}",
-        table_name, sql_parameters, column_names
+        "UPDATE {} SET {} WHERE {} = $1 RETURNING {}",
+        table_name, sql_parameters, primary_name, column_names
     );
 
     // Compute the parameters for the sqlx macro

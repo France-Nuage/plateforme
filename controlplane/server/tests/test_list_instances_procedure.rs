@@ -6,7 +6,6 @@ use common::{
 };
 use frn_rpc::v1::managed::ListInstancesRequest;
 use tonic::{Code, Request};
-use uuid::Uuid;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_list_instances_returns_instances_for_project(
@@ -26,14 +25,14 @@ async fn test_list_instances_returns_instances_for_project(
 
     let instance =
         seed_managed_service_instance(&pool, service_id, version_id, "vaultwarden").await;
-    let project_id = instance.project_id;
+    let project_slug = instance.project_slug.clone();
 
     let response = api
         .managed
         .services
         .list_instances(
             Request::new(ListInstancesRequest {
-                project_id: project_id.to_string(),
+                project_slug: project_slug.clone(),
             })
             .on_behalf_of(&api.service_account),
         )
@@ -58,7 +57,7 @@ async fn test_list_instances_returns_empty_for_unknown_project(
         .services
         .list_instances(
             Request::new(ListInstancesRequest {
-                project_id: Uuid::new_v4().to_string(),
+                project_slug: "unknown-project".to_owned(),
             })
             .on_behalf_of(&api.service_account),
         )
@@ -72,7 +71,7 @@ async fn test_list_instances_returns_empty_for_unknown_project(
 }
 
 #[sqlx::test(migrations = "../migrations")]
-async fn test_list_instances_returns_error_when_project_id_is_empty(
+async fn test_list_instances_returns_error_when_project_slug_is_empty(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut api = Api::start(&pool).await.expect("could not start api");
@@ -82,7 +81,7 @@ async fn test_list_instances_returns_error_when_project_id_is_empty(
         .services
         .list_instances(
             Request::new(ListInstancesRequest {
-                project_id: String::new(),
+                project_slug: String::new(),
             })
             .on_behalf_of(&api.service_account),
         )

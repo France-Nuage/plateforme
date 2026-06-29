@@ -3723,6 +3723,7 @@ name = "synchronizer"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "fabrique",
  "frn-core",
  "futures",
  "hypervisor",

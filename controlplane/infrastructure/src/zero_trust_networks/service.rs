@@ -34,8 +34,13 @@ mod tests {
     async fn test_list(pool: sqlx::PgPool) {
         // Arrange the service
         let service = ZeroTrustNetworkService::new(pool.clone());
+        let org = Organization::factory()
+            .parent_slug(None)
+            .create(&pool)
+            .await
+            .unwrap();
         let model = ZeroTrustNetwork::factory()
-            .for_organization(Organization::factory().parent_id(None))
+            .organization_slug(org.slug)
             .for_zero_trust_network_type(ZeroTrustNetworkType::factory())
             .create(&pool)
             .await

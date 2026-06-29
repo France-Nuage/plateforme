@@ -82,8 +82,8 @@ impl From<&ManagedServiceInstanceView> for ManagedServiceInstanceProto {
             id: i.id.to_string(),
             service_id: i.service_id.to_string(),
             version_id: i.version_id.to_string(),
-            project_id: i.project_id.to_string(),
-            organization_id: i.organization_id.to_string(),
+            project_slug: i.project_slug.clone(),
+            organization_slug: i.organization_slug.clone(),
             namespace: i.namespace.clone(),
             release_name: i.release_name.clone(),
             user_values: i.user_values.as_ref().map(|v| v.to_string()),
@@ -382,14 +382,6 @@ impl<A: Authorize + 'static> managed_services_server::ManagedServices for Manage
         let principal = self.iam.principal(&request).await?;
         let req = request.into_inner();
 
-        let project_id = req
-            .project_id
-            .parse::<Uuid>()
-            .map_err(|_| Error::MalformedId(req.project_id))?;
-        let organization_id = req
-            .organization_id
-            .parse::<Uuid>()
-            .map_err(|_| Error::MalformedId(req.organization_id))?;
         let version_id = req
             .version_id
             .parse::<Uuid>()
@@ -415,8 +407,8 @@ impl<A: Authorize + 'static> managed_services_server::ManagedServices for Manage
                 &mut tx,
                 &scheduler,
                 frn_core::managed::CreateInstanceRequest {
-                    project_id,
-                    organization_id,
+                    project_slug: req.project_slug,
+                    organization_slug: req.organization_slug,
                     service_slug: req.service_slug,
                     version_id,
                     plan_id,
@@ -445,15 +437,11 @@ impl<A: Authorize + 'static> managed_services_server::ManagedServices for Manage
         request: Request<ListInstancesRequest>,
     ) -> Result<Response<ListInstancesResponse>, Status> {
         let _principal = self.iam.principal(&request).await?;
-        let project_id = request
-            .into_inner()
-            .project_id
-            .parse::<Uuid>()
-            .map_err(|_| Error::MalformedId("project_id".to_owned()))?;
+        let project_slug = request.into_inner().project_slug;
 
         let instances = self
             .service
-            .list_instances_by_project(project_id)
+            .list_instances_by_project(&project_slug)
             .await
             .map_err(managed_error_to_status)?;
 
