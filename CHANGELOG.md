@@ -1,3 +1,10 @@
+# [1.62.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.61.1...v1.62.0) (2026-07-14)
+
+
+### Features
+
+* replace longrunning operations with workflow engine and add managed services ([af3ab57](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/af3ab57ad5ee86e66946c388c2fe94ec1392de30))
+
 ## [1.61.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.61.0...v1.61.1) (2026-05-17)
 
 
