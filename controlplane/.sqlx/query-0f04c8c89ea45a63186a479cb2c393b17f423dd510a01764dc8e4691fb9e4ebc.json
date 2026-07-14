@@ -1,0 +1,51 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO organizations (slug, name) VALUES ($1, $2) RETURNING slug, name",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "slug",
+        "type_info": {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "organizations",
+            "name": "slug"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "organizations",
+            "name": "name"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        },
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "0f04c8c89ea45a63186a479cb2c393b17f423dd510a01764dc8e4691fb9e4ebc"
+}

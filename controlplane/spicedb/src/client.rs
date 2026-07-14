@@ -9,17 +9,42 @@ use crate::api::v1::check_permission_response::Permissionship;
 use crate::api::v1::consistency::Requirement;
 use crate::api::v1::relationship_update::Operation;
 use crate::api::v1::{
-    CheckPermissionRequest, Consistency, ObjectReference, SubjectReference,
-    permissions_service_client::PermissionsServiceClient,
+    CheckPermissionRequest, Consistency, ObjectReference, RelationshipUpdate, SubjectReference,
+    WriteRelationshipsRequest, ZedToken, permissions_service_client::PermissionsServiceClient,
 };
-use crate::api::v1::{
-    LookupResourcesRequest, Relationship, RelationshipUpdate, WriteRelationshipsRequest, ZedToken,
-};
+use crate::api::v1::{LookupResourcesRequest, Relationship};
 use crate::mock::SpiceDBServer;
 use std::str::FromStr;
 use tonic::service::{Interceptor, interceptor::InterceptedService};
 use tonic::transport::Channel;
 use tonic::{Request, metadata::MetadataValue};
+use tracing::error;
+
+/// Reference to a SpiceDB object (type + id pair).
+#[derive(Debug, Clone)]
+pub struct ObjectRef {
+    pub object_type: String,
+    pub object_id: String,
+}
+
+impl ObjectRef {
+    pub fn new(object_type: impl Into<String>, object_id: impl Into<String>) -> Self {
+        Self {
+            object_type: object_type.into(),
+            object_id: object_id.into(),
+        }
+    }
+}
+
+/// Input for creating or deleting a SpiceDB relationship.
+#[derive(Debug, Clone)]
+pub struct RelationshipRef {
+    pub subject_type: String,
+    pub subject_id: String,
+    pub relation: String,
+    pub object_type: String,
+    pub object_id: String,
+}
 
 /// A client for interacting with SpiceDB's grpc API.
 #[derive(Clone)]
@@ -42,7 +67,7 @@ impl SpiceDB {
 
     pub async fn mock() -> Self {
         let channel = SpiceDBServer::new().serve().await;
-        Self::new(channel, "".to_owned())
+        Self::new(channel, String::new())
     }
 
     pub fn new(channel: Channel, token: String) -> Self {
@@ -55,7 +80,7 @@ impl SpiceDB {
 
     pub async fn lookup(
         &mut self,
-        (subject_type, subject_id): (String, String),
+        subject: ObjectRef,
         permission: String,
         resource_type: String,
     ) -> Result<Vec<String>, Error> {
@@ -70,10 +95,10 @@ impl SpiceDB {
             permission,
             subject: Some(SubjectReference {
                 object: Some(ObjectReference {
-                    object_type: subject_type,
-                    object_id: subject_id,
+                    object_type: subject.object_type,
+                    object_id: subject.object_id,
                 }),
-                optional_relation: "".to_owned(),
+                optional_relation: String::new(),
             }),
         });
 
@@ -90,27 +115,35 @@ impl SpiceDB {
 
     pub async fn check_permission(
         &mut self,
-        (subject_type, subject_id): (String, String),
+        subject: ObjectRef,
         permission: String,
-        (resource_type, resource_id): (String, String),
+        resource: ObjectRef,
     ) -> Result<(), Error> {
-        // forge the check permission request
+        let context = format!(
+            "resource {}#{}, subject {}#{}, permission {}",
+            resource.object_type,
+            resource.object_id,
+            subject.object_type,
+            subject.object_id,
+            permission
+        );
+
         let request = Request::new(CheckPermissionRequest {
             consistency: Some(Consistency {
                 requirement: Some(Requirement::FullyConsistent(true)),
             }),
             context: None,
-            permission: permission.clone(),
+            permission,
             resource: Some(ObjectReference {
-                object_type: resource_type.clone(),
-                object_id: resource_id.clone(),
+                object_type: resource.object_type,
+                object_id: resource.object_id,
             }),
             subject: Some(SubjectReference {
                 object: Some(ObjectReference {
-                    object_type: subject_type.clone(),
-                    object_id: subject_id.clone(),
+                    object_type: subject.object_type,
+                    object_id: subject.object_id,
                 }),
-                optional_relation: "".to_owned(),
+                optional_relation: String::new(),
             }),
             with_tracing: false,
         });
@@ -119,13 +152,7 @@ impl SpiceDB {
             .client
             .check_permission(request)
             .await
-            .inspect_err(|error| {
-                println!("got error in spicedb: {:#?}", error);
-                println!(
-                    "this happened for resource {}#{}, subject {}#{}, permission {}",
-                    resource_type, resource_id, subject_type, subject_id, permission
-                );
-            })?
+            .inspect_err(|err| error!(%err, context, "spicedb permission check failed"))?
             .into_inner()
             .permissionship();
 
@@ -143,32 +170,50 @@ impl SpiceDB {
 
     pub async fn write_relationship(
         &mut self,
-        subject_type: String,
-        subject_id: String,
-        relation: String,
-        object_type: String,
-        object_id: String,
+        rel: RelationshipRef,
+    ) -> Result<Option<ZedToken>, Error> {
+        self.apply_updates(vec![build_update(Operation::Touch, rel)])
+            .await
+    }
+
+    /// Deletes a relationship from SpiceDB.
+    pub async fn delete_relationship(
+        &mut self,
+        rel: RelationshipRef,
+    ) -> Result<Option<ZedToken>, Error> {
+        self.apply_updates(vec![build_update(Operation::Delete, rel)])
+            .await
+    }
+
+    pub async fn write_relationships(
+        &mut self,
+        relationships: Vec<RelationshipRef>,
+    ) -> Result<Option<ZedToken>, Error> {
+        let updates = relationships
+            .into_iter()
+            .map(|rel| build_update(Operation::Touch, rel))
+            .collect();
+        self.apply_updates(updates).await
+    }
+
+    pub async fn delete_relationships(
+        &mut self,
+        relationships: Vec<RelationshipRef>,
+    ) -> Result<Option<ZedToken>, Error> {
+        let updates = relationships
+            .into_iter()
+            .map(|rel| build_update(Operation::Delete, rel))
+            .collect();
+        self.apply_updates(updates).await
+    }
+
+    async fn apply_updates(
+        &mut self,
+        updates: Vec<RelationshipUpdate>,
     ) -> Result<Option<ZedToken>, Error> {
         let request = Request::new(WriteRelationshipsRequest {
             optional_preconditions: vec![],
-            updates: vec![RelationshipUpdate {
-                operation: Operation::Touch as i32,
-                relationship: Some(Relationship {
-                    optional_caveat: None,
-                    resource: Some(ObjectReference {
-                        object_id,
-                        object_type,
-                    }),
-                    relation,
-                    subject: Some(SubjectReference {
-                        object: Some(ObjectReference {
-                            object_id: subject_id,
-                            object_type: subject_type,
-                        }),
-                        optional_relation: "".to_owned(),
-                    }),
-                }),
-            }],
+            updates,
         });
 
         self.client
@@ -177,43 +222,26 @@ impl SpiceDB {
             .map(|response| response.into_inner().written_at)
             .map_err(Into::into)
     }
+}
 
-    /// Deletes a relationship from SpiceDB.
-    pub async fn delete_relationship(
-        &mut self,
-        subject_type: String,
-        subject_id: String,
-        relation: String,
-        object_type: String,
-        object_id: String,
-    ) -> Result<Option<ZedToken>, Error> {
-        let request = Request::new(WriteRelationshipsRequest {
-            optional_preconditions: vec![],
-            updates: vec![RelationshipUpdate {
-                operation: Operation::Delete as i32,
-                relationship: Some(Relationship {
-                    optional_caveat: None,
-                    resource: Some(ObjectReference {
-                        object_id,
-                        object_type,
-                    }),
-                    relation,
-                    subject: Some(SubjectReference {
-                        object: Some(ObjectReference {
-                            object_id: subject_id,
-                            object_type: subject_type,
-                        }),
-                        optional_relation: "".to_owned(),
-                    }),
+fn build_update(operation: Operation, rel: RelationshipRef) -> RelationshipUpdate {
+    RelationshipUpdate {
+        operation: operation as i32,
+        relationship: Some(Relationship {
+            optional_caveat: None,
+            resource: Some(ObjectReference {
+                object_id: rel.object_id,
+                object_type: rel.object_type,
+            }),
+            relation: rel.relation,
+            subject: Some(SubjectReference {
+                object: Some(ObjectReference {
+                    object_id: rel.subject_id,
+                    object_type: rel.subject_type,
                 }),
-            }],
-        });
-
-        self.client
-            .write_relationships(request)
-            .await
-            .map(|response| response.into_inner().written_at)
-            .map_err(Into::into)
+                optional_relation: String::new(),
+            }),
+        }),
     }
 }
 

@@ -16,26 +16,28 @@ async fn test_the_clone_instance_procedure_works(pool: sqlx::PgPool) {
     let mut api = Api::start(&pool).await.expect("count not start api");
     let mock_url = api.mock_server.url();
     let organization = Organization::factory()
-        .parent_id(None)
+        .slug("test-org".to_owned())
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");
     let hypervisor = Hypervisor::factory()
         .url(mock_url)
         .for_zone(Zone::factory())
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await
         .expect("could not create hypervisor");
     let project = Project::factory()
-        .organization_id(organization.id)
+        .slug("test-project".to_owned())
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await
         .expect("could not create project");
     let instance = Instance::factory()
         .distant_id("100".into())
         .hypervisor_id(hypervisor.id)
-        .project_id(project.id)
+        .project_slug(project.slug.clone())
         .zero_trust_network_id(None)
         .create(&pool)
         .await

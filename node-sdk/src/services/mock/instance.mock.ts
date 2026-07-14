@@ -24,7 +24,7 @@ export class InstanceMockService implements InstanceService {
     return Promise.resolve(
       instances(5, {
         hypervisorId: acmeHypervisor.id,
-        projectId: acmeOrganization.id,
+        projectSlug: acmeOrganization.slug,
         zeroTrustNetworkId: acmeZeroTrustNetwork.id,
       }),
     );

@@ -15,6 +15,7 @@ definition project {
 	relation parent: folder | organization
 
 	permission get = parent->get
+  permission list = get
   permission create_instance = get
 }
 
@@ -33,6 +34,14 @@ definition instance {
   permission start = get
   permission stop = get
   permission update = get
+}
+
+definition managed_service_instance {
+	relation parent: project
+
+	permission get = parent->get
+	permission delete = get
+	permission update = get
 }
 
 definition service_account {}

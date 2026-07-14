@@ -1,11 +1,14 @@
 mod app;
 pub mod authorization;
+pub mod billing;
 pub mod compute;
 mod config;
 mod error;
 pub mod identity;
-pub mod longrunning;
+pub mod kubernetes;
+pub mod managed;
 pub mod resourcemanager;
+pub mod workflow;
 
 pub use app::App;
 pub use config::Config;

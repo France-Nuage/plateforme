@@ -68,11 +68,11 @@ message ZeroTrustNetwork {
         pattern: "^[a-zA-Z0-9_\\- ]+$"  // Alphanumeric with spaces, underscores and hyphens
     }];
 
-    // ID of the organization this network belongs to
-    string organization_id = 3 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"  // Alphanumeric with underscores and hyphens
+    // Slug of the organization this network belongs to
+    string organization_slug = 3 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
 
     // ID of the zero trust network type this network is based on

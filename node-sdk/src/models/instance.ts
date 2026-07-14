@@ -35,8 +35,8 @@ export type Instance = {
   // The instance name.
   name: string;
 
-  // The instance project id.
-  projectId: string;
+  // The instance project slug.
+  projectSlug: string;
 
   // Current operational status of the instance
   status: InstanceStatus;
@@ -53,7 +53,7 @@ export type Instance = {
  */
 export type InstanceFormValue = Pick<
   Instance,
-  'maxCpuCores' | 'maxDiskBytes' | 'maxMemoryBytes' | 'name' | 'projectId'
+  'maxCpuCores' | 'maxDiskBytes' | 'maxMemoryBytes' | 'name' | 'projectSlug'
 > & {
   image: string;
   snippet: string;

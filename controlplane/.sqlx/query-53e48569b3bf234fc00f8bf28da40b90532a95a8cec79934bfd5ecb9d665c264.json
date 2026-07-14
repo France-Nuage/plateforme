@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO organization_user(organization_slug, user_id) VALUES ($1::citext, $2) ON CONFLICT (user_id, organization_slug) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "53e48569b3bf234fc00f8bf28da40b90532a95a8cec79934bfd5ecb9d665c264"
+}

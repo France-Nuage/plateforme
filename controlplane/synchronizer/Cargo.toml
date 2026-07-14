@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 chrono = "0.4"
+fabrique = { workspace = true }
 hypervisor = { path = "../hypervisor" }
 frn-core = { path = "../frn-core" }
 futures = "0.3"

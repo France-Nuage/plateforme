@@ -6,10 +6,10 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::compute::{Hypervisor, HypervisorFactory, HypervisorIdColumn};
-use crate::resourcemanager::{Project, ProjectFactory, ProjectIdColumn};
+use crate::resourcemanager::Project;
 use base64::Engine;
 use chrono::{DateTime, Utc};
-use fabrique::{Factory, Model, Persist, Query};
+use fabrique::{Delete, Factory, Model, Persist, Query};
 use hypervisor::instance::Instances as HypervisorInstancesTrait;
 use hypervisor::instance::Status;
 use sqlx::{Pool, Postgres};
@@ -25,8 +25,7 @@ pub struct Instance {
     #[fabrique(belongs_to = Hypervisor)]
     pub hypervisor_id: Uuid,
     /// The project this instance belongs to
-    #[fabrique(belongs_to = Project)]
-    pub project_id: Uuid,
+    pub project_slug: String,
     /// The zero trust network this instance belongs to
     pub zero_trust_network_id: Option<Uuid>,
     /// ID used by the hypervisor to identify this instance remotely
@@ -56,18 +55,10 @@ pub struct Instance {
     pub updated_at: DateTime<Utc>,
 }
 
-impl Instance {
-    pub async fn find_one_by_id(pool: &Pool<Postgres>, id: Uuid) -> Result<Instance, sqlx::Error> {
-        sqlx::query_as!(Instance, "SELECT * FROM instances WHERE id = $1", id)
-            .fetch_one(pool)
-            .await
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct InstanceCreateRequest {
     /// The project to attach the instance to.
-    pub project_id: Uuid,
+    pub project_slug: String,
 
     /// The number of cores per socket.
     pub cores: u8,
@@ -97,7 +88,7 @@ pub struct InstanceUpdateRequest {
     pub name: Option<String>,
 
     /// The optional new project to move the instance to.
-    pub project_id: Option<Uuid>,
+    pub project_slug: Option<String>,
 }
 
 /// Service for managing compute instances.
@@ -139,7 +130,7 @@ impl<A: Authorize> Instances<A> {
         self.auth
             .can(principal)
             .perform(Permission::CreateInstance)
-            .over::<Project>(&request.project_id)
+            .over::<Project>(&request.project_slug)
             .await?;
 
         // Select a hypervisor to deploy the instance on.
@@ -183,14 +174,12 @@ impl<A: Authorize> Instances<A> {
             })
             .await?;
 
-        let maybe_instance = sqlx::query_as!(
-            Instance,
-            "SELECT * FROM instances WHERE distant_id = $1 AND hypervisor_id = $2",
-            next_id,
-            hypervisor.id
-        )
-        .fetch_optional(&self.db)
-        .await?;
+        let maybe_instance = Instance::query()
+            .select()
+            .r#where(Instance::DISTANT_ID, "=", next_id.clone())
+            .r#where(Instance::HYPERVISOR_ID, "=", hypervisor.id)
+            .first(&self.db)
+            .await?;
 
         let instance = match maybe_instance {
             None => {
@@ -198,7 +187,7 @@ impl<A: Authorize> Instances<A> {
                 Instance {
                     id: instance_id,
                     hypervisor_id: hypervisor.id,
-                    project_id: request.project_id,
+                    project_slug: request.project_slug.clone(),
                     zero_trust_network_id: None,
                     distant_id: next_id,
                     cpu_usage_percent: 0.0,
@@ -217,13 +206,11 @@ impl<A: Authorize> Instances<A> {
                 .await?
             }
             Some(instance) => {
-                sqlx::query!(
-                    "UPDATE instances SET project_id = $1 WHERE id = $2",
-                    request.project_id,
-                    instance.id
-                )
-                .execute(&self.db)
-                .await?;
+                Instance::update()
+                    .set(Instance::PROJECT_SLUG, request.project_slug.clone())
+                    .r#where(Instance::ID, "=", instance.id)
+                    .execute(&self.db)
+                    .await?;
 
                 instance
             }
@@ -232,7 +219,7 @@ impl<A: Authorize> Instances<A> {
         // Write the relationship synchronously to SpiceDB
         self.auth
             .write_relationship(&Relationship::new(
-                &Project::some(request.project_id),
+                &Project::some(request.project_slug.clone()),
                 Relation::Parent,
                 &instance,
             ))
@@ -253,8 +240,8 @@ impl<A: Authorize> Instances<A> {
             .over::<Instance>(&id)
             .await?;
 
-        let instance = Instance::find_one_by_id(&self.db, id).await?;
-        let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
+        let instance = Instance::find(&self.db, id).await?;
+        let hypervisor = Hypervisor::find(&self.db, instance.hypervisor_id).await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
         // Cleanup Hoop SSH bastion access (best effort)
@@ -262,9 +249,7 @@ impl<A: Authorize> Instances<A> {
 
         connector.delete(&instance.distant_id).await?;
 
-        sqlx::query!("DELETE FROM instances WHERE id = $1", instance.id)
-            .execute(&self.db)
-            .await?;
+        Instance::destroy(&self.db, instance.id).await?;
 
         Ok(())
     }
@@ -398,19 +383,17 @@ impl<A: Authorize> Instances<A> {
             .over::<Instance>(&id)
             .await?;
 
-        let instance = Instance::find_one_by_id(&self.db, id).await?;
-        let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
+        let instance = Instance::find(&self.db, id).await?;
+        let hypervisor = Hypervisor::find(&self.db, instance.hypervisor_id).await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
         connector.start(&instance.distant_id).await?;
 
-        sqlx::query!(
-            "UPDATE instances SET status = $1 WHERE id = $2",
-            Status::Running.to_string(),
-            instance.id
-        )
-        .execute(&self.db)
-        .await?;
+        Instance::update()
+            .set(Instance::STATUS, Status::Running.to_string())
+            .r#where(Instance::ID, "=", instance.id)
+            .execute(&self.db)
+            .await?;
 
         Ok(())
     }
@@ -427,19 +410,17 @@ impl<A: Authorize> Instances<A> {
             .over::<Instance>(&id)
             .await?;
 
-        let instance = Instance::find_one_by_id(&self.db, id).await?;
-        let hypervisor = Hypervisor::find_one_by_id(&self.db, instance.hypervisor_id).await?;
+        let instance = Instance::find(&self.db, id).await?;
+        let hypervisor = Hypervisor::find(&self.db, instance.hypervisor_id).await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
         connector.stop(&instance.distant_id).await?;
 
-        sqlx::query!(
-            "UPDATE instances SET status = $1 WHERE id = $2",
-            Status::Stopped.to_string(),
-            instance.id
-        )
-        .execute(&self.db)
-        .await?;
+        Instance::update()
+            .set(Instance::STATUS, Status::Stopped.to_string())
+            .r#where(Instance::ID, "=", instance.id)
+            .execute(&self.db)
+            .await?;
 
         Ok(())
     }
@@ -457,8 +438,8 @@ impl<A: Authorize> Instances<A> {
             .over::<Instance>(&id)
             .await?;
 
-        let existing = Instance::find_one_by_id(&self.db, id).await?;
-        let hypervisor = Hypervisor::find_one_by_id(&self.db, existing.hypervisor_id).await?;
+        let existing = Instance::find(&self.db, id).await?;
+        let hypervisor = Hypervisor::find(&self.db, existing.hypervisor_id).await?;
         let connector = hypervisor::resolve(hypervisor.url, hypervisor.authorization_token);
 
         let new_id =
@@ -475,7 +456,7 @@ impl<A: Authorize> Instances<A> {
 
         self.auth
             .write_relationship(&Relationship::new(
-                &Project::some(instance.project_id),
+                &Project::some(instance.project_slug.clone()),
                 Relation::Parent,
                 &instance,
             ))
@@ -498,16 +479,16 @@ impl<A: Authorize> Instances<A> {
             .await?;
 
         // If moving to a new project, check permission to create instances in target project
-        if let Some(ref new_project_id) = request.project_id {
+        if let Some(ref new_project_slug) = request.project_slug {
             self.auth
                 .can(principal)
                 .perform(Permission::CreateInstance)
-                .over::<Project>(new_project_id)
+                .over::<Project>(new_project_slug)
                 .await?;
         }
 
-        let instance = Instance::find_one_by_id(&self.db, request.id).await?;
-        let old_project_id = instance.project_id;
+        let instance = Instance::find(&self.db, request.id).await?;
+        let old_project_slug = instance.project_slug;
 
         // Build the update query dynamically based on provided fields
         let updated_instance = sqlx::query_as!(
@@ -516,25 +497,25 @@ impl<A: Authorize> Instances<A> {
             UPDATE instances
             SET
                 name = COALESCE($2, name),
-                project_id = COALESCE($3, project_id),
+                project_slug = COALESCE($3, project_slug),
                 updated_at = NOW()
             WHERE id = $1
             RETURNING *
             "#,
             request.id,
             request.name,
-            request.project_id,
+            request.project_slug,
         )
         .fetch_one(&self.db)
         .await?;
 
         // If the project changed, update the authorization relationships
-        if let Some(new_project_id) = request.project_id
-            && new_project_id != old_project_id
+        if let Some(new_project_slug) = request.project_slug
+            && new_project_slug != old_project_slug
         {
             // Remove old project relationship from SpiceDB
             let old_relationship = Relationship::new(
-                &Project::some(old_project_id),
+                &Project::some(old_project_slug.clone()),
                 Relation::Parent,
                 &updated_instance,
             );
@@ -543,7 +524,7 @@ impl<A: Authorize> Instances<A> {
             // Add new project relationship synchronously to SpiceDB
             self.auth
                 .write_relationship(&Relationship::new(
-                    &Project::some(new_project_id),
+                    &Project::some(new_project_slug.clone()),
                     Relation::Parent,
                     &updated_instance,
                 ))
@@ -562,7 +543,7 @@ impl Instance {
         // Extract the data into separate vectors
         let ids: Vec<Uuid> = instances.iter().map(|i| i.id).collect();
         let hypervisor_ids: Vec<Uuid> = instances.iter().map(|i| i.hypervisor_id).collect();
-        let project_ids: Vec<Uuid> = instances.iter().map(|i| i.project_id).collect();
+        let project_slugs: Vec<String> = instances.iter().map(|i| i.project_slug.clone()).collect();
         let distant_ids: Vec<String> = instances.iter().map(|i| i.distant_id.clone()).collect();
         let cpu_usage_percents: Vec<f64> = instances.iter().map(|i| i.cpu_usage_percent).collect();
         let max_cpu_cores: Vec<i32> = instances.iter().map(|i| i.max_cpu_cores).collect();
@@ -577,13 +558,13 @@ impl Instance {
         sqlx::query_as!(
         Instance,
         r#"
-        INSERT INTO instances (id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
-        SELECT id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes
-        FROM UNNEST($1::uuid[], $2::uuid[], $3::uuid[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[]) AS t(id, hypervisor_id, project_id, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
+        INSERT INTO instances (id, hypervisor_id, project_slug, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
+        SELECT id, hypervisor_id, project_slug, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes
+        FROM UNNEST($1::uuid[], $2::uuid[], $3::citext[], $4::text[], $5::float8[], $6::int4[], $7::int8[], $8::int8[], $9::text[], $10::text[], $11::text[], $12::int8[], $13::int8[]) AS t(id, hypervisor_id, project_slug, distant_id, cpu_usage_percent, max_cpu_cores, max_memory_bytes, memory_usage_bytes, name, status, ip_v4, disk_usage_bytes, max_disk_bytes)
         ON CONFLICT (id) DO UPDATE
         SET
             hypervisor_id = EXCLUDED.hypervisor_id,
-            project_id = EXCLUDED.project_id,
+            project_slug = EXCLUDED.project_slug,
             distant_id = EXCLUDED.distant_id,
             cpu_usage_percent = EXCLUDED.cpu_usage_percent,
             max_cpu_cores = EXCLUDED.max_cpu_cores,
@@ -599,7 +580,7 @@ impl Instance {
     "#,
         &ids,
         &hypervisor_ids,
-        &project_ids,
+        &project_slugs,
         &distant_ids,
         &cpu_usage_percents,
         &max_cpu_cores,

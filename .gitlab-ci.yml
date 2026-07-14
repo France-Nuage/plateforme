@@ -17,6 +17,7 @@ stages:
   - cleanup
   - documentation
   - release
+  - production
 
 default:
   image: registry.france-nuage.fr/library/docker:29
@@ -509,6 +510,33 @@ gitleaks:
         - controlplane/**/*
         - .gitlab-ci.yml
 
+# End-to-end tests for the Kubernetes operations. They only talk to the API
+# server (namespaces, secrets), so a bare kube-apiserver + etcd (the envtest
+# assets, plain processes) is enough: no node, no privileged container, no DinD.
+# The image MUST be glibc-based (the envtest binaries are glibc-linked); the
+# alpine rust image used above cannot run them.
+"e2e k8s / controlplane":
+  stage: unit-tests
+  image: registry.france-nuage.fr/library/rust:1.90-slim-bookworm
+  needs: []
+  variables:
+    CARGO_INCREMENTAL: "0"
+    SQLX_OFFLINE: "true"
+    ENVTEST_K8S_VERSION: "1.31.0"
+    E2E_SUFFIX: "$CI_JOB_ID"
+    KUBEBUILDER_ASSETS: /tmp/controller-tools/envtest
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends curl ca-certificates openssl bash protobuf-compiler libprotobuf-dev pkg-config libssl-dev
+    - curl -fsSL "https://github.com/kubernetes-sigs/controller-tools/releases/download/envtest-v${ENVTEST_K8S_VERSION}/envtest-v${ENVTEST_K8S_VERSION}-linux-amd64.tar.gz" | tar -xz -C /tmp
+    - cd controlplane
+  script:
+    - ./scripts/run-with-envtest.sh cargo test -p workflow --test kubernetes_operations -- --ignored
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+
 .helm_template:
   image: alpine/helm:latest
   services: []
@@ -518,6 +546,21 @@ gitleaks:
     - export KUBECONFIG=/tmp/kubeconfig
     - kubectl version --client
     - helm version
+
+.helm_prod_template:
+  image: registry.france-nuage.fr/library/debian:bookworm-slim
+  services: []
+  interruptible: false
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends curl ca-certificates proxychains-ng
+    - curl -LO "https://dl.k8s.io/release/v1.32.4/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/
+    - curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    - curl -fsSL https://tailscale.com/install.sh | sh
+    - "tailscaled --tun=userspace-networking --socks5-server=localhost:1055 --state=mem: &"
+    - sleep 5
+    - tailscale up --login-server=${TAILSCALE_LOGIN_SERVER} --authkey ${TAILSCALE_K8S_AUTHKEY} --accept-routes
+    - echo -e "[ProxyList]\nsocks5 127.0.0.1 1055" > /etc/proxychains4.conf
+    - export KUBECONFIG=${KUBECONFIG_PROD}
 
 "deploy / ci-environment":
   extends: .helm_template
@@ -534,6 +577,10 @@ gitleaks:
   script:
     - |
       set -e
+
+      helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} --wait 2>/dev/null || true
+      kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} --wait 2>/dev/null || true
+
       helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
         --namespace ${NAMESPACE} \
         --values ./helm/plateforme/values-ci.yaml \
@@ -545,6 +592,9 @@ gitleaks:
         --set secrets.spicedbPresharedKey="${SPICEDB_TOKEN}" \
         --set secrets.keycloakAdminPassword="admin" \
         --set controlplane.config.rootServiceAccountKey="ci-root-sa-key" \
+        --set controlplane.config.kubeconfigEncryptionKey="Y2ktZW5jcnlwdGlvbi1rZXktMzItYnl0ZXMtcGFkISE=" \
+        --set secrets.workerToken="ci-worker-token" \
+        --set secrets.ciServiceToken="ci-service-token" \
         --set controlplane.config.oidcUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
         --set console.config.apiUrl=http://${RELEASE_NAME}-controlplane \
         --set systemTests.config.consoleUrl=http://${RELEASE_NAME}-console \
@@ -552,7 +602,27 @@ gitleaks:
         --set systemTests.config.keycloakUrl=http://${RELEASE_NAME}-keycloak:8080 \
         --set systemTests.config.oidcProviderUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
         --wait \
-        --timeout 10m
+        --timeout 15m \
+      || {
+        echo "=== HELM INSTALL FAILED - collecting diagnostics ==="
+        echo "--- Pod statuses ---"
+        kubectl get pods -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} -o wide 2>&1 || true
+        echo "--- Pod events ---"
+        kubectl get events -n ${NAMESPACE} --sort-by='.lastTimestamp' --field-selector involvedObject.kind=Pod 2>&1 | tail -60 || true
+        for pod in $(kubectl get pods -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} -o name 2>/dev/null); do
+          echo "--- Describe ${pod} ---"
+          kubectl describe ${pod} -n ${NAMESPACE} 2>&1 | tail -40 || true
+          for c in $(kubectl get ${pod} -n ${NAMESPACE} -o jsonpath='{.spec.initContainers[*].name}' 2>/dev/null); do
+            echo "--- Init container logs: ${pod}/${c} ---"
+            kubectl logs ${pod} -c ${c} -n ${NAMESPACE} --tail=30 2>&1 || true
+          done
+          for c in $(kubectl get ${pod} -n ${NAMESPACE} -o jsonpath='{.spec.containers[*].name}' 2>/dev/null); do
+            echo "--- Container logs: ${pod}/${c} ---"
+            kubectl logs ${pod} -c ${c} -n ${NAMESPACE} --tail=30 2>&1 || true
+          done
+        done
+        exit 1
+      }
 
       kubectl wait --for=condition=available --timeout=5m \
         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
@@ -630,61 +700,59 @@ gitleaks:
         - helm/**/*
         - .gitlab-ci.yml
 
-# "deploy / production":
-#   extends: .helm_template
-#   stage: deploy
-#   resource_group: "deploy-production"
-#   environment:
-#     name: production
-#     on_stop: "cleanup / production"
-#   variables:
-#     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
-#     RELEASE_NAME: "plateforme-prod"
-#     GIT_DEPTH: 0
-#     GIT_STRATEGY: clone
-#   script:
-#     - |
-#       set -e
-#       helm rollback ${RELEASE_NAME} -n ${NAMESPACE} 2>/dev/null || true
-      
-#       helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
-#         --namespace ${NAMESPACE} \
-#         --values ./helm/plateforme/values-prod.yaml \
-#         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
-#         --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
-#         --set global.imagePullPolicy=Always \
-#         --set controlplane.config.oidcUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
-#         --set console.config.apiUrl=http://${RELEASE_NAME}-controlplane \
-#         --set systemTests.config.consoleUrl=http://${RELEASE_NAME}-console \
-#         --set systemTests.config.controlplaneUrl=http://${RELEASE_NAME}-controlplane \
-#         --set systemTests.config.keycloakUrl=http://${RELEASE_NAME}-keycloak:8080 \
-#         --set systemTests.config.oidcProviderUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
-#         --wait \
-#         --timeout 10m
+"deploy / production":
+  extends: .helm_prod_template
+  stage: production
+  resource_group: "deploy-production"
+  environment:
+    name: production
+  variables:
+    NAMESPACE: "plateforme-prod"
+    RELEASE_NAME: "plateforme-prod"
+  needs:
+    - job: "release / docker-images"
+  script:
+    - |
+      set -e
+      proxychains4 -q helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
+        --namespace ${NAMESPACE} \
+        --create-namespace \
+        --values ./helm/plateforme/values-prod.yaml \
+        --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
+        --set global.imagePullPolicy=Always \
+        --set controlplane.config.oidcUrl=${PROD_OIDC_URL} \
+        --set controlplane.config.consoleUrl=${PROD_CONSOLE_URL} \
+        --set synchronizer.config.oidcUrl=${PROD_OIDC_URL} \
+        --set console.config.apiUrl=${PROD_API_URL} \
+        --wait \
+        --timeout 10m \
+      || {
+        echo "=== HELM DEPLOY FAILED - collecting diagnostics ==="
+        echo "--- Pod statuses ---"
+        proxychains4 -q kubectl get pods -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} -o wide 2>&1 || true
+        echo "--- Pod events ---"
+        proxychains4 -q kubectl get events -n ${NAMESPACE} --sort-by='.lastTimestamp' --field-selector involvedObject.kind=Pod 2>&1 | tail -60 || true
+        for pod in $(proxychains4 -q kubectl get pods -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} -o name 2>/dev/null); do
+          echo "--- Describe ${pod} ---"
+          proxychains4 -q kubectl describe ${pod} -n ${NAMESPACE} 2>&1 | tail -40 || true
+          for c in $(proxychains4 -q kubectl get ${pod} -n ${NAMESPACE} -o jsonpath='{.spec.initContainers[*].name}' 2>/dev/null); do
+            echo "--- Init container logs: ${pod}/${c} ---"
+            proxychains4 -q kubectl logs ${pod} -c ${c} -n ${NAMESPACE} --tail=30 2>&1 || true
+          done
+          for c in $(proxychains4 -q kubectl get ${pod} -n ${NAMESPACE} -o jsonpath='{.spec.containers[*].name}' 2>/dev/null); do
+            echo "--- Container logs: ${pod}/${c} ---"
+            proxychains4 -q kubectl logs ${pod} -c ${c} -n ${NAMESPACE} --tail=30 2>&1 || true
+          done
+        done
+        exit 1
+      }
 
-#       kubectl wait --for=condition=available --timeout=5m \
-#         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
-#   rules:
-#     - if: '$CI_COMMIT_BRANCH == "master"'
-#       when: on_success
-#     - when: never
-
-# "cleanup / production":
-#   extends: .helm_template
-#   stage: cleanup
-#   environment:
-#     name: production
-#     action: stop
-#   variables:
-#     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
-#     RELEASE_NAME: "plateforme-prod"
-#   script:
-#     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
-#     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
-#   rules:
-#     - if: '$CI_COMMIT_BRANCH == "master"'
-#       when: manual
-#     - when: never
+      proxychains4 -q kubectl wait --for=condition=available --timeout=5m \
+        deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
 
 "release":
   image: registry.france-nuage.fr/library/node:22-alpine

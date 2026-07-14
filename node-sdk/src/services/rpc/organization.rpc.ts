@@ -40,8 +40,7 @@ export class OrganizationRpcService implements OrganizationService {
  */
 function fromRpcOrganization(organization: RpcOrganization): Organization {
   return {
-    id: organization.id,
-    name: organization.name,
     slug: organization.slug,
+    name: organization.name,
   };
 }

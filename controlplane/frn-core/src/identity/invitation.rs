@@ -4,7 +4,7 @@ use crate::{
     identity::User,
     resourcemanager::{Organization, Organizations},
 };
-use fabrique::{Factory, Model};
+use fabrique::{Factory, Model, Query};
 use fake::Dummy;
 use sqlx::{Pool, Postgres};
 use std::str::FromStr;
@@ -17,8 +17,8 @@ pub struct Invitation {
     #[fabrique(primary_key)]
     pub id: Uuid,
 
-    /// The organization this invitation refers to
-    pub organization_id: Uuid,
+    /// The organization this invitation refers to (slug FK)
+    pub organization_slug: String,
 
     /// The user this invitation refers to
     pub user_id: Uuid,
@@ -27,10 +27,10 @@ pub struct Invitation {
     #[fabrique(as = "String")]
     pub state: InvitationState,
 
-    /// Creation time of the project
+    /// Creation time of the invitation
     pub created_at: chrono::DateTime<chrono::Utc>,
 
-    /// Last update time of the project
+    /// Last update time of the invitation
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -85,37 +85,27 @@ impl<A: Authorize> Invitations<A> {
     pub async fn create<P: Principal>(
         &mut self,
         principal: &P,
-        organization_id: <Organization as Resource>::Id,
+        organization_slug: String,
         user_id: <User as Resource>::Id,
     ) -> Result<Invitation, Error> {
         self.auth
             .can(principal)
             .perform(Permission::InviteMember)
-            .over::<Organization>(&organization_id)
+            .over::<Organization>(&organization_slug)
             .await?;
 
-        let organization: Organization = sqlx::query_as!(
-            Organization,
-            "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE id = $1",
-            organization_id
-        )
-        .fetch_one(&self.db)
-        .await?;
+        let organization = Organization::find(&self.db, organization_slug.clone()).await?;
 
-        let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", user_id)
-            .fetch_one(&self.db)
-            .await?;
+        let user = User::find(&self.db, user_id).await?;
 
-        // Create the invitation and mark it as accepted
         let invitation = Invitation::factory()
             .id(Uuid::new_v4())
             .state(InvitationState::Accepted)
-            .organization_id(*organization.id())
+            .organization_slug(organization.slug.clone())
             .user_id(*user.id())
             .create(&self.db)
             .await?;
 
-        // Add the user to the organization
         self.organizations.add_user(&organization, &user).await?;
 
         Ok(invitation)

@@ -29,17 +29,19 @@ services:
     healthcheck:
       test: ["CMD", "pg_isready"]
 
-  operation-worker:
+  worker:
     build:
       args:
         BUILDKIT_INLINE_CACHE: ${BUILDKIT_INLINE_CACHE:-1}
       cache_from:
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
-        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:master-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
+        - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:master-${TARGET:-development}
       context: controlplane
       dockerfile: Dockerfile
       target: ${TARGET:-development}-operation-worker
     depends_on:
+      controlplane:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       postgres-migrate:
@@ -49,13 +51,21 @@ services:
       zed:
         condition: service_completed_successfully
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+      # Must match the controlplane KEK so the worker can decrypt cluster kubeconfigs.
+      # DEV ONLY: never use this fallback key outside local development.
+      KUBECONFIG_ENCRYPTION_KEY: ${KUBECONFIG_ENCRYPTION_KEY:-ZGV2LWt1YmVjb25maWctZW5jcnlwdGlvbi1rZXkhMzI=}
+      MANAGED_DEFAULT_STORAGE_CLASS: ${MANAGED_DEFAULT_STORAGE_CLASS:-}
+      RUST_LOG: ${RUST_LOG:-info}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
-    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}operation-worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
+      WORKER_TOKEN: ${WORKER_TOKEN:-dev-worker-token-secret}
+      WORKFLOW_SERVER_URL: ${WORKFLOW_SERVER_URL:-http://controlplane:80}
+    image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}worker:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
     volumes:
       - ./controlplane:/app
       - /app/target
+      - ${HOME}/.kube:/root/.kube:ro
 
   console:
     image: "${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}"
@@ -128,6 +138,8 @@ services:
         condition: service_healthy
       postgres-migrate:
         condition: service_completed_successfully
+      postgres-seed:
+        condition: service_completed_successfully
       spicedb:
         condition: service_healthy
       traefik:
@@ -142,11 +154,15 @@ services:
     environment:
       CARGO_INCREMENTAL: ${CARGO_INCREMENTAL:-}
       CARGO_BUILD_JOBS: ${CARGO_BUILD_JOBS:-4}
+      CI_SERVICE_TOKEN: ${CI_SERVICE_TOKEN:-dev-ci-token-secret}
       CONSOLE_URL: ${CONSOLE_URL:-https://console.test}
       CONTROLPLANE_ADDR: 0.0.0.0:80
       CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
-      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+      # DEV ONLY: never use this fallback key outside local development.
+      KUBECONFIG_ENCRYPTION_KEY: ${KUBECONFIG_ENCRYPTION_KEY:-ZGV2LWt1YmVjb25maWctZW5jcnlwdGlvbi1rZXkhMzI=}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
+      MANAGED_DEFAULT_STORAGE_CLASS: ${MANAGED_DEFAULT_STORAGE_CLASS:-}
       OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
       ROOT_ORGANIZATION_NAME: ${ROOT_ORGANIZATION_NAME:-acme}
       ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:-qDOiI0B686hr0wN479q7jmOQ6nYtSUsq}
@@ -157,10 +173,20 @@ services:
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
       SQLX_OFFLINE: ${SQLX_OFFLINE:-true}
       SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
+      # Secrets Stripe: jamais de valeur par defaut ici (le fichier est suivi par git).
+      # Renseigner STRIPE_SECRET_KEY et STRIPE_WEBHOOK_SECRET dans le .env racine
+      # (gitignore). Optionnels au demarrage: sans eux, la facturation est desactivee.
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_CHECKOUT_SUCCESS_URL: ${STRIPE_CHECKOUT_SUCCESS_URL:-https://console.test/managed-services/instances?checkout=success}
+      STRIPE_CHECKOUT_CANCEL_URL: ${STRIPE_CHECKOUT_CANCEL_URL:-https://console.test/managed-services?checkout=cancel}
+      WORKER_TOKEN: ${WORKER_TOKEN:-dev-worker-token-secret}
     expose:
       - 80
+      - 8081
     ports:
       - "50052:80"
+      - "50053:8081"
     extra_hosts:
       - "keycloak.test:host-gateway"
       - "console.test:host-gateway"
@@ -297,18 +323,14 @@ services:
     entrypoint: ["sh", "-c"]
     command:
       - |
-        atlas schema apply \
+        atlas migrate apply \
           --url="$${DATABASE_URL}?sslmode=disable" \
-          --dev-url="postgres://postgres:postgres@atlas-dev-database:5432/postgres?sslmode=disable" \
-          --to=file://controlplane/migrations \
-          --auto-approve
+          --dir=file://controlplane/migrations
     depends_on:
-      atlas-dev-database:
-        condition: service_healthy
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
     volumes:
       - ./controlplane/migrations:/controlplane/migrations:ro
 
@@ -325,6 +347,7 @@ services:
       - donotstart
 
   spicedb:
+    # TODO: pin to a specific version (was latest)
     image: "authzed/spicedb:latest"
     command: serve
     depends_on:
@@ -363,6 +386,7 @@ services:
       - postgres_spicedb_data:/var/lib/postgresql/data
 
   spicedb-migrate:
+    # TODO: pin to a specific version (was latest) - keep in sync with spicedb image above
     image: "authzed/spicedb:latest"
     command: migrate head
     depends_on:
@@ -374,6 +398,7 @@ services:
       SPICEDB_DATASTORE_CONN_URI: postgres://spicedb:${POSTGRES_SPICEDB_PASSWORD:-spicedb}@spicedb-datastore:5432/spicedb?sslmode=disable
 
   spicedb-playground:
+    # TODO: pin to a specific version (was latest)
     image: "ghcr.io/authzed/spicedb-playground:latest"
     ports:
       - "3000:3000"
@@ -405,7 +430,7 @@ services:
         condition: service_completed_successfully
     environment:
       CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
-      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
       OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
@@ -429,7 +454,7 @@ services:
       context: .
       dockerfile: system-tests/Dockerfile
     depends_on:
-      operation-worker:
+      worker:
         condition: service_started
       console:
         condition: service_healthy
@@ -508,9 +533,26 @@ services:
       - ./certs:/etc/traefik/certs:ro
       - ./traefik:/etc/traefik/dynamic:ro
 
+  postgres-seed:
+    image: postgres:16-alpine
+    entrypoint: ["sh", "-c"]
+    command:
+      - psql "$${DATABASE_URL}" -f /home/seed.sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+    restart: no
+    volumes:
+      - ./seed.sql:/home/seed.sql:ro
+
   zed:
+    # TODO: pin to a specific version (was latest)
     image: authzed/zed:latest
-    command: schema write /authz/schema.zed
+    command: import /authz/seed.yaml
     depends_on:
       spicedb:
         condition: service_healthy

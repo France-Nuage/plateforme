@@ -1,5 +1,6 @@
 use crate::authorization::Resource;
 use serde::{Deserialize, Serialize};
+use spicedb::RelationshipRef;
 use std::fmt::Display;
 use std::str::FromStr;
 use strum_macros::{Display, EnumString};
@@ -51,6 +52,30 @@ impl Relationship {
             relation,
             subject_id: subject.id().to_string(),
             subject_type: subject.name().to_string(),
+        }
+    }
+}
+
+impl From<&Relationship> for RelationshipRef {
+    fn from(r: &Relationship) -> Self {
+        Self {
+            subject_type: r.subject_type.clone(),
+            subject_id: r.subject_id.clone(),
+            relation: r.relation.to_string(),
+            object_type: r.object_type.clone(),
+            object_id: r.object_id.clone(),
+        }
+    }
+}
+
+impl From<Relationship> for RelationshipRef {
+    fn from(r: Relationship) -> Self {
+        Self {
+            subject_type: r.subject_type,
+            subject_id: r.subject_id,
+            relation: r.relation.to_string(),
+            object_type: r.object_type,
+            object_id: r.object_id,
         }
     }
 }

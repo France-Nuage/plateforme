@@ -1,5 +1,7 @@
-FROM registry.france-nuage.fr/library/node:22-alpine AS base
+ARG NODE_BASE_IMAGE=registry.france-nuage.fr/library/node:22-alpine
+ARG NGINX_BASE_IMAGE=registry.france-nuage.fr/library/nginx:1.27-alpine
 
+FROM ${NODE_BASE_IMAGE} AS base
 
 RUN apk add --no-cache curl
 
@@ -34,7 +36,7 @@ ARG VITE_OIDC_PROVIDER_URL=https://auth.france-nuage.fr/realms/france-nuage
 ENV VITE_OIDC_PROVIDER_URL=${VITE_OIDC_PROVIDER_URL}
 RUN npm run build
 
-FROM registry.france-nuage.fr/library/nginx:1.27-alpine AS release
+FROM ${NGINX_BASE_IMAGE} AS release
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY ./console/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80

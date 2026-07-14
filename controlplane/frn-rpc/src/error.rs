@@ -10,6 +10,9 @@ pub enum Error {
 
     #[error("malformed id {0}, expected uuid")]
     MalformedId(String),
+
+    #[error("invalid input: {0}")]
+    InvalidInput(String),
 }
 
 impl Error {
@@ -29,10 +32,15 @@ impl From<frn_core::Error> for Error {
 
 impl From<Error> for tonic::Status {
     fn from(value: Error) -> Self {
-        tracing::error!("oopsie from convert: {:?}", &value);
         match value {
             Error::MissingAuthorizationHeader => tonic::Status::unauthenticated(value.to_string()),
-            _ => tonic::Status::internal(value.to_string()),
+            Error::MalformedId(_) | Error::InvalidInput(_) => {
+                tonic::Status::invalid_argument(value.to_string())
+            }
+            _ => {
+                tracing::error!(error = ?value, "internal rpc error");
+                tonic::Status::internal("internal error")
+            }
         }
     }
 }

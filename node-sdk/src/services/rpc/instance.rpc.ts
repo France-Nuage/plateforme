@@ -37,7 +37,7 @@ export class InstanceRpcService implements InstanceService {
         image: data.image,
         memoryBytes: BigInt(data.maxMemoryBytes),
         name: data.name,
-        projectId: data.projectId,
+        projectSlug: data.projectSlug,
         snippet: data.snippet,
       })
       .response.then(({ instance }) => fromRpcInstance(instance!));
@@ -71,7 +71,7 @@ export class InstanceRpcService implements InstanceService {
       .update({
         id,
         name: data.name,
-        projectId: data.projectId,
+        projectSlug: data.projectSlug,
       })
       .response.then(({ instance }) => fromRpcInstance(instance!));
   }
@@ -82,7 +82,7 @@ function fromRpcInstance(instance: RpcInstance): Instance {
   return {
     cpuUsagePercent: instance.cpuUsagePercent,
     createdAt: (instance.createdAt
-      ? new Date(Number(instance.createdAt!.seconds))
+      ? new Date(Number(instance.createdAt!.seconds) * 1000)
       : new Date()
     ).toISOString(),
     diskUsageBytes: Number(instance.diskUsageBytes),
@@ -94,10 +94,10 @@ function fromRpcInstance(instance: RpcInstance): Instance {
     maxMemoryBytes: Number(instance.maxMemoryBytes),
     memoryUsageBytes: Number(instance.memoryUsageBytes),
     name: instance.name,
-    projectId: instance.projectId,
+    projectSlug: instance.projectSlug,
     status: fromRpcInstanceStatus(instance.status),
     updatedAt: (instance.updatedAt
-      ? new Date(Number(instance.updatedAt!.seconds))
+      ? new Date(Number(instance.updatedAt!.seconds) * 1000)
       : new Date()
     ).toISOString(),
     zeroTrustNetworkId: instance.zeroTrustNetworkId,

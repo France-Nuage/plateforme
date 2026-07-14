@@ -3,15 +3,15 @@ import { faker } from '@faker-js/faker';
 import { Project } from '../models';
 
 export const acmeProject: Project = {
-  id: '00000000-0000-0000-0000-000000000000',
+  slug: 'unattributed',
   name: 'Missile Guiding System',
-  organizationId: '00000000-0000-0000-0000-000000000000',
+  organizationSlug: 'acme',
 };
 
 export const project = (): Project => ({
-  id: faker.string.uuid(),
+  slug: faker.helpers.arrayElement(['unattributed', 'default', 'production']),
   name: faker.commerce.productName(),
-  organizationId: faker.string.uuid(),
+  organizationSlug: faker.helpers.arrayElement(['acme', 'corp', 'dev']),
 });
 
 export const projects = (count: number): Project[] =>

@@ -19,7 +19,7 @@ impl From<crate::ZeroTrustNetwork> for ZeroTrustNetwork {
     fn from(value: crate::ZeroTrustNetwork) -> Self {
         ZeroTrustNetwork {
             id: value.id.to_string(),
-            organization_id: value.organization_id.to_string(),
+            organization_slug: value.organization_slug.clone(),
             zero_trust_network_type_id: value.zero_trust_network_type_id.to_string(),
             name: value.name,
             created_at: Some(SystemTime::from(value.created_at).into()),

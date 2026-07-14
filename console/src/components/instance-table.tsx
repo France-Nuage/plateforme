@@ -152,10 +152,10 @@ export const InstanceTable: FunctionComponent<InstanceTableProps> = ({
         );
         const zone = zones.find((zone) => zone.id === hypervisor?.zoneId);
         const project = projects.find(
-          (project) => project.id === instance.projectId,
+          (project) => project.slug === instance.projectSlug,
         );
         const organization = organizations.find(
-          (organization) => organization.id === project?.organizationId,
+          (organization) => organization.slug === project?.organizationSlug,
         );
         const vpc = vpcs.find((vpc) => vpc.id === instance.zeroTrustNetworkId)!;
 
@@ -216,7 +216,7 @@ export const ActionsCell = ({ row }: { row: Row<InstanceData> }) => {
             onClick={() =>
               setConfirmation({
                 action: () => dispatch(removeInstance(row.original.id)),
-                description: `Êtes vous sûr de vouloir supprimer l'instance "${row.original.name}"`,
+                description: `Êtes-vous sûr de vouloir supprimer l'instance "${row.original.name}"`,
                 title: "Supprimer l'instance",
               })
             }
@@ -360,17 +360,17 @@ const MoveToProjectButton: FunctionComponent<{ instance: Instance }> = ({
   const projectItems = useMemo(
     () =>
       projects
-        .filter((p) => p.id !== instance.projectId)
+        .filter((p) => p.slug !== instance.projectSlug)
         .map((project) => {
           const organization = organizations.find(
-            (org) => org.id === project.organizationId,
+            (org) => org.slug === project.organizationSlug,
           );
           return {
             label: `${organization?.name ?? 'Unknown'} / ${project.name}`,
-            value: project.id,
+            value: project.slug,
           };
         }),
-    [projects, instance.projectId, organizations],
+    [projects, instance.projectSlug, organizations],
   );
 
   const { collection } = useListCollection({
@@ -390,7 +390,7 @@ const MoveToProjectButton: FunctionComponent<{ instance: Instance }> = ({
             maxDiskBytes: instance.maxDiskBytes,
             maxMemoryBytes: instance.maxMemoryBytes,
             name: instance.name,
-            projectId: selectedProjectId[0],
+            projectSlug: selectedProjectId[0],
             snippet: '',
           },
           id: instance.id,

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import {
   fetchAllHypervisors,
   fetchAllInstances,
+  fetchAllManagedServices,
   fetchAllOrganizations,
   fetchAllProjects,
   fetchAllZeroTrustNetworkTypes,
@@ -46,6 +47,7 @@ export function useControlplaneData() {
     if (isAuthenticated && organizations.length > 0) {
       dispatch(fetchAllHypervisors());
       dispatch(fetchAllInstances());
+      dispatch(fetchAllManagedServices());
       dispatch(fetchAllProjects());
       dispatch(fetchAllZeroTrustNetworks());
       dispatch(fetchAllZeroTrustNetworkTypes());

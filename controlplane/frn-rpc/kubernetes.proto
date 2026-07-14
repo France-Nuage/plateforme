@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.kubernetes;
+
+import "google/protobuf/timestamp.proto";
+
+// Platform-admin registry of Kubernetes clusters.
+//
+// All RPCs are restricted to platform administrators. Each cluster carries an
+// encrypted-at-rest kubeconfig; before a cluster is created or its kubeconfig
+// changed, the control plane performs a synchronous reachability check against
+// the cluster API server. The kubeconfig and its ciphertext are never returned.
+service KubernetesClusters {
+    // Lists every registered cluster (admin only).
+    rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
+
+    // Returns a single cluster by id (admin only).
+    rpc GetCluster(GetClusterRequest) returns (GetClusterResponse);
+
+    // Registers a cluster after verifying it is reachable (admin only).
+    rpc CreateCluster(CreateClusterRequest) returns (CreateClusterResponse);
+
+    // Updates a cluster, re-checking reachability when a new kubeconfig is sent
+    // (admin only).
+    rpc UpdateCluster(UpdateClusterRequest) returns (UpdateClusterResponse);
+
+    // Deletes a cluster (admin only).
+    rpc DeleteCluster(DeleteClusterRequest) returns (DeleteClusterResponse);
+
+    // Lists every cluster label (admin only).
+    rpc ListLabels(ListLabelsRequest) returns (ListLabelsResponse);
+
+    // Creates a user-managed label (admin only). Labels flagged `system` are
+    // owned by the control plane and cannot be created through the API.
+    rpc CreateLabel(CreateLabelRequest) returns (CreateLabelResponse);
+
+    // Deletes a user-managed label and its attachments (admin only).
+    rpc DeleteLabel(DeleteLabelRequest) returns (DeleteLabelResponse);
+
+    // Attaches a user-managed label to a cluster (admin only, idempotent).
+    rpc AttachClusterLabel(AttachClusterLabelRequest) returns (AttachClusterLabelResponse);
+
+    // Detaches a user-managed label from a cluster (admin only, idempotent).
+    rpc DetachClusterLabel(DetachClusterLabelRequest) returns (DetachClusterLabelResponse);
+
+    // Lists the active managed services whose deploy_target references the
+    // label's key/value pair (admin only). Detaching or deleting such a label
+    // is allowed but may leave those services without an eligible cluster for
+    // future deployments; callers surface this list to the operator before
+    // confirming the removal.
+    rpc ListServicesReferencingLabel(ListServicesReferencingLabelRequest) returns (ListServicesReferencingLabelResponse);
+}
+
+// A cluster label: a reusable key/value pair (e.g. availability=ft) attached
+// to clusters and matched against managed-service deploy targets. Labels with
+// `system = true` are owned by the control plane and read-only via the API.
+message KubernetesLabelProto {
+    string id = 1;
+    string key = 2;
+    string value = 3;
+    bool system = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+}
+
+// Non-sensitive view of a cluster. Never exposes the kubeconfig or any
+// encrypted material.
+message KubernetesClusterProto {
+    string id = 1;
+    string name = 2;
+    optional string description = 3;
+    string api_server_url = 4;
+    optional string ca_fingerprint = 5;
+    // Kubernetes semver version reported by GET /version (e.g. "v1.32.2").
+    optional string kubernetes_version = 10;
+    // OS/arch pair reported by the API server (e.g. "linux/amd64").
+    optional string platform = 11;
+    string health_status = 6;
+    google.protobuf.Timestamp last_health_check_at = 7;
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp updated_at = 9;
+    // Labels attached to the cluster, ordered by key then value.
+    repeated KubernetesLabelProto labels = 12;
+}
+
+// ListClusters
+message ListClustersRequest {}
+
+message ListClustersResponse {
+    repeated KubernetesClusterProto clusters = 1;
+}
+
+// GetCluster
+message GetClusterRequest {
+    string cluster_id = 1;
+}
+
+message GetClusterResponse {
+    KubernetesClusterProto cluster = 1;
+}
+
+// CreateCluster
+message CreateClusterRequest {
+    string name = 1;
+    optional string description = 2;
+    // Full kubeconfig YAML granting access to the cluster API server.
+    string kubeconfig = 3;
+    // IDs of existing user-managed labels to attach to the cluster at
+    // creation. Validated before the reachability check: an unknown or
+    // system label rejects the whole request and no cluster is created.
+    repeated string label_ids = 4;
+}
+
+message CreateClusterResponse {
+    KubernetesClusterProto cluster = 1;
+}
+
+// UpdateCluster
+message UpdateClusterRequest {
+    string cluster_id = 1;
+    string name = 2;
+    optional string description = 3;
+    // When set, replaces the stored kubeconfig and triggers a reachability check.
+    optional string kubeconfig = 4;
+}
+
+message UpdateClusterResponse {
+    KubernetesClusterProto cluster = 1;
+}
+
+// DeleteCluster
+message DeleteClusterRequest {
+    string cluster_id = 1;
+}
+
+message DeleteClusterResponse {}
+
+// ListLabels
+message ListLabelsRequest {}
+
+message ListLabelsResponse {
+    repeated KubernetesLabelProto labels = 1;
+}
+
+// CreateLabel
+message CreateLabelRequest {
+    // Max 49 chars, charset [a-zA-Z0-9-], case-insensitive.
+    string key = 1;
+    // Max 49 chars, charset [a-zA-Z0-9-], case-insensitive.
+    string value = 2;
+}
+
+message CreateLabelResponse {
+    KubernetesLabelProto label = 1;
+}
+
+// DeleteLabel
+message DeleteLabelRequest {
+    string label_id = 1;
+}
+
+message DeleteLabelResponse {}
+
+// AttachClusterLabel
+message AttachClusterLabelRequest {
+    string cluster_id = 1;
+    string label_id = 2;
+}
+
+message AttachClusterLabelResponse {}
+
+// DetachClusterLabel
+message DetachClusterLabelRequest {
+    string cluster_id = 1;
+    string label_id = 2;
+}
+
+message DetachClusterLabelResponse {}
+
+// ListServicesReferencingLabel
+message ListServicesReferencingLabelRequest {
+    string label_id = 1;
+}
+
+// Minimal reference to a managed service impacted by a label removal.
+message ManagedServiceRefProto {
+    string id = 1;
+    string slug = 2;
+    string name = 3;
+}
+
+message ListServicesReferencingLabelResponse {
+    // Active services whose deploy_target requires the label, ordered by name.
+    repeated ManagedServiceRefProto services = 1;
+}

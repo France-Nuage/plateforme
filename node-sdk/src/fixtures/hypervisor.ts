@@ -6,7 +6,7 @@ import { acmeZone } from './zone';
 
 export const acmeHypervisor: Hypervisor = {
   id: '00000000-0000-0000-0000-000000000000',
-  organizationId: acmeOrganization.id,
+  organizationSlug: acmeOrganization.slug,
   storageName: 'local-lvm',
   url: 'https://hypervisor.acme',
   zoneId: acmeZone.id,
@@ -14,7 +14,7 @@ export const acmeHypervisor: Hypervisor = {
 
 export const hypervisor = (preset?: Partial<Hypervisor>): Hypervisor => ({
   id: faker.string.uuid(),
-  organizationId: faker.string.uuid(),
+  organizationSlug: faker.helpers.arrayElement(['acme', 'corp', 'dev']),
   storageName: faker.commerce.productName(),
   url: faker.internet.url(),
   zoneId: faker.string.uuid(),

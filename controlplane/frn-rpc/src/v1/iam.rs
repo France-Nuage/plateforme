@@ -1,10 +1,8 @@
 use std::time::SystemTime;
 
-use frn_core::{authorization::Authorize, identity::IAM};
+use frn_core::authorization::{Authorize, Principal as _, Resource as _};
+use frn_core::identity::{IAM, Principal};
 use tonic::{Request, Response, Status};
-use uuid::Uuid;
-
-use crate::error::Error;
 
 tonic::include_proto!("francenuage.fr.v1.iam");
 
@@ -24,7 +22,7 @@ impl From<frn_core::identity::Invitation> for Invitation {
     fn from(value: frn_core::identity::Invitation) -> Self {
         Invitation {
             id: value.id.to_string(),
-            organization_id: value.organization_id.to_string(),
+            organization_slug: value.organization_slug.clone(),
             user_id: value.user_id.to_string(),
             state: InvitationState::from(value.state) as i32,
             created_at: Some(SystemTime::from(value.created_at).into()),
@@ -76,18 +74,15 @@ impl<Auth: Authorize + 'static> invitations_server::Invitations for Invitations<
 
         let CreateInvitationRequest {
             email,
-            organization_id,
+            organization_slug,
         } = request.into_inner();
-
-        let organization_id =
-            Uuid::parse_str(&organization_id).map_err(|_| Error::MalformedId(organization_id))?;
 
         let user_id = self.users.find_or_create(&principal, email).await?.id;
 
         let invitation = self
             .invitations
             .clone()
-            .create(&principal, organization_id, user_id)
+            .create(&principal, organization_slug, user_id)
             .await?;
 
         Ok(Response::new(CreateInvitationResponse {
@@ -100,5 +95,49 @@ impl<Auth: Authorize + 'static> invitations_server::Invitations for Invitations<
         _: Request<AnswerInvitationRequest>,
     ) -> Result<Response<AnswerInvitationResponse>, Status> {
         unimplemented!()
+    }
+}
+
+/// Service exposing the authenticated caller's own identity.
+///
+/// `GetCurrentUser` lets the frontend read its platform-admin status from the
+/// authoritative source (the control plane database, via the resolved
+/// principal) instead of decoding it from the OIDC token. Keycloak
+/// authenticates the caller; the control plane decides what it can do.
+pub struct Profile {
+    iam: IAM,
+}
+
+impl Profile {
+    pub fn new(iam: IAM) -> Self {
+        Self { iam }
+    }
+}
+
+#[tonic::async_trait]
+impl profile_server::Profile for Profile {
+    /// Returns the calling principal's id, email and platform-admin flag.
+    ///
+    /// The principal is resolved from the Bearer token and read straight from
+    /// the database, so `is_admin` reflects `users.is_admin` at request time.
+    /// Service accounts have no email and are never platform admins.
+    async fn get_current_user(
+        &self,
+        request: Request<GetCurrentUserRequest>,
+    ) -> Result<Response<GetCurrentUserResponse>, Status> {
+        let principal = self.iam.principal(&request).await?;
+
+        let id = principal.id().to_string();
+        let is_admin = principal.is_platform_admin();
+        let email = match &principal {
+            Principal::User(user) => user.email.clone(),
+            Principal::ServiceAccount(_) => String::new(),
+        };
+
+        Ok(Response::new(GetCurrentUserResponse {
+            id,
+            email,
+            is_admin,
+        }))
     }
 }

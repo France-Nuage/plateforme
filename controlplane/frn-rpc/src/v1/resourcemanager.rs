@@ -1,7 +1,6 @@
-use crate::error::Error;
 use frn_core::identity::IAM;
 use frn_core::{authorization::Authorize, resourcemanager::ProjectCreateRequest};
-use sqlx::{Pool, Postgres, types::Uuid};
+use sqlx::{Pool, Postgres};
 use std::time::SystemTime;
 use tonic::{Request, Response, Status};
 
@@ -11,9 +10,8 @@ tonic::include_proto!("francenuage.fr.resourcemanager.v1");
 impl From<frn_core::resourcemanager::Organization> for Organization {
     fn from(org: frn_core::resourcemanager::Organization) -> Self {
         Self {
-            id: org.id.to_string(),
-            name: org.name,
             slug: org.slug,
+            name: org.name,
             created_at: Some(SystemTime::from(org.created_at).into()),
             updated_at: Some(SystemTime::from(org.updated_at).into()),
         }
@@ -24,9 +22,9 @@ impl From<frn_core::resourcemanager::Organization> for Organization {
 impl From<frn_core::resourcemanager::Project> for Project {
     fn from(project: frn_core::resourcemanager::Project) -> Self {
         Self {
-            id: project.id.to_string(),
+            slug: project.slug,
             name: project.name,
-            organization_id: project.organization_id.to_string(),
+            organization_slug: project.organization_slug,
             created_at: Some(SystemTime::from(project.created_at).into()),
             updated_at: Some(SystemTime::from(project.updated_at).into()),
         }
@@ -76,16 +74,12 @@ impl<Auth: Authorize + 'static> organizations_server::Organizations for Organiza
     ) -> Result<Response<CreateOrganizationResponse>, Status> {
         let principal = self.iam.principal(&request).await?;
 
-        let CreateOrganizationRequest { name, parent_id } = request.into_inner();
-
-        let parent_id = parent_id
-            .map(|value| Uuid::parse_str(&value).map_err(|_| Status::invalid_argument("")))
-            .transpose()?;
+        let CreateOrganizationRequest { name, parent_slug } = request.into_inner();
 
         let organization = self
             .organizations
             .clone()
-            .create_organization(&self.pool, &principal, name, parent_id)
+            .create_organization(&self.pool, &principal, name, parent_slug)
             .await?;
 
         Ok(tonic::Response::new(
@@ -119,7 +113,7 @@ impl<Auth: Authorize + 'static> projects_server::Projects for Projects<Auth> {
             .clone()
             .list(&principal)
             .await
-            .map_err(Error::convert)?;
+            .map_err(Status::from)?;
 
         Ok(Response::new(ListProjectsResponse {
             projects: projects.into_iter().map(Into::into).collect(),
@@ -133,21 +127,19 @@ impl<Auth: Authorize + 'static> projects_server::Projects for Projects<Auth> {
         let principal = self.iam.principal(&request).await?;
         let CreateProjectRequest {
             name,
-            organization_id,
+            organization_slug,
         } = request.into_inner();
-        let organization_id = Uuid::parse_str(&organization_id)
-            .map_err(|_| Status::invalid_argument("invalid argument organization_id"))?;
 
         let request = ProjectCreateRequest {
             name,
-            organization_id,
+            organization_slug,
         };
         let project = self
             .projects
             .clone()
             .create(&principal, request)
             .await
-            .map_err(Error::convert)?;
+            .map_err(Status::from)?;
 
         Ok(Response::new(CreateProjectResponse {
             project: Some(project.into()),

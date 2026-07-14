@@ -16,10 +16,10 @@ service Projects {
 }
 
 message Organization {
-    string id = 1 [(validate.rules).string = {
+    string slug = 5 [(validate.rules).string = {
         min_len: 1,
-        max_len: 36,
-        pattern: "^[a-zA-Z0-9_-]+$"
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
     string name = 2 [(validate.rules).string = {
         min_len: 1,
@@ -28,31 +28,32 @@ message Organization {
     }];
     google.protobuf.Timestamp created_at = 3;
     google.protobuf.Timestamp updated_at = 4;
-    string slug = 5 [(validate.rules).string = {
-        min_len: 1,
-        max_len: 63,
-        pattern: "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
-    }];
+    // Field 1 (id) removed: slug is the primary identifier.
+    reserved 1;
+    reserved "id";
 }
 
 message Project {
-    string id = 1 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"
+    string slug = 6 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
     string name = 2 [(validate.rules).string = {
         min_len: 1,
         max_len: 64,
         pattern: "^[a-zA-Z0-9_\\- ]+$"
     }];
-    string organization_id = 3 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"
+    string organization_slug = 7 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
     google.protobuf.Timestamp created_at = 4;
     google.protobuf.Timestamp updated_at = 5;
+    // Fields 1 (id) and 3 (organization_id) removed: slug-based identifiers.
+    reserved 1, 3;
+    reserved "id", "organization_id";
 }
 
 message ListOrganizationsRequest {}
@@ -67,11 +68,14 @@ message CreateOrganizationRequest {
         max_len: 64,
         pattern: "^[a-zA-Z0-9_\\- ]+$"
     }];
-    optional string parent_id = 2 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"
+    optional string parent_slug = 3 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
+    // Field 2 (parent_id) removed.
+    reserved 2;
+    reserved "parent_id";
 }
 
 message CreateOrganizationResponse {
@@ -90,11 +94,14 @@ message CreateProjectRequest {
         max_len: 64,
         pattern: "^[a-zA-Z0-9_\\- ]+$"
     }];
-    string organization_id = 2 [(validate.rules).string = {
-        min_len: 1, 
-        max_len: 36, 
-        pattern: "^[a-zA-Z0-9_-]+$"
+    string organization_slug = 3 [(validate.rules).string = {
+        min_len: 1,
+        max_len: 49,
+        pattern: "^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$"
     }];
+    // Field 2 (organization_id) removed.
+    reserved 2;
+    reserved "organization_id";
 }
 
 message CreateProjectResponse {

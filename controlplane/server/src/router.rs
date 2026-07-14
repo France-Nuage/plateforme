@@ -5,7 +5,12 @@
 //! and provides a builder pattern for progressive service registration with
 //! proper dependency injection.
 
+use std::sync::Arc;
+
+use axum::routing::post;
+use frn_core::billing::StripeClient;
 use frn_core::identity::IAM;
+use frn_crypto::Kek;
 use frn_rpc::v1::compute::Hypervisors;
 use frn_rpc::v1::compute::Instances;
 use frn_rpc::v1::compute::Zones;
@@ -13,13 +18,19 @@ use frn_rpc::v1::compute::hypervisors_server::HypervisorsServer;
 use frn_rpc::v1::compute::instances_server::InstancesServer;
 use frn_rpc::v1::compute::zones_server::ZonesServer;
 use frn_rpc::v1::iam::Invitations;
+use frn_rpc::v1::iam::Profile;
 use frn_rpc::v1::iam::invitations_server::InvitationsServer;
-use frn_rpc::v1::longrunning::Operations;
-use frn_rpc::v1::longrunning::operations_server::OperationsServer;
+use frn_rpc::v1::iam::profile_server::ProfileServer;
+use frn_rpc::v1::kubernetes::KubernetesClustersRpc;
+use frn_rpc::v1::kubernetes::kubernetes_clusters_server::KubernetesClustersServer;
+use frn_rpc::v1::managed::ManagedServicesRpc;
+use frn_rpc::v1::managed::managed_services_server::ManagedServicesServer;
 use frn_rpc::v1::resourcemanager::Organizations;
 use frn_rpc::v1::resourcemanager::Projects;
 use frn_rpc::v1::resourcemanager::organizations_server::OrganizationsServer;
 use frn_rpc::v1::resourcemanager::projects_server::ProjectsServer;
+use frn_rpc::v1::workflow::WorkflowEngine;
+use frn_rpc::v1::workflow::workflow_engine_server::WorkflowEngineServer;
 use infrastructure::ZeroTrustNetworkRpcService;
 use infrastructure::ZeroTrustNetworkTypeRpcService;
 use infrastructure::v1::zero_trust_network_types_server::ZeroTrustNetworkTypesServer;
@@ -39,6 +50,10 @@ use tonic::service::Routes;
 pub struct Router {
     /// Collection of registered gRPC service routes.
     pub routes: Routes,
+    /// Additional HTTP routes (e.g. webhooks) merged at serve time.
+    pub http_routes: Option<axum::Router>,
+    /// Handle to register late-bound services in the health reporter.
+    health_reporter: Option<tonic_health::server::HealthReporter>,
 }
 
 impl Default for Router {
@@ -55,6 +70,8 @@ impl Router {
     pub fn new() -> Self {
         Self {
             routes: Routes::default(),
+            http_routes: None,
+            health_reporter: None,
         }
     }
 
@@ -72,6 +89,7 @@ impl Router {
     /// lifecycle.
     pub fn health(self) -> Self {
         let (health_reporter, health_service) = tonic_health::server::health_reporter();
+        let reporter_handle = health_reporter.clone();
         // Start the health reporter in a background task and forget about it.
         // This is definitely not a graceful pattern, but it is as of now the
         // only part of the application builder that would require async. As
@@ -85,18 +103,23 @@ impl Router {
                 health_reporter.set_serving::<HypervisorsServer<Hypervisors<SpiceDB>>>(),
                 health_reporter.set_serving::<InstancesServer<Instances<SpiceDB>>>(),
                 health_reporter.set_serving::<InvitationsServer<Invitations<SpiceDB>>>(),
-                health_reporter.set_serving::<OperationsServer<Operations<SpiceDB>>>(),
+                health_reporter.set_serving::<ProfileServer<Profile>>(),
                 health_reporter.set_serving::<OrganizationsServer<Organizations<SpiceDB>>>(),
                 health_reporter.set_serving::<ProjectsServer<Projects<SpiceDB>>>(),
                 health_reporter
                     .set_serving::<ZeroTrustNetworkTypesServer<ZeroTrustNetworkTypeRpcService>>(),
                 health_reporter
                     .set_serving::<ZeroTrustNetworksServer<ZeroTrustNetworkRpcService>>(),
+                health_reporter.set_serving::<ManagedServicesServer<ManagedServicesRpc<SpiceDB>>>(),
+                health_reporter.set_serving::<KubernetesClustersServer<KubernetesClustersRpc>>(),
+                health_reporter.set_serving::<WorkflowEngineServer<WorkflowEngine>>(),
             )
         });
 
         Self {
             routes: self.routes.add_service(health_service),
+            http_routes: self.http_routes,
+            health_reporter: Some(reporter_handle),
         }
     }
 
@@ -120,6 +143,8 @@ impl Router {
             routes: self
                 .routes
                 .add_service(HypervisorsServer::new(Hypervisors::new(iam, pool, service))),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
         }
     }
 
@@ -143,6 +168,8 @@ impl Router {
             routes: self
                 .routes
                 .add_service(InstancesServer::new(Instances::new(iam, pool, instances))),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
         }
     }
 
@@ -160,22 +187,20 @@ impl Router {
                     invitations,
                     users,
                 ))),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
         }
     }
 
-    /// Registers the long-running operations service with the router.
-    ///
-    /// This method adds the operations gRPC service to the router, providing
-    /// endpoints for querying and waiting on long-running operation status.
-    pub fn operations(
-        self,
-        iam: IAM,
-        operations: frn_core::longrunning::Operations<SpiceDB>,
-    ) -> Self {
+    /// Registers the profile service exposing the caller's own identity
+    /// (`GetCurrentUser`), the authoritative source of the platform-admin flag.
+    pub fn profile(self, iam: IAM) -> Self {
         Self {
             routes: self
                 .routes
-                .add_service(OperationsServer::new(Operations::new(iam, operations))),
+                .add_service(ProfileServer::new(Profile::new(iam))),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
         }
     }
 
@@ -205,6 +230,8 @@ impl Router {
                     pool.clone(),
                 )))
                 .add_service(ProjectsServer::new(Projects::<SpiceDB>::new(iam, projects))),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
         }
     }
 
@@ -223,6 +250,8 @@ impl Router {
             routes: self.routes.add_service(ZeroTrustNetworkTypesServer::new(
                 ZeroTrustNetworkTypeRpcService::new(pool),
             )),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
         }
     }
 
@@ -241,6 +270,61 @@ impl Router {
             routes: self.routes.add_service(ZeroTrustNetworksServer::new(
                 ZeroTrustNetworkRpcService::new(pool),
             )),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
+        }
+    }
+
+    pub fn managed_services(
+        self,
+        iam: IAM,
+        pool: Pool<Postgres>,
+        auth: SpiceDB,
+        ci_token: String,
+        platform_config: frn_core::managed::PlatformConfig,
+        kek: Arc<Kek>,
+    ) -> Self {
+        let service = frn_core::managed::ManagedServices::new(auth, pool.clone(), platform_config);
+        Self {
+            routes: self
+                .routes
+                .add_service(ManagedServicesServer::new(ManagedServicesRpc::new(
+                    iam, service, pool, ci_token, kek,
+                ))),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
+        }
+    }
+
+    /// Registers the platform-admin Kubernetes cluster registry service.
+    ///
+    /// # Parameters
+    ///
+    /// * `iam` - Identity resolver used to authenticate the calling principal
+    /// * `pool` - PostgreSQL connection pool for cluster persistence
+    /// * `kek` - Key Encryption Key wrapping each cluster's kubeconfig DEK
+    pub fn kubernetes_clusters(self, iam: IAM, pool: Pool<Postgres>, kek: Arc<Kek>) -> Self {
+        let service = frn_core::kubernetes::KubernetesClusters::new(pool.clone(), kek);
+        let labels = frn_core::kubernetes::KubernetesLabels::new(pool);
+        Self {
+            routes: self.routes.add_service(KubernetesClustersServer::new(
+                KubernetesClustersRpc::new(iam, service, labels),
+            )),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
+        }
+    }
+
+    pub fn workflow_engine(self, pool: Pool<Postgres>, worker_token: String) -> Self {
+        Self {
+            routes: self
+                .routes
+                .add_service(WorkflowEngineServer::new(WorkflowEngine::new(
+                    pool,
+                    worker_token,
+                ))),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
         }
     }
 
@@ -249,6 +333,8 @@ impl Router {
             routes: self
                 .routes
                 .add_service(ZonesServer::new(Zones::new(iam, zones))),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
         }
     }
 
@@ -284,6 +370,61 @@ impl Router {
                 .routes
                 .add_service(reflection_v1)
                 .add_service(reflection_v1alpha),
+            http_routes: self.http_routes,
+            health_reporter: self.health_reporter,
+        }
+    }
+
+    /// Registers the billing gRPC service and Stripe webhook HTTP endpoint.
+    ///
+    /// The gRPC service handles checkout sessions, subscriptions, and cancellations.
+    /// The webhook endpoint is a plain HTTP POST at `/webhooks/stripe` that receives
+    /// Stripe events and dispatches them to the billing service.
+    pub fn billing<S: StripeClient + 'static>(
+        self,
+        iam: IAM,
+        pool: Pool<Postgres>,
+        billing: frn_core::billing::Billing<SpiceDB, S>,
+        webhook_secret: String,
+    ) -> Self {
+        use crate::webhook::{WebhookState, stripe_webhook_handler};
+        use frn_rpc::v1::billing::BillingRpc;
+        use frn_rpc::v1::billing::billing_service_server::BillingServiceServer;
+
+        let webhook_state = WebhookState {
+            billing: billing.clone(),
+            pool: pool.clone(),
+            webhook_secret: Arc::new(webhook_secret),
+        };
+
+        let webhook_route: axum::Router = axum::Router::new()
+            .route(
+                "/webhooks/stripe",
+                post(stripe_webhook_handler::<SpiceDB, S>),
+            )
+            .with_state(webhook_state);
+
+        let merged_http = match self.http_routes {
+            Some(existing) => existing.merge(webhook_route),
+            None => webhook_route,
+        };
+
+        if let Some(reporter) = self.health_reporter.clone() {
+            tokio::spawn(async move {
+                reporter
+                    .set_serving::<BillingServiceServer<BillingRpc<SpiceDB, S>>>()
+                    .await;
+            });
+        }
+
+        Self {
+            routes: self
+                .routes
+                .add_service(BillingServiceServer::new(BillingRpc::new(
+                    iam, billing, pool,
+                ))),
+            http_routes: Some(merged_http),
+            health_reporter: self.health_reporter,
         }
     }
 }

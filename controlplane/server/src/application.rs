@@ -9,15 +9,21 @@
 //! production-ready gRPC server: configuration management, PostgreSQL database
 //! connectivity, request routing, and server middleware stack.
 
-use crate::config::Config;
-use crate::error::Error;
-use crate::router::Router;
-use crate::server::{Server, TraceLayer};
 use std::future::Future;
+
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic_web::GrpcWebLayer;
 use tower::layer::util::{Identity, Stack};
 use tower_http::cors::CorsLayer;
+
+use frn_core::billing::Billing;
+use frn_core::billing::stripe::HttpStripeClient;
+use frn_core::managed::ManagedServices;
+
+use crate::config::Config;
+use crate::error::Error;
+use crate::router::Router;
+use crate::server::{Server, TraceLayer};
 
 /// Main application structure that orchestrates the gRPC server components.
 ///
@@ -217,26 +223,79 @@ impl<L> Application<L> {
         let hypervisors = self.config.app.hypervisors.clone();
         let instances = self.config.app.instances.clone();
         let invitations = self.config.app.invitations.clone();
-        let operations = self.config.app.operations.clone();
         let organizations = self.config.app.organizations.clone();
         let projects = self.config.app.projects.clone();
         let users = self.config.app.users.clone();
         let zones = self.config.app.zones.clone();
+        let auth = self.config.app.auth.clone();
+        let worker_token = self.config.worker_token.clone();
+        let ci_token = self.config.ci_token.clone();
+        let managed_platform_config = self.config.managed_platform_config.clone();
+        let kubeconfig_encryption_kek = self.config.kubeconfig_encryption_kek.clone();
+
+        let mut router = self
+            .router
+            .health()
+            .hypervisors(iam.clone(), pool.clone(), hypervisors.clone())
+            .instances(iam.clone(), pool.clone(), instances.clone())
+            .invitations(iam.clone(), invitations.clone(), users.clone())
+            .profile(iam.clone())
+            .managed_services(
+                iam.clone(),
+                pool.clone(),
+                auth.clone(),
+                ci_token,
+                managed_platform_config.clone(),
+                kubeconfig_encryption_kek.clone(),
+            )
+            .kubernetes_clusters(iam.clone(), pool.clone(), kubeconfig_encryption_kek.clone())
+            .reflection()
+            .resources(iam.clone(), organizations, pool.clone(), projects.clone())
+            .zero_trust_networks(pool.clone())
+            .zero_trust_network_types(pool.clone())
+            .workflow_engine(pool.clone(), worker_token)
+            .zones(iam.clone(), zones.clone());
+
+        if let (Some(stripe_key), Some(webhook_secret), Some(success_url), Some(cancel_url)) = (
+            self.config.stripe_secret_key.clone(),
+            self.config.stripe_webhook_secret.clone(),
+            self.config.stripe_checkout_success_url.clone(),
+            self.config.stripe_checkout_cancel_url.clone(),
+        ) {
+            let stripe_client = HttpStripeClient::new(stripe_key);
+            let managed_svc = ManagedServices::new(auth, pool.clone(), managed_platform_config);
+            let billing = Billing::new(
+                pool.clone(),
+                stripe_client,
+                managed_svc,
+                kubeconfig_encryption_kek.clone(),
+                success_url,
+                cancel_url,
+            );
+
+            router = router.billing(iam.clone(), pool.clone(), billing, webhook_secret);
+            tracing::info!("billing service enabled with Stripe integration");
+        } else {
+            let has_any = self.config.stripe_secret_key.is_some()
+                || self.config.stripe_webhook_secret.is_some()
+                || self.config.stripe_checkout_success_url.is_some()
+                || self.config.stripe_checkout_cancel_url.is_some();
+            if has_any {
+                tracing::warn!(
+                    stripe_secret_key = self.config.stripe_secret_key.is_some(),
+                    stripe_webhook_secret = self.config.stripe_webhook_secret.is_some(),
+                    stripe_checkout_success_url = self.config.stripe_checkout_success_url.is_some(),
+                    stripe_checkout_cancel_url = self.config.stripe_checkout_cancel_url.is_some(),
+                    "billing service disabled: partial Stripe configuration detected, all four variables are required"
+                );
+            } else {
+                tracing::info!("billing service disabled (Stripe env vars not configured)");
+            }
+        }
+
         Self {
             config: self.config,
-            router: self
-                .router
-                .health()
-                .hypervisors(iam.clone(), pool.clone(), hypervisors.clone())
-                .instances(iam.clone(), pool.clone(), instances.clone())
-                .invitations(iam.clone(), invitations.clone(), users.clone())
-                .operations(iam.clone(), operations.clone())
-                .reflection()
-                .resources(iam.clone(), organizations, pool.clone(), projects.clone())
-                .zero_trust_networks(pool.clone())
-                .zero_trust_network_types(pool.clone())
-                .zones(iam.clone(), zones.clone()),
-
+            router,
             server: self.server,
         }
     }
@@ -303,6 +362,19 @@ impl Application<Middleware<Identity>> {
         signal: F,
         stream: TcpListenerStream,
     ) -> Result<(), Error> {
-        self.server.serve(stream, self.router.routes, signal).await
+        if let Some(http_routes) = self.router.http_routes {
+            let http_listener = tokio::net::TcpListener::bind("0.0.0.0:8081")
+                .await
+                .map_err(Error::IO)?;
+            tracing::info!("webhook HTTP server listening on 0.0.0.0:8081");
+            tokio::spawn(async move {
+                if let Err(e) = axum::serve(http_listener, http_routes).await {
+                    tracing::error!(error = %e, "webhook HTTP server exited with error");
+                }
+            });
+        }
+
+        let svc = self.router.routes.into_axum_router().into_service();
+        self.server.serve(stream, svc, signal).await
     }
 }

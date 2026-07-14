@@ -16,25 +16,27 @@ async fn test_the_start_instance_procedure_works(pool: sqlx::PgPool) {
     let mock_url = api.mock_server.url();
 
     let organization = Organization::factory()
-        .parent_id(None)
+        .slug("test-org".to_owned())
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");
     let hypervisor = Hypervisor::factory()
         .for_zone(Zone::factory())
-        .organization_id(organization.id)
+        .organization_slug(organization.slug.clone())
         .url(mock_url)
         .create(&pool)
         .await
         .expect("could not create hypervisor");
     let project = Project::factory()
-        .organization_id(organization.id)
+        .slug("test-project".to_owned())
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await
         .expect("could not create project");
     let instance = Instance::factory()
         .hypervisor_id(hypervisor.id)
-        .project_id(project.id)
+        .project_slug(project.slug.clone())
         .distant_id("100".into())
         .zero_trust_network_id(None)
         .create(&pool)

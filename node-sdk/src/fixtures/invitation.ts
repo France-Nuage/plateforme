@@ -4,7 +4,7 @@ import { Invitation } from '../models';
 
 export const invitation = (): Invitation => ({
   id: faker.string.uuid(),
-  organizationId: faker.string.uuid(),
+  organizationSlug: faker.helpers.arrayElement(['acme', 'corp', 'dev']),
   userId: faker.string.uuid(),
 });
 

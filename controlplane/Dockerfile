@@ -1,5 +1,9 @@
+# Base image args (overridable via docker-compose.override.yml)
+ARG RUST_BASE_IMAGE=registry.france-nuage.fr/library/rust:1.90-alpine
+ARG ALPINE_BASE_IMAGE=registry.france-nuage.fr/library/alpine:3.23
+
 # Chef Stage - Install cargo-chef
-FROM registry.france-nuage.fr/library/rust:1.90-alpine AS chef
+FROM ${RUST_BASE_IMAGE} AS chef
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -15,7 +19,7 @@ RUN apk add --no-cache \
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 # Install cargo-chef for dependency caching
-RUN cargo install cargo-chef
+RUN cargo install cargo-chef --locked
 
 WORKDIR /app
 
@@ -57,7 +61,14 @@ CMD ["cargo", "run", "--bin=server"]
 
 # Development Stage - Operation Worker
 FROM base AS development-operation-worker
-CMD ["cargo", "run", "--bin=operation-worker"]
+RUN apk add --no-cache bash openssl wget && \
+  HELM_VERSION=v3.17.3 && \
+  ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/') && \
+  wget -qO /tmp/helm.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-linux-${ARCH}.tar.gz && \
+  tar -xzf /tmp/helm.tar.gz -C /tmp && \
+  mv /tmp/linux-${ARCH}/helm /usr/local/bin/helm && \
+  rm -rf /tmp/helm.tar.gz /tmp/linux-${ARCH}
+CMD ["cargo", "run", "--bin=worker"]
 
 # Development Stage - Synchronizer
 FROM base AS development-synchronizer
@@ -67,11 +78,11 @@ CMD ["cargo", "run", "--bin=synchronizer"]
 FROM base AS builder
 RUN SQLX_OFFLINE=true cargo build --release \
   --bin server \
-  --bin operation-worker \
+  --bin worker \
   --bin synchronizer
 
 # Production Stage - Server
-FROM registry.france-nuage.fr/library/alpine:3.23 AS release
+FROM ${ALPINE_BASE_IMAGE} AS release
 RUN apk add --no-cache ca-certificates openssl
 
 # Install grpc_health_probe with multi-arch support
@@ -94,15 +105,21 @@ RUN chmod +x /usr/bin/server
 CMD ["/usr/bin/server"]
 
 # Production Stage - Operation Worker
-FROM registry.france-nuage.fr/library/alpine:3.23 AS release-operation-worker
-RUN apk add --no-cache ca-certificates openssl
+FROM ${ALPINE_BASE_IMAGE} AS release-operation-worker
+ARG TARGETARCH
+RUN apk add --no-cache ca-certificates openssl wget && \
+  HELM_VERSION=v3.17.3 && \
+  wget -qO /tmp/helm.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz && \
+  tar -xzf /tmp/helm.tar.gz -C /tmp && \
+  mv /tmp/linux-${TARGETARCH}/helm /usr/local/bin/helm && \
+  rm -rf /tmp/helm.tar.gz /tmp/linux-${TARGETARCH}
 
-COPY --from=builder /app/target/release/operation-worker /usr/bin/operation-worker
-RUN chmod +x /usr/bin/operation-worker
-CMD ["/usr/bin/operation-worker"]
+COPY --from=builder /app/target/release/worker /usr/bin/worker
+RUN chmod +x /usr/bin/worker
+CMD ["/usr/bin/worker"]
 
 # Production Stage - Synchronizer
-FROM registry.france-nuage.fr/library/alpine:3.23 AS release-synchronizer
+FROM ${ALPINE_BASE_IMAGE} AS release-synchronizer
 RUN apk add --no-cache ca-certificates openssl
 
 COPY --from=builder /app/target/release/synchronizer /usr/bin/synchronizer

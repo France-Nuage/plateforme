@@ -7,6 +7,9 @@ import { stackIntercept } from '@protobuf-ts/runtime-rpc';
 import type { UnaryCall } from '@protobuf-ts/runtime-rpc';
 import type { RpcOptions } from '@protobuf-ts/runtime-rpc';
 
+import { Profile } from './iam';
+import type { GetCurrentUserResponse } from './iam';
+import type { GetCurrentUserRequest } from './iam';
 import { Invitations } from './iam';
 import type { AnswerInvitationResponse } from './iam';
 import type { AnswerInvitationRequest } from './iam';
@@ -93,6 +96,52 @@ export class InvitationsClient implements IInvitationsClient, ServiceInfo {
     const method = this.methods[2],
       opt = this._transport.mergeOptions(options);
     return stackIntercept<AnswerInvitationRequest, AnswerInvitationResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+}
+/**
+ * Exposes the authenticated caller's own identity. GetCurrentUser is the single
+ * authoritative source for the frontend's platform-admin status: it reflects
+ * the control plane database (users.is_admin) rather than an OIDC token claim.
+ *
+ * @generated from protobuf service francenuage.fr.v1.iam.Profile
+ */
+export interface IProfileClient {
+  /**
+   * @generated from protobuf rpc: GetCurrentUser
+   */
+  getCurrentUser(
+    input: GetCurrentUserRequest,
+    options?: RpcOptions,
+  ): UnaryCall<GetCurrentUserRequest, GetCurrentUserResponse>;
+}
+/**
+ * Exposes the authenticated caller's own identity. GetCurrentUser is the single
+ * authoritative source for the frontend's platform-admin status: it reflects
+ * the control plane database (users.is_admin) rather than an OIDC token claim.
+ *
+ * @generated from protobuf service francenuage.fr.v1.iam.Profile
+ */
+export class ProfileClient implements IProfileClient, ServiceInfo {
+  typeName = Profile.typeName;
+  methods = Profile.methods;
+  options = Profile.options;
+  constructor(private readonly _transport: RpcTransport) {}
+  /**
+   * @generated from protobuf rpc: GetCurrentUser
+   */
+  getCurrentUser(
+    input: GetCurrentUserRequest,
+    options?: RpcOptions,
+  ): UnaryCall<GetCurrentUserRequest, GetCurrentUserResponse> {
+    const method = this.methods[0],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<GetCurrentUserRequest, GetCurrentUserResponse>(
       'unary',
       this._transport,
       method,

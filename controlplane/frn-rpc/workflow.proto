@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.workflow;
+
+import "google/protobuf/timestamp.proto";
+
+// Internal service for the workflow worker to poll and update workflow executions.
+// Authenticated via a pre-shared Bearer token in gRPC metadata.
+service WorkflowEngine {
+    // Atomically fetches and locks the next available workflow execution.
+    // Returns an empty response if no execution is available.
+    rpc Next(NextRequest) returns (NextResponse);
+
+    // Schedules a new workflow execution (used by the worker to create sub-workflows).
+    rpc Schedule(ScheduleRequest) returns (ScheduleResponse);
+
+    // Unlocks a workflow execution after processing, updating its state.
+    rpc Unlock(UnlockRequest) returns (UnlockResponse);
+
+    // Returns the current status of a workflow execution (used to check dependencies).
+    rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+}
+
+enum ExecutionStatus {
+    EXECUTION_STATUS_UNSPECIFIED = 0;
+    EXECUTION_STATUS_PENDING = 1;
+    EXECUTION_STATUS_RUNNING = 2;
+    EXECUTION_STATUS_WILL_RETRY = 3;
+    EXECUTION_STATUS_COMPLETED = 4;
+    EXECUTION_STATUS_FAILED = 5;
+}
+
+message Initiator {
+    oneof kind {
+        string user_id = 1;
+        string workflow_id = 2;
+        bool system = 3;
+    }
+}
+
+message WorkflowExecution {
+    string execution_id = 1;
+    Initiator initiated_by = 2;
+    ExecutionStatus status = 3;
+    int32 soft_try_count = 4;
+    int32 hard_try_count = 5;
+    int32 max_try_count = 6;
+    google.protobuf.Timestamp next_retry_at = 7;
+    repeated string dependencies = 8;
+    // JSON-serialized WorkflowDefinitions (dynamic schema)
+    string definition = 9;
+}
+
+message NextRequest {}
+
+message NextResponse {
+    optional WorkflowExecution execution = 1;
+}
+
+message ScheduleRequest {
+    // JSON-serialized WorkflowDefinitions (dynamic schema)
+    string definition = 1;
+    int32 max_retry = 2;
+    Initiator initiated_by = 3;
+    optional google.protobuf.Timestamp schedule_at = 4;
+}
+
+message ScheduleResponse {
+    WorkflowExecution execution = 1;
+}
+
+message UnlockRequest {
+    WorkflowExecution execution = 1;
+}
+
+message UnlockResponse {}
+
+message GetStatusRequest {
+    string execution_id = 1;
+}
+
+message GetStatusResponse {
+    ExecutionStatus status = 1;
+    google.protobuf.Timestamp next_retry_at = 2;
+}

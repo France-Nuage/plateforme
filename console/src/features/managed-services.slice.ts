@@ -1,0 +1,203 @@
+import {
+  ConnectionInfoField,
+  CreateManagedInstanceInput,
+  ManagedInstanceStatus,
+  ManagedService,
+  ManagedServiceInstance,
+  ManagedServicePlan,
+  ManagedServiceVersion,
+  UpgradeManagedInstanceInput,
+} from '@france-nuage/sdk';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+
+import { ExtraArgument } from '@/store';
+
+export const fetchAllManagedServices = createAsyncThunk<
+  ManagedService[],
+  void,
+  { extra: ExtraArgument }
+>('managedServices/fetchAll', (_, { extra }) =>
+  extra.services.managedService.listServices(),
+);
+
+export const fetchManagedService = createAsyncThunk<
+  ManagedService,
+  string,
+  { extra: ExtraArgument }
+>('managedServices/fetchOne', (slug, { extra }) =>
+  extra.services.managedService.getService(slug),
+);
+
+export const fetchManagedServiceVersions = createAsyncThunk<
+  ManagedServiceVersion[],
+  string,
+  { extra: ExtraArgument }
+>('managedServices/fetchVersions', (serviceSlug, { extra }) =>
+  extra.services.managedService.listVersions(serviceSlug),
+);
+
+export const fetchManagedServicePlans = createAsyncThunk<
+  ManagedServicePlan[],
+  string,
+  { extra: ExtraArgument }
+>('managedServices/fetchPlans', (serviceSlug, { extra }) =>
+  extra.services.managedService.listPlans(serviceSlug),
+);
+
+export const fetchManagedInstances = createAsyncThunk<
+  ManagedServiceInstance[],
+  string,
+  { extra: ExtraArgument }
+>('managedServices/fetchInstances', (projectSlug, { extra }) =>
+  extra.services.managedService.listInstances(projectSlug),
+);
+
+export const fetchManagedInstance = createAsyncThunk<
+  ManagedServiceInstance,
+  string,
+  { extra: ExtraArgument }
+>('managedServices/fetchInstance', (instanceId, { extra }) =>
+  extra.services.managedService.getInstance(instanceId),
+);
+
+export const createManagedInstance = createAsyncThunk<
+  ManagedServiceInstance,
+  CreateManagedInstanceInput,
+  { extra: ExtraArgument }
+>('managedServices/createInstance', (data, { extra }) =>
+  extra.services.managedService.createInstance(data),
+);
+
+export const upgradeManagedInstance = createAsyncThunk<
+  ManagedServiceInstance,
+  UpgradeManagedInstanceInput,
+  { extra: ExtraArgument }
+>('managedServices/upgradeInstance', (data, { extra }) =>
+  extra.services.managedService.upgradeInstance(data),
+);
+
+export const deleteManagedInstance = createAsyncThunk<
+  string,
+  string,
+  { extra: ExtraArgument }
+>('managedServices/deleteInstance', (instanceId, { extra }) =>
+  extra.services.managedService
+    .deleteInstance(instanceId)
+    .then(() => instanceId),
+);
+
+export const fetchInstanceConnectionInfo = createAsyncThunk<
+  ConnectionInfoField[],
+  string,
+  { extra: ExtraArgument }
+>('managedServices/fetchConnectionInfo', (instanceId, { extra }) =>
+  extra.services.managedService.getInstanceConnectionInfo(instanceId),
+);
+
+export type ManagedServicesState = {
+  connectionInfo: ConnectionInfoField[];
+  connectionInfoLoading: boolean;
+  currentInstance: ManagedServiceInstance | undefined;
+  currentService: ManagedService | undefined;
+  instances: ManagedServiceInstance[];
+  loading: boolean;
+  plans: ManagedServicePlan[];
+  services: ManagedService[];
+  versions: ManagedServiceVersion[];
+};
+
+const initialState: ManagedServicesState = {
+  connectionInfo: [],
+  connectionInfoLoading: false,
+  currentInstance: undefined,
+  currentService: undefined,
+  instances: [],
+  loading: false,
+  plans: [],
+  services: [],
+  versions: [],
+};
+
+export const managedServicesSlice = createSlice({
+  extraReducers: (builder) => {
+    builder.addCase(fetchAllManagedServices.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchAllManagedServices.fulfilled, (state, action) => {
+      state.services = action.payload;
+      state.loading = false;
+    });
+    builder.addCase(fetchAllManagedServices.rejected, (state) => {
+      state.loading = false;
+    });
+
+    builder.addCase(fetchManagedService.fulfilled, (state, action) => {
+      state.currentService = action.payload;
+    });
+
+    builder.addCase(fetchManagedServiceVersions.fulfilled, (state, action) => {
+      state.versions = action.payload;
+    });
+
+    builder.addCase(fetchManagedServicePlans.fulfilled, (state, action) => {
+      state.plans = action.payload;
+    });
+
+    builder.addCase(fetchManagedInstances.fulfilled, (state, action) => {
+      state.instances = action.payload;
+    });
+
+    builder.addCase(fetchManagedInstance.fulfilled, (state, action) => {
+      state.currentInstance = action.payload;
+    });
+
+    builder.addCase(createManagedInstance.fulfilled, (state, action) => {
+      state.instances.push(action.payload);
+    });
+
+    builder.addCase(upgradeManagedInstance.fulfilled, (state, action) => {
+      const index = state.instances.findIndex(
+        (instance) => instance.id === action.payload.id,
+      );
+      if (index !== -1) {
+        state.instances[index] = action.payload;
+      }
+      if (state.currentInstance?.id === action.payload.id) {
+        state.currentInstance = action.payload;
+      }
+    });
+
+    builder.addCase(deleteManagedInstance.pending, (state, action) => {
+      const instance = state.instances.find(
+        (instance) => instance.id === action.meta.arg,
+      );
+      if (instance) {
+        instance.status = ManagedInstanceStatus.Deleting;
+      }
+    });
+    builder.addCase(deleteManagedInstance.fulfilled, (state, action) => {
+      const instance = state.instances.find(
+        (instance) => instance.id === action.payload,
+      );
+      if (instance) {
+        instance.status = ManagedInstanceStatus.Deleted;
+      }
+    });
+
+    builder.addCase(fetchInstanceConnectionInfo.pending, (state) => {
+      state.connectionInfoLoading = true;
+    });
+    builder.addCase(fetchInstanceConnectionInfo.fulfilled, (state, action) => {
+      state.connectionInfo = action.payload;
+      state.connectionInfoLoading = false;
+    });
+    builder.addCase(fetchInstanceConnectionInfo.rejected, (state) => {
+      state.connectionInfoLoading = false;
+    });
+  },
+  initialState,
+  name: 'managedServices',
+  reducers: {},
+});
+
+export default managedServicesSlice;

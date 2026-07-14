@@ -2,7 +2,7 @@ use crate::common::{Api, OnBehalfOf};
 use fabrique::Factory;
 use frn_core::resourcemanager::Organization;
 use frn_rpc::v1::resourcemanager::ListOrganizationsRequest;
-use sqlx::types::Uuid;
+use spicedb::mock::AUTHORIZED_RESOURCE_ID;
 use tonic::Request;
 
 mod common;
@@ -11,10 +11,11 @@ mod common;
 async fn test_the_list_organizations_procedure_works(pool: sqlx::PgPool) {
     let mut api = Api::start(&pool).await.expect("could not start api");
 
-    // Arrange the grpc server and a client
+    // The mock SpiceDB only authorizes AUTHORIZED_RESOURCE_ID, and list filters
+    // by lookup, so the seeded organization must carry that slug to be returned.
     Organization::factory()
-        .id(Uuid::default())
-        .parent_id(None)
+        .slug(AUTHORIZED_RESOURCE_ID.to_owned())
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");

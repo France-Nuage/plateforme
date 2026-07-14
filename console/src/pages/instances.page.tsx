@@ -31,7 +31,9 @@ export const InstancesPage: FunctionComponent = () => {
   const instances = useAppSelector((state) => state.instances.instances);
   const scopedInstances = useMemo(
     () =>
-      instances.filter((instance) => instance.projectId === activeProject?.id),
+      instances.filter(
+        (instance) => instance.projectSlug === activeProject?.slug,
+      ),
     [activeProject, instances],
   );
 

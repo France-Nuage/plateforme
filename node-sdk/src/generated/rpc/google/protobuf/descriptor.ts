@@ -3,34 +3,11 @@
 // tslint:disable
 //
 // Protocol Buffers - Google's data interchange format
-// Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
+// Copyright 2008 Google LLC.  All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
 //
 //
 // Author: kenton@google.com (Kenton Varda)
@@ -97,6 +74,13 @@ export interface FileDescriptorProto {
    */
   weakDependency: number[];
   /**
+   * Names of files imported by this file purely for the purpose of providing
+   * option extensions. These are excluded from the dependency list above.
+   *
+   * @generated from protobuf field: repeated string option_dependency = 15
+   */
+  optionDependency: string[];
+  /**
    * All top-level definitions in this file.
    *
    * @generated from protobuf field: repeated google.protobuf.DescriptorProto message_type = 4
@@ -132,12 +116,18 @@ export interface FileDescriptorProto {
    * The supported values are "proto2", "proto3", and "editions".
    *
    * If `edition` is present, this value must be "editions".
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional string syntax = 12
    */
   syntax?: string;
   /**
    * The edition of the proto file.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.Edition edition = 14
    */
@@ -192,6 +182,12 @@ export interface DescriptorProto {
    * @generated from protobuf field: repeated string reserved_name = 10
    */
   reservedName: string[];
+  /**
+   * Support for `export` and `local` keywords on enums.
+   *
+   * @generated from protobuf field: optional google.protobuf.SymbolVisibility visibility = 11
+   */
+  visibility?: SymbolVisibility;
 }
 /**
  * @generated from protobuf message google.protobuf.DescriptorProto.ExtensionRange
@@ -595,6 +591,12 @@ export interface EnumDescriptorProto {
    * @generated from protobuf field: repeated string reserved_name = 5
    */
   reservedName: string[];
+  /**
+   * Support for `export` and `local` keywords on enums.
+   *
+   * @generated from protobuf field: optional google.protobuf.SymbolVisibility visibility = 6
+   */
+  visibility?: SymbolVisibility;
 }
 /**
  * Range of reserved numeric values. Reserved values may not be used by
@@ -888,6 +890,9 @@ export interface FileOptions {
   rubyPackage?: string;
   /**
    * Any features defined in the specific edition.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.FeatureSet features = 50
    */
@@ -1019,6 +1024,9 @@ export interface MessageOptions {
   deprecatedLegacyJsonFieldConflicts?: boolean;
   /**
    * Any features defined in the specific edition.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.FeatureSet features = 12
    */
@@ -1119,9 +1127,11 @@ export interface FieldOptions {
    */
   deprecated?: boolean;
   /**
+   * DEPRECATED. DO NOT USE!
    * For Google-internal migration only. Do not use.
    *
-   * @generated from protobuf field: optional bool weak = 10 [default = false]
+   * @deprecated
+   * @generated from protobuf field: optional bool weak = 10 [default = false, deprecated = true]
    */
   weak?: boolean;
   /**
@@ -1145,6 +1155,9 @@ export interface FieldOptions {
   editionDefaults: FieldOptions_EditionDefault[];
   /**
    * Any features defined in the specific edition.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.FeatureSet features = 21
    */
@@ -1209,6 +1222,13 @@ export interface FieldOptions_FeatureSupport {
    * @generated from protobuf field: optional google.protobuf.Edition edition_removed = 4
    */
   editionRemoved?: Edition;
+  /**
+   * The removal error text if this feature is used after the edition it was
+   * removed in.
+   *
+   * @generated from protobuf field: optional string removal_error = 5
+   */
+  removalError?: string;
 }
 /**
  * @generated from protobuf enum google.protobuf.FieldOptions.CType
@@ -1333,6 +1353,9 @@ export enum FieldOptions_OptionTargetType {
 export interface OneofOptions {
   /**
    * Any features defined in the specific edition.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.FeatureSet features = 1
    */
@@ -1378,6 +1401,9 @@ export interface EnumOptions {
   deprecatedLegacyJsonFieldConflicts?: boolean;
   /**
    * Any features defined in the specific edition.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.FeatureSet features = 7
    */
@@ -1404,6 +1430,9 @@ export interface EnumValueOptions {
   deprecated?: boolean;
   /**
    * Any features defined in the specific edition.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.FeatureSet features = 2
    */
@@ -1435,6 +1464,9 @@ export interface EnumValueOptions {
 export interface ServiceOptions {
   /**
    * Any features defined in the specific edition.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.FeatureSet features = 34
    */
@@ -1484,6 +1516,9 @@ export interface MethodOptions {
   idempotencyLevel?: MethodOptions_IdempotencyLevel;
   /**
    * Any features defined in the specific edition.
+   * WARNING: This field should only be used by protobuf plugins or special
+   * cases like the proto compiler. Other uses are discouraged and
+   * developers should rely on the protoreflect APIs for their client language.
    *
    * @generated from protobuf field: optional google.protobuf.FeatureSet features = 35
    */
@@ -1620,6 +1655,53 @@ export interface FeatureSet {
    * @generated from protobuf field: optional google.protobuf.FeatureSet.JsonFormat json_format = 6
    */
   jsonFormat?: FeatureSet_JsonFormat;
+  /**
+   * @generated from protobuf field: optional google.protobuf.FeatureSet.EnforceNamingStyle enforce_naming_style = 7
+   */
+  enforceNamingStyle?: FeatureSet_EnforceNamingStyle;
+  /**
+   * @generated from protobuf field: optional google.protobuf.FeatureSet.VisibilityFeature.DefaultSymbolVisibility default_symbol_visibility = 8
+   */
+  defaultSymbolVisibility?: FeatureSet_VisibilityFeature_DefaultSymbolVisibility;
+}
+/**
+ * @generated from protobuf message google.protobuf.FeatureSet.VisibilityFeature
+ */
+export interface FeatureSet_VisibilityFeature {}
+/**
+ * @generated from protobuf enum google.protobuf.FeatureSet.VisibilityFeature.DefaultSymbolVisibility
+ */
+export enum FeatureSet_VisibilityFeature_DefaultSymbolVisibility {
+  /**
+   * @generated from protobuf enum value: DEFAULT_SYMBOL_VISIBILITY_UNKNOWN = 0;
+   */
+  DEFAULT_SYMBOL_VISIBILITY_UNKNOWN = 0,
+  /**
+   * Default pre-EDITION_2024, all UNSET visibility are export.
+   *
+   * @generated from protobuf enum value: EXPORT_ALL = 1;
+   */
+  EXPORT_ALL = 1,
+  /**
+   * All top-level symbols default to export, nested default to local.
+   *
+   * @generated from protobuf enum value: EXPORT_TOP_LEVEL = 2;
+   */
+  EXPORT_TOP_LEVEL = 2,
+  /**
+   * All symbols default to local.
+   *
+   * @generated from protobuf enum value: LOCAL_ALL = 3;
+   */
+  LOCAL_ALL = 3,
+  /**
+   * All symbols local by default. Nested types cannot be exported.
+   * With special case caveat for message { enum {} reserved 1 to max; }
+   * This is the recommended setting for new protos.
+   *
+   * @generated from protobuf enum value: STRICT = 4;
+   */
+  STRICT = 4,
 }
 /**
  * @generated from protobuf enum google.protobuf.FeatureSet.FieldPresence
@@ -1726,6 +1808,27 @@ export enum FeatureSet_JsonFormat {
    * @generated from protobuf enum value: LEGACY_BEST_EFFORT = 2;
    */
   LEGACY_BEST_EFFORT = 2,
+}
+/**
+ * @generated from protobuf enum google.protobuf.FeatureSet.EnforceNamingStyle
+ */
+export enum FeatureSet_EnforceNamingStyle {
+  /**
+   * @generated from protobuf enum value: ENFORCE_NAMING_STYLE_UNKNOWN = 0;
+   */
+  ENFORCE_NAMING_STYLE_UNKNOWN = 0,
+  /**
+   * @generated from protobuf enum value: STYLE2024 = 1;
+   */
+  STYLE2024 = 1,
+  /**
+   * @generated from protobuf enum value: STYLE_LEGACY = 2;
+   */
+  STYLE_LEGACY = 2,
+  /**
+   * @generated from protobuf enum value: STYLE2026 = 3;
+   */
+  STYLE2026 = 3,
 }
 /**
  * A compiled specification for the defaults of a set of features.  These
@@ -2067,6 +2170,16 @@ export enum Edition {
    */
   EDITION_2024 = 1001,
   /**
+   * @generated from protobuf enum value: EDITION_2026 = 1002;
+   */
+  EDITION_2026 = 1002,
+  /**
+   * A placeholder edition for developing and testing unscheduled features.
+   *
+   * @generated from protobuf enum value: EDITION_UNSTABLE = 9999;
+   */
+  EDITION_UNSTABLE = 9999,
+  /**
    * Placeholder editions for testing feature resolution.  These should not be
    * used or relied on outside of tests.
    *
@@ -2097,6 +2210,29 @@ export enum Edition {
    * @generated from protobuf enum value: EDITION_MAX = 2147483647;
    */
   EDITION_MAX = 2147483647,
+}
+/**
+ * Describes the 'visibility' of a symbol with respect to the proto import
+ * system. Symbols can only be imported when the visibility rules do not prevent
+ * it (ex: local symbols cannot be imported).  Visibility modifiers can only set
+ * on `message` and `enum` as they are the only types available to be referenced
+ * from other files.
+ *
+ * @generated from protobuf enum google.protobuf.SymbolVisibility
+ */
+export enum SymbolVisibility {
+  /**
+   * @generated from protobuf enum value: VISIBILITY_UNSET = 0;
+   */
+  VISIBILITY_UNSET = 0,
+  /**
+   * @generated from protobuf enum value: VISIBILITY_LOCAL = 1;
+   */
+  VISIBILITY_LOCAL = 1,
+  /**
+   * @generated from protobuf enum value: VISIBILITY_EXPORT = 2;
+   */
+  VISIBILITY_EXPORT = 2,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class FileDescriptorSet$Type extends MessageType<FileDescriptorSet> {
@@ -2223,6 +2359,13 @@ class FileDescriptorProto$Type extends MessageType<FileDescriptorProto> {
         T: 5 /*ScalarType.INT32*/,
       },
       {
+        no: 15,
+        name: 'option_dependency',
+        kind: 'scalar',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
         no: 4,
         name: 'message_type',
         kind: 'message',
@@ -2278,6 +2421,7 @@ class FileDescriptorProto$Type extends MessageType<FileDescriptorProto> {
     message.dependency = [];
     message.publicDependency = [];
     message.weakDependency = [];
+    message.optionDependency = [];
     message.messageType = [];
     message.enumType = [];
     message.service = [];
@@ -2317,6 +2461,9 @@ class FileDescriptorProto$Type extends MessageType<FileDescriptorProto> {
             for (let e = reader.int32() + reader.pos; reader.pos < e; )
               message.weakDependency.push(reader.int32());
           else message.weakDependency.push(reader.int32());
+          break;
+        case /* repeated string option_dependency */ 15:
+          message.optionDependency.push(reader.string());
           break;
         case /* repeated google.protobuf.DescriptorProto message_type */ 4:
           message.messageType.push(
@@ -2463,6 +2610,11 @@ class FileDescriptorProto$Type extends MessageType<FileDescriptorProto> {
     /* optional google.protobuf.Edition edition = 14; */
     if (message.edition !== undefined)
       writer.tag(14, WireType.Varint).int32(message.edition);
+    /* repeated string option_dependency = 15; */
+    for (let i = 0; i < message.optionDependency.length; i++)
+      writer
+        .tag(15, WireType.LengthDelimited)
+        .string(message.optionDependency[i]);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -2544,6 +2696,13 @@ class DescriptorProto$Type extends MessageType<DescriptorProto> {
         kind: 'scalar',
         repeat: 2 /*RepeatType.UNPACKED*/,
         T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 11,
+        name: 'visibility',
+        kind: 'enum',
+        opt: true,
+        T: () => ['google.protobuf.SymbolVisibility', SymbolVisibility],
       },
     ]);
   }
@@ -2649,6 +2808,9 @@ class DescriptorProto$Type extends MessageType<DescriptorProto> {
         case /* repeated string reserved_name */ 10:
           message.reservedName.push(reader.string());
           break;
+        case /* optional google.protobuf.SymbolVisibility visibility */ 11:
+          message.visibility = reader.int32();
+          break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
@@ -2735,6 +2897,9 @@ class DescriptorProto$Type extends MessageType<DescriptorProto> {
     /* repeated string reserved_name = 10; */
     for (let i = 0; i < message.reservedName.length; i++)
       writer.tag(10, WireType.LengthDelimited).string(message.reservedName[i]);
+    /* optional google.protobuf.SymbolVisibility visibility = 11; */
+    if (message.visibility !== undefined)
+      writer.tag(11, WireType.Varint).int32(message.visibility);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -3570,6 +3735,13 @@ class EnumDescriptorProto$Type extends MessageType<EnumDescriptorProto> {
         repeat: 2 /*RepeatType.UNPACKED*/,
         T: 9 /*ScalarType.STRING*/,
       },
+      {
+        no: 6,
+        name: 'visibility',
+        kind: 'enum',
+        opt: true,
+        T: () => ['google.protobuf.SymbolVisibility', SymbolVisibility],
+      },
     ]);
   }
   create(value?: PartialMessage<EnumDescriptorProto>): EnumDescriptorProto {
@@ -3624,6 +3796,9 @@ class EnumDescriptorProto$Type extends MessageType<EnumDescriptorProto> {
         case /* repeated string reserved_name */ 5:
           message.reservedName.push(reader.string());
           break;
+        case /* optional google.protobuf.SymbolVisibility visibility */ 6:
+          message.visibility = reader.int32();
+          break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
@@ -3675,6 +3850,9 @@ class EnumDescriptorProto$Type extends MessageType<EnumDescriptorProto> {
     /* repeated string reserved_name = 5; */
     for (let i = 0; i < message.reservedName.length; i++)
       writer.tag(5, WireType.LengthDelimited).string(message.reservedName[i]);
+    /* optional google.protobuf.SymbolVisibility visibility = 6; */
+    if (message.visibility !== undefined)
+      writer.tag(6, WireType.Varint).int32(message.visibility);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -4810,7 +4988,7 @@ class FieldOptions$Type extends MessageType<FieldOptions> {
         case /* optional bool deprecated = 3 [default = false] */ 3:
           message.deprecated = reader.bool();
           break;
-        case /* optional bool weak = 10 [default = false] */ 10:
+        case /* optional bool weak = 10 [default = false, deprecated = true] */ 10:
           message.weak = reader.bool();
           break;
         case /* optional bool debug_redact = 16 [default = false] */ 16:
@@ -4899,7 +5077,7 @@ class FieldOptions$Type extends MessageType<FieldOptions> {
     /* optional google.protobuf.FieldOptions.JSType jstype = 6 [default = JS_NORMAL]; */
     if (message.jstype !== undefined)
       writer.tag(6, WireType.Varint).int32(message.jstype);
-    /* optional bool weak = 10 [default = false]; */
+    /* optional bool weak = 10 [default = false, deprecated = true]; */
     if (message.weak !== undefined)
       writer.tag(10, WireType.Varint).bool(message.weak);
     /* optional bool unverified_lazy = 15 [default = false]; */
@@ -5078,6 +5256,13 @@ class FieldOptions_FeatureSupport$Type extends MessageType<FieldOptions_FeatureS
         opt: true,
         T: () => ['google.protobuf.Edition', Edition],
       },
+      {
+        no: 5,
+        name: 'removal_error',
+        kind: 'scalar',
+        opt: true,
+        T: 9 /*ScalarType.STRING*/,
+      },
     ]);
   }
   create(
@@ -5110,6 +5295,9 @@ class FieldOptions_FeatureSupport$Type extends MessageType<FieldOptions_FeatureS
           break;
         case /* optional google.protobuf.Edition edition_removed */ 4:
           message.editionRemoved = reader.int32();
+          break;
+        case /* optional string removal_error */ 5:
+          message.removalError = reader.string();
           break;
         default:
           let u = options.readUnknownField;
@@ -5149,6 +5337,9 @@ class FieldOptions_FeatureSupport$Type extends MessageType<FieldOptions_FeatureS
     /* optional google.protobuf.Edition edition_removed = 4; */
     if (message.editionRemoved !== undefined)
       writer.tag(4, WireType.Varint).int32(message.editionRemoved);
+    /* optional string removal_error = 5; */
+    if (message.removalError !== undefined)
+      writer.tag(5, WireType.LengthDelimited).string(message.removalError);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -6110,6 +6301,26 @@ class FeatureSet$Type extends MessageType<FeatureSet> {
           FeatureSet_JsonFormat,
         ],
       },
+      {
+        no: 7,
+        name: 'enforce_naming_style',
+        kind: 'enum',
+        opt: true,
+        T: () => [
+          'google.protobuf.FeatureSet.EnforceNamingStyle',
+          FeatureSet_EnforceNamingStyle,
+        ],
+      },
+      {
+        no: 8,
+        name: 'default_symbol_visibility',
+        kind: 'enum',
+        opt: true,
+        T: () => [
+          'google.protobuf.FeatureSet.VisibilityFeature.DefaultSymbolVisibility',
+          FeatureSet_VisibilityFeature_DefaultSymbolVisibility,
+        ],
+      },
     ]);
   }
   create(value?: PartialMessage<FeatureSet>): FeatureSet {
@@ -6146,6 +6357,12 @@ class FeatureSet$Type extends MessageType<FeatureSet> {
           break;
         case /* optional google.protobuf.FeatureSet.JsonFormat json_format */ 6:
           message.jsonFormat = reader.int32();
+          break;
+        case /* optional google.protobuf.FeatureSet.EnforceNamingStyle enforce_naming_style */ 7:
+          message.enforceNamingStyle = reader.int32();
+          break;
+        case /* optional google.protobuf.FeatureSet.VisibilityFeature.DefaultSymbolVisibility default_symbol_visibility */ 8:
+          message.defaultSymbolVisibility = reader.int32();
           break;
         default:
           let u = options.readUnknownField;
@@ -6189,6 +6406,12 @@ class FeatureSet$Type extends MessageType<FeatureSet> {
     /* optional google.protobuf.FeatureSet.JsonFormat json_format = 6; */
     if (message.jsonFormat !== undefined)
       writer.tag(6, WireType.Varint).int32(message.jsonFormat);
+    /* optional google.protobuf.FeatureSet.EnforceNamingStyle enforce_naming_style = 7; */
+    if (message.enforceNamingStyle !== undefined)
+      writer.tag(7, WireType.Varint).int32(message.enforceNamingStyle);
+    /* optional google.protobuf.FeatureSet.VisibilityFeature.DefaultSymbolVisibility default_symbol_visibility = 8; */
+    if (message.defaultSymbolVisibility !== undefined)
+      writer.tag(8, WireType.Varint).int32(message.defaultSymbolVisibility);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -6203,6 +6426,73 @@ class FeatureSet$Type extends MessageType<FeatureSet> {
  * @generated MessageType for protobuf message google.protobuf.FeatureSet
  */
 export const FeatureSet = new FeatureSet$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class FeatureSet_VisibilityFeature$Type extends MessageType<FeatureSet_VisibilityFeature> {
+  constructor() {
+    super('google.protobuf.FeatureSet.VisibilityFeature', []);
+  }
+  create(
+    value?: PartialMessage<FeatureSet_VisibilityFeature>,
+  ): FeatureSet_VisibilityFeature {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    if (value !== undefined)
+      reflectionMergePartial<FeatureSet_VisibilityFeature>(
+        this,
+        message,
+        value,
+      );
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: FeatureSet_VisibilityFeature,
+  ): FeatureSet_VisibilityFeature {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: FeatureSet_VisibilityFeature,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message google.protobuf.FeatureSet.VisibilityFeature
+ */
+export const FeatureSet_VisibilityFeature =
+  new FeatureSet_VisibilityFeature$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class FeatureSetDefaults$Type extends MessageType<FeatureSetDefaults> {
   constructor() {

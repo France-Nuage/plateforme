@@ -11,9 +11,9 @@ import { Timestamp } from './google/protobuf/timestamp';
  */
 export interface Organization {
   /**
-   * @generated from protobuf field: string id = 1
+   * @generated from protobuf field: string slug = 5
    */
-  id: string;
+  slug: string;
   /**
    * @generated from protobuf field: string name = 2
    */
@@ -26,27 +26,23 @@ export interface Organization {
    * @generated from protobuf field: google.protobuf.Timestamp updated_at = 4
    */
   updatedAt?: Timestamp;
-  /**
-   * @generated from protobuf field: string slug = 5
-   */
-  slug: string;
 }
 /**
  * @generated from protobuf message francenuage.fr.resourcemanager.v1.Project
  */
 export interface Project {
   /**
-   * @generated from protobuf field: string id = 1
+   * @generated from protobuf field: string slug = 6
    */
-  id: string;
+  slug: string;
   /**
    * @generated from protobuf field: string name = 2
    */
   name: string;
   /**
-   * @generated from protobuf field: string organization_id = 3
+   * @generated from protobuf field: string organization_slug = 7
    */
-  organizationId: string;
+  organizationSlug: string;
   /**
    * @generated from protobuf field: google.protobuf.Timestamp created_at = 4
    */
@@ -78,9 +74,9 @@ export interface CreateOrganizationRequest {
    */
   name: string;
   /**
-   * @generated from protobuf field: optional string parent_id = 2
+   * @generated from protobuf field: optional string parent_slug = 3
    */
-  parentId?: string;
+  parentSlug?: string;
 }
 /**
  * @generated from protobuf message francenuage.fr.resourcemanager.v1.CreateOrganizationResponse
@@ -113,9 +109,9 @@ export interface CreateProjectRequest {
    */
   name: string;
   /**
-   * @generated from protobuf field: string organization_id = 2
+   * @generated from protobuf field: string organization_slug = 3
    */
-  organizationId: string;
+  organizationSlug: string;
 }
 /**
  * @generated from protobuf message francenuage.fr.resourcemanager.v1.CreateProjectResponse
@@ -131,13 +127,17 @@ class Organization$Type extends MessageType<Organization> {
   constructor() {
     super('francenuage.fr.resourcemanager.v1.Organization', [
       {
-        no: 1,
-        name: 'id',
+        no: 5,
+        name: 'slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
         options: {
           'validate.rules': {
-            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+            string: {
+              minLen: '1',
+              maxLen: '49',
+              pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
+            },
           },
         },
       },
@@ -158,21 +158,6 @@ class Organization$Type extends MessageType<Organization> {
       },
       { no: 3, name: 'created_at', kind: 'message', T: () => Timestamp },
       { no: 4, name: 'updated_at', kind: 'message', T: () => Timestamp },
-      {
-        no: 5,
-        name: 'slug',
-        kind: 'scalar',
-        T: 9 /*ScalarType.STRING*/,
-        options: {
-          'validate.rules': {
-            string: {
-              minLen: '1',
-              maxLen: '63',
-              pattern: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?$',
-            },
-          },
-        },
-      },
     ]);
   }
 }
@@ -185,13 +170,17 @@ class Project$Type extends MessageType<Project> {
   constructor() {
     super('francenuage.fr.resourcemanager.v1.Project', [
       {
-        no: 1,
-        name: 'id',
+        no: 6,
+        name: 'slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
         options: {
           'validate.rules': {
-            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+            string: {
+              minLen: '1',
+              maxLen: '49',
+              pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
+            },
           },
         },
       },
@@ -211,13 +200,17 @@ class Project$Type extends MessageType<Project> {
         },
       },
       {
-        no: 3,
-        name: 'organization_id',
+        no: 7,
+        name: 'organization_slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
         options: {
           'validate.rules': {
-            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+            string: {
+              minLen: '1',
+              maxLen: '49',
+              pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
+            },
           },
         },
       },
@@ -278,14 +271,18 @@ class CreateOrganizationRequest$Type extends MessageType<CreateOrganizationReque
         },
       },
       {
-        no: 2,
-        name: 'parent_id',
+        no: 3,
+        name: 'parent_slug',
         kind: 'scalar',
         opt: true,
         T: 9 /*ScalarType.STRING*/,
         options: {
           'validate.rules': {
-            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+            string: {
+              minLen: '1',
+              maxLen: '49',
+              pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
+            },
           },
         },
       },
@@ -356,13 +353,17 @@ class CreateProjectRequest$Type extends MessageType<CreateProjectRequest> {
         },
       },
       {
-        no: 2,
-        name: 'organization_id',
+        no: 3,
+        name: 'organization_slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
         options: {
           'validate.rules': {
-            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+            string: {
+              minLen: '1',
+              maxLen: '49',
+              pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
+            },
           },
         },
       },

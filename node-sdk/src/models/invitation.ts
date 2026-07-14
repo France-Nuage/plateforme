@@ -8,9 +8,9 @@ export type Invitation = {
   id: string;
 
   /**
-   * The invitation organization id.
+   * The invitation organization slug.
    */
-  organizationId: string;
+  organizationSlug: string;
 
   /**
    * The user id.
@@ -21,6 +21,6 @@ export type Invitation = {
 /**
  * The invitation form creation/update value.
  */
-export type InvitationFormValue = Pick<Invitation, 'organizationId'> & {
+export type InvitationFormValue = Pick<Invitation, 'organizationSlug'> & {
   email: string;
 };

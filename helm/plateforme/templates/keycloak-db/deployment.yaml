@@ -67,6 +67,9 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: data
+        labels:
+          {{- include "plateforme.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: keycloak-db
       spec:
         accessModes: [ "ReadWriteOnce" ]
         {{- if .Values.keycloakDb.persistence.storageClass }}

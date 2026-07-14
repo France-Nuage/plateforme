@@ -57,11 +57,11 @@ export interface ZeroTrustNetwork {
    */
   name: string;
   /**
-   * ID of the organization this network belongs to
+   * Slug of the organization this network belongs to
    *
-   * @generated from protobuf field: string organization_id = 3
+   * @generated from protobuf field: string organization_slug = 3
    */
-  organizationId: string;
+  organizationSlug: string;
   /**
    * ID of the zero trust network type this network is based on
    *
@@ -247,15 +247,15 @@ class ZeroTrustNetwork$Type extends MessageType<ZeroTrustNetwork> {
         },
         {
           no: 3,
-          name: 'organization_id',
+          name: 'organization_slug',
           kind: 'scalar',
           T: 9 /*ScalarType.STRING*/,
           options: {
             'validate.rules': {
               string: {
                 minLen: '1',
-                maxLen: '36',
-                pattern: '^[a-zA-Z0-9_-]+$',
+                maxLen: '49',
+                pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
               },
             },
           },

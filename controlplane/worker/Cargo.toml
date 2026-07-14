@@ -1,0 +1,25 @@
+[package]
+name = "worker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+chrono = "0.4"
+frn-core = { path = "../frn-core" }
+frn-crypto = { path = "../frn-crypto" }
+frn-rpc = { path = "../frn-rpc" }
+futures = "0.3"
+k8s-openapi = { workspace = true, features = ["v1_32"] }
+kube = { workspace = true }
+prost-types = "0.14"
+serde_json = { workspace = true }
+spicedb = { path = "../spicedb" }
+sqlx = { workspace = true }
+tempfile = "3"
+thiserror = { workspace = true }
+tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "signal"] }
+tonic = "0.14"
+tracing = { workspace = true }
+uuid = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+workflow = { path = "../workflow" }

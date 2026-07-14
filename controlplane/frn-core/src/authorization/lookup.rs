@@ -3,6 +3,7 @@ use crate::{
     authorization::{Authorize, Permission, Principal, Resource},
 };
 use fabrique::{DatabaseAware, Query};
+use spicedb::ObjectRef;
 use sqlx::{Pool, Postgres};
 use std::{
     future::{Future, IntoFuture},
@@ -121,11 +122,11 @@ where
 
     fn into_future(mut self) -> Self::IntoFuture {
         Box::pin(async move {
+            let subject = ObjectRef::new(self.subject_type, self.subject_id.to_string());
             let ids = self
                 .auth
                 ._lookup(
-                    self.subject_type.to_string(),
-                    self.subject_id.to_string(),
+                    subject,
                     self.permission.to_string(),
                     R::RESOURCE_NAME.to_string(),
                 )

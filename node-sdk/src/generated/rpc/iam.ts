@@ -7,6 +7,27 @@ import { ServiceType } from '@protobuf-ts/runtime-rpc';
 import { Timestamp } from './google/protobuf/timestamp';
 
 /**
+ * @generated from protobuf message francenuage.fr.v1.iam.GetCurrentUserRequest
+ */
+export interface GetCurrentUserRequest {}
+/**
+ * @generated from protobuf message francenuage.fr.v1.iam.GetCurrentUserResponse
+ */
+export interface GetCurrentUserResponse {
+  /**
+   * @generated from protobuf field: string id = 1
+   */
+  id: string;
+  /**
+   * @generated from protobuf field: string email = 2
+   */
+  email: string;
+  /**
+   * @generated from protobuf field: bool is_admin = 3
+   */
+  isAdmin: boolean;
+}
+/**
  * @generated from protobuf message francenuage.fr.v1.iam.ListInvitationsRequest
  */
 export interface ListInvitationsRequest {}
@@ -24,9 +45,9 @@ export interface ListInvitationsResponse {
  */
 export interface CreateInvitationRequest {
   /**
-   * @generated from protobuf field: string organization_id = 1
+   * @generated from protobuf field: string organization_slug = 1
    */
-  organizationId: string;
+  organizationSlug: string;
   /**
    * @generated from protobuf field: string email = 2
    */
@@ -72,9 +93,9 @@ export interface Invitation {
    */
   id: string;
   /**
-   * @generated from protobuf field: string organization_id = 2
+   * @generated from protobuf field: string organization_slug = 2
    */
-  organizationId: string;
+  organizationSlug: string;
   /**
    * @generated from protobuf field: string user_id = 3
    */
@@ -118,6 +139,30 @@ export enum InvitationState {
   EXPIRED = 4,
 }
 // @generated message type with reflection information, may provide speed optimized methods
+class GetCurrentUserRequest$Type extends MessageType<GetCurrentUserRequest> {
+  constructor() {
+    super('francenuage.fr.v1.iam.GetCurrentUserRequest', []);
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.iam.GetCurrentUserRequest
+ */
+export const GetCurrentUserRequest = new GetCurrentUserRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetCurrentUserResponse$Type extends MessageType<GetCurrentUserResponse> {
+  constructor() {
+    super('francenuage.fr.v1.iam.GetCurrentUserResponse', [
+      { no: 1, name: 'id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'email', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 3, name: 'is_admin', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message francenuage.fr.v1.iam.GetCurrentUserResponse
+ */
+export const GetCurrentUserResponse = new GetCurrentUserResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class ListInvitationsRequest$Type extends MessageType<ListInvitationsRequest> {
   constructor() {
     super('francenuage.fr.v1.iam.ListInvitationsRequest', []);
@@ -151,7 +196,7 @@ class CreateInvitationRequest$Type extends MessageType<CreateInvitationRequest> 
     super('francenuage.fr.v1.iam.CreateInvitationRequest', [
       {
         no: 1,
-        name: 'organization_id',
+        name: 'organization_slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
       },
@@ -212,7 +257,7 @@ class Invitation$Type extends MessageType<Invitation> {
       { no: 1, name: 'id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
         no: 2,
-        name: 'organization_id',
+        name: 'organization_slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
       },
@@ -258,3 +303,14 @@ export const Invitations = new ServiceType(
     },
   ],
 );
+/**
+ * @generated ServiceType for protobuf service francenuage.fr.v1.iam.Profile
+ */
+export const Profile = new ServiceType('francenuage.fr.v1.iam.Profile', [
+  {
+    name: 'GetCurrentUser',
+    options: {},
+    I: GetCurrentUserRequest,
+    O: GetCurrentUserResponse,
+  },
+]);

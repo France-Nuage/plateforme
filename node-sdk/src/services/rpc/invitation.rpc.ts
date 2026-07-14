@@ -23,11 +23,11 @@ export class InvitationRpcService implements InvitationService {
    */
   public async create({
     email,
-    organizationId,
+    organizationSlug,
   }: InvitationFormValue): Promise<Invitation> {
     const { invitation } = await this.client.create({
       email,
-      organizationId,
+      organizationSlug,
     }).response;
     return fromRpcInvitation(invitation!);
   }
@@ -45,7 +45,7 @@ export class InvitationRpcService implements InvitationService {
 function fromRpcInvitation(invitation: RpcInvitation): Invitation {
   return {
     id: invitation.id,
-    organizationId: invitation.organizationId,
+    organizationSlug: invitation.organizationSlug,
     userId: invitation.userId,
   };
 }

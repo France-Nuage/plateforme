@@ -14,7 +14,11 @@ export const instance = (preset?: Partial<Instance>): Instance => ({
   maxMemoryBytes: faker.number.int({ max: 68719476736, min: 1073741824 }),
   memoryUsageBytes: faker.number.int({ max: 68719476736, min: 1073741824 }),
   name: faker.commerce.productName().replaceAll(' ', '-'),
-  projectId: faker.string.uuid(),
+  projectSlug: faker.helpers.arrayElement([
+    'unattributed',
+    'default',
+    'production',
+  ]),
   status: faker.helpers.arrayElement(Object.values(InstanceStatus)),
   updatedAt: faker.date.recent().toISOString(),
   zeroTrustNetworkId: faker.string.uuid(),

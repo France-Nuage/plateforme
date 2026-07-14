@@ -1,7 +1,7 @@
 import { FunctionComponent, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
-import { parseOidcUser, setOIDCUser } from '@/features';
+import { fetchCurrentUser, parseOidcUser, setOIDCUser } from '@/features';
 import { useAppDispatch } from '@/hooks';
 import { userManager } from '@/services';
 
@@ -30,6 +30,7 @@ export const OidcRedirectPage: FunctionComponent = () => {
         throw new Error('Error: user could not be retrieved.');
       }
       dispatch(setOIDCUser(parseOidcUser(user)));
+      dispatch(fetchCurrentUser());
       navigate('/', { replace: true });
     });
   }, [dispatch, navigate]);

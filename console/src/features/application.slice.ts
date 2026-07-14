@@ -38,13 +38,13 @@ export const setActiveOrganization = createAsyncThunk<
   // Retrieve a default project for the new active organization
   const state = getState();
   const project = state.resources.projects.find(
-    (project) => project.organizationId === organization.id,
+    (project) => project.organizationSlug === organization.slug,
   );
 
   // Throw an error if no active project could be found
   if (!project) {
     throw new Error(
-      `Could not find any project for organization ${organization.id}`,
+      `Could not find any project for organization ${organization.slug}`,
     );
   }
 
@@ -65,13 +65,13 @@ export const setActiveProject = createAsyncThunk<
   // Retrieve a default project for the new active organization
   const state = getState();
   const organization = state.resources.organizations.find(
-    (organization) => project.organizationId === organization.id,
+    (organization) => project.organizationSlug === organization.slug,
   );
 
   // Throw an error if the organization matching the given project could not be found
   if (!organization) {
     throw new Error(
-      `Could not find the organization matching the project ${project.id}`,
+      `Could not find the organization matching the project ${project.slug}`,
     );
   }
 

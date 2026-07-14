@@ -45,6 +45,22 @@ spec:
                 secretKeyRef:
                   name: {{ include "plateforme.secretName" . }}
                   key: spicedb-preshared-key
+            # Shared KEK: kubeconfigs are encrypted by the controlplane and
+            # decrypted by the worker, so both components must use the same key.
+            # Separate keys would force re-encryption of every stored kubeconfig
+            # on each rotation.
+            - name: KUBECONFIG_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: kubeconfig-encryption-key
+            - name: WORKFLOW_SERVER_URL
+              value: {{ printf "http://%s-controlplane:80" (include "plateforme.fullname" .) | quote }}
+            - name: WORKER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: worker-token
             {{- if .Values.operationWorker.config.logLevel }}
             - name: LOG_LEVEL
               value: {{ .Values.operationWorker.config.logLevel | quote }}

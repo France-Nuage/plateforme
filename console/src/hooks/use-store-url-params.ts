@@ -48,8 +48,8 @@ export function useStoreUrlParams() {
         pickBy(
           {
             ...existing,
-            organization: activeOrganization?.id,
-            project: activeProject?.id,
+            organization: activeOrganization?.slug,
+            project: activeProject?.slug,
           },
           (value) => !!value,
         ) as Record<string, string>,
@@ -64,19 +64,19 @@ export function useStoreUrlParams() {
       organizations.length > 0 &&
       projects.length > 0
     ) {
-      const activeOrganizationId =
-        searchParams.get('organization') ?? organizations[0].id;
-      const activeProjectId = searchParams.get('project') ?? projects[0].id;
+      const activeOrganizationSlug =
+        searchParams.get('organization') ?? organizations[0].slug;
+      const activeProjectSlug = searchParams.get('project') ?? projects[0].slug;
 
       const activeOrganization = organizations.find(
-        (organization) => organization.id === activeOrganizationId,
+        (organization) => organization.slug === activeOrganizationSlug,
       );
       const activeProject = projects.find(
-        (project) => project.id === activeProjectId,
+        (project) => project.slug === activeProjectSlug,
       );
 
       if (!activeOrganization) {
-        throw new Error(`no organization for id ${activeOrganizationId}`);
+        throw new Error(`no organization for slug ${activeOrganizationSlug}`);
       }
 
       if (!activeProject) {

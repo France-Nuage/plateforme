@@ -2,25 +2,22 @@ use crate::Error;
 use crate::authorization::lookup::LookupWithResource;
 use crate::authorization::{Principal, Resource, check::CheckWithPrincipal};
 use crate::authorization::{Relationship, Zookie};
-use spicedb::SpiceDB;
+use spicedb::{ObjectRef, SpiceDB};
 
 /// Authorization backend trait for checking and looking up permissions
 pub trait Authorize: Clone + Send + Sync {
     /// Internal method to check if a subject has permission on a resource
     fn _check(
         &mut self,
-        subject_type: String,
-        subject_id: String,
+        subject: ObjectRef,
         permission: String,
-        resource_type: String,
-        resource_id: String,
+        resource: ObjectRef,
     ) -> impl Future<Output = Result<(), Error>> + Send;
 
     /// Internal method to lookup resources a subject has permission on
     fn _lookup(
         &mut self,
-        subject_type: String,
-        subject_id: String,
+        subject: ObjectRef,
         permission: String,
         resource_type: String,
     ) -> impl Future<Output = Result<Vec<String>, Error>> + Send;
@@ -49,25 +46,18 @@ pub trait Authorize: Clone + Send + Sync {
 impl Authorize for SpiceDB {
     async fn _check(
         &mut self,
-        subject_type: String,
-        subject_id: String,
+        subject: ObjectRef,
         permission: String,
-        resource_type: String,
-        resource_id: String,
+        resource: ObjectRef,
     ) -> Result<(), Error> {
-        self.check_permission(
-            (subject_type, subject_id),
-            permission,
-            (resource_type, resource_id),
-        )
-        .await
-        .map_err(Into::into)
+        self.check_permission(subject, permission, resource)
+            .await
+            .map_err(Into::into)
     }
 
     async fn _lookup(
         &mut self,
-        subject_type: String,
-        subject_id: String,
+        subject: ObjectRef,
         permission: String,
         resource_type: String,
     ) -> Result<Vec<String>, Error> {
@@ -75,10 +65,10 @@ impl Authorize for SpiceDB {
             "looking up permission '{}' over resource '{}' for principal '{}'@'{}'",
             permission,
             resource_type,
-            subject_type,
-            subject_id
+            subject.object_type,
+            subject.object_id
         );
-        self.lookup((subject_type, subject_id), permission, resource_type)
+        self.lookup(subject, permission, resource_type)
             .await
             .map_err(Into::into)
     }
@@ -87,32 +77,20 @@ impl Authorize for SpiceDB {
         &mut self,
         relationship: &Relationship,
     ) -> Result<Option<Zookie>, Error> {
-        self.write_relationship(
-            relationship.subject_type.clone(),
-            relationship.subject_id.clone(),
-            relationship.relation.to_string(),
-            relationship.object_type.clone(),
-            relationship.object_id.clone(),
-        )
-        .await
-        .map(|token| token.map(Into::into))
-        .map_err(Into::into)
+        self.write_relationship(relationship.into())
+            .await
+            .map(|token| token.map(Into::into))
+            .map_err(Into::into)
     }
 
     async fn delete_relationship(
         &mut self,
         relationship: &Relationship,
     ) -> Result<Option<Zookie>, Error> {
-        self.delete_relationship(
-            relationship.subject_type.clone(),
-            relationship.subject_id.clone(),
-            relationship.relation.to_string(),
-            relationship.object_type.clone(),
-            relationship.object_id.clone(),
-        )
-        .await
-        .map(|token| token.map(Into::into))
-        .map_err(Into::into)
+        self.delete_relationship(relationship.into())
+            .await
+            .map(|token| token.map(Into::into))
+            .map_err(Into::into)
     }
 }
 
@@ -130,7 +108,7 @@ mod tests {
         let result = auth
             .can(&principal)
             .perform(crate::authorization::Permission::CreateInstance)
-            .over::<Organization>(&resource.id)
+            .over::<Organization>(&resource.slug)
             .await;
 
         assert!(result.is_ok())

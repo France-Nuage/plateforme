@@ -1,7 +1,6 @@
 use crate::{ZeroTrustNetworkType, ZeroTrustNetworkTypeFactory, ZeroTrustNetworkTypeIdColumn};
 use chrono::{DateTime, Utc};
 use fabrique::{Factory, Model};
-use frn_core::resourcemanager::{Organization, OrganizationFactory, OrganizationIdColumn};
 use uuid::Uuid;
 
 #[derive(Debug, Default, Factory, Model, PartialEq)]
@@ -11,8 +10,7 @@ pub struct ZeroTrustNetwork {
     #[fabrique(primary_key)]
     pub id: Uuid,
 
-    #[fabrique(belongs_to = Organization)]
-    pub organization_id: Uuid,
+    pub organization_slug: String,
 
     #[fabrique(belongs_to = ZeroTrustNetworkType)]
     pub zero_trust_network_type_id: Uuid,

@@ -7,10 +7,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .file_descriptor_set_path(&descriptor_path)
         .compile_protos(
             &[
+                "billing.proto",
                 "compute.proto",
                 "iam.proto",
-                "longrunning.proto",
+                "kubernetes.proto",
+                "managed.proto",
                 "resourcemanager.proto",
+                "workflow.proto",
             ],
             &["."],
         )?;

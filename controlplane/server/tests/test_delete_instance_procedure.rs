@@ -1,52 +1,76 @@
-use crate::common::{Api, OnBehalfOf};
-use fabrique::Factory;
-use frn_core::{
-    compute::{Hypervisor, Instance, Zone},
-    resourcemanager::{Organization, Project},
-};
-use frn_rpc::v1::compute::DeleteInstanceRequest;
-use tonic::Request;
 mod common;
 
+use common::{
+    Api, OnBehalfOf, seed_managed_service, seed_managed_service_instance,
+    seed_managed_service_version,
+};
+use frn_rpc::v1::managed::DeleteInstanceRequest;
+use tonic::{Code, Request};
+use uuid::Uuid;
+use workflow::fsm::FsmRepository;
+
 #[sqlx::test(migrations = "../migrations")]
-async fn test_the_delete_instance_procedure_works(pool: sqlx::PgPool) {
-    // Arrange the grpc server and a client
-    let mut api = Api::start(&pool).await.expect("count not start api");
-    let mock_url = api.mock_server.url();
+async fn test_delete_instance_schedules_workflow(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
 
-    let organization = Organization::factory()
-        .parent_id(None)
-        .create(&pool)
-        .await
-        .expect("could not create organization");
-    let hypervisor = Hypervisor::factory()
-        .for_zone(Zone::factory())
-        .organization_id(organization.id)
-        .url(mock_url)
-        .create(&pool)
-        .await
-        .expect("could not create hypervisor");
-    let project = Project::factory()
-        .organization_id(organization.id)
-        .create(&pool)
-        .await
-        .expect("could not create project");
-    let instance = Instance::factory()
-        .distant_id("100".into())
-        .hypervisor_id(hypervisor.id)
-        .project_id(project.id)
-        .zero_trust_network_id(None)
-        .create(&pool)
-        .await
-        .expect("could not create instance");
+    let service_id = seed_managed_service(&pool, "vaultwarden", "Vaultwarden", "security").await;
+    let version_id = seed_managed_service_version(
+        &pool,
+        service_id,
+        "1.0.0",
+        None,
+        "oci://registry.example.com/charts/vaultwarden",
+    )
+    .await;
 
-    // Act the request to the test_the_status_procedure_works
-    let request = Request::new(DeleteInstanceRequest {
-        id: instance.id.to_string(),
-    })
-    .on_behalf_of(&api.service_account);
-    let response = api.compute.instances.delete(request).await;
+    let instance =
+        seed_managed_service_instance(&pool, service_id, version_id, "vaultwarden").await;
 
-    // Assert the result
+    // A freshly created instance is in 'provisioning'; the FSM only allows
+    // deletion from 'running' or 'failed', so advance it to 'running' first.
+    let mut conn = pool.acquire().await?;
+    FsmRepository::state_machine_transition(&mut conn, &instance.status, "running".to_owned())
+        .await
+        .expect("could not transition instance to running");
+    drop(conn);
+
+    let response = api
+        .managed
+        .services
+        .delete_instance(
+            Request::new(DeleteInstanceRequest {
+                instance_id: instance.id.to_string(),
+            })
+            .on_behalf_of(&api.service_account),
+        )
+        .await;
+
     assert!(response.is_ok());
+
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn test_delete_instance_returns_not_found(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    let response = api
+        .managed
+        .services
+        .delete_instance(
+            Request::new(DeleteInstanceRequest {
+                instance_id: Uuid::new_v4().to_string(),
+            })
+            .on_behalf_of(&api.service_account),
+        )
+        .await;
+
+    assert!(response.is_err());
+    assert_eq!(response.unwrap_err().code(), Code::NotFound);
+
+    Ok(())
 }

@@ -72,7 +72,7 @@ export const InstanceForm: FunctionComponent<InstanceFormProps> = ({
     maxDiskBytes: instanceType.diskBytes,
     maxMemoryBytes: instanceType.memoryBytes,
     name: '',
-    projectId: projects[0]?.id,
+    projectSlug: projects[0]?.slug,
     snippet: DEFAULT_SNIPPET,
   });
 
@@ -131,13 +131,13 @@ export const InstanceForm: FunctionComponent<InstanceFormProps> = ({
             onChange={(event) =>
               setFormValue({
                 ...formValue,
-                projectId: event.currentTarget.value,
+                projectSlug: event.currentTarget.value,
               })
             }
-            value={formValue.projectId}
+            value={formValue.projectSlug}
           >
-            {projects.map(({ id, name }) => (
-              <option key={id} value={id}>
+            {projects.map(({ slug, name }) => (
+              <option key={slug} value={slug}>
                 {name}
               </option>
             ))}

@@ -6,11 +6,18 @@ edition = "2024"
 [dependencies]
 auth = { path = "../auth" }
 frn-core = { path = "../frn-core" }
+frn-crypto = { path = "../frn-crypto" }
+chrono = "0.4"
 hypervisor = { path = "../hypervisor" }
 http = "1"
+k8s-openapi = { workspace = true }
+kube = { workspace = true }
+serde_json = { workspace = true }
+workflow = { path = "../workflow" }
 prost = "0.14"
 prost-types = "0.14"
 sqlx = { workspace = true }
+subtle = "2"
 thiserror = "2"
 tonic = "0.14"
 tonic-prost = "0.14"

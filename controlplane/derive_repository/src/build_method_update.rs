@@ -28,10 +28,14 @@ pub fn build_method_update(
         .collect::<Vec<String>>()
         .join(", ");
 
-    // Compute the actual SQL query
+    let primary_name = primary_idents
+        .first()
+        .expect("at least one #[repository(primary)] field is required")
+        .to_string();
+
     let query = format!(
-        "UPDATE {} SET {} WHERE id = $1 RETURNING {}",
-        table_name, sql_parameters, column_names
+        "UPDATE {} SET {} WHERE {} = $1 RETURNING {}",
+        table_name, sql_parameters, primary_name, column_names
     );
 
     // Compute the parameters for the sqlx macro
@@ -84,6 +88,34 @@ mod tests {
                     self.id,
                     self.blast_radius,
                     self.damage
+                ).fetch_one(executor).await
+            }
+        };
+        assert_eq!(stream.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn test_build_method_update_works_with_non_id_primary_key() {
+        let input: DeriveInput = parse_quote! {
+            struct Organization {
+                #[repository(primary)]
+                slug: String,
+                name: String,
+            }
+        };
+        let fields = extract_fields(&input).unwrap();
+        let primary_idents = extract_primary_idents(fields);
+
+        let stream = build_method_update("organizations", fields, primary_idents);
+
+        let expected = quote! {
+            /// Update an existing record in the database.
+            async fn update(self, executor: &Self::Connection) -> Result<Self, Self::Error> {
+                sqlx::query_as!(
+                    Self,
+                    "UPDATE organizations SET name = $2 WHERE slug = $1 RETURNING slug, name",
+                    self.slug,
+                    self.name
                 ).fetch_one(executor).await
             }
         };

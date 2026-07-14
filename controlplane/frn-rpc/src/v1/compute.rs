@@ -17,7 +17,7 @@ impl From<frn_core::compute::Hypervisor> for Hypervisor {
         Hypervisor {
             id: value.id.to_string(),
             zone_id: value.zone_id.to_string(),
-            organization_id: value.organization_id.to_string(),
+            organization_slug: value.organization_slug.clone(),
             storage_name: value.storage_name,
             url: value.url,
         }
@@ -78,7 +78,7 @@ impl<Auth: Authorize + 'static> hypervisors_server::Hypervisors for Hypervisors<
         let principal = self.iam.principal(&request).await?;
         let RegisterHypervisorRequest {
             authorization_token,
-            organization_id,
+            organization_slug,
             storage_name,
             url,
             zone_id,
@@ -93,9 +93,7 @@ impl<Auth: Authorize + 'static> hypervisors_server::Hypervisors for Hypervisors<
                     authorization_token,
                     storage_name,
                     url,
-                    organization_id: organization_id
-                        .parse::<Uuid>()
-                        .map_err(|_| Error::MalformedId(organization_id))?,
+                    organization_slug,
                     zone_id: zone_id
                         .parse::<Uuid>()
                         .map_err(|_| Error::MalformedId(zone_id))?,
@@ -140,7 +138,7 @@ impl From<frn_core::compute::Instance> for Instance {
             name: value.name,
             ip_v4: value.ip_v4,
             hypervisor_id: value.hypervisor_id.to_string(),
-            project_id: value.project_id.to_string(),
+            project_slug: value.project_slug.clone(),
             zero_trust_network_id: value.zero_trust_network_id.map(Into::into),
             created_at: Some(SystemTime::from(value.created_at).into()),
             updated_at: Some(SystemTime::from(value.updated_at).into()),
@@ -172,8 +170,7 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
         let request = InstanceCreateRequest {
             cores: request.cpu_cores as u8,
-            project_id: Uuid::parse_str(&request.project_id)
-                .map_err(|_| Error::MalformedId(request.project_id))?,
+            project_slug: request.project_slug,
             disk_image: request.image,
             disk_size: request.disk_bytes,
             memory: request.memory_bytes,
@@ -274,15 +271,10 @@ impl<Auth: Authorize + 'static> instances_server::Instances for Instances<Auth> 
 
         let id = Uuid::parse_str(&inner.id).map_err(|_| Error::MalformedId(inner.id))?;
 
-        let project_id = inner
-            .project_id
-            .map(|id| Uuid::parse_str(&id).map_err(|_| Error::MalformedId(id)))
-            .transpose()?;
-
         let request = InstanceUpdateRequest {
             id,
             name: inner.name,
-            project_id,
+            project_slug: inner.project_slug,
         };
 
         let instance = self.service.clone().update(&principal, request).await?;

@@ -4,4 +4,5 @@ globs:
 ignores:
   - .gitlab/issue_templates/service_desk_actions.md
   - "**/node_modules"
+  - "**/target"
   - CHANGELOG.md

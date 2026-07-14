@@ -16,7 +16,7 @@ mod client;
 mod error;
 
 pub use authzed::api;
-pub use client::SpiceDB;
+pub use client::{ObjectRef, RelationshipRef, SpiceDB};
 pub use error::Error;
 
 #[cfg(feature = "mock")]

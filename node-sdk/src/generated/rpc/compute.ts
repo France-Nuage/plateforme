@@ -56,11 +56,11 @@ export interface RegisterHypervisorRequest {
    */
   zoneId: string;
   /**
-   * Id of the organization this hypervisor belongs to
+   * Slug of the organization this hypervisor belongs to
    *
-   * @generated from protobuf field: string organization_id = 5
+   * @generated from protobuf field: string organization_slug = 5
    */
-  organizationId: string;
+  organizationSlug: string;
 }
 /**
  * RegisterHypervisorResponse contains the result of a register hypervisor operation.
@@ -125,11 +125,11 @@ export interface Hypervisor {
    */
   zoneId: string;
   /**
-   * Id of the organization the hypervisor belongs to
+   * Slug of the organization the hypervisor belongs to
    *
-   * @generated from protobuf field: string organization_id = 5
+   * @generated from protobuf field: string organization_slug = 5
    */
-  organizationId: string;
+  organizationSlug: string;
 }
 /**
  * InstanceConfig contains basic configuration information for a virtual machine instance.
@@ -223,11 +223,11 @@ export interface Instance {
    */
   hypervisorId: string;
   /**
-   * Unique identifier for the instance project
+   * Slug of the project this instance belongs to
    *
-   * @generated from protobuf field: string project_id = 101
+   * @generated from protobuf field: string project_slug = 101
    */
-  projectId: string;
+  projectSlug: string;
   /**
    * Unique identifier for the instance zero trust network
    *
@@ -348,11 +348,11 @@ export interface CreateInstanceRequest {
    */
   snippet: string;
   /**
-   * The id of the project the instance belongs to
+   * The slug of the project the instance belongs to
    *
-   * @generated from protobuf field: string project_id = 7
+   * @generated from protobuf field: string project_slug = 7
    */
-  projectId: string;
+  projectSlug: string;
 }
 /**
  * CreateInstanceResponse contains the result of a create instance operation.
@@ -424,11 +424,11 @@ export interface UpdateInstanceRequest {
    */
   name?: string;
   /**
-   * Optional new project id to move the instance to
+   * Optional new project slug to move the instance to
    *
-   * @generated from protobuf field: optional string project_id = 3
+   * @generated from protobuf field: optional string project_slug = 3
    */
-  projectId?: string;
+  projectSlug?: string;
 }
 /**
  * UpdateInstanceResponse contains the result of an update instance operation.
@@ -628,7 +628,7 @@ class RegisterHypervisorRequest$Type extends MessageType<RegisterHypervisorReque
       { no: 4, name: 'zone_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
         no: 5,
-        name: 'organization_id',
+        name: 'organization_slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
       },
@@ -688,7 +688,7 @@ class Hypervisor$Type extends MessageType<Hypervisor> {
       { no: 4, name: 'zone_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
         no: 5,
-        name: 'organization_id',
+        name: 'organization_slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
       },
@@ -839,12 +839,16 @@ class Instance$Type extends MessageType<Instance> {
       },
       {
         no: 101,
-        name: 'project_id',
+        name: 'project_slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
         options: {
           'validate.rules': {
-            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+            string: {
+              minLen: '1',
+              maxLen: '49',
+              pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
+            },
           },
         },
       },
@@ -1011,12 +1015,16 @@ class CreateInstanceRequest$Type extends MessageType<CreateInstanceRequest> {
       { no: 5, name: 'snippet', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
         no: 7,
-        name: 'project_id',
+        name: 'project_slug',
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
         options: {
           'validate.rules': {
-            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+            string: {
+              minLen: '1',
+              maxLen: '49',
+              pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
+            },
           },
         },
       },
@@ -1112,13 +1120,17 @@ class UpdateInstanceRequest$Type extends MessageType<UpdateInstanceRequest> {
       },
       {
         no: 3,
-        name: 'project_id',
+        name: 'project_slug',
         kind: 'scalar',
         opt: true,
         T: 9 /*ScalarType.STRING*/,
         options: {
           'validate.rules': {
-            string: { minLen: '1', maxLen: '36', pattern: '^[a-zA-Z0-9_-]+$' },
+            string: {
+              minLen: '1',
+              maxLen: '49',
+              pattern: '^[a-zA-Z]([a-zA-Z-]*[a-zA-Z])?$',
+            },
           },
         },
       },

@@ -1,39 +1,54 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship, Resource};
 use crate::identity::{ServiceAccount, User};
-use crate::resourcemanager::{DEFAULT_PROJECT_NAME, Project};
-use fabrique::{Factory, Model, Persist};
+use crate::resourcemanager::{DEFAULT_PROJECT_NAME, Project, generate_project_slug};
+use fabrique::{Factory, Model, Persist, Query};
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
-use uuid::Uuid;
 
 #[derive(Debug, Default, Factory, Model, Resource)]
 pub struct Organization {
-    /// The organization id
+    /// The organization slug (CITEXT primary key)
     #[fabrique(primary_key)]
-    pub id: Uuid,
+    #[resource(id)]
+    pub slug: String,
     /// The organization name
     pub name: String,
-    /// The organization slug (DNS-compatible identifier)
-    pub slug: String,
-    /// The organization parent, if any
-    pub parent_id: Option<Uuid>,
+    /// The parent organization slug, if any
+    pub parent_slug: Option<String>,
     /// Creation time of the organization
     pub created_at: chrono::DateTime<chrono::Utc>,
     /// Last update time of the organization
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-/// Generate a DNS-compatible slug from a name.
-///
-/// The slug follows RFC 1123 subdomain rules:
-/// - Only lowercase alphanumeric characters and hyphens
-/// - Cannot start or end with a hyphen
-/// - Maximum 63 characters
-fn generate_slug(name: &str) -> String {
-    slug::slugify(name)
+/// Generate a slug from a name: lowercase letters and hyphens only, max 49 chars.
+pub fn generate_organization_slug(name: &str) -> String {
+    let raw: String = slug::slugify(name)
         .chars()
-        .take(63)
+        .filter(|c| c.is_ascii_alphabetic() || *c == '-')
+        .collect();
+    collapse_and_trim_slug(&raw, 49)
+}
+
+pub(crate) fn collapse_and_trim_slug(raw: &str, max_len: usize) -> String {
+    let mut result = String::with_capacity(raw.len());
+    let mut prev_hyphen = true;
+    for c in raw.chars() {
+        if c == '-' {
+            if !prev_hyphen {
+                result.push('-');
+                prev_hyphen = true;
+            }
+        } else {
+            result.push(c);
+            prev_hyphen = false;
+        }
+    }
+    result
+        .trim_matches('-')
+        .chars()
+        .take(max_len)
         .collect::<String>()
         .trim_end_matches('-')
         .to_string()
@@ -64,65 +79,40 @@ impl<A: Authorize> Organizations<A> {
         connection: &Pool<Postgres>,
         _principal: &P,
         name: String,
-        parent_id: Option<Uuid>,
+        parent_slug: Option<String>,
     ) -> Result<Organization, Error> {
-        // self.auth
-        //     .can(principal)
-        //     .perform(Permission::Create)
-        //     .over(&Organization::any())
-        //     .await?;
-
         tracing::info!(
-            "received request to create organization with name '{}' and parent id '{:?}'",
+            "received request to create organization with name '{}' and parent slug '{:?}'",
             &name,
-            &parent_id
+            &parent_slug
         );
 
-        // Generate slug from name
-        let slug = generate_slug(&name);
+        let slug = generate_organization_slug(&name);
+        check_slug_available(connection, &slug).await?;
 
-        // Check for slug collision
-        let existing: Option<(Uuid,)> =
-            sqlx::query_as("SELECT id FROM organizations WHERE slug = $1")
-                .bind(&slug)
-                .fetch_optional(connection)
-                .await?;
-
-        if existing.is_some() {
-            return Err(Error::SlugAlreadyExists(slug));
-        }
-
-        // Create the organization
         let organization = Organization {
-            id: Uuid::new_v4(),
+            slug: slug.clone(),
             name,
-            slug,
-            parent_id,
+            parent_slug: parent_slug.clone(),
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
         }
         .create(connection)
         .await?;
 
-        // Create the parent relationship if specified
-        if let Some(parent_id) = parent_id {
-            let parent: Organization = sqlx::query_as!(
-                Organization,
-                "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE id = $1",
-                parent_id
-            )
-            .fetch_one(&self.db)
-            .await?;
+        if let Some(ref parent_slug) = parent_slug {
+            let parent = Organization::find(&self.db, parent_slug.clone()).await?;
 
             self.auth
                 .write_relationship(&Relationship::new(&parent, Relation::Parent, &organization))
                 .await?;
         }
 
+        let default_project_slug = generate_project_slug(&slug, DEFAULT_PROJECT_NAME);
         let project = Project::factory()
-            .id(Uuid::new_v4())
+            .slug(default_project_slug)
             .name(DEFAULT_PROJECT_NAME.to_owned())
-            .organization_id(organization.id)
+            .organization_slug(slug)
             .create(&self.db)
             .await?;
 
@@ -142,10 +132,9 @@ impl<A: Authorize> Organizations<A> {
         organization: &Organization,
         service_account: &ServiceAccount,
     ) -> Result<(), Error> {
-        // Create the associated in the relational database
-        sqlx::query!("INSERT INTO organization_service_account(organization_id, service_account_id) VALUES ($1, $2) ON CONFLICT (organization_id, service_account_id) DO NOTHING", organization.id(), service_account.id()).execute(&self.db).await?;
+        // fabrique raw query: ON CONFLICT on non-PK unique constraint
+        sqlx::query!("INSERT INTO organization_service_account(organization_slug, service_account_id) VALUES ($1::citext, $2) ON CONFLICT (service_account_id, organization_slug) DO NOTHING", organization.id(), service_account.id()).execute(&self.db).await?;
 
-        // Write the relationship synchronously to SpiceDB
         self.auth
             .write_relationship(&Relationship::new(
                 service_account,
@@ -162,10 +151,9 @@ impl<A: Authorize> Organizations<A> {
         organization: &Organization,
         user: &User,
     ) -> Result<(), Error> {
-        // Create the associated in the relational database
-        sqlx::query!("INSERT INTO organization_user(organization_id, user_id) VALUES ($1, $2) ON CONFLICT (organization_id, user_id) DO NOTHING", organization.id(), user.id()).execute(&self.db).await?;
+        // fabrique raw query: ON CONFLICT on non-PK unique constraint
+        sqlx::query!("INSERT INTO organization_user(organization_slug, user_id) VALUES ($1::citext, $2) ON CONFLICT (user_id, organization_slug) DO NOTHING", organization.id(), user.id()).execute(&self.db).await?;
 
-        // Write the relationship synchronously to SpiceDB
         self.auth
             .write_relationship(&Relationship::new(user, Relation::Member, organization))
             .await?;
@@ -177,37 +165,22 @@ impl<A: Authorize> Organizations<A> {
         &mut self,
         organization_name: String,
     ) -> Result<Organization, Error> {
-        // Attempt to retrieve the organization from the database
-        let maybe_organization: Option<Organization> = sqlx::query_as!(
-            Organization,
-            "SELECT id, name, slug, parent_id, created_at, updated_at FROM organizations WHERE name = $1 LIMIT 1",
-            &organization_name
-        )
-        .fetch_optional(&self.db)
-        .await?;
+        let maybe_organization: Option<Organization> = Organization::query()
+            .select()
+            .r#where(Organization::NAME, "=", organization_name.clone())
+            .first(&self.db)
+            .await?;
 
-        // Create the root organization if there is no database match
         let organization = match maybe_organization {
             Some(organization) => organization,
             None => {
-                let slug = generate_slug(&organization_name);
-
-                // Check for slug collision
-                let existing: Option<(Uuid,)> =
-                    sqlx::query_as("SELECT id FROM organizations WHERE slug = $1")
-                        .bind(&slug)
-                        .fetch_optional(&self.db)
-                        .await?;
-
-                if existing.is_some() {
-                    return Err(Error::SlugAlreadyExists(slug));
-                }
+                let slug = generate_organization_slug(&organization_name);
+                check_slug_available(&self.db, &slug).await?;
 
                 Organization {
-                    id: Uuid::new_v4(),
+                    slug: slug.clone(),
                     name: organization_name,
-                    slug,
-                    parent_id: None,
+                    parent_slug: None,
                     created_at: chrono::Utc::now(),
                     updated_at: chrono::Utc::now(),
                 }
@@ -216,21 +189,40 @@ impl<A: Authorize> Organizations<A> {
             }
         };
 
-        // Create the default project for the root organization
+        // fabrique raw query: ON CONFLICT on non-PK unique constraint + conditional INSERT
+        let default_project_slug = generate_project_slug(&organization.slug, DEFAULT_PROJECT_NAME);
         sqlx::query!(
             r#"
-            INSERT INTO projects (name, organization_id)
-            SELECT 'unattributed', $1
+            INSERT INTO projects (slug, name, organization_slug)
+            SELECT $1::citext, 'unattributed', $2::citext
             WHERE NOT EXISTS (
                 SELECT 1 FROM projects
-                WHERE name = 'unattributed' AND organization_id = $1
+                WHERE name = 'unattributed' AND organization_slug = $2::citext
             )
             "#,
-            &organization.id
+            &default_project_slug,
+            &organization.slug
         )
         .execute(&self.db)
         .await?;
 
         Ok(organization)
     }
+}
+
+async fn check_slug_available<'e, E>(executor: E, slug: &str) -> Result<(), Error>
+where
+    E: sqlx::Executor<'e, Database = Postgres>,
+{
+    let existing: Option<Organization> = Organization::query()
+        .select()
+        .r#where(Organization::SLUG, "=", slug.to_owned())
+        .first(executor)
+        .await?;
+
+    if existing.is_some() {
+        return Err(Error::SlugAlreadyExists(slug.to_owned()));
+    }
+
+    Ok(())
 }

@@ -8,6 +8,7 @@ use crate::{
     identity::{Principal, ServiceAccount, User},
 };
 use auth::OpenID;
+use fabrique::Query;
 use sqlx::{Pool, Postgres};
 
 #[derive(Clone)]
@@ -30,13 +31,11 @@ impl IAM {
             .map(|value| value.to_owned())
             .ok_or(Error::Unauthenticated)?;
 
-        if let Some(service_account) = sqlx::query_as!(
-            ServiceAccount,
-            "SELECT * from service_accounts WHERE key = $1",
-            token
-        )
-        .fetch_optional(&self.db)
-        .await?
+        if let Some(service_account) = ServiceAccount::query()
+            .select()
+            .r#where(ServiceAccount::KEY, "=", token.clone())
+            .first(&self.db)
+            .await?
         {
             return Ok(Principal::ServiceAccount(service_account));
         }

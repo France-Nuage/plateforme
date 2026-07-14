@@ -1,5 +1,11 @@
 # Build
 dist/
 
+# Environment
+.env
+.env.local
+
 # Dependencies
 node_modules
+.codegraph
+.codegraph.cache

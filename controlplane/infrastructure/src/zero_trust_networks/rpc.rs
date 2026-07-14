@@ -42,8 +42,14 @@ mod tests {
     #[sqlx::test(migrations = "../migrations")]
     async fn test_list_organizations_works(pool: sqlx::PgPool) {
         // Arrange the test
+        let org = Organization::factory()
+            .slug("test-org".to_owned())
+            .parent_slug(None)
+            .create(&pool)
+            .await
+            .unwrap();
         let model = ZeroTrustNetwork::factory()
-            .for_organization(Organization::factory().parent_id(None))
+            .organization_slug(org.slug)
             .for_zero_trust_network_type(ZeroTrustNetworkType::factory())
             .create(&pool)
             .await

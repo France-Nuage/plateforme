@@ -198,15 +198,12 @@ app.kubernetes.io/component: {{ .component }}
   image: {{ include "plateforme.imageWithOverrides" (dict "component" "controlplane" "imageConfig" .Values.controlplane.image "context" .) }}
   command: ["atlas"]
   args:
-    - schema
+    - migrate
     - apply
     - --url
     - $(DATABASE_URL)?sslmode=disable
-    - --to
+    - --dir
     - file:///app/migrations
-    - --dev-url
-    - $(DATABASE_URL)?sslmode=disable
-    - --auto-approve
   env:
     - name: DATABASE_URL
       valueFrom:

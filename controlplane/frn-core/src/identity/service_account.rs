@@ -90,12 +90,12 @@ impl<Auth: Authorize> ServiceAccounts<Auth> {
             SELECT service_accounts.id, service_accounts.name, service_accounts.key, service_accounts.created_at, service_accounts.updated_at
             FROM service_accounts
             JOIN organization_service_account ON organization_service_account.service_account_id = service_accounts.id
-            JOIN organizations ON organization_service_account.organization_id = organizations.id
-            WHERE organizations.id = $1
+            JOIN organizations ON organization_service_account.organization_slug = organizations.slug
+            WHERE organizations.slug = $1::citext
             AND service_accounts.name = $2
             LIMIT 1
             ",
-            organization.id,
+            &organization.slug,
             name
         ).fetch_optional(&self.db).await?;
 

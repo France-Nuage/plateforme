@@ -9,11 +9,14 @@ use crate::common::OnBehalfOf;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn test_the_create_project_procedure_works(pool: sqlx::PgPool) {
-    // Arrange the test
+    // Arrange the test. No Kubernetes cluster is needed: the hosting cluster
+    // is resolved per managed-service instance at deployment time, not at
+    // project creation.
     let mut api = Api::start(&pool).await.expect("count not start api");
 
     let organization = Organization::factory()
-        .parent_id(None)
+        .slug("test-org".to_owned())
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");
@@ -21,7 +24,7 @@ async fn test_the_create_project_procedure_works(pool: sqlx::PgPool) {
     // Act the request to the test_the_status_procedure_works
     let request = Request::new(CreateProjectRequest {
         name: String::from("ACME"),
-        organization_id: organization.id.to_string(),
+        organization_slug: organization.slug.clone(),
     })
     .on_behalf_of(&api.service_account);
     let response = api.resourcemanager.projects.create(request).await;
@@ -33,18 +36,23 @@ async fn test_the_create_project_procedure_works(pool: sqlx::PgPool) {
 
     // Assert the result
     assert!(response.is_ok());
+    // Find the project named "ACME" (the factory also creates an "unattributed" default project)
+    let acme_project = projects
+        .iter()
+        .find(|p| p.name == "ACME")
+        .expect("ACME project not found");
     assert_eq!(
         response.unwrap().into_inner(),
         CreateProjectResponse {
             project: Some(Project {
-                id: projects[0].id.to_string(),
                 name: String::from("ACME"),
-                organization_id: organization.id.to_string(),
+                slug: acme_project.slug.clone(),
+                organization_slug: organization.slug.clone(),
                 created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
-                    projects[0].created_at
+                    acme_project.created_at
                 ))),
                 updated_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(
-                    projects[0].updated_at
+                    acme_project.updated_at
                 ))),
             })
         }

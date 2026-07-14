@@ -2,7 +2,7 @@ use crate::common::{Api, OnBehalfOf};
 use fabrique::Factory;
 use frn_core::resourcemanager::{Organization, Project};
 use frn_rpc::v1::resourcemanager::ListProjectsRequest;
-use sqlx::types::Uuid;
+use spicedb::mock::AUTHORIZED_RESOURCE_ID;
 use tonic::Request;
 
 mod common;
@@ -13,13 +13,16 @@ async fn test_the_list_projects_procedure_works(pool: sqlx::PgPool) {
     let mut api = Api::start(&pool).await.expect("could not start api");
 
     let organization = Organization::factory()
-        .parent_id(None)
+        .slug("test-org".to_owned())
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");
+    // The mock SpiceDB only authorizes AUTHORIZED_RESOURCE_ID, and list filters
+    // by lookup, so the seeded project must carry that slug to be returned.
     Project::factory()
-        .id(Uuid::default())
-        .organization_id(organization.id)
+        .slug(AUTHORIZED_RESOURCE_ID.to_owned())
+        .organization_slug(organization.slug.clone())
         .create(&pool)
         .await
         .expect("could not create project");

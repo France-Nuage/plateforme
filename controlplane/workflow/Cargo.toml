@@ -1,0 +1,27 @@
+[package]
+name = "workflow"
+version = "0.1.0"
+edition = "2024"
+description = "Workflow engine with saga-style operations, retry, and dependency management"
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+futures = "0.3"
+k8s-openapi = { workspace = true }
+kube = { workspace = true }
+paste = "1"
+serde = { version = "1", features = ["derive"] }
+frn-core = { path = "../frn-core" }
+frn-crypto = { path = "../frn-crypto" }
+serde_json = { workspace = true }
+spicedb = { path = "../spicedb" }
+sqlx = { workspace = true, features = ["json"] }
+strum = { version = "0.27", features = ["derive"] }
+thiserror = { workspace = true }
+tokio = { version = "1", features = ["sync", "time", "rt", "macros", "process", "io-util"] }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["v5", "v7", "serde"] }
+workflow-macros = { path = "../workflow-macros" }
+
+[dev-dependencies]
+k8s-openapi = { workspace = true, features = ["v1_32"] }

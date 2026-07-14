@@ -38,6 +38,9 @@ spec:
             - name: grpc
               containerPort: 80
               protocol: TCP
+            - name: webhook
+              containerPort: 8081
+              protocol: TCP
           env:
             - name: CONTROLPLANE_ADDR
               value: {{ .Values.controlplane.config.addr | quote }}
@@ -78,6 +81,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "plateforme.secretName" . }}
                   key: root-service-account-key
+            - name: KUBECONFIG_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: kubeconfig-encryption-key
             {{- if .Values.secrets.hoopApiKey }}
             - name: HOOP_API_KEY
               valueFrom:
@@ -89,6 +97,16 @@ spec:
             - name: HOOP_API_URL
               value: {{ .Values.controlplane.config.hoopApiUrl | quote }}
             {{- end }}
+            - name: WORKER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: worker-token
+            - name: CI_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: ci-service-token
           livenessProbe:
             exec:
               command: ["/bin/grpc_health_probe", "-addr=localhost:80"]

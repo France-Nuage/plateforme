@@ -8,6 +8,9 @@ pub enum Error {
     #[error("database error: {0}")]
     Database(#[from] sqlx::Error),
 
+    #[error("fabrique error: {0}")]
+    Fabrique(#[from] fabrique::Error),
+
     #[error("hypervisor error: {0}")]
     Hypervisor(#[from] hypervisor::Error),
 }

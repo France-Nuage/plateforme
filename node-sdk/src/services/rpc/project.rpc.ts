@@ -23,7 +23,7 @@ export class ProjectRpcService implements ProjectService {
     return this.client
       .create({
         name: data.name,
-        organizationId: data.organizationId,
+        organizationSlug: data.organizationSlug,
       })
       .response.then(({ project }) => fromRpcProject(project!));
   }
@@ -41,8 +41,8 @@ export class ProjectRpcService implements ProjectService {
  */
 function fromRpcProject(project: RpcProject): Project {
   return {
-    id: project.id,
+    slug: project.slug,
     name: project.name,
-    organizationId: project.organizationId,
+    organizationSlug: project.organizationSlug,
   };
 }

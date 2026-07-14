@@ -1,0 +1,266 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.managed;
+
+import "google/protobuf/timestamp.proto";
+
+// Managed services catalog and version registration.
+// Catalog RPCs are public; RegisterVersion is authenticated via CI service token.
+service ManagedServices {
+    // Lists all active managed services in the catalog.
+    rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
+
+    // Returns a single managed service by slug.
+    rpc GetService(GetServiceRequest) returns (GetServiceResponse);
+
+    // Lists all active versions for a given service.
+    rpc ListVersions(ListVersionsRequest) returns (ListVersionsResponse);
+
+    // Lists active plans for a given service.
+    rpc ListPlans(ListPlansRequest) returns (ListPlansResponse);
+
+    // Registers a new chart version for a service (called by CI after OCI publish).
+    rpc RegisterVersion(RegisterVersionRequest) returns (RegisterVersionResponse);
+
+    // Syncs (upserts) all plans for a service from the catalogue.yaml (called by CI).
+    rpc SyncPlans(SyncPlansRequest) returns (SyncPlansResponse);
+
+    // Creates a managed service instance and schedules deployment.
+    rpc CreateInstance(CreateInstanceRequest) returns (CreateInstanceResponse);
+
+    // Lists instances for a given project.
+    rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse);
+
+    // Returns a single instance by ID.
+    rpc GetInstance(GetInstanceRequest) returns (GetInstanceResponse);
+
+    // Upgrades an instance to a new chart version.
+    rpc UpgradeInstance(UpgradeInstanceRequest) returns (UpgradeInstanceResponse);
+
+    // Deletes an instance and schedules teardown.
+    rpc DeleteInstance(DeleteInstanceRequest) returns (DeleteInstanceResponse);
+
+    // Returns connection info (credentials, host, port) for a running instance.
+    // Reads K8s secrets live from the hosting cluster using the version's
+    // connection_info_schema.
+    rpc GetInstanceConnectionInfo(GetInstanceConnectionInfoRequest) returns (GetInstanceConnectionInfoResponse);
+}
+
+message ManagedServiceProto {
+    string id = 1;
+    string slug = 2;
+    string name = 3;
+    optional string description = 4;
+    string category = 5;
+    optional string database_engine = 6;
+    optional string icon_url = 7;
+    google.protobuf.Timestamp created_at = 8;
+}
+
+message ManagedServiceVersionProto {
+    string id = 1;
+    string service_id = 2;
+    string chart_version = 3;
+    optional string app_version = 4;
+    string oci_reference = 5;
+    optional string configurable_values_schema = 6;
+    google.protobuf.Timestamp created_at = 7;
+    // rjsf UI Schema, published alongside the JSON Schema by the chart CI.
+    // Used by the console to render the deployment form. Nullable.
+    optional string ui_schema = 8;
+    // JSON schema describing how to fetch and display connection info for
+    // deployed instances. Defines K8s secret refs and field display metadata.
+    optional string connection_info_schema = 9;
+}
+
+// Plan entitlement (SLA guarantee displayed on the pricing page).
+message ManagedServicePlanEntitlementProto {
+    string key = 1;
+    string label = 2;
+    string value = 3;
+}
+
+// A pricing tier for a managed service.
+message ManagedServicePlanProto {
+    string id = 1;
+    string service_id = 2;
+    string slug = 3;
+    string name = 4;
+    optional string description = 5;
+    string status = 6;
+    bool highlighted = 7;
+    optional string values_override = 8;
+    repeated ManagedServicePlanEntitlementProto entitlements = 9;
+    optional int64 price_monthly_cents = 10;
+    optional int64 price_yearly_cents = 11;
+    google.protobuf.Timestamp created_at = 12;
+    optional string stripe_price_id_monthly = 13;
+    optional string stripe_price_id_yearly = 14;
+    bool requires_payment = 15;
+}
+
+// ListServices
+message ListServicesRequest {}
+
+message ListServicesResponse {
+    repeated ManagedServiceProto services = 1;
+}
+
+// GetService
+message GetServiceRequest {
+    string slug = 1;
+}
+
+message GetServiceResponse {
+    ManagedServiceProto service = 1;
+}
+
+// ListVersions
+message ListVersionsRequest {
+    string service_slug = 1;
+}
+
+message ListVersionsResponse {
+    repeated ManagedServiceVersionProto versions = 1;
+}
+
+// ListPlans
+message ListPlansRequest {
+    string service_slug = 1;
+}
+
+message ListPlansResponse {
+    repeated ManagedServicePlanProto plans = 1;
+}
+
+// RegisterVersion
+message RegisterVersionRequest {
+    string service_slug = 1;
+    string chart_version = 2;
+    optional string app_version = 3;
+    string oci_reference = 4;
+    // JSON Schema of configurable values (validation)
+    optional string configurable_values_schema = 5;
+    // rjsf UI Schema (form rendering hints: titles, widgets, order, sections)
+    optional string ui_schema = 6;
+    // Connection info schema (K8s secret refs + display metadata)
+    optional string connection_info_schema = 7;
+}
+
+message RegisterVersionResponse {
+    ManagedServiceVersionProto version = 1;
+}
+
+// SyncPlans
+message SyncPlansRequest {
+    string service_slug = 1;
+    repeated SyncPlanEntry plans = 2;
+}
+
+message SyncPlanEntry {
+    string slug = 1;
+    string name = 2;
+    optional string description = 3;
+    string status = 4;
+    bool highlighted = 5;
+    optional string values_override = 6;
+    repeated ManagedServicePlanEntitlementProto entitlements = 7;
+    optional int64 price_monthly_cents = 8;
+    optional int64 price_yearly_cents = 9;
+    optional string stripe_price_id_monthly = 10;
+    optional string stripe_price_id_yearly = 11;
+    optional bool requires_payment = 12;
+}
+
+message SyncPlansResponse {
+    repeated ManagedServicePlanProto plans = 1;
+}
+
+// Instance messages
+message ManagedServiceInstanceProto {
+    string id = 1;
+    string service_id = 2;
+    string version_id = 3;
+    string project_slug = 4;
+    string organization_slug = 5;
+    string namespace = 6;
+    string release_name = 7;
+    optional string user_values = 8;
+    string status = 9;
+    google.protobuf.Timestamp created_at = 10;
+    optional string plan_id = 11;
+}
+
+// CreateInstance
+message CreateInstanceRequest {
+    string project_slug = 1;
+    string organization_slug = 2;
+    string service_slug = 3;
+    string version_id = 4;
+    // JSON object of user-provided values (non-secret)
+    optional string user_values = 5;
+    // JSON object of secret values (passwords, keys)
+    optional string secret_values = 6;
+    // Plan ID (required for new instances)
+    string plan_id = 7;
+}
+
+message CreateInstanceResponse {
+    ManagedServiceInstanceProto instance = 1;
+}
+
+// ListInstances
+message ListInstancesRequest {
+    string project_slug = 1;
+}
+
+message ListInstancesResponse {
+    repeated ManagedServiceInstanceProto instances = 1;
+}
+
+// GetInstance
+message GetInstanceRequest {
+    string instance_id = 1;
+}
+
+message GetInstanceResponse {
+    ManagedServiceInstanceProto instance = 1;
+}
+
+// UpgradeInstance
+message UpgradeInstanceRequest {
+    string instance_id = 1;
+    string version_id = 2;
+    optional string user_values = 3;
+    optional string secret_values = 4;
+}
+
+message UpgradeInstanceResponse {
+    ManagedServiceInstanceProto instance = 1;
+}
+
+// DeleteInstance
+message DeleteInstanceRequest {
+    string instance_id = 1;
+}
+
+message DeleteInstanceResponse {}
+
+// GetInstanceConnectionInfo
+message GetInstanceConnectionInfoRequest {
+    string instance_id = 1;
+}
+
+// A single field in the connection info response.
+message ConnectionInfoField {
+    string key = 1;
+    string label = 2;
+    string value = 3;
+    // Display hint: "text", "password", or "copy".
+    string display = 4;
+    int32 order = 5;
+}
+
+message GetInstanceConnectionInfoResponse {
+    repeated ConnectionInfoField fields = 1;
+}

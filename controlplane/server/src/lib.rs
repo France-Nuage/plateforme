@@ -28,6 +28,7 @@ pub mod config;
 pub mod error;
 pub mod router;
 pub mod server;
+pub mod webhook;
 pub use application::Application;
 pub use config::Config;
 use tokio::{

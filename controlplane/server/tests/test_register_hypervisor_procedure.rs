@@ -14,7 +14,8 @@ async fn test_the_register_hypervisor_procedure_works(pool: sqlx::PgPool) {
         .await
         .expect("could not create zone");
     let organization = Organization::factory()
-        .parent_id(None)
+        .slug("test-org".to_owned())
+        .parent_slug(None)
         .create(&pool)
         .await
         .expect("could not create organization");
@@ -22,7 +23,7 @@ async fn test_the_register_hypervisor_procedure_works(pool: sqlx::PgPool) {
     // Act the request to the test_the_status_procedure_works
     let request = Request::new(RegisterHypervisorRequest {
         zone_id: zone.id.to_string(),
-        organization_id: organization.id.to_string(),
+        organization_slug: organization.slug.clone(),
         ..Default::default()
     })
     .on_behalf_of(&api.service_account);

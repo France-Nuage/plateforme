@@ -32,13 +32,13 @@ export class HypervisorRpcService implements HypervisorService {
   public async register({
     authorizationToken = '',
     storageName,
-    organizationId,
+    organizationSlug,
     url,
     zoneId,
   }: HypervisorFormValue): Promise<Hypervisor> {
     const { hypervisor } = await this.client.register({
       authorizationToken,
-      organizationId,
+      organizationSlug,
       storageName,
       url,
       zoneId,
@@ -51,7 +51,7 @@ export class HypervisorRpcService implements HypervisorService {
 function fromRpcHypervisor(hypervisor: RpcHypervisor): Hypervisor {
   return {
     id: hypervisor.id,
-    organizationId: hypervisor.organizationId,
+    organizationSlug: hypervisor.organizationSlug,
     storageName: hypervisor.storageName,
     url: hypervisor.url,
     zoneId: hypervisor.zoneId,

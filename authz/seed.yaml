@@ -1,0 +1,4 @@
+schemaFile: "./schema.zed"
+relationships: |-
+  organization:acme#member@user:01965d6b-0000-7000-8000-000000000001
+  project:unattributed#parent@organization:acme

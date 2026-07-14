@@ -30,7 +30,7 @@ export const ProjectGlobalSwitcher: FunctionComponent = () => {
   const organizationProjects = useMemo(
     () =>
       projects.filter(
-        (project) => project.organizationId === activeOrganization?.id,
+        (project) => project.organizationSlug === activeOrganization?.slug,
       ),
     [projects, activeOrganization],
   );

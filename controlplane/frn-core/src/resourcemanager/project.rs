@@ -1,26 +1,25 @@
 use crate::Error;
 use crate::authorization::{Authorize, Permission, Principal, Relation, Relationship};
-use crate::resourcemanager::{Organization, OrganizationFactory, OrganizationIdColumn};
-use fabrique::{Factory, Model};
+use crate::resourcemanager::Organization;
+use fabrique::{Factory, Model, Query};
 use frn_core::authorization::Resource;
 use sqlx::types::chrono;
 use sqlx::{Pool, Postgres};
-use uuid::Uuid;
 
 pub const DEFAULT_PROJECT_NAME: &str = "unattributed";
 
 #[derive(Debug, Default, Factory, Model, Resource)]
 pub struct Project {
-    /// The project id
+    /// The project slug (CITEXT primary key)
     #[fabrique(primary_key)]
-    pub id: Uuid,
+    #[resource(id)]
+    pub slug: String,
 
     /// The project name
     pub name: String,
 
     /// The organization this project belongs to
-    #[fabrique(belongs_to = "Organization")]
-    pub organization_id: Uuid,
+    pub organization_slug: String,
 
     /// Creation time of the project
     pub created_at: chrono::DateTime<chrono::Utc>,
@@ -31,7 +30,36 @@ pub struct Project {
 
 pub struct ProjectCreateRequest {
     pub name: String,
-    pub organization_id: Uuid,
+    pub organization_slug: String,
+}
+
+/// Generate a project slug: {org_slug}-{name_slug}, max 49 chars, letters and hyphens only.
+///
+/// The org_slug prefix is truncated to leave at least 2 chars for the name
+/// part (1 separator + 1 char minimum), so distinct project names always
+/// produce distinct slugs even under very long organization slugs.
+pub fn generate_project_slug(org_slug: &str, project_name: &str) -> String {
+    use crate::resourcemanager::organization::collapse_and_trim_slug;
+
+    let name_raw: String = slug::slugify(project_name)
+        .chars()
+        .filter(|c| c.is_ascii_alphabetic() || *c == '-')
+        .collect();
+    let name_part = collapse_and_trim_slug(&name_raw, 49);
+
+    let max_prefix_len = 49_usize
+        .saturating_sub(1)
+        .saturating_sub(name_part.len())
+        .max(1);
+    let prefix: String = org_slug.chars().take(max_prefix_len).collect::<String>();
+    let prefix = prefix.trim_end_matches('-');
+
+    let full = format!("{}-{}", prefix, name_part);
+    full.chars()
+        .take(49)
+        .collect::<String>()
+        .trim_end_matches('-')
+        .to_string()
 }
 
 #[derive(Clone)]
@@ -59,16 +87,18 @@ impl<Auth: Authorize> Projects<Auth> {
         _principal: &P,
         request: ProjectCreateRequest,
     ) -> Result<Project, Error> {
+        let slug = generate_project_slug(&request.organization_slug, &request.name);
+
         let project = Project::factory()
-            .id(Uuid::new_v4())
+            .slug(slug)
             .name(request.name)
-            .organization_id(request.organization_id)
+            .organization_slug(request.organization_slug.clone())
             .create(&self.db)
             .await?;
 
         self.auth
             .write_relationship(&Relationship::new(
-                &Organization::some(request.organization_id),
+                &Organization::some(request.organization_slug),
                 Relation::Parent,
                 &project,
             ))
@@ -80,22 +110,18 @@ impl<Auth: Authorize> Projects<Auth> {
     pub async fn get_default_project<P: Principal>(
         &mut self,
         _principal: &P,
-        organization_id: &Uuid,
+        organization_slug: &str,
     ) -> Result<Project, Error> {
-        // self.auth
-        //     .can(principal)
-        //     .perform(Permission::Get)
-        //     .over(&Project::any())
-        //     .await?;
-
-        sqlx::query_as!(
-            Project,
-            "SELECT * FROM projects WHERE organization_id = $1 AND name = $2",
-            organization_id,
-            DEFAULT_PROJECT_NAME,
-        )
-        .fetch_one(&self.db)
-        .await
-        .map_err(Into::into)
+        Project::query()
+            .select()
+            .r#where(
+                Project::ORGANIZATION_SLUG,
+                "=",
+                organization_slug.to_owned(),
+            )
+            .r#where(Project::NAME, "=", DEFAULT_PROJECT_NAME.to_owned())
+            .first_or_fail(&self.db)
+            .await
+            .map_err(Into::into)
     }
 }

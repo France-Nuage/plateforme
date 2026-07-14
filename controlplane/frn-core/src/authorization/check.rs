@@ -5,6 +5,7 @@ use std::pin::Pin;
 use crate::Error;
 use crate::authorization::resource::Resource;
 use crate::authorization::{Authorize, Permission, Principal};
+use spicedb::ObjectRef;
 
 /// Typestate after specifying the principal
 pub struct CheckWithPrincipal<'a, A: Authorize, P: Principal> {
@@ -72,14 +73,10 @@ impl<'a, A: Authorize + 'a, P: Principal, R: Resource> IntoFuture
 
     fn into_future(mut self) -> Self::IntoFuture {
         Box::pin(async move {
+            let subject = ObjectRef::new(self.subject_type, self.subject_id.to_string());
+            let resource = ObjectRef::new(R::RESOURCE_NAME, self.resource_id.to_string());
             self.auth
-                ._check(
-                    self.subject_type.to_string(),
-                    self.subject_id.to_string(),
-                    self.permission.to_string(),
-                    R::RESOURCE_NAME.to_string(),
-                    self.resource_id.to_string(),
-                )
+                ._check(subject, self.permission.to_string(), resource)
                 .await
         })
     }

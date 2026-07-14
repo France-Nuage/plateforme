@@ -11,6 +11,21 @@ service Invitations {
   rpc Answer(AnswerInvitationRequest) returns (AnswerInvitationResponse);
 }
 
+// Exposes the authenticated caller's own identity. GetCurrentUser is the single
+// authoritative source for the frontend's platform-admin status: it reflects
+// the control plane database (users.is_admin) rather than an OIDC token claim.
+service Profile {
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse);
+}
+
+message GetCurrentUserRequest {}
+
+message GetCurrentUserResponse {
+  string id = 1;
+  string email = 2;
+  bool is_admin = 3;
+}
+
 message ListInvitationsRequest {}
 
 message ListInvitationsResponse {
@@ -18,7 +33,7 @@ message ListInvitationsResponse {
 }
 
 message CreateInvitationRequest {
-  string organization_id = 1;
+  string organization_slug = 1;
   string email = 2;
 }
 
@@ -37,7 +52,7 @@ message AnswerInvitationResponse {
 
 message Invitation {
   string id = 1;
-  string organization_id = 2;
+  string organization_slug = 2;
   string user_id = 3;
   InvitationState state = 4;
   google.protobuf.Timestamp created_at = 8;

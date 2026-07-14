@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO projects (slug, name, organization_slug)\n            SELECT $1::citext, 'unattributed', $2::citext\n            WHERE NOT EXISTS (\n                SELECT 1 FROM projects\n                WHERE name = 'unattributed' AND organization_slug = $2::citext\n            )\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        },
+        {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d719dc3a01c1f94b380cb0a034b2edaf9517ee976252e06baa9d335f0444f7ec"
+}

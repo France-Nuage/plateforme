@@ -66,6 +66,9 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: data
+        labels:
+          {{- include "plateforme.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: postgres
       spec:
         accessModes: [ "ReadWriteOnce" ]
         {{- if .Values.postgres.persistence.storageClass }}

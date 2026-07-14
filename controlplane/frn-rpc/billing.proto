@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package francenuage.fr.v1.billing;
+
+import "google/protobuf/timestamp.proto";
+
+// Billing and subscription management for managed services.
+// Handles Stripe checkout sessions, subscription lifecycle, and payment status.
+service BillingService {
+    // Creates a Stripe Checkout Session for subscribing to a managed service plan.
+    rpc CreateCheckoutSession(CreateCheckoutSessionRequest) returns (CreateCheckoutSessionResponse);
+
+    // Returns a single subscription by ID.
+    rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse);
+
+    // Lists all subscriptions for an organization.
+    rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse);
+
+    // Cancels an active subscription.
+    rpc CancelSubscription(CancelSubscriptionRequest) returns (CancelSubscriptionResponse);
+}
+
+message BillingSubscriptionProto {
+    string id = 1;
+    string customer_id = 2;
+    optional string stripe_subscription_id = 3;
+    string plan_id = 4;
+    optional string instance_id = 5;
+    string status = 6;
+    string billing_period = 7;
+    optional google.protobuf.Timestamp current_period_start = 8;
+    optional google.protobuf.Timestamp current_period_end = 9;
+    optional google.protobuf.Timestamp canceled_at = 10;
+    google.protobuf.Timestamp created_at = 11;
+}
+
+// CreateCheckoutSession
+message CreateCheckoutSessionRequest {
+    string project_slug = 1;
+    string organization_slug = 2;
+    string service_slug = 3;
+    string version_id = 4;
+    string plan_id = 5;
+    // "monthly" or "yearly"
+    string billing_period = 6;
+    optional string user_values = 7;
+    optional string secret_values = 8;
+}
+
+message CreateCheckoutSessionResponse {
+    string subscription_id = 1;
+    string checkout_url = 2;
+}
+
+// GetSubscription
+message GetSubscriptionRequest {
+    string subscription_id = 1;
+}
+
+message GetSubscriptionResponse {
+    BillingSubscriptionProto subscription = 1;
+}
+
+// ListSubscriptions
+message ListSubscriptionsRequest {
+    string organization_slug = 1;
+}
+
+message ListSubscriptionsResponse {
+    repeated BillingSubscriptionProto subscriptions = 1;
+}
+
+// CancelSubscription
+message CancelSubscriptionRequest {
+    string subscription_id = 1;
+}
+
+message CancelSubscriptionResponse {}

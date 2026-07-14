@@ -1,8 +1,8 @@
 export type Project = {
   /**
-   * The project id.
+   * The project slug (primary key).
    */
-  id: string;
+  slug: string;
 
   /**
    * The project name.
@@ -10,12 +10,12 @@ export type Project = {
   name: string;
 
   /**
-   * The project organization id.
+   * The organization slug this project belongs to.
    */
-  organizationId: string;
+  organizationSlug: string;
 };
 
 /**
  * The project form creation/update value.
  */
-export type ProjectFormValue = Pick<Project, 'name' | 'organizationId'>;
+export type ProjectFormValue = Pick<Project, 'name' | 'organizationSlug'>;

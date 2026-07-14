@@ -16,7 +16,7 @@ async fn test_the_create_organization_procedure_works(
     // Act the request to the test_the_status_procedure_works
     let request = Request::new(CreateOrganizationRequest {
         name: String::from("ACME"),
-        parent_id: None,
+        parent_slug: None,
     })
     .on_behalf_of(&api.service_account);
     let response = api.resourcemanager.organizations.create(request).await;
@@ -33,7 +33,6 @@ async fn test_the_create_organization_procedure_works(
         response.unwrap().into_inner(),
         CreateOrganizationResponse {
             organization: Some(Organization {
-                id: organizations[0].id.to_string(),
                 name: String::from("ACME"),
                 slug: String::from("acme"),
                 created_at: Some(prost_types::Timestamp::from(std::time::SystemTime::from(

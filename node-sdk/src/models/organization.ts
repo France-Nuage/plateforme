@@ -3,9 +3,9 @@
  */
 export type Organization = {
   /**
-   * The organization id.
+   * The organization slug (primary key, DNS-compatible identifier).
    */
-  id: string;
+  slug: string;
 
   /**
    * The organization name.
@@ -13,17 +13,12 @@ export type Organization = {
   name: string;
 
   /**
-   * The organization slug (DNS-compatible identifier).
+   * The parent organization slug, if any.
    */
-  slug: string;
-
-  /**
-   * The organization parent id, if any.
-   */
-  parentId?: string;
+  parentSlug?: string;
 };
 
 /**
  * The organization form creation/update value.
  */
-export type OrganizationFormValue = Pick<Organization, 'name' | 'parentId'>;
+export type OrganizationFormValue = Pick<Organization, 'name' | 'parentSlug'>;
