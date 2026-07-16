@@ -373,7 +373,6 @@ gitleaks:
 
 "code style / controlplane":
   stage: code-style
-  tags: [on-prem-ada6000]
   image: registry.france-nuage.fr/library/rust:1.90-alpine
   services: []
   needs: []
@@ -485,7 +484,6 @@ gitleaks:
 
 "unit tests / controlplane":
   stage: unit-tests
-  tags: [on-prem-ada6000]
   image: registry.france-nuage.fr/library/rust:1.90-alpine
   needs: []
   services:
