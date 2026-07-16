@@ -62,6 +62,16 @@ spec:
               value: "edge"
             - name: KC_HEALTH_ENABLED
               value: "true"
+          # Keycloak start-dev refait l'augmentation Quarkus (~30s) + import realm à
+          # chaque boot ; sans startupProbe la liveness le tue avant la fin -> boucle.
+          # La liveness/readiness sont suspendues tant que la startupProbe échoue.
+          startupProbe:
+            httpGet:
+              path: /health/started
+              port: 9000
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               path: /health/live

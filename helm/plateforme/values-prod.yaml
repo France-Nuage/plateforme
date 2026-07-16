@@ -44,10 +44,37 @@ keycloak:
       cpu: "2000m"
 
 postgres:
-  persistence:
-    enabled: true
+  cnpg:
+    instances: 2
+    storageClass: local
     size: 10Gi
-    storageClass: "ceph-rbd"
+    # StorageClass local = données non déplaçables → anti-affinité zone requise,
+    # placement sur les masters (comme l'ancien chart controlplane).
+    podAntiAffinityType: required
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: In
+                values: ["true"]
+    tolerations:
+      - key: node-role.kubernetes.io/controlplane
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+    backup:
+      # TODO: repasser à true une fois le bucket S3 frn-cnpg-backup-plateforme-prod
+      # créé + accès accordé au user cnpg-backup-s3-credentials.
+      enabled: false
+      endpointURL: "https://s3-backup.france-nuage.fr"
+      destinationPath: "s3://frn-cnpg-backup-plateforme-prod/"
+      retentionPolicy: "30d"
+      schedule: "0 40 3 * * *"
+      s3:
+        secretName: "cnpg-backup-s3-credentials"
 
 console:
   enabled: true

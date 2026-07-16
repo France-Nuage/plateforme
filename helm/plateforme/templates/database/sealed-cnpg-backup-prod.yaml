@@ -1,0 +1,17 @@
+{{- if .Values.secrets.existingSecret }}
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cnpg-backup-s3-credentials
+  namespace: plateforme-prod
+spec:
+  encryptedData:
+    ACCESS_KEY_ID: AgAq7mM4sbxNkVkX6vcXbiAJSFOxv5PNkF2p906cf+Yn1TRiwE7aKLthzdbxivdRDOuz/E/7hb4Nh51dALMhVtwbeaARmAmQa1sM13ZKun0nTfiCeJ9n1gMCs7MRL7VUXC+e/HOqy6CrJIFq38kVMbZMK627PjjAusHJfjzFZq8QKJPgmJ7bIAZC2F12E2EYOjU+CwkrgE6oHFmTKw37Xg0AAWg7nXrD4FQ/+ckNEvtPDNm+3kkN873T9iU7q0B5WUlVeegKHboqIjssu/On0hIZ0Bb+1WAG4H2TMc/WITwy3M5QoYz+2IR0fZrhVKOGFhrHAQbcvrf+xypIvEgQTXYSzibaTNilYHKysFQA2Bg41TzMMleBwFibvxqUt6L9wxbYzCoinR0xxgL8uYkm6A5/pUpraRGX9AtOqqWnjzldVhaZ6+m701eOo+xXaAzXssdGHLSoRpPUPHxWd+TA9SxLRrZpdmYTy6exje9sPnMSwHZ+w9ze1SMORfgW1DhcQIc+MMqQOPf6DYYPr56eYzS0vMOVfpVCZg9SV0U1jg/58vDc5O6wd9GVJCluh+IhiuU8+VVjDxLZ+GF7CAcw/+nUki1mnAVDd1+ffnsmeKRcls45inPWeOW3ECvSt6MbUuEHA2kBNwukKwjJJSifnXRuUZgETBuUwcAnuGSvb7r5NIZqwGfnEDIMZQlnDa2w8GnzZZ/C8/SF5t5ZuRBypnHv2mF+xw==
+    SECRET_ACCESS_KEY: AgCIRD8yZVs2z3FAZDEIxzOnv2D2/zUjbZik6Jn9lcN7D9tW+Nq6RPwaXjbGgnnVo6qKqvPBuL64rAMjqXSYr4pWBBm9nkhaSzSD53hF04y6e+faUIIXZI3s4mGXWpOkzekxdlvohbKpB8Y7+hauWpbN5/FEG4j+XPcOPV5zVbeu12oKklIzGcvN8X/nMVvP29wWTX5YIFc6/+W4Bc4Jo7pG9yDGNguYWDKIZqb18+PUCOzfFeSRPDoor6rABxN9k7S9L/Ep1BOWKmokWmnhkjNLodwtsiuiGzD8CHpQB4VpnzG30n+jCZgTgSL4BY6nj1kHnxDmg0jbxcNqqkTdMenyXYEa9OYPkpYfS5Bb2PreZIMLqCZvnB8aDE2HSNzgwKUQxrXBjECMSnrsim5JfmA9ZqA+m530bljy9PYx2PrzCr+3AJEi4lBn+2yv3q4Qv+Byxqt9VK3BFWlp/6iKbOtTjFOggBmAlDzshntDP5iEHNMNCvoAvwKvBEol/u3fZp0qlrwOArMPst/EchyMjbtjv+/VnvNdfWy5DBS/9G4LR8hGE0W5LoX31WJEAsZz2pDK1hFgZdZWcd1KAFJ+hymU7yTBzkcViaxGvHonS0IU28FhHNR3rdzSF4InMPWaiEVJV5XjztogFPr9sCPxVNATQ6i/Ep3MjDCG9Jx1Y/MxVfwXHC2JCid3eOTn+yWbHCn4IUktGgQBzRmFO1QA3KLagQEyMamEKTyvXtTESupC2YXXfDijrAIn
+  template:
+    metadata:
+      name: cnpg-backup-s3-credentials
+      namespace: plateforme-prod
+    type: Opaque
+{{- end }}
