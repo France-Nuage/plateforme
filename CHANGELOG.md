@@ -1,3 +1,11 @@
+## [1.62.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.62.0...v1.62.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* on arrête d'utiliser la ada car trop d'erreur de manque de place dispo du scheduler ([f78b0f5](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/f78b0f5785352c88f855fc9f377a005e75d6e99b))
+* use prod kubeconfig ([12cd992](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/12cd99288d98ba999cf4287b2acd2207ab5ed5fd))
+
 # [1.62.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.61.1...v1.62.0) (2026-07-14)
 
 
