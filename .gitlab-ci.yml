@@ -722,7 +722,6 @@ gitleaks:
     RELEASE_NAME: "plateforme-prod"
   needs:
     - job: "release / docker-images"
-      optional: true
   script:
     - |
       set -e
@@ -764,11 +763,6 @@ gitleaks:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
-    # Bouton manuel de déploiement prod sur la MR de migration CNPG (test bout-en-bout).
-    # À retirer avant merge.
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "feat/cnpg-databases"'
-      when: manual
-      allow_failure: true
     - when: never
 
 "release":
