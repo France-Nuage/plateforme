@@ -626,10 +626,6 @@ gitleaks:
       kubectl wait --for=condition=available --timeout=5m \
         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
   rules:
-    # MR migration CNPG : on ne veut PAS l'environnement CI éphémère (instable),
-    # uniquement le deploy prod manuel. À retirer avant merge.
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "feat/cnpg-databases"'
-      when: never
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
     - changes:
@@ -660,10 +656,6 @@ gitleaks:
     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
   when: always
   rules:
-    # MR migration CNPG : on ne veut PAS l'environnement CI éphémère (instable),
-    # uniquement le deploy prod manuel. À retirer avant merge.
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "feat/cnpg-databases"'
-      when: never
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
     - changes:
@@ -697,10 +689,6 @@ gitleaks:
       - system-tests-logs.txt
     expire_in: 1 week
   rules:
-    # MR migration CNPG : on ne veut PAS l'environnement CI éphémère (instable),
-    # uniquement le deploy prod manuel. À retirer avant merge.
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "feat/cnpg-databases"'
-      when: never
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
     - changes:
