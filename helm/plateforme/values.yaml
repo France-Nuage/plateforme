@@ -14,24 +14,34 @@ secrets:
 
 postgres:
   enabled: true
-  image:
-    repository: registry.france-nuage.fr/library/postgres
-    tag: "16-alpine"
-    pullPolicy: IfNotPresent
   auth:
     database: postgres
     username: postgres
-  persistence:
-    enabled: false 
-    size: 10Gi
+  # CloudNativePG : un seul Cluster héberge les 3 bases (controlplane sur `postgres`
+  # via le superuser, + `keycloak` et `spicedb` dédiées). Voir templates/database/.
+  cnpg:
+    instances: 1
+    imageTag: "16"
     storageClass: ""
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "100m"
-    limits:
-      memory: "1Gi"
-      cpu: "1000m"
+    size: 10Gi
+    podAntiAffinityType: preferred
+    nodeAffinity: {}
+    tolerations: []
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    backup:
+      enabled: false
+      endpointURL: "https://s3-backup.france-nuage.fr"
+      destinationPath: ""
+      retentionPolicy: "30d"
+      schedule: "0 40 3 * * *"
+      s3:
+        secretName: "cnpg-backup-s3-credentials"
 
 spicedbDb:
   enabled: false

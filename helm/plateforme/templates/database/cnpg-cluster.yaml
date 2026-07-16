@@ -1,0 +1,108 @@
+{{- if .Values.postgres.enabled }}
+{{- $fullname := include "plateforme.fullname" . }}
+{{- $cluster := printf "%s-db" $fullname }}
+# CloudNativePG — un seul Cluster héberge les 3 bases (controlplane via le
+# superuser sur la base `postgres`, plus `keycloak` et `spicedb` dédiées).
+# Remplace les anciens StatefulSets postgres/keycloak-db/spicedb-db.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ $cluster }}
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
+spec:
+  instances: {{ .Values.postgres.cnpg.instances }}
+  imageName: ghcr.io/cloudnative-pg/postgresql:{{ .Values.postgres.cnpg.imageTag }}
+
+  # Le controlplane/worker/synchronizer se connectent en `postgres`@`postgres`
+  # (superuser) — le mot de passe doit valoir la clé `postgres-password` du secret.
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: {{ $fullname }}-postgres-superuser
+
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "768MB"
+      work_mem: "4MB"
+
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      # Rôles créés sans mot de passe ici ; les mots de passe sont posés/réconciliés
+      # par managed.roles (via passwordSecret) pour ne pas mettre de secret en clair.
+      postInitSQL:
+        - CREATE ROLE {{ .Values.keycloakDb.auth.username }} LOGIN;
+        - CREATE ROLE {{ .Values.spicedbDb.auth.username }} LOGIN;
+        - CREATE DATABASE {{ .Values.keycloakDb.auth.database }} OWNER {{ .Values.keycloakDb.auth.username }};
+        - CREATE DATABASE {{ .Values.spicedbDb.auth.database }} OWNER {{ .Values.spicedbDb.auth.username }};
+
+  managed:
+    roles:
+      - name: {{ .Values.keycloakDb.auth.username }}
+        ensure: present
+        login: true
+        passwordSecret:
+          name: {{ $fullname }}-keycloak-db-cred
+      - name: {{ .Values.spicedbDb.auth.username }}
+        ensure: present
+        login: true
+        passwordSecret:
+          name: {{ $fullname }}-spicedb-db-cred
+
+  storage:
+    storageClass: {{ .Values.postgres.cnpg.storageClass }}
+    size: {{ .Values.postgres.cnpg.size }}
+
+  resources:
+    {{- toYaml .Values.postgres.cnpg.resources | nindent 4 }}
+
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: topology.kubernetes.io/zone
+    podAntiAffinityType: {{ .Values.postgres.cnpg.podAntiAffinityType }}
+    {{- with .Values.postgres.cnpg.nodeAffinity }}
+    nodeAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.postgres.cnpg.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+
+  {{- if .Values.postgres.cnpg.backup.enabled }}
+  backup:
+    barmanObjectStore:
+      endpointURL: {{ .Values.postgres.cnpg.backup.endpointURL | quote }}
+      destinationPath: {{ .Values.postgres.cnpg.backup.destinationPath | quote }}
+      s3Credentials:
+        accessKeyId:
+          name: {{ .Values.postgres.cnpg.backup.s3.secretName }}
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: {{ .Values.postgres.cnpg.backup.s3.secretName }}
+          key: SECRET_ACCESS_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
+    retentionPolicy: {{ .Values.postgres.cnpg.backup.retentionPolicy | quote }}
+  {{- end }}
+{{- if .Values.postgres.cnpg.backup.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ $cluster }}-backup
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.postgres.cnpg.backup.schedule | quote }}
+  backupOwnerReference: self
+  cluster:
+    name: {{ $cluster }}
+{{- end }}
+{{- end }}
