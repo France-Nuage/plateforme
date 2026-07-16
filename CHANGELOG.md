@@ -1,3 +1,10 @@
+# [1.63.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.62.1...v1.63.0) (2026-07-16)
+
+
+### Features
+
+* **db:** migre les 3 bases vers un cluster CloudNativePG unique ([b28ff67](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b28ff6765c63db3dd9dcd048bc41f31b74448adf))
+
 ## [1.62.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.62.0...v1.62.1) (2026-07-16)
 
 
