@@ -550,9 +550,9 @@ services:
       - ./seed.sql:/home/seed.sql:ro
 
   zed:
-    # TODO: pin to a specific version (was latest)
-    image: authzed/zed:latest
-    command: import /authz/seed.yaml
+    image: authzed/zed:v0.34.1
+    working_dir: /authz
+    command: import seed.yaml
     depends_on:
       spicedb:
         condition: service_healthy
