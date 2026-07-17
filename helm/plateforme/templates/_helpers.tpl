@@ -131,14 +131,28 @@ podAffinity:
 {{- end }}
 {{- end }}
 
+{{- define "plateforme.baseDomain" -}}
+{{- required "ingress.baseDomain is required" .Values.ingress.baseDomain }}
+{{- end }}
+
+{{- define "plateforme.consoleHost" -}}
+{{- printf "console.%s" (include "plateforme.baseDomain" .) }}
+{{- end }}
+
+{{- define "plateforme.controlplaneHost" -}}
+{{- printf "controlplane.%s" (include "plateforme.baseDomain" .) }}
+{{- end }}
+
+{{- define "plateforme.keycloakHost" -}}
+{{- printf "auth.%s" (include "plateforme.baseDomain" .) }}
+{{- end }}
+
 {{- define "plateforme.keycloakUrl" -}}
-{{- $fullname := include "plateforme.fullname" . }}
-{{- printf "http://%s-keycloak:8080" $fullname }}
+{{- printf "https://%s" (include "plateforme.keycloakHost" .) }}
 {{- end }}
 
 {{- define "plateforme.keycloakOidcUrl" -}}
-{{- $fullname := include "plateforme.fullname" . }}
-{{- printf "http://%s-keycloak:8080/realms/francenuage/.well-known/openid-configuration" $fullname }}
+{{- printf "https://%s/realms/francenuage/.well-known/openid-configuration" (include "plateforme.keycloakHost" .) }}
 {{- end }}
 
 {{- define "plateforme.keycloakDatabaseUrl" -}}
@@ -151,17 +165,11 @@ podAffinity:
 {{- end }}
 
 {{- define "plateforme.consoleUrl" -}}
-{{- $fullname := include "plateforme.fullname" . }}
-{{- if .Values.console.enabled }}
-{{- printf "http://%s-console" $fullname }}
-{{- else }}
-{{- .Values.controlplane.config.consoleUrl }}
-{{- end }}
+{{- printf "https://%s" (include "plateforme.consoleHost" .) }}
 {{- end }}
 
 {{- define "plateforme.controlplaneUrl" -}}
-{{- $fullname := include "plateforme.fullname" . }}
-{{- printf "http://%s-controlplane" $fullname }}
+{{- printf "https://%s" (include "plateforme.controlplaneHost" .) }}
 {{- end }}
 
 {{- define "plateforme.secretName" -}}

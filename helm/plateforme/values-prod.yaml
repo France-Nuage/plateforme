@@ -83,11 +83,6 @@ postgres:
 console:
   enabled: true
   replicas: 2
-  ingress:
-    enabled: true
-    host: console.france-nuage.fr
-  config:
-    apiUrl: ""
 
 systemTests:
   enabled: false
@@ -96,12 +91,7 @@ systemTests:
 
 controlplane:
   replicas: 1
-  ingress:
-    enabled: true
-    host: controlplane.france-nuage.fr
   config:
-    consoleUrl: ""
-    oidcUrl: ""
     logLevel: "warn"
     rootOrganizationName: "France Nuage"
   resources:
@@ -129,7 +119,6 @@ synchronizer:
   config:
     logLevel: "warn"
     rootOrganizationName: "France Nuage"
-    oidcUrl: ""
   resources:
     requests:
       memory: "256Mi"
@@ -137,3 +126,7 @@ synchronizer:
     limits:
       memory: "1Gi"
       cpu: "1000m"
+
+ingress:
+  baseDomain: france-nuage.fr
+  monitoring: true

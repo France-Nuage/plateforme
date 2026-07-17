@@ -56,6 +56,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "plateforme.secretName" . }}
                   key: keycloak-db-password
+            - name: KC_HOSTNAME
+              value: {{ include "plateforme.keycloakUrl" . | quote }}
             - name: KC_HOSTNAME_STRICT
               value: {{ .Values.keycloak.config.hostnameStrict | default "true" | quote }}
             - name: KC_HTTP_ENABLED
