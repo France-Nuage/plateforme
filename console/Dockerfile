@@ -24,20 +24,13 @@ CMD ["npm", "run", "dev"]
 
 FROM base AS build
 WORKDIR /app
-ARG VITE_APPLICATION_DEFAULT_MODE=rpc
-ENV VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE}
-ARG VITE_CONTROLPLANE_URL=https://controlplane.france-nuage.fr
-ENV VITE_CONTROLPLANE_URL=${VITE_CONTROLPLANE_URL}
-ARG VITE_OIDC_CLIENT_ID=france-nuage-console
-ENV VITE_OIDC_CLIENT_ID=${VITE_OIDC_CLIENT_ID}
-ARG VITE_OIDC_PROVIDER_NAME=france-nuage
-ENV VITE_OIDC_PROVIDER_NAME=${VITE_OIDC_PROVIDER_NAME}
-ARG VITE_OIDC_PROVIDER_URL=https://auth.france-nuage.fr/realms/france-nuage
-ENV VITE_OIDC_PROVIDER_URL=${VITE_OIDC_PROVIDER_URL}
+# Environment-specific settings are resolved at runtime via /config.js.
 RUN npm run build
 
 FROM ${NGINX_BASE_IMAGE} AS release
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY ./console/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./console/docker-entrypoint.sh /docker-entrypoint.d/40-runtime-config.sh
+RUN chmod +x /docker-entrypoint.d/40-runtime-config.sh
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

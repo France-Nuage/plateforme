@@ -48,8 +48,16 @@ spec:
               containerPort: 80
               protocol: TCP
           env:
-            - name: API_URL
+            - name: CONTROLPLANE_URL
               value: {{ include "plateforme.controlplaneUrl" . | quote }}
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.console.config.oidcClientId | quote }}
+            - name: OIDC_PROVIDER_NAME
+              value: {{ .Values.console.config.oidcProviderName | quote }}
+            - name: OIDC_PROVIDER_URL
+              value: {{ include "plateforme.keycloakOidcUrl" . | quote }}
+            - name: APPLICATION_MODE
+              value: {{ .Values.console.config.applicationMode | quote }}
           livenessProbe:
             httpGet:
               path: /
