@@ -78,6 +78,9 @@ postgres:
 
 console:
   enabled: true
+  ingress:
+    enabled: true
+    host: console.france-nuage.fr
   config:
     apiUrl: ""
 
@@ -88,6 +91,9 @@ systemTests:
 
 controlplane:
   replicas: 1
+  ingress:
+    enabled: true
+    host: controlplane.france-nuage.fr
   config:
     consoleUrl: ""
     oidcUrl: ""
