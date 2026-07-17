@@ -92,6 +92,11 @@ async fn main() -> Result<(), Box<dyn StdError>> {
         platform_config: workflow::PlatformConfig {
             default_storage_class,
             cnpg_backup_enabled,
+            // Deployment labels/annotations are computed by the control plane at
+            // creation time and carried in the workflow parameters, not sourced
+            // from the worker's own configuration.
+            deployment_labels: std::collections::BTreeMap::new(),
+            deployment_annotations: std::collections::BTreeMap::new(),
         },
         kek,
         kubeconfig_path: None,

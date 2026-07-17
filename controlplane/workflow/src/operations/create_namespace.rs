@@ -19,6 +19,7 @@ use crate::operations::k8s_common::{
 pub struct CreateNamespaceOp {
     pub namespace: String,
     pub labels: BTreeMap<String, String>,
+    pub annotations: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Error, crate::OperationError)]
@@ -42,6 +43,7 @@ impl crate::operations::Operation for CreateNamespaceOp {
             metadata: ObjectMeta {
                 name: Some(self.namespace.clone()),
                 labels: Some(self.labels.clone()),
+                annotations: Some(self.annotations.clone()),
                 ..Default::default()
             },
             ..Default::default()

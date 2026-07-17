@@ -45,6 +45,7 @@ pub struct DeployManagedServiceParams {
     pub merged_values: Value,
     pub secret_data: BTreeMap<String, String>,
     pub labels: BTreeMap<String, String>,
+    pub annotations: BTreeMap<String, String>,
     pub principal: Option<WorkflowPrincipal>,
 }
 
@@ -143,7 +144,9 @@ impl<A: Authorize> ManagedServices<A> {
         let platform_values = self.build_platform_values(&service);
         let merged_values = merge_helm_values(&user_plus_plan, &platform_values);
         let secret_data = secret_values_to_map(&request.secret_values);
-        let labels = build_instance_labels(&service.slug, instance_id, &request.project_slug);
+        let mut labels = build_instance_labels(&service.slug, instance_id, &request.project_slug);
+        labels.extend(self.platform_config.deployment_labels.clone());
+        let annotations = self.platform_config.deployment_annotations.clone();
 
         let instance = ManagedServiceInstance::query()
             .insert()
@@ -186,6 +189,7 @@ impl<A: Authorize> ManagedServices<A> {
                     merged_values,
                     secret_data,
                     labels,
+                    annotations,
                     principal,
                 },
             )

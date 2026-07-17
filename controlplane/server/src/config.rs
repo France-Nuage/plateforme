@@ -12,7 +12,7 @@ use frn_crypto::Kek;
 use mock_server::MockServer;
 use spicedb::SpiceDB;
 use sqlx::{Pool, Postgres};
-use std::{env, net::SocketAddr, sync::Arc};
+use std::{collections::BTreeMap, env, net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, ExposeHeaders};
 
@@ -167,6 +167,8 @@ impl Config {
             managed_platform_config: frn_core::managed::PlatformConfig {
                 default_storage_class: None,
                 cnpg_backup_enabled: false,
+                deployment_labels: BTreeMap::new(),
+                deployment_annotations: BTreeMap::new(),
             },
             kubeconfig_encryption_kek: Arc::new(Kek::from_bytes(TEST_KUBECONFIG_ENCRYPTION_KEK)),
             stripe_secret_key: None,
@@ -212,6 +214,8 @@ impl Config {
         let cnpg_backup_enabled = env::var("MANAGED_CNPG_BACKUP_ENABLED")
             .map(|v| v == "true" || v == "1")
             .unwrap_or(false);
+        let deployment_labels = parse_key_value_pairs(env::var("DEPLOYMENT_LABELS").ok());
+        let deployment_annotations = parse_key_value_pairs(env::var("DEPLOYMENT_ANNOTATIONS").ok());
         let kubeconfig_encryption_kek = Arc::new(
             Kek::from_base64(
                 &env::var("KUBECONFIG_ENCRYPTION_KEY")
@@ -233,6 +237,8 @@ impl Config {
             managed_platform_config: frn_core::managed::PlatformConfig {
                 default_storage_class,
                 cnpg_backup_enabled,
+                deployment_labels,
+                deployment_annotations,
             },
             kubeconfig_encryption_kek,
             stripe_secret_key: env::var("STRIPE_SECRET_KEY").ok(),
@@ -283,4 +289,22 @@ impl Config {
                 .map_err(Into::into),
         }
     }
+}
+
+/// Parses a comma-separated list of `key=value` pairs into a map.
+///
+/// Used for the `DEPLOYMENT_LABELS` and `DEPLOYMENT_ANNOTATIONS` environment
+/// variables. Entries without an `=` or with an empty key are ignored; keys and
+/// values are trimmed. Returns an empty map when the input is `None`.
+fn parse_key_value_pairs(raw: Option<String>) -> BTreeMap<String, String> {
+    raw.into_iter()
+        .flat_map(|value| {
+            value
+                .split(',')
+                .filter_map(|pair| pair.split_once('='))
+                .map(|(key, value)| (key.trim().to_owned(), value.trim().to_owned()))
+                .filter(|(key, _)| !key.is_empty())
+                .collect::<Vec<_>>()
+        })
+        .collect()
 }

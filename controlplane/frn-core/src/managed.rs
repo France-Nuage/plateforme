@@ -419,6 +419,15 @@ pub fn build_instance_labels(
 pub struct PlatformConfig {
     pub default_storage_class: Option<String>,
     pub cnpg_backup_enabled: bool,
+    /// Labels applied to every namespace the platform provisions, merged with
+    /// the per-instance labels. Configured globally via environment; used to
+    /// select deployments (e.g. a CI pipeline identifier a garbage collector
+    /// filters on).
+    pub deployment_labels: BTreeMap<String, String>,
+    /// Annotations applied to every namespace the platform provisions.
+    /// Configured globally via environment; carries free-form metadata such as
+    /// an expiration timestamp that a garbage collector reads.
+    pub deployment_annotations: BTreeMap<String, String>,
 }
 
 #[derive(Clone)]

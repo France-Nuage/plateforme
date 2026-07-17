@@ -36,6 +36,7 @@ impl WorkflowScheduler<DeployManagedServiceParams> for ManagedWorkflowScheduler 
                 params.merged_values,
                 params.secret_data,
                 params.labels,
+                params.annotations,
                 params.principal,
             )),
             WORKFLOW_MAX_RETRY,

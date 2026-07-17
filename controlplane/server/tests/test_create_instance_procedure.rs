@@ -253,6 +253,8 @@ async fn test_create_instance_propagates_matching_cluster_to_workflow(
         PlatformConfig {
             default_storage_class: None,
             cnpg_backup_enabled: false,
+            deployment_labels: std::collections::BTreeMap::new(),
+            deployment_annotations: std::collections::BTreeMap::new(),
         },
     );
     let mut conn = pool.acquire().await?;
