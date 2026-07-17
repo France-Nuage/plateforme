@@ -1,3 +1,10 @@
+# [1.64.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.63.0...v1.64.0) (2026-07-17)
+
+
+### Features
+
+* **helm:** expose console et controlplane via Ingress ([bfd47f3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/bfd47f3bbdf7952a949ff2be2dc37884ae2efb77))
+
 # [1.63.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.62.1...v1.63.0) (2026-07-16)
 
 
