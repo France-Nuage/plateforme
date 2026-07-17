@@ -18,6 +18,22 @@ spec:
         {{- include "plateforme.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: console
     spec:
+      affinity:
+        {{- if .Values.console.affinity }}
+        {{- toYaml .Values.console.affinity | nindent 8 }}
+        {{- else }}
+        # Console stateless (pas de PV local) : anti-affinité zone en preferred
+        # pour répartir les réplicas sans bloquer le scheduling.
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: topology.kubernetes.io/zone
+                labelSelector:
+                  matchLabels:
+                    {{- include "plateforme.selectorLabels" . | nindent 20 }}
+                    app.kubernetes.io/component: console
+        {{- end }}
       initContainers:
         {{- include "plateforme.waitForControlplane" . | nindent 8 }}
         {{- if .Values.keycloak.enabled }}

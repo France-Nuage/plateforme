@@ -1,0 +1,36 @@
+{{- if and .Values.controlplane.enabled .Values.controlplane.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "plateforme.fullname" . }}-controlplane
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: controlplane
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: {{ .Values.controlplane.ingress.clusterIssuer | quote }}
+    betterstack.io/monitor: "true"
+    betterstack.io/group: "controlplane"
+    betterstack.io/check-frequency: "300"
+    {{- with .Values.controlplane.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  # ingressClassName est requis par Capsule
+  ingressClassName: {{ .Values.controlplane.ingress.className }}
+  rules:
+    - host: {{ required "controlplane.ingress.host is required when controlplane.ingress.enabled" .Values.controlplane.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "plateforme.fullname" . }}-controlplane
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - {{ .Values.controlplane.ingress.host | quote }}
+      secretName: {{ .Values.controlplane.ingress.tlsSecretName | default (printf "%s-controlplane-tls" (include "plateforme.fullname" .)) }}
+{{- end }}

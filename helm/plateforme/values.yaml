@@ -107,6 +107,15 @@ controlplane:
     tag: ""
     pullPolicy: ""
   replicas: 1
+  # Ingress kingress (classe `nginx` requise par Capsule). Le controlplane parle
+  # Connect/gRPC-web sur HTTP/1.1 : un ingress standard suffit côté kingress.
+  ingress:
+    enabled: false
+    className: nginx
+    clusterIssuer: letsencrypt-prod
+    host: ""
+    tlsSecretName: ""  # défaut: <fullname>-controlplane-tls
+    annotations: {}
   config:
     addr: "0.0.0.0:80"
     consoleUrl: "https://console.france-nuage.fr"
@@ -169,8 +178,19 @@ console:
     tag: ""
     pullPolicy: ""
   replicas: 1
+  # Vide = anti-affinité zone preferred par défaut (console stateless).
+  # Renseigner pour surcharger complètement le bloc affinity du pod.
+  affinity: {}
+  # Ingress kingress (classe `nginx` requise par Capsule).
+  ingress:
+    enabled: false
+    className: nginx
+    clusterIssuer: letsencrypt-prod
+    host: ""
+    tlsSecretName: ""  # défaut: <fullname>-console-tls
+    annotations: {}
   config:
-    apiUrl: ""  
+    apiUrl: ""
   resources:
     requests:
       memory: "128Mi"
