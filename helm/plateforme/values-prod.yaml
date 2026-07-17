@@ -78,6 +78,7 @@ postgres:
 
 console:
   enabled: true
+  replicas: 2
   ingress:
     enabled: true
     host: console.france-nuage.fr
