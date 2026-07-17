@@ -178,6 +178,9 @@ console:
     tag: ""
     pullPolicy: ""
   replicas: 1
+  # Vide = anti-affinité zone preferred par défaut (console stateless).
+  # Renseigner pour surcharger complètement le bloc affinity du pod.
+  affinity: {}
   # Ingress kingress (classe `nginx` requise par Capsule).
   ingress:
     enabled: false
