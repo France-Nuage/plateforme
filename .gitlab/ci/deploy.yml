@@ -1,0 +1,139 @@
+# --- Jobs environnement CI éphémère désactivés (commentés) — voir MR migration CNPG ---
+# "deploy / ci-environment":
+#   extends: .helm_template
+#   stage: deploy
+#   resource_group: "deploy-ci-${CI_COMMIT_REF_SLUG}"
+#   environment:
+#     name: ci
+#     on_stop: "cleanup / ci-environment"
+#   variables:
+#     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+#     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
+#     GIT_DEPTH: 0
+#     GIT_STRATEGY: clone
+#   script:
+#     - |
+#       set -e
+#
+#       helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} --wait 2>/dev/null || true
+#       kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} --wait 2>/dev/null || true
+#
+#       helm upgrade --install ${RELEASE_NAME} ./helm/plateforme \
+#         --namespace ${NAMESPACE} \
+#         --values ./helm/plateforme/values-ci.yaml \
+#         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
+#         --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
+#         --set global.imagePullPolicy=Always \
+#         --set secrets.postgresPassword="postgres" \
+#         --set secrets.spicedbPassword="spicedb_password" \
+#         --set secrets.spicedbPresharedKey="${SPICEDB_TOKEN}" \
+#         --set secrets.keycloakAdminPassword="admin" \
+#         --set controlplane.config.rootServiceAccountKey="ci-root-sa-key" \
+#         --set controlplane.config.kubeconfigEncryptionKey="Y2ktZW5jcnlwdGlvbi1rZXktMzItYnl0ZXMtcGFkISE=" \
+#         --set secrets.workerToken="ci-worker-token" \
+#         --set secrets.ciServiceToken="ci-service-token" \
+#         --set controlplane.config.oidcUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
+#         --set console.config.apiUrl=http://${RELEASE_NAME}-controlplane \
+#         --set systemTests.config.consoleUrl=http://${RELEASE_NAME}-console \
+#         --set systemTests.config.controlplaneUrl=http://${RELEASE_NAME}-controlplane \
+#         --set systemTests.config.keycloakUrl=http://${RELEASE_NAME}-keycloak:8080 \
+#         --set systemTests.config.oidcProviderUrl=http://${RELEASE_NAME}-keycloak:8080/realms/francenuage/.well-known/openid-configuration \
+#         --wait \
+#         --timeout 15m \
+#       || {
+#         echo "=== HELM INSTALL FAILED - collecting diagnostics ==="
+#         echo "--- Pod statuses ---"
+#         kubectl get pods -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} -o wide 2>&1 || true
+#         echo "--- Pod events ---"
+#         kubectl get events -n ${NAMESPACE} --sort-by='.lastTimestamp' --field-selector involvedObject.kind=Pod 2>&1 | tail -60 || true
+#         for pod in $(kubectl get pods -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} -o name 2>/dev/null); do
+#           echo "--- Describe ${pod} ---"
+#           kubectl describe ${pod} -n ${NAMESPACE} 2>&1 | tail -40 || true
+#           for c in $(kubectl get ${pod} -n ${NAMESPACE} -o jsonpath='{.spec.initContainers[*].name}' 2>/dev/null); do
+#             echo "--- Init container logs: ${pod}/${c} ---"
+#             kubectl logs ${pod} -c ${c} -n ${NAMESPACE} --tail=30 2>&1 || true
+#           done
+#           for c in $(kubectl get ${pod} -n ${NAMESPACE} -o jsonpath='{.spec.containers[*].name}' 2>/dev/null); do
+#             echo "--- Container logs: ${pod}/${c} ---"
+#             kubectl logs ${pod} -c ${c} -n ${NAMESPACE} --tail=30 2>&1 || true
+#           done
+#         done
+#         exit 1
+#       }
+#
+#       kubectl wait --for=condition=available --timeout=5m \
+#         deployment -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE}
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "master"'
+#       when: never
+#     - changes:
+#         - controlplane/**/*
+#         - console/**/*
+#         - node-sdk/**/*
+#         - system-tests/**/*
+#         - helm/**/*
+#         - .gitlab-ci.yml
+#
+# "cleanup / ci-environment":
+#   extends: .helm_template
+#   stage: cleanup
+#   environment:
+#     name: ci
+#     action: stop
+#   needs:
+#     - job: "deploy / ci-environment"
+#       artifacts: false
+#     - job: "system tests / kubernetes"
+#       artifacts: false
+#       optional: true
+#   variables:
+#     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+#     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
+#   script:
+#     - helm uninstall ${RELEASE_NAME} --namespace ${NAMESPACE} || true
+#     - kubectl delete pvc -l app.kubernetes.io/instance=${RELEASE_NAME} -n ${NAMESPACE} || true
+#   when: always
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "master"'
+#       when: never
+#     - changes:
+#         - controlplane/**/*
+#         - console/**/*
+#         - node-sdk/**/*
+#         - system-tests/**/*
+#         - helm/**/*
+#         - .gitlab-ci.yml
+#
+# "system tests / kubernetes":
+#   extends: .helm_template
+#   stage: system-tests
+#   needs:
+#     - job: "deploy / ci-environment"
+#       artifacts: false
+#   allow_failure: false
+#   variables:
+#     NAMESPACE: "${KUBE_CI_NAMESPACE_NAME}"
+#     RELEASE_NAME: "plateforme-ci-${CI_COMMIT_SHORT_SHA}"
+#   script:
+#     - |
+#       JOB="${RELEASE_NAME}-system-tests"
+#       kubectl logs -n $NAMESPACE -f job/$JOB --pod-running-timeout=10m 2>&1 | tee system-tests-logs.txt || true
+#       kubectl wait -n $NAMESPACE job/$JOB --for=condition=complete --timeout=5m \
+#         && echo "System tests passed" \
+#         || { echo "System tests failed"; exit 1; }
+#   artifacts:
+#     when: always
+#     paths:
+#       - system-tests-logs.txt
+#     expire_in: 1 week
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "master"'
+#       when: never
+#     - changes:
+#         - controlplane/**/*
+#         - console/**/*
+#         - node-sdk/**/*
+#         - system-tests/**/*
+#         - helm/**/*
+#         - .gitlab-ci.yml
+#
