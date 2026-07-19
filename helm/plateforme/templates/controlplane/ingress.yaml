@@ -12,6 +12,9 @@ metadata:
     betterstack.io/monitor: "true"
     betterstack.io/group: "controlplane"
     betterstack.io/check-frequency: "300"
+    # Endpoint Connect/gRPC : un GET nu renvoie 400 (requête non-gRPC), c'est le
+    # signe que le service répond. 400 = healthy pour cette sonde.
+    betterstack.io/expected-status-code: "400"
     {{- with .Values.controlplane.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
