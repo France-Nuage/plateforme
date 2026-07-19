@@ -18,10 +18,6 @@
         --values ./helm/plateforme/values-prod.yaml \
         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
         --set global.imagePullPolicy=Always \
-        --set controlplane.config.oidcUrl=${PROD_OIDC_URL} \
-        --set controlplane.config.consoleUrl=${PROD_CONSOLE_URL} \
-        --set synchronizer.config.oidcUrl=${PROD_OIDC_URL} \
-        --set console.config.apiUrl=${PROD_API_URL} \
         --wait \
         --timeout 10m \
       || {
