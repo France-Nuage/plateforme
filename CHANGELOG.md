@@ -1,3 +1,10 @@
+# [1.65.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.64.0...v1.65.0) (2026-07-19)
+
+
+### Features
+
+* **helm:** sonde BetterStack controlplane attend un HTTP 400 ([18a8201](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/18a82018404a3e5291bd0a83836e58b08f1e3367))
+
 # [1.64.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.63.0...v1.64.0) (2026-07-17)
 
 
