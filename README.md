@@ -209,7 +209,8 @@ and `auth` subdomains of a configurable `ingress.baseDomain`. Locally we use the
 reserved `france-nuage.test` domain, so point its subdomains to the cluster:
 
 ```sh
-echo "127.0.0.1 console.france-nuage.test api.france-nuage.test auth.france-nuage.test" | sudo tee -a /etc/hosts
+echo "127.0.0.1 console.france-nuage.test api.france-nuage.test \
+auth.france-nuage.test" | sudo tee -a /etc/hosts
 ```
 
 ## 📁 Architecture
