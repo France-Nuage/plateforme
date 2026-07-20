@@ -94,6 +94,14 @@ spec:
             - name: HOOP_API_URL
               value: {{ .Values.controlplane.config.hoopApiUrl | quote }}
             {{- end }}
+            {{- if .Values.controlplane.config.deploymentLabels }}
+            - name: DEPLOYMENT_LABELS
+              value: {{ .Values.controlplane.config.deploymentLabels | quote }}
+            {{- end }}
+            {{- if .Values.controlplane.config.deploymentAnnotations }}
+            - name: DEPLOYMENT_ANNOTATIONS
+              value: {{ .Values.controlplane.config.deploymentAnnotations | quote }}
+            {{- end }}
             - name: WORKER_TOKEN
               valueFrom:
                 secretKeyRef:

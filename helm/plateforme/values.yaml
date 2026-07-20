@@ -117,6 +117,8 @@ controlplane:
     kubeconfigEncryptionKey: ""
     hoopApiKey: ""
     hoopApiUrl: "https://bastion.ssh.france-nuage.fr"
+    deploymentLabels: ""
+    deploymentAnnotations: ""
   resources:
     requests:
       memory: "256Mi"
