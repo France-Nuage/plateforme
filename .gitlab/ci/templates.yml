@@ -58,3 +58,14 @@
     - echo -e "[ProxyList]\nsocks5 127.0.0.1 1055" > /etc/proxychains4.conf
     - echo "$KUBECONFIG_PROD_BASE64" | base64 -d > /tmp/kubeconfig
     - export KUBECONFIG=/tmp/kubeconfig
+
+# Deploys to the qualification cluster. KUBECONFIG_QUALIF is a File-type CI
+# variable, exposed as KUBECONFIG so kubectl/helm pick it up automatically.
+.helm_qualif_template:
+  image: registry.france-nuage.fr/dtzar/helm-kubectl:4.2.2
+  services: []
+  variables:
+    KUBECONFIG: $KUBECONFIG_QUALIF
+  before_script:
+    - kubectl version --client
+    - helm version
