@@ -61,14 +61,7 @@
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
-    - changes:
-        - controlplane/**/*
-        - console/**/*
-        - node-sdk/**/*
-        - system-tests/**/*
-        - helm/**/*
-        - .gitlab/ci/**/*
-        - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 "system tests / kubernetes":
   extends:
@@ -95,14 +88,7 @@
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
-    - changes:
-        - controlplane/**/*
-        - console/**/*
-        - node-sdk/**/*
-        - system-tests/**/*
-        - helm/**/*
-        - .gitlab/ci/**/*
-        - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 "cleanup / test-env":
   extends: .cleanup_ci_env
@@ -113,18 +99,11 @@
     - job: "system tests / kubernetes"
       artifacts: false
       optional: true
-  when: always
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
-    - changes:
-        - controlplane/**/*
-        - console/**/*
-        - node-sdk/**/*
-        - system-tests/**/*
-        - helm/**/*
-        - .gitlab/ci/**/*
-        - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
 
 "deploy / review-env":
   extends: .deploy_ci_env
