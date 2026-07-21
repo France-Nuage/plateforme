@@ -14,6 +14,10 @@ metadata:
     betterstack.io/check-frequency: "300"
     # Endpoint Connect/gRPC : un GET nu renvoie 400 (requête non-gRPC), c'est le
     # signe que le service répond. 400 = healthy pour cette sonde.
+    # monitor-type DOIT valoir expected_status_code : sans lui, betterstack-sync
+    # retombe sur le défaut "status" (= attend un 2xx) et IGNORE expected-status-code
+    # (le code n'est injecté dans le monitor que si monitor-type == expected_status_code).
+    betterstack.io/monitor-type: "expected_status_code"
     betterstack.io/expected-status-code: "400"
     {{- with .Values.controlplane.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
