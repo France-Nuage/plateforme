@@ -1,3 +1,10 @@
+## [1.65.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.65.0...v1.65.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* **controlplane:** ajoute betterstack.io/monitor-type=expected_status_code ([791d67b](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/791d67b2094f65824573c2de0e5fb48d95f4188f))
+
 # [1.65.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.64.0...v1.65.0) (2026-07-19)
 
 
