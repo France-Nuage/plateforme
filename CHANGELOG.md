@@ -1,3 +1,10 @@
+## [1.65.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.65.1...v1.65.2) (2026-07-22)
+
+
+### Bug Fixes
+
+* **cnpg-backup:** corrige les creds S3 + bucket de plateforme-prod-db ([65782c3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/65782c3f73cf615084ecee65a83c455644304834))
+
 ## [1.65.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.65.0...v1.65.1) (2026-07-21)
 
 
