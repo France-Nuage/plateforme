@@ -66,11 +66,15 @@ postgres:
         operator: Exists
         effect: NoSchedule
     backup:
-      # TODO: repasser à true une fois le bucket S3 frn-cnpg-backup-plateforme-prod
-      # créé + accès accordé au user cnpg-backup-s3-credentials.
-      enabled: false
+      # Bucket MinIO frn-cnpg-backup-plateforme-prod-db (contient les base backups
+      # + WAL de plateforme-prod-db). Le SealedSecret cnpg-backup-s3-credentials
+      # porte une service-account du user frn-cnpg-backup-plateforme-prod-db
+      # (propriétaire du bucket) — cf. incident 2026-07-22 : les creds pointaient
+      # par erreur vers le user ...controlplane-prod → PutObject AccessDenied →
+      # archivage WAL cassé → réplica en crashloop → aucun PITR.
+      enabled: true
       endpointURL: "https://s3-backup.france-nuage.fr"
-      destinationPath: "s3://frn-cnpg-backup-plateforme-prod/"
+      destinationPath: "s3://frn-cnpg-backup-plateforme-prod-db/"
       retentionPolicy: "30d"
       schedule: "0 40 3 * * *"
       s3:
