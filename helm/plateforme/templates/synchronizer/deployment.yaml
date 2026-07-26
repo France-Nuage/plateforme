@@ -18,6 +18,8 @@ spec:
         {{- include "plateforme.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: synchronizer
     spec:
+      affinity:
+        {{- include "plateforme.dbColocation" . | nindent 8 }}
       initContainers:
         {{- include "plateforme.waitForPostgres" . | nindent 8 }}
         {{- include "plateforme.waitForMigrations" . | nindent 8 }}

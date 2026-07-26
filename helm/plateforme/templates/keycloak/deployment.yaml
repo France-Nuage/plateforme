@@ -18,6 +18,8 @@ spec:
         {{- include "plateforme.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: keycloak
     spec:
+      affinity:
+        {{- include "plateforme.dbColocation" . | nindent 8 }}
       initContainers:
         - name: wait-for-keycloak-db
           image: registry.france-nuage.fr/library/busybox:1.36

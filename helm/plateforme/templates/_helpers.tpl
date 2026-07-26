@@ -43,6 +43,24 @@ app.kubernetes.io/component: {{ .component }}
 app.kubernetes.io/component: {{ .component }}
 {{- end }}
 
+{{/*
+Colocalisation zone avec le primary CNPG : préférer (soft, weight 100) la zone
+du primary évite un hop FTTH inter-DC par requête SQL. Jamais required (pas de
+Pending). Suit automatiquement le primary via le label role=primary. Le cluster
+CNPG unique s'appelle <fullname>-db.
+*/}}
+{{- define "plateforme.dbColocation" -}}
+podAffinity:
+  preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchLabels:
+            cnpg.io/cluster: {{ include "plateforme.fullname" . }}-db
+            role: primary
+        topologyKey: topology.kubernetes.io/zone
+{{- end }}
+
 {{- define "plateforme.imageRegistry" -}}
 {{- .Values.global.imageRegistry | default "" }}
 {{- end }}

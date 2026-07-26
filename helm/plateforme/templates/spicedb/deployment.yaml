@@ -18,6 +18,8 @@ spec:
         {{- include "plateforme.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: spicedb
     spec:
+      affinity:
+        {{- include "plateforme.dbColocation" . | nindent 8 }}
       initContainers:
         {{- if .Values.spicedb.useSharedDatabase }}
         {{- include "plateforme.waitForPostgres" . | nindent 8 }}
