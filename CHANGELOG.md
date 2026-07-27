@@ -1,3 +1,10 @@
+## [1.65.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.65.2...v1.65.3) (2026-07-27)
+
+
+### Bug Fixes
+
+* **plateforme:** colocalise les apps DB avec la zone du primary CNPG ([cd7f52c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/cd7f52c8b8cf9e769b0c0aab7aa6722b3f90a3b2))
+
 ## [1.65.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.65.1...v1.65.2) (2026-07-22)
 
 
