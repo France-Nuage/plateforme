@@ -237,6 +237,11 @@ migrations:
       tag: "latest"
       pullPolicy: IfNotPresent
 
+# Internal DNS suffix served by the cluster (kubelet clusterDomain). Standard
+# clusters use "cluster.local"; override when a cluster serves another zone
+# (e.g. "qual.local" on qualif). Used to build in-cluster service FQDNs.
+clusterDomain: cluster.local
+
 ingress:
   baseDomain: ""
   className: nginx

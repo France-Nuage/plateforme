@@ -1,6 +1,10 @@
 global:
   imageTag: "development"  
 
+# The qualif cluster serves the "qual.local" DNS zone (kubelet clusterDomain),
+# not the standard "cluster.local". In-cluster service FQDNs must match it.
+clusterDomain: qual.local
+
 spicedbDb:
   enabled: true
   persistence:
