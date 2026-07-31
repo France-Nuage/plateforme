@@ -155,6 +155,23 @@ podAffinity:
 {{- printf "https://%s/realms/francenuage/.well-known/openid-configuration" (include "plateforme.keycloakHost" .) }}
 {{- end }}
 
+{{/*
+hostAliases that pin the public ingress hosts to an in-cluster ingress IP.
+Backend services (control plane, synchronizer) reach Keycloak over its public
+URL to match the token issuer, which normally requires a hairpin back through
+external DNS. On clusters where that hairpin does not resolve (e.g. qualif),
+set oidcHairpinIp to the ingress controller ClusterIP so the lookup stays
+in-cluster while keeping the public hostname (and issuer). No-op when unset.
+*/}}
+{{- define "plateforme.oidcHairpinHostAliases" -}}
+{{- with .Values.oidcHairpinIp }}
+hostAliases:
+  - ip: {{ . | quote }}
+    hostnames:
+      - {{ include "plateforme.keycloakHost" $ | quote }}
+{{- end }}
+{{- end }}
+
 {{- define "plateforme.keycloakDatabaseUrl" -}}
 {{- $fullname := include "plateforme.fullname" . }}
 {{- $host := printf "%s-keycloak-db" $fullname }}

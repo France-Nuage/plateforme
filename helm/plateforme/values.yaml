@@ -242,6 +242,12 @@ migrations:
 # (e.g. "qual.local" on qualif). Used to build in-cluster service FQDNs.
 clusterDomain: cluster.local
 
+# Pins the public Keycloak host to an in-cluster ingress IP via hostAliases on
+# the backend deployments. Leave empty when the public OIDC URL is reachable
+# from pods (prod, local). Set to the ingress controller ClusterIP on clusters
+# where the hairpin does not resolve (e.g. qualif). See oidcHairpinHostAliases.
+oidcHairpinIp: ""
+
 ingress:
   baseDomain: ""
   className: nginx

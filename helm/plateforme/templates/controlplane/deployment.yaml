@@ -20,6 +20,7 @@ spec:
     spec:
       affinity:
         {{- include "plateforme.dbColocation" . | nindent 8 }}
+      {{- include "plateforme.oidcHairpinHostAliases" . | nindent 6 }}
       initContainers:
         {{- include "plateforme.waitForPostgres" . | nindent 8 }}
         {{- include "plateforme.runAtlasMigrations" . | nindent 8 }}

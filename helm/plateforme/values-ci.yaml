@@ -5,6 +5,12 @@ global:
 # not the standard "cluster.local". In-cluster service FQDNs must match it.
 clusterDomain: qual.local
 
+# On qualif the public OIDC URL (auth.<baseDomain>) does not hairpin back to the
+# in-cluster ingress, so the control plane cannot reach Keycloak at startup.
+# Pin the Keycloak host to the kingress-nodeport ClusterIP to keep the lookup
+# in-cluster while preserving the public hostname/issuer.
+oidcHairpinIp: "192.168.250.128"
+
 spicedbDb:
   enabled: true
   persistence:
