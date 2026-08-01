@@ -151,12 +151,18 @@ podAffinity:
 {{- printf "https://%s" (include "plateforme.keycloakHost" .) }}
 {{- end }}
 
+{{/* The OIDC issuer / realm base URL (authority) advertised to clients. */}}
+{{- define "plateforme.keycloakRealmUrl" -}}
+{{- printf "%s/realms/francenuage" (include "plateforme.keycloakUrl" .) }}
+{{- end }}
+
+{{/* The OIDC discovery document URL, derived from the realm URL. */}}
 {{- define "plateforme.keycloakOidcUrl" -}}
-{{- printf "https://%s/realms/francenuage/.well-known/openid-configuration" (include "plateforme.keycloakHost" .) }}
+{{- printf "%s/.well-known/openid-configuration" (include "plateforme.keycloakRealmUrl" .) }}
 {{- end }}
 
 {{/*
-hostAliases that pin the public ingress hosts to an in-cluster ingress IP.
+hostAliases pinning the public Keycloak host to an in-cluster ingress IP.
 Backend services (control plane, synchronizer) reach Keycloak over its public
 URL to match the token issuer, which normally requires a hairpin back through
 external DNS. On clusters where that hairpin does not resolve (e.g. qualif),
@@ -168,6 +174,23 @@ in-cluster while keeping the public hostname (and issuer). No-op when unset.
 hostAliases:
   - ip: {{ . | quote }}
     hostnames:
+      - {{ include "plateforme.keycloakHost" $ | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+hostAliases pinning every public host (console, control plane, Keycloak) to the
+in-cluster ingress IP. Used by the system tests, whose browser and SDK reach the
+stack through its public URLs; on clusters without a working hairpin these would
+otherwise be unreachable from inside the cluster. No-op when oidcHairpinIp unset.
+*/}}
+{{- define "plateforme.testsHostAliases" -}}
+{{- with .Values.oidcHairpinIp }}
+hostAliases:
+  - ip: {{ . | quote }}
+    hostnames:
+      - {{ include "plateforme.consoleHost" $ | quote }}
+      - {{ include "plateforme.controlplaneHost" $ | quote }}
       - {{ include "plateforme.keycloakHost" $ | quote }}
 {{- end }}
 {{- end }}
@@ -234,6 +257,27 @@ hostAliases:
 - name: wait-for-console
   image: registry.france-nuage.fr/library/busybox:1.36
   command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-console 80; do echo waiting for console; sleep 2; done']
+{{- end }}
+
+{{/*
+Waits for the public OIDC endpoint to serve a valid TLS certificate. Unlike the
+TCP probes above, this validates the HTTPS chain (curl fails on an untrusted
+cert without -k), so the tests only start once cert-manager has issued the real
+certificate rather than while the ingress still serves its self-signed default.
+curl is required here: busybox wget does not implement TLS verification.
+*/}}
+{{- define "plateforme.waitForOidc" -}}
+- name: wait-for-oidc
+  image: registry.france-nuage.fr/curlimages/curl:8.11.1
+  command:
+    - sh
+    - -c
+    - |
+      until curl -sf -o /dev/null --max-time 5 {{ include "plateforme.keycloakOidcUrl" . }}; do
+        echo "waiting for public OIDC certificate"
+        sleep 5
+      done
+      echo "public OIDC endpoint ready"
 {{- end }}
 
 {{- define "plateforme.runAtlasMigrations" -}}
