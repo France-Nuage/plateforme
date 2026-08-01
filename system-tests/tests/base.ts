@@ -4,6 +4,13 @@ import { User } from '@/types';
 import { HomePage, LoginPage, ManagedServiceDetailPage, ManagedServicesPage, OidcPage } from "./pages";
 
 /**
+ * Resolves the control plane gRPC-web endpoint from the environment, falling
+ * back to the local development URL when unset.
+ */
+const controlplaneUrl = (): string =>
+  process.env.CONTROLPLANE_URL || 'https://controlplane.test';
+
+/**
  * The fixtures exposed in the tests.
  */
 type TestFixtures = {
@@ -72,7 +79,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       // define the session storage value in the context of the page
       await page.addInitScript(([key, value]) => sessionStorage.setItem(key, value), [key, JSON.stringify(payload)]);
 
-      return configureResolver(transport('https://controlplane.test', payload.access_token))[ServiceMode.Rpc];
+      return configureResolver(transport(controlplaneUrl(), payload.access_token))[ServiceMode.Rpc];
     });
   },
 
@@ -129,7 +136,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       throw new Error('missing env var ROOT_SERVICE_ACCOUNT_KEY');
     }
 
-    const services = configureResolver(transport('https://controlplane.test', process.env.ROOT_SERVICE_ACCOUNT_KEY))[ServiceMode.Rpc];
+    const services = configureResolver(transport(controlplaneUrl(), process.env.ROOT_SERVICE_ACCOUNT_KEY))[ServiceMode.Rpc];
 
     use(services);
   }, { scope: 'worker' }],
