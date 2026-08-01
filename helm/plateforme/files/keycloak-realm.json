@@ -57,5 +57,21 @@
       ]
     }
   ],
-  "users": []
+  "users": [
+    {
+      "username": "wile.coyote",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Wile E.",
+      "lastName": "Coyote",
+      "email": "wile.coyote@acme.org",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "anvil",
+          "temporary": false
+        }
+      ]
+    }
+  ]
 }
