@@ -260,24 +260,35 @@ hostAliases:
 {{- end }}
 
 {{/*
-Waits for the public OIDC endpoint to serve a valid TLS certificate. Unlike the
-TCP probes above, this validates the HTTPS chain (curl fails on an untrusted
-cert without -k), so the tests only start once cert-manager has issued the real
-certificate rather than while the ingress still serves its self-signed default.
-curl is required here: busybox wget does not implement TLS verification.
+Waits for the public endpoints the system tests exercise (console, control
+plane, OIDC) to be served through the ingress with a valid TLS certificate.
+Unlike the TCP probes above, this validates the HTTPS chain (curl fails on an
+untrusted cert without -k), so the tests only start once cert-manager has issued
+the real certificate and every ingress route is live rather than while the
+ingress still serves its self-signed default or a 503. curl is required here:
+busybox wget does not implement TLS verification. The control plane speaks gRPC,
+so we only assert the TLS handshake succeeds (any HTTP status), not a 2xx.
 */}}
-{{- define "plateforme.waitForOidc" -}}
-- name: wait-for-oidc
+{{- define "plateforme.waitForPublicEndpoints" -}}
+- name: wait-for-public-endpoints
   image: registry.france-nuage.fr/curlimages/curl:8.11.1
   command:
     - sh
     - -c
     - |
+      until curl -sf -o /dev/null --max-time 5 {{ include "plateforme.consoleUrl" . }}/config.js; do
+        echo "waiting for public console"
+        sleep 5
+      done
       until curl -sf -o /dev/null --max-time 5 {{ include "plateforme.keycloakOidcUrl" . }}; do
         echo "waiting for public OIDC certificate"
         sleep 5
       done
-      echo "public OIDC endpoint ready"
+      until curl -s -o /dev/null --max-time 5 {{ include "plateforme.controlplaneUrl" . }}; do
+        echo "waiting for public control plane"
+        sleep 5
+      done
+      echo "public endpoints ready"
 {{- end }}
 
 {{- define "plateforme.runAtlasMigrations" -}}

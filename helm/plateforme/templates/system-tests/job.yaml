@@ -17,14 +17,10 @@ spec:
       restartPolicy: Never
       {{- include "plateforme.testsHostAliases" . | nindent 6 }}
       initContainers:
-        {{- include "plateforme.waitForControlplane" . | nindent 8 }}
-        {{- if .Values.console.enabled }}
-        {{- include "plateforme.waitForConsole" . | nindent 8 }}
-        {{- end }}
         {{- if .Values.keycloak.enabled }}
         {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
-        {{- include "plateforme.waitForOidc" . | nindent 8 }}
         {{- end }}
+        {{- include "plateforme.waitForPublicEndpoints" . | nindent 8 }}
       containers:
         - name: system-tests
           image: {{ include "plateforme.imageWithOverrides" (dict "component" "system-tests" "imageConfig" .Values.systemTests.image "context" .) }}
