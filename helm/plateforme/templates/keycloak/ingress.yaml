@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/component: keycloak
   annotations:
     ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer | quote }}
+    {{- include "plateforme.ingressCertManagerAnnotation" . | nindent 4 }}
     {{- if .Values.ingress.monitoring }}
     betterstack.io/monitor: "true"
     betterstack.io/group: "keycloak"
@@ -34,5 +34,5 @@ spec:
   tls:
     - hosts:
         - {{ include "plateforme.keycloakHost" . | quote }}
-      secretName: {{ printf "%s-keycloak-tls" (include "plateforme.fullname" .) }}
+      secretName: {{ include "plateforme.ingressTlsSecret" (dict "default" (printf "%s-keycloak-tls" (include "plateforme.fullname" .)) "ctx" .) }}
 {{- end }}

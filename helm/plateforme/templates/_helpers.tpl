@@ -135,16 +135,60 @@ podAffinity:
 {{- required "ingress.baseDomain is required" .Values.ingress.baseDomain }}
 {{- end }}
 
+{{/*
+Builds a public host for the given service component.
+
+Without ingress.envId (prod, local) the host is "<service>.<baseDomain>".
+With an envId (ephemeral CI environments) the service and env id are joined into
+a single label via ingress.hostSeparator, e.g. "console--<envId>.<baseDomain>".
+Keeping the env id inside one label lets a single "*.<baseDomain>" wildcard
+certificate cover every environment (wildcards match only one level).
+
+Usage: {{ include "plateforme.hostFor" (dict "svc" "console" "ctx" .) }}
+*/}}
+{{- define "plateforme.hostFor" -}}
+{{- $svc := .svc }}
+{{- $ctx := .ctx }}
+{{- $base := include "plateforme.baseDomain" $ctx }}
+{{- $envId := $ctx.Values.ingress.envId | toString }}
+{{- if $envId }}
+{{- $sep := $ctx.Values.ingress.hostSeparator | default "--" }}
+{{- printf "%s%s%s.%s" $svc $sep $envId $base }}
+{{- else }}
+{{- printf "%s.%s" $svc $base }}
+{{- end }}
+{{- end }}
+
 {{- define "plateforme.consoleHost" -}}
-{{- printf "console.%s" (include "plateforme.baseDomain" .) }}
+{{- include "plateforme.hostFor" (dict "svc" "console" "ctx" .) }}
 {{- end }}
 
 {{- define "plateforme.controlplaneHost" -}}
-{{- printf "controlplane.%s" (include "plateforme.baseDomain" .) }}
+{{- include "plateforme.hostFor" (dict "svc" "controlplane" "ctx" .) }}
 {{- end }}
 
 {{- define "plateforme.keycloakHost" -}}
-{{- printf "auth.%s" (include "plateforme.baseDomain" .) }}
+{{- include "plateforme.hostFor" (dict "svc" "auth" "ctx" .) }}
+{{- end }}
+
+{{/*
+cert-manager annotation for an ingress. Emitted only when no shared TLS secret
+is configured; with a pre-provisioned wildcard secret cert-manager must not
+issue a per-host certificate.
+*/}}
+{{- define "plateforme.ingressCertManagerAnnotation" -}}
+{{- if not .Values.ingress.tlsSecretName }}
+cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+TLS secret name for an ingress: the shared wildcard secret when configured,
+otherwise the given per-host secret (issued by cert-manager).
+Usage: {{ include "plateforme.ingressTlsSecret" (dict "default" "x-console-tls" "ctx" .) }}
+*/}}
+{{- define "plateforme.ingressTlsSecret" -}}
+{{- .ctx.Values.ingress.tlsSecretName | default .default }}
 {{- end }}
 
 {{- define "plateforme.keycloakUrl" -}}

@@ -7,9 +7,19 @@
 
 .ci_env_variables:
   variables:
-    BASE_DOMAIN: "${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+    # Hosts are flattened to a single label (console--<pipeline>.qual.apps...) so
+    # the shared *.qual.apps wildcard certificate covers them; a wildcard only
+    # matches one level, hence the "--" separator instead of a dot.
+    BASE_DOMAIN: "qual.apps.france-nuage.fr"
+    ENV_ID: "${CI_PIPELINE_ID}"
     RELEASE_NAME: plateforme
-    TTL_SECONDS: "7200"
+    # Shared wildcard certificate reused by every ephemeral environment.
+    WILDCARD_TLS_NAMESPACE: "france-nuage-system"
+    WILDCARD_TLS_SECRET: "wildcard-qual-apps-tls"
+    # Single source of truth for the ephemeral environment lifetime. Environments
+    # are normally torn down when the MR merges or closes (on_stop); this TTL is
+    # only the safety net for the scheduled garbage collector.
+    CI_ENV_TTL_SECONDS: "604800"
 
 .deploy_ci_env:
   extends:
@@ -25,7 +35,15 @@
         frn.ci/pipeline-id="${CI_PIPELINE_ID}" \
         frn.ci/mr-iid="${CI_MERGE_REQUEST_IID:-none}"
       kubectl annotate namespace "${NAMESPACE}" --overwrite \
-        frn.ci/expires-at="$(date -u -d "@$(( $(date -u +%s) + ${TTL_SECONDS} ))" +%Y-%m-%dT%H:%M:%SZ)"
+        frn.ci/expires-at="$(date -u -d "@$(( $(date -u +%s) + ${CI_ENV_TTL_SECONDS} ))" +%Y-%m-%dT%H:%M:%SZ)"
+
+      # Reuse the shared *.qual.apps wildcard certificate instead of issuing one
+      # per environment: this avoids Let's Encrypt rate limits (50 certs/week per
+      # registered domain) and removes the DNS-01 wait from the critical path.
+      kubectl get secret "${WILDCARD_TLS_SECRET}" -n "${WILDCARD_TLS_NAMESPACE}" -o yaml \
+        | grep -vE '^\s+(namespace|resourceVersion|uid|creationTimestamp|ownerReferences):' \
+        | grep -vE '^\s+(- apiVersion:|kind: Certificate|name: |controller:|blockOwnerDeletion:|cert-manager\.io)' \
+        | kubectl apply -n "${NAMESPACE}" -f -
 
       helm upgrade --install "${RELEASE_NAME}" ./helm/plateforme \
         --namespace "${NAMESPACE}" \
@@ -34,6 +52,9 @@
         --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
         --set global.imagePullPolicy=Always \
         --set ingress.baseDomain="${BASE_DOMAIN}" \
+        --set ingress.envId="${ENV_ID}" \
+        --set ingress.hostSeparator="--" \
+        --set ingress.tlsSecretName="${WILDCARD_TLS_SECRET}" \
         --set secrets.postgresPassword="postgres" \
         --set secrets.spicedbPassword="spicedb_password" \
         --set secrets.spicedbPresharedKey="${SPICEDB_TOKEN}" \
@@ -43,6 +64,7 @@
         --set secrets.workerToken="ci-worker-token" \
         --set secrets.ciServiceToken="ci-service-token" \
         --set-string controlplane.config.deploymentLabels="frn.ci/managed=true\,frn.ci/pipeline-id=${CI_PIPELINE_ID}" \
+        ${HELM_EXTRA_ARGS:-} \
         --wait \
         --timeout 15m
 
@@ -57,7 +79,6 @@
   resource_group: "test-env-${CI_PIPELINE_ID}"
   variables:
     NAMESPACE: "frn-ci-test-${CI_PIPELINE_ID}"
-    TTL_SECONDS: "7200"
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
@@ -111,12 +132,13 @@
   resource_group: "review-env-${CI_PIPELINE_ID}"
   variables:
     NAMESPACE: "frn-ci-review-${CI_PIPELINE_ID}"
-    TTL_SECONDS: "86400"
+    # A review environment is meant to be browsed, not tested: skip the tests.
+    HELM_EXTRA_ARGS: "--set systemTests.enabled=false"
   environment:
     name: "review/${CI_COMMIT_REF_SLUG}"
-    url: "https://console.${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+    url: "https://console--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
     on_stop: "stop / review-env"
-    auto_stop_in: 24 hours
+    auto_stop_in: 1 week
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never

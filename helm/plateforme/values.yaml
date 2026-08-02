@@ -250,6 +250,14 @@ oidcHairpinIp: ""
 
 ingress:
   baseDomain: ""
+  # Optional environment id folded into a single host label for ephemeral
+  # environments (e.g. "console--<envId>.<baseDomain>"). Empty in prod/local.
+  envId: ""
+  hostSeparator: "--"
+  # When set, ingresses use this pre-existing TLS secret (a shared wildcard)
+  # instead of requesting a per-host certificate from cert-manager. Empty in
+  # prod/local, where cert-manager issues certificates via clusterIssuer.
+  tlsSecretName: ""
   className: nginx
   clusterIssuer: letsencrypt-prod
   monitoring: false

@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/component: console
   annotations:
     ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer | quote }}
+    {{- include "plateforme.ingressCertManagerAnnotation" . | nindent 4 }}
     {{- if .Values.ingress.monitoring }}
     betterstack.io/monitor: "true"
     betterstack.io/group: "console"
@@ -34,5 +34,5 @@ spec:
   tls:
     - hosts:
         - {{ include "plateforme.consoleHost" . | quote }}
-      secretName: {{ printf "%s-console-tls" (include "plateforme.fullname" .) }}
+      secretName: {{ include "plateforme.ingressTlsSecret" (dict "default" (printf "%s-console-tls" (include "plateforme.fullname" .)) "ctx" .) }}
 {{- end }}
