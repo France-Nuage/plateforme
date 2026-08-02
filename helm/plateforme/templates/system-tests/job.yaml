@@ -62,4 +62,15 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.systemTests.resources | nindent 12 }}
+          {{- if .Values.systemTests.report.enabled }}
+          volumeMounts:
+            - name: report
+              mountPath: /app/playwright-report
+          {{- end }}
+      {{- if .Values.systemTests.report.enabled }}
+      volumes:
+        - name: report
+          persistentVolumeClaim:
+            claimName: {{ include "plateforme.fullname" . }}-playwright-report
+      {{- end }}
 {{- end }}

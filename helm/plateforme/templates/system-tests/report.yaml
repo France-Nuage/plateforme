@@ -1,0 +1,91 @@
+{{- if and .Values.systemTests.enabled .Values.systemTests.report.enabled }}
+{{- $fullname := include "plateforme.fullname" . }}
+{{- $reportHost := include "plateforme.hostFor" (dict "svc" "report" "ctx" .) }}
+# Serves the Playwright HTML report from the shared volume. Outlives the test
+# job so the report (and its traces/videos) stays reachable until the
+# environment is torn down.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}-report
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: system-tests-report
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "plateforme.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: system-tests-report
+  template:
+    metadata:
+      labels:
+        {{- include "plateforme.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: system-tests-report
+    spec:
+      containers:
+        - name: nginx
+          image: {{ printf "%s:%s" .Values.systemTests.report.image.repository .Values.systemTests.report.image.tag }}
+          imagePullPolicy: {{ .Values.systemTests.report.image.pullPolicy | default .Values.global.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: report
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+      volumes:
+        - name: report
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}-playwright-report
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-report
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: system-tests-report
+spec:
+  selector:
+    {{- include "plateforme.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: system-tests-report
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+{{- if .Values.ingress.baseDomain }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullname }}-report
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: system-tests-report
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+    {{- include "plateforme.ingressCertManagerAnnotation" . | nindent 4 }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ $reportHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ $fullname }}-report
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - {{ $reportHost | quote }}
+      secretName: {{ include "plateforme.ingressTlsSecret" (dict "default" (printf "%s-report-tls" $fullname) "ctx" .) }}
+{{- end }}
+{{- end }}

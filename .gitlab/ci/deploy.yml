@@ -94,13 +94,29 @@
       artifacts: false
   variables:
     NAMESPACE: "frn-ci-test-${CI_PIPELINE_ID}"
+  environment:
+    name: "report/${CI_COMMIT_REF_SLUG}"
+    url: "https://report--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+    on_stop: "cleanup / test-env"
+    auto_stop_in: 1 week
   script:
     - |
       JOB="${RELEASE_NAME}-system-tests"
       kubectl logs -n "${NAMESPACE}" -f job/"${JOB}" --pod-running-timeout=10m 2>&1 | tee system-tests-logs.txt || true
+      RESULT=0
       kubectl wait -n "${NAMESPACE}" job/"${JOB}" --for=condition=complete --timeout=5m \
         && echo "System tests passed" \
-        || { echo "System tests failed"; exit 1; }
+        || { echo "System tests failed"; RESULT=1; }
+
+      # Free cluster resources but keep the report server (and its volume) so the
+      # Playwright report stays reachable until the environment is stopped.
+      echo "Scaling application workloads down, keeping the report server..."
+      kubectl scale deployment -n "${NAMESPACE}" \
+        -l app.kubernetes.io/instance="${RELEASE_NAME}",app.kubernetes.io/component!=system-tests-report \
+        --replicas=0 || true
+      echo "Report available at https://report--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+
+      exit ${RESULT}
   artifacts:
     when: always
     paths:
@@ -114,17 +130,23 @@
 "cleanup / test-env":
   extends: .cleanup_ci_env
   stage: cleanup
+  environment:
+    name: "report/${CI_COMMIT_REF_SLUG}"
+    action: stop
   needs:
     - job: "deploy / test-env"
       artifacts: false
     - job: "system tests / kubernetes"
       artifacts: false
       optional: true
+  # Stops the report environment: triggered on demand, when the MR merges/closes,
+  # or by auto_stop_in. Not run automatically so the report survives the pipeline.
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
+      when: manual
+      allow_failure: true
 
 "deploy / review-env":
   extends: .deploy_ci_env

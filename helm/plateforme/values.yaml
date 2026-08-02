@@ -221,6 +221,17 @@ systemTests:
     limits:
       memory: "2Gi"
       cpu: "1000m"
+  # Persists the Playwright HTML report on a shared volume and serves it through
+  # an nginx deployment, so it stays reachable after the test pod exits (useful
+  # to inspect traces/videos of a failed run). Enabled for CI environments.
+  report:
+    enabled: false
+    storageClass: ""
+    size: 1Gi
+    image:
+      repository: registry.france-nuage.fr/library/nginx
+      tag: "stable-alpine"
+      pullPolicy: IfNotPresent
 
 migrations:
   atlas:

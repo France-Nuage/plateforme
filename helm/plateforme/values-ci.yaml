@@ -59,6 +59,9 @@ systemTests:
   enabled: true
   config:
     headless: true
+  report:
+    enabled: true
+    storageClass: cephfs
 
 controlplane:
   config:
