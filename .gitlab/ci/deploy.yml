@@ -40,10 +40,16 @@
       # Reuse the shared *.qual.apps wildcard certificate instead of issuing one
       # per environment: this avoids Let's Encrypt rate limits (50 certs/week per
       # registered domain) and removes the DNS-01 wait from the critical path.
-      kubectl get secret "${WILDCARD_TLS_SECRET}" -n "${WILDCARD_TLS_NAMESPACE}" -o yaml \
-        | grep -vE '^\s+(namespace|resourceVersion|uid|creationTimestamp|ownerReferences):' \
-        | grep -vE '^\s+(- apiVersion:|kind: Certificate|name: |controller:|blockOwnerDeletion:|cert-manager\.io)' \
-        | kubectl apply -n "${NAMESPACE}" -f -
+      # Recreate the secret from its cert material (via create --dry-run | apply)
+      # to drop the source secret's namespace-bound and owner metadata.
+      kubectl get secret "${WILDCARD_TLS_SECRET}" -n "${WILDCARD_TLS_NAMESPACE}" \
+        -o jsonpath='{.data.tls\.crt}' | base64 -d > /tmp/wildcard.crt
+      kubectl get secret "${WILDCARD_TLS_SECRET}" -n "${WILDCARD_TLS_NAMESPACE}" \
+        -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/wildcard.key
+      kubectl create secret tls "${WILDCARD_TLS_SECRET}" \
+        --cert=/tmp/wildcard.crt --key=/tmp/wildcard.key \
+        -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+      rm -f /tmp/wildcard.crt /tmp/wildcard.key
 
       helm upgrade --install "${RELEASE_NAME}" ./helm/plateforme \
         --namespace "${NAMESPACE}" \
