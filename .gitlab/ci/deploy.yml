@@ -115,11 +115,12 @@
         || { echo "System tests failed"; RESULT=1; }
 
       # Free cluster resources but keep the report server (and its volume) so the
-      # Playwright report stays reachable until the environment is stopped.
-      echo "Scaling application workloads down, keeping the report server..."
-      kubectl scale deployment -n "${NAMESPACE}" \
+      # Playwright report stays reachable until the environment is stopped. Delete
+      # the application deployments (the report deployment and its PVC survive).
+      echo "Removing application workloads, keeping the report server..."
+      kubectl delete deployment,statefulset -n "${NAMESPACE}" \
         -l app.kubernetes.io/instance="${RELEASE_NAME}",app.kubernetes.io/component!=system-tests-report \
-        --replicas=0 || true
+        --ignore-not-found || true
       echo "Report available at https://report--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
 
       exit ${RESULT}
