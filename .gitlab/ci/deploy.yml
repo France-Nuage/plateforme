@@ -46,9 +46,11 @@
         -o jsonpath='{.data.tls\.crt}' | base64 -d > /tmp/wildcard.crt
       kubectl get secret "${WILDCARD_TLS_SECRET}" -n "${WILDCARD_TLS_NAMESPACE}" \
         -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/wildcard.key
+      # --validate=false skips the cluster OpenAPI download, which is not needed
+      # for a plain TLS secret and occasionally times out on the qualif API server.
       kubectl create secret tls "${WILDCARD_TLS_SECRET}" \
         --cert=/tmp/wildcard.crt --key=/tmp/wildcard.key \
-        -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+        -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply --validate=false -f -
       rm -f /tmp/wildcard.crt /tmp/wildcard.key
 
       helm upgrade --install "${RELEASE_NAME}" ./helm/plateforme \
