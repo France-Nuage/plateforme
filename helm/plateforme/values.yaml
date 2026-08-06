@@ -269,6 +269,10 @@ ingress:
   # instead of requesting a per-host certificate from cert-manager. Empty in
   # prod/local, where cert-manager issues certificates via clusterIssuer.
   tlsSecretName: ""
+  # Redirect HTTP to HTTPS at the ingress. Disable on qualif, where TLS is
+  # terminated upstream (prod zero-trust) and forwarded as HTTP: keeping the
+  # redirect on would loop indefinitely (ERR_TOO_MANY_REDIRECTS).
+  sslRedirect: true
   className: nginx
   clusterIssuer: letsencrypt-prod
   monitoring: false

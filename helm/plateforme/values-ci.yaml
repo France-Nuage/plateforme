@@ -11,6 +11,11 @@ clusterDomain: qual.local
 # in-cluster while preserving the public hostname/issuer.
 oidcHairpinIp: "192.168.250.128"
 
+ingress:
+  # TLS is terminated upstream in prod (zero-trust) and forwarded as HTTP to the
+  # qualif cluster; a local HTTPS redirect would loop, so disable it here.
+  sslRedirect: false
+
 spicedbDb:
   enabled: true
   persistence:

@@ -65,7 +65,7 @@ metadata:
     {{- include "plateforme.labels" . | nindent 4 }}
     app.kubernetes.io/component: system-tests-report
   annotations:
-    ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/ssl-redirect: {{ .Values.ingress.sslRedirect | quote }}
     {{- include "plateforme.ingressCertManagerAnnotation" . | nindent 4 }}
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
