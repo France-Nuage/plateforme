@@ -16,9 +16,9 @@
         --driver-opt=rootless=true \
         --driver-opt=image=registry.france-nuage.fr/moby/buildkit:rootless \
         --driver-opt=replicas=1 \
-        --driver-opt=requests.cpu=100m \
+        --driver-opt=requests.cpu=2 \
         --driver-opt=requests.memory=2Gi \
-        --driver-opt=limits.cpu=2 \
+        --driver-opt=limits.cpu=8 \
         --driver-opt=limits.memory=8Gi \
         --buildkitd-config=/tmp/buildkitd.toml \
         --name=k8s-builder-${CI_JOB_ID} \
