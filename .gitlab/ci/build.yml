@@ -1,0 +1,277 @@
+# Unified build job for all Rust services (controlplane, operation-worker, synchronizer)
+# Builds all 3 binaries in a single cargo invocation to share compilation
+"build / rust-services":
+  extends: .buildkit_template
+  stage: build
+  script:
+    - |
+      set -e
+
+      # Build all 3 services using the unified Dockerfile
+      # First build compiles the entire workspace and exports cache
+      # Subsequent builds reuse that cache (near-instant)
+
+      # Build 1: controlplane (exports full workspace cache)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:master-development \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache,mode=max \
+        --target development \
+        --tag ${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+      # Build 2: operation-worker (reuses cache from build 1, no export)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:master-development \
+        --target development-operation-worker \
+        --tag ${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+      # Build 3: synchronizer (reuses cache from build 1, no export)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:master-development \
+        --target development-synchronizer \
+        --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-development \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+
+"build / console":
+  extends: .buildkit_template
+  stage: build
+  variables:
+    TARGET: development
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:master-${TARGET} \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache,mode=max \
+        --target ${TARGET} \
+        --tag ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file console/Dockerfile \
+        .
+  rules:
+    - changes:
+        - console/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+
+"build / node-sdk":
+  extends: .buildkit_template
+  stage: build
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/node-sdk:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/node-sdk:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file node-sdk/Dockerfile \
+        node-sdk
+  rules:
+    - changes:
+        - controlplane/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+
+"build / system-tests":
+  extends: .buildkit_template
+  stage: build
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file system-tests/Dockerfile \
+        .
+  rules:
+    - changes:
+        - controlplane/**/*
+        - node-sdk/**/*
+        - system-tests/**/*
+        - .gitlab-ci.yml
+
+"build / protocol":
+  extends: .buildkit_template
+  stage: build
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file protocol/Dockerfile \
+        protocol
+  rules:
+    - changes:
+        - protocol/**/*
+        - .gitlab-ci.yml
+
+# Unified release build for all Rust services
+# Compiles workspace once, produces 3 release images
+"build / rust-services / release":
+  extends: .buildkit_template
+  stage: build
+  variables:
+    TARGET: release
+  script:
+    - |
+      set -e
+
+      # Build 1: controlplane release (exports full workspace cache)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/controlplane:master-${TARGET} \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache,mode=max \
+        --target ${TARGET} \
+        --tag ${CI_REGISTRY_IMAGE}/controlplane:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+      # Build 2: operation-worker release (reuses cache, no export)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/operation-worker:master-${TARGET} \
+        --target ${TARGET}-operation-worker \
+        --tag ${CI_REGISTRY_IMAGE}/operation-worker:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+
+      # Build 3: synchronizer release (reuses cache, no export)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/synchronizer:master-${TARGET} \
+        --target ${TARGET}-synchronizer \
+        --tag ${CI_REGISTRY_IMAGE}/synchronizer:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+
+"build / console / release":
+  extends: .buildkit_template
+  stage: build
+  variables:
+    TARGET: release
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/console:master-${TARGET} \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/console:buildcache,mode=max \
+        --target ${TARGET} \
+        --tag ${CI_REGISTRY_IMAGE}/console:${CI_COMMIT_REF_SLUG}-${TARGET} \
+        --push \
+        --file console/Dockerfile \
+        .
+  rules:
+    - changes:
+        - console/**/*
+        - controlplane/**/*
+        - node-sdk/**/*
+        - .gitlab-ci.yml
+
+"build / system-tests / release":
+  extends: .buildkit_template
+  stage: build
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-release \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:master-release \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/system-tests:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/system-tests:${CI_COMMIT_REF_SLUG}-release \
+        --push \
+        --file system-tests/Dockerfile \
+        .
+  rules:
+    - changes:
+        - console/**/*
+        - controlplane/**/*
+        - system-tests/**/*
+        - node-sdk/**/*
+        - helm/**/*
+        - .gitlab-ci.yml
+
+"build / protocol / release":
+  extends: .buildkit_template
+  stage: build
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:master \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/protocol:buildcache,mode=max \
+        --tag ${CI_REGISTRY_IMAGE}/protocol:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file protocol/Dockerfile \
+        protocol
+  rules:
+    - changes:
+        - protocol/**/*
+        - .gitlab-ci.yml

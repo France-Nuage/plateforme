@@ -1,0 +1,20 @@
+{{- if and .Values.systemTests.enabled .Values.systemTests.report.enabled }}
+# Shared volume holding the Playwright HTML report. ReadWriteMany so the test
+# job (writer) and the nginx report server (reader) can mount it at once.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "plateforme.fullname" . }}-playwright-report
+  labels:
+    {{- include "plateforme.labels" . | nindent 4 }}
+    app.kubernetes.io/component: system-tests-report
+spec:
+  accessModes:
+    - ReadWriteMany
+  {{- with .Values.systemTests.report.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.systemTests.report.size | quote }}
+{{- end }}

@@ -1,17 +1,17 @@
-{{- if and .Values.ingress.baseDomain .Values.console.enabled }}
+{{- if and .Values.ingress.baseDomain .Values.keycloak.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "plateforme.fullname" . }}-console
+  name: {{ include "plateforme.fullname" . }}-keycloak
   labels:
     {{- include "plateforme.labels" . | nindent 4 }}
-    app.kubernetes.io/component: console
+    app.kubernetes.io/component: keycloak
   annotations:
     ingress.kubernetes.io/ssl-redirect: {{ .Values.ingress.sslRedirect | quote }}
     {{- include "plateforme.ingressCertManagerAnnotation" . | nindent 4 }}
     {{- if .Values.ingress.monitoring }}
     betterstack.io/monitor: "true"
-    betterstack.io/group: "console"
+    betterstack.io/group: "keycloak"
     betterstack.io/check-frequency: "300"
     {{- end }}
     {{- with .Values.ingress.annotations }}
@@ -21,18 +21,18 @@ spec:
   # ingressClassName est requis par Capsule
   ingressClassName: {{ .Values.ingress.className }}
   rules:
-    - host: {{ include "plateforme.consoleHost" . | quote }}
+    - host: {{ include "plateforme.keycloakHost" . | quote }}
       http:
         paths:
           - path: /
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ include "plateforme.fullname" . }}-console
+                name: {{ include "plateforme.fullname" . }}-keycloak
                 port:
-                  number: 80
+                  number: 8080
   tls:
     - hosts:
-        - {{ include "plateforme.consoleHost" . | quote }}
-      secretName: {{ include "plateforme.ingressTlsSecret" (dict "default" (printf "%s-console-tls" (include "plateforme.fullname" .)) "ctx" .) }}
+        - {{ include "plateforme.keycloakHost" . | quote }}
+      secretName: {{ include "plateforme.ingressTlsSecret" (dict "default" (printf "%s-keycloak-tls" (include "plateforme.fullname" .)) "ctx" .) }}
 {{- end }}

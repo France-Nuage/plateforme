@@ -1,4 +1,4 @@
-{{- if and .Values.controlplane.enabled .Values.controlplane.ingress.enabled }}
+{{- if and .Values.ingress.baseDomain .Values.controlplane.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,8 +7,9 @@ metadata:
     {{- include "plateforme.labels" . | nindent 4 }}
     app.kubernetes.io/component: controlplane
   annotations:
-    ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: {{ .Values.controlplane.ingress.clusterIssuer | quote }}
+    ingress.kubernetes.io/ssl-redirect: {{ .Values.ingress.sslRedirect | quote }}
+    {{- include "plateforme.ingressCertManagerAnnotation" . | nindent 4 }}
+    {{- if .Values.ingress.monitoring }}
     betterstack.io/monitor: "true"
     betterstack.io/group: "controlplane"
     betterstack.io/check-frequency: "300"
@@ -19,14 +20,15 @@ metadata:
     # (le code n'est injecté dans le monitor que si monitor-type == expected_status_code).
     betterstack.io/monitor-type: "expected_status_code"
     betterstack.io/expected-status-code: "400"
-    {{- with .Values.controlplane.ingress.annotations }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   # ingressClassName est requis par Capsule
-  ingressClassName: {{ .Values.controlplane.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
   rules:
-    - host: {{ required "controlplane.ingress.host is required when controlplane.ingress.enabled" .Values.controlplane.ingress.host | quote }}
+    - host: {{ include "plateforme.controlplaneHost" . | quote }}
       http:
         paths:
           - path: /
@@ -38,6 +40,6 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - {{ .Values.controlplane.ingress.host | quote }}
-      secretName: {{ .Values.controlplane.ingress.tlsSecretName | default (printf "%s-controlplane-tls" (include "plateforme.fullname" .)) }}
+        - {{ include "plateforme.controlplaneHost" . | quote }}
+      secretName: {{ include "plateforme.ingressTlsSecret" (dict "default" (printf "%s-controlplane-tls" (include "plateforme.fullname" .)) "ctx" .) }}
 {{- end }}

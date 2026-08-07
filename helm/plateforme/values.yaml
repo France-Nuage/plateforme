@@ -107,19 +107,8 @@ controlplane:
     tag: ""
     pullPolicy: ""
   replicas: 1
-  # Ingress kingress (classe `nginx` requise par Capsule). Le controlplane parle
-  # Connect/gRPC-web sur HTTP/1.1 : un ingress standard suffit côté kingress.
-  ingress:
-    enabled: false
-    className: nginx
-    clusterIssuer: letsencrypt-prod
-    host: ""
-    tlsSecretName: ""  # défaut: <fullname>-controlplane-tls
-    annotations: {}
   config:
     addr: "0.0.0.0:80"
-    consoleUrl: "https://console.france-nuage.fr"
-    oidcUrl: ""
     logLevel: "info"
     rootOrganizationName: "acme"
     rootServiceAccountKey: "changeme"
@@ -128,6 +117,8 @@ controlplane:
     kubeconfigEncryptionKey: ""
     hoopApiKey: ""
     hoopApiUrl: "https://bastion.ssh.france-nuage.fr"
+    deploymentLabels: ""
+    deploymentAnnotations: ""
   resources:
     requests:
       memory: "256Mi"
@@ -181,16 +172,10 @@ console:
   # Vide = anti-affinité zone preferred par défaut (console stateless).
   # Renseigner pour surcharger complètement le bloc affinity du pod.
   affinity: {}
-  # Ingress kingress (classe `nginx` requise par Capsule).
-  ingress:
-    enabled: false
-    className: nginx
-    clusterIssuer: letsencrypt-prod
-    host: ""
-    tlsSecretName: ""  # défaut: <fullname>-console-tls
-    annotations: {}
   config:
-    apiUrl: ""
+    oidcClientId: "francenuage"
+    oidcProviderName: "keycloak"
+    applicationMode: "rpc"
   resources:
     requests:
       memory: "128Mi"
@@ -225,13 +210,9 @@ systemTests:
     tag: ""
     pullPolicy: ""
   config:
-    consoleUrl: "" 
-    controlplaneUrl: ""  
-    keycloakUrl: ""  
     keycloakAdmin: "admin"
     keycloakAdminPassword: ""  
     oidcClientId: "francenuage"
-    oidcProviderUrl: ""
     headless: true
   resources:
     requests:
@@ -240,6 +221,17 @@ systemTests:
     limits:
       memory: "2Gi"
       cpu: "1000m"
+  # Persists the Playwright HTML report on a shared volume and serves it through
+  # an nginx deployment, so it stays reachable after the test pod exits (useful
+  # to inspect traces/videos of a failed run). Enabled for CI environments.
+  report:
+    enabled: false
+    storageClass: ""
+    size: 1Gi
+    image:
+      repository: registry.france-nuage.fr/library/nginx
+      tag: "stable-alpine"
+      pullPolicy: IfNotPresent
 
 migrations:
   atlas:
@@ -255,3 +247,33 @@ migrations:
       repository: registry.france-nuage.fr/authzed/zed
       tag: "latest"
       pullPolicy: IfNotPresent
+
+# Internal DNS suffix served by the cluster (kubelet clusterDomain). Standard
+# clusters use "cluster.local"; override when a cluster serves another zone
+# (e.g. "qual.local" on qualif). Used to build in-cluster service FQDNs.
+clusterDomain: cluster.local
+
+# Pins the public Keycloak host to an in-cluster ingress IP via hostAliases on
+# the backend deployments. Leave empty when the public OIDC URL is reachable
+# from pods (prod, local). Set to the ingress controller ClusterIP on clusters
+# where the hairpin does not resolve (e.g. qualif). See oidcHairpinHostAliases.
+oidcHairpinIp: ""
+
+ingress:
+  baseDomain: ""
+  # Optional environment id folded into a single host label for ephemeral
+  # environments (e.g. "console--<envId>.<baseDomain>"). Empty in prod/local.
+  envId: ""
+  hostSeparator: "--"
+  # When set, ingresses use this pre-existing TLS secret (a shared wildcard)
+  # instead of requesting a per-host certificate from cert-manager. Empty in
+  # prod/local, where cert-manager issues certificates via clusterIssuer.
+  tlsSecretName: ""
+  # Redirect HTTP to HTTPS at the ingress. Disable on qualif, where TLS is
+  # terminated upstream (prod zero-trust) and forwarded as HTTP: keeping the
+  # redirect on would loop indefinitely (ERR_TOO_MANY_REDIRECTS).
+  sslRedirect: true
+  className: nginx
+  clusterIssuer: letsencrypt-prod
+  monitoring: false
+  annotations: {}

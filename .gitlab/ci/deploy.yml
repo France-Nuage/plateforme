@@ -1,0 +1,193 @@
+# Ephemeral environments deployed on the qualification cluster. test-env is
+# redeployed cleanly each pipeline to run the system tests, then torn down;
+# review-env is deployed on demand and kept until it expires or its MR closes.
+# Each environment lives in a frn-ci-<pipeline> namespace labelled for the
+# scheduled garbage collector (see scheduled.yml); the control plane propagates
+# those labels to the managed service namespaces it creates (DEPLOYMENT_LABELS).
+
+.ci_env_variables:
+  variables:
+    # Hosts are flattened to a single label (console--<pipeline>.qual.apps...) so
+    # the shared *.qual.apps wildcard certificate covers them; a wildcard only
+    # matches one level, hence the "--" separator instead of a dot.
+    BASE_DOMAIN: "qual.apps.france-nuage.fr"
+    ENV_ID: "${CI_PIPELINE_ID}"
+    RELEASE_NAME: plateforme
+    # Shared wildcard certificate reused by every ephemeral environment.
+    WILDCARD_TLS_NAMESPACE: "france-nuage-system"
+    WILDCARD_TLS_SECRET: "wildcard-qual-apps-tls"
+    # Single source of truth for the ephemeral environment lifetime. Environments
+    # are normally torn down when the MR merges or closes (on_stop); this TTL is
+    # only the safety net for the scheduled garbage collector.
+    CI_ENV_TTL_SECONDS: "604800"
+
+.deploy_ci_env:
+  extends:
+    - .helm_qualif_template
+    - .ci_env_variables
+  script:
+    - |
+      set -e
+
+      kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply --validate=false -f -
+      kubectl label namespace "${NAMESPACE}" --overwrite \
+        frn.ci/managed=true \
+        frn.ci/pipeline-id="${CI_PIPELINE_ID}" \
+        frn.ci/mr-iid="${CI_MERGE_REQUEST_IID:-none}"
+      kubectl annotate namespace "${NAMESPACE}" --overwrite \
+        frn.ci/expires-at="$(date -u -d "@$(( $(date -u +%s) + ${CI_ENV_TTL_SECONDS} ))" +%Y-%m-%dT%H:%M:%SZ)"
+
+      # Reuse the shared *.qual.apps wildcard certificate instead of issuing one
+      # per environment: this avoids Let's Encrypt rate limits (50 certs/week per
+      # registered domain) and removes the DNS-01 wait from the critical path.
+      # Recreate the secret from its cert material (via create --dry-run | apply)
+      # to drop the source secret's namespace-bound and owner metadata.
+      kubectl get secret "${WILDCARD_TLS_SECRET}" -n "${WILDCARD_TLS_NAMESPACE}" \
+        -o jsonpath='{.data.tls\.crt}' | base64 -d > /tmp/wildcard.crt
+      kubectl get secret "${WILDCARD_TLS_SECRET}" -n "${WILDCARD_TLS_NAMESPACE}" \
+        -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/wildcard.key
+      # --validate=false skips the cluster OpenAPI download, which is not needed
+      # for a plain TLS secret and occasionally times out on the qualif API server.
+      kubectl create secret tls "${WILDCARD_TLS_SECRET}" \
+        --cert=/tmp/wildcard.crt --key=/tmp/wildcard.key \
+        -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply --validate=false -f -
+      rm -f /tmp/wildcard.crt /tmp/wildcard.key
+
+      helm upgrade --install "${RELEASE_NAME}" ./helm/plateforme \
+        --namespace "${NAMESPACE}" \
+        --values ./helm/plateforme/values-ci.yaml \
+        --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
+        --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
+        --set global.imagePullPolicy=Always \
+        --set ingress.baseDomain="${BASE_DOMAIN}" \
+        --set ingress.envId="${ENV_ID}" \
+        --set ingress.hostSeparator="--" \
+        --set ingress.tlsSecretName="${WILDCARD_TLS_SECRET}" \
+        --set secrets.postgresPassword="postgres" \
+        --set secrets.spicedbPassword="spicedb_password" \
+        --set secrets.spicedbPresharedKey="${SPICEDB_TOKEN}" \
+        --set secrets.keycloakAdminPassword="admin" \
+        --set controlplane.config.rootServiceAccountKey="ci-root-sa-key" \
+        --set controlplane.config.kubeconfigEncryptionKey="Y2ktZW5jcnlwdGlvbi1rZXktMzItYnl0ZXMtcGFkISE=" \
+        --set secrets.workerToken="ci-worker-token" \
+        --set secrets.ciServiceToken="ci-service-token" \
+        --set-string controlplane.config.deploymentLabels="frn.ci/managed=true\,frn.ci/pipeline-id=${CI_PIPELINE_ID}" \
+        ${HELM_EXTRA_ARGS:-} \
+        --wait \
+        --timeout 15m
+
+.cleanup_ci_env:
+  extends: .helm_qualif_template
+  script:
+    - kubectl delete namespace -l frn.ci/pipeline-id="${CI_PIPELINE_ID}" --wait=false || true
+
+"deploy / test-env":
+  extends: .deploy_ci_env
+  stage: deploy
+  resource_group: "test-env-${CI_PIPELINE_ID}"
+  variables:
+    NAMESPACE: "frn-ci-test-${CI_PIPELINE_ID}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+"system tests / kubernetes":
+  extends:
+    - .helm_qualif_template
+    - .ci_env_variables
+  stage: system-tests
+  needs:
+    - job: "deploy / test-env"
+      artifacts: false
+  variables:
+    NAMESPACE: "frn-ci-test-${CI_PIPELINE_ID}"
+  environment:
+    name: "report/${CI_COMMIT_REF_SLUG}"
+    url: "https://report--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+    on_stop: "cleanup / test-env"
+    auto_stop_in: 1 week
+  script:
+    - |
+      JOB="${RELEASE_NAME}-system-tests"
+      kubectl logs -n "${NAMESPACE}" -f job/"${JOB}" --pod-running-timeout=10m 2>&1 | tee system-tests-logs.txt || true
+      RESULT=0
+      kubectl wait -n "${NAMESPACE}" job/"${JOB}" --for=condition=complete --timeout=5m \
+        && echo "System tests passed" \
+        || { echo "System tests failed"; RESULT=1; }
+
+      # Free cluster resources but keep the report server (and its volume) so the
+      # Playwright report stays reachable until the environment is stopped. Delete
+      # the application deployments (the report deployment and its PVC survive).
+      echo "Removing application workloads, keeping the report server..."
+      kubectl delete deployment,statefulset -n "${NAMESPACE}" \
+        -l app.kubernetes.io/instance="${RELEASE_NAME}",app.kubernetes.io/component!=system-tests-report \
+        --ignore-not-found || true
+      echo "Report available at https://report--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+
+      exit ${RESULT}
+  artifacts:
+    when: always
+    paths:
+      - system-tests-logs.txt
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+"cleanup / test-env":
+  extends: .cleanup_ci_env
+  stage: cleanup
+  environment:
+    name: "report/${CI_COMMIT_REF_SLUG}"
+    action: stop
+  needs:
+    - job: "deploy / test-env"
+      artifacts: false
+    - job: "system tests / kubernetes"
+      artifacts: false
+      optional: true
+  # Stops the report environment: triggered on demand, when the MR merges/closes,
+  # or by auto_stop_in. Not run automatically so the report survives the pipeline.
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+      allow_failure: true
+
+"deploy / review-env":
+  extends: .deploy_ci_env
+  stage: deploy
+  resource_group: "review-env-${CI_PIPELINE_ID}"
+  variables:
+    NAMESPACE: "frn-ci-review-${CI_PIPELINE_ID}"
+    # A review environment is meant to be browsed, not tested: skip the tests.
+    HELM_EXTRA_ARGS: "--set systemTests.enabled=false"
+  environment:
+    name: "review/${CI_COMMIT_REF_SLUG}"
+    url: "https://console--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+    on_stop: "stop / review-env"
+    auto_stop_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+      allow_failure: true
+
+"stop / review-env":
+  extends: .cleanup_ci_env
+  stage: cleanup
+  variables:
+    NAMESPACE: "frn-ci-review-${CI_PIPELINE_ID}"
+  environment:
+    name: "review/${CI_COMMIT_REF_SLUG}"
+    action: stop
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+      allow_failure: true

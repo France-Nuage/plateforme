@@ -1,4 +1,20 @@
 {{- if and .Values.keycloak.enabled .Values.keycloak.config.importRealm }}
+{{- $realm := .Files.Get "files/keycloak-realm.json" | fromJson }}
+{{- /*
+  The imported realm hardcodes console.test as the client redirect origin, which
+  only matches the local docker-compose setup. When an ingress baseDomain is set
+  (CI, prod), append the public console origin so Keycloak accepts the OIDC
+  redirect back to the deployed console.
+*/}}
+{{- if .Values.ingress.baseDomain }}
+{{- $consoleUrl := include "plateforme.consoleUrl" . }}
+{{- range $client := $realm.clients }}
+{{- if eq $client.clientId "francenuage" }}
+{{- $client = set $client "redirectUris" (append $client.redirectUris (printf "%s/*" $consoleUrl)) }}
+{{- $client = set $client "webOrigins" (append $client.webOrigins $consoleUrl) }}
+{{- end }}
+{{- end }}
+{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,5 +24,5 @@ metadata:
     app.kubernetes.io/component: keycloak
 data:
   francenuage-realm.json: |
-    {{ .Files.Get "files/keycloak-realm.json" | nindent 4 }}
+    {{ $realm | toJson | nindent 4 }}
 {{- end }}

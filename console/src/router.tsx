@@ -55,6 +55,8 @@ const Router = () => (
     <BrowserRouter>
       <NuqsAdapter>
         <Routes>
+          {/* Index redirect, resolved before any guard runs on "/" */}
+          <Route index element={<HomePage />} />
           {/* Authentication routes */}
           <Route element={<PageGuard />}>
             <Route path={RoutePath.Login} element={<LoginPage />} />
@@ -67,7 +69,6 @@ const Router = () => (
           <Route element={<PageGuard authenticated />}>
             <Route element={<OrganizationGuard />}>
               <Route element={<AppLayout links={links} />}>
-                <Route index element={<HomePage />} />
                 <Route path={RoutePath.Instances} element={<InstancesPage />} />
                 <Route
                   path={RoutePath.CreateInstance}
