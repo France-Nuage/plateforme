@@ -15,17 +15,24 @@ export class OidcPage extends BasePage {
    */
   public constructor(page: Page) {
     super(page, `${process.env.OIDC_PROVIDER_URL}/protocol/openid-connect/auth`);
+    // Sélecteurs FerrisKey (webapp login form, source-vérifié front/login-form.tsx +
+    // rendu live) : champ #email (type=email), #password, bouton submit. Diffère de
+    // Keycloak (#username / bouton "Sign In").
     this.locators = {
       continueButton: page.getByRole('button', { name: 'Continue' }),
-      loginButton: page.getByRole('button', { name: 'Sign In' }),
-      emailInput: page.locator('#username'),
+      loginButton: page.locator('button[type="submit"]'),
+      emailInput: page.locator('#email'),
       passwordInput: page.locator('#password')
     };
   }
 
   public async assertRedirectedTo(): Promise<void> {
     await test.step(`I should be redirected to the ${this.url} page`, async () => {
-      await this.page.waitForURL((url) => url.href.includes('/protocol/openid-connect/auth'));
+      // FerrisKey redirige l'authorize (/protocol/openid-connect/auth) vers la page
+      // de login du webapp (/realms/<realm>/authentication/login).
+      await this.page.waitForURL((url) =>
+        url.href.includes('/authentication/login') ||
+        url.href.includes('/protocol/openid-connect/auth'));
     });
   }
 }
