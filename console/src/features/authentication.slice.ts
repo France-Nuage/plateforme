@@ -1,22 +1,25 @@
-import { CurrentUser, User } from '@france-nuage/sdk';
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import { User as OIDCUser } from 'oidc-client-ts';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { ExtraArgument } from '@/store';
+import { Me, fetchMe, logoutRedirect } from '@/services/bff-auth';
 
 /**
  * Represents the authentication state.
+ *
+ * The whole state is derived from the control plane's `/auth/me` endpoint
+ * (see {@link fetchSession}): the browser never inspects a token. `isAdmin`
+ * reflects `users.is_admin` in the database, resolved server-side.
  */
 type AuthenticationState = {
-  token?: string;
-  user?: User;
+  /**
+   * Whether the visitor has a valid server-side session.
+   */
+  authenticated: boolean;
   /**
    * Whether the authenticated user holds platform-admin privileges.
    *
-   * Authoritative value fetched from the control plane via `fetchCurrentUser`
-   * (which reads `users.is_admin`). Keycloak only authenticates the user; it is
-   * never inspected for roles. Defaults to false until confirmed by the server.
+   * Authoritative value sourced from `/auth/me` (which reads `users.is_admin`).
+   * The identity provider only authenticates the user; it is never inspected
+   * for roles. Defaults to false until confirmed by the server.
    */
   isAdmin: boolean;
 };
@@ -25,71 +28,62 @@ type AuthenticationState = {
  * The initial authentication state, matching an unauthenticated user.
  */
 const initialState: AuthenticationState = {
+  authenticated: false,
   isAdmin: false,
 };
 
-export const logout = createAsyncThunk<void, void>(
-  'authentication/logout',
-  async () => {},
+/**
+ * Bootstraps (or refreshes) the authentication state from the control plane.
+ *
+ * Reads `/auth/me` over the httpOnly session cookie and returns the identity
+ * payload. The reducers below turn it into `authenticated` + `isAdmin`; a
+ * rejected request fails closed (unauthenticated, non-admin).
+ */
+export const fetchSession = createAsyncThunk<Me, void>(
+  'authentication/fetchSession',
+  () => fetchMe(),
 );
 
 /**
- * Fetches the authenticated caller's platform-admin status from the control
- * plane. This is the single source of truth for `isAdmin`: it reflects
- * `users.is_admin` in the database, not an OIDC token claim. Dispatch it right
- * after `setOIDCUser`, once the bearer token is in the store.
+ * Logs the user out.
+ *
+ * Redirects the browser to the control plane's `/auth/logout`, which clears the
+ * session cookie server-side and forwards to the identity provider's end-session
+ * endpoint. The local state is cleared as well (moot once the navigation
+ * happens, but keeps the store consistent if it does not).
  */
-export const fetchCurrentUser = createAsyncThunk<
-  CurrentUser,
-  void,
-  { extra: ExtraArgument }
->('authentication/fetchCurrentUser', (_, { extra }) =>
-  extra.services.profile.getCurrentUser(),
+export const logout = createAsyncThunk<void, void>(
+  'authentication/logout',
+  () => {
+    logoutRedirect();
+    return Promise.resolve();
+  },
 );
-
-// todo: OIDCUser is a class, not an object, which does not serialize, so we parse it to smth better for redux
-export function parseOidcUser(user: OIDCUser): {
-  token: string;
-  user: User;
-} {
-  if (
-    !user.id_token ||
-    !user.profile ||
-    !user.profile.email ||
-    !user.profile.given_name ||
-    !user.profile.family_name
-  ) {
-    throw new Error('Error: user format is not valid.');
-  }
-
-  return {
-    token: user.id_token,
-    user: {
-      email: user.profile.email,
-      firstName: user.profile.given_name,
-      lastName: user.profile.family_name,
-      picture: user.profile.picture,
-    },
-  };
-}
 
 /**
  * The authentication slice.
  */
 export const authenticationSlice = createSlice({
   extraReducers: (builder) => {
-    builder.addCase(logout.fulfilled, (state) => {
-      state.token = undefined;
-      state.user = undefined;
+    // Session identity resolved server-side. On success we trust the
+    // `authenticated` discriminant; on failure we fail closed.
+    builder.addCase(fetchSession.fulfilled, (state, action) => {
+      const me = action.payload;
+      if (me.authenticated) {
+        state.authenticated = true;
+        state.isAdmin = me.isAdmin;
+      } else {
+        state.authenticated = false;
+        state.isAdmin = false;
+      }
+    });
+    builder.addCase(fetchSession.rejected, (state) => {
+      state.authenticated = false;
       state.isAdmin = false;
     });
 
-    // Authoritative admin status, resolved server-side. On failure we fail
-    // closed (no admin UI) rather than trusting a stale value.
-    builder.addCase(fetchCurrentUser.fulfilled, (state, action) => {
-      state.isAdmin = action.payload.isAdmin;
-    });
-    builder.addCase(fetchCurrentUser.rejected, (state) => {
+    builder.addCase(logout.fulfilled, (state) => {
+      state.authenticated = false;
       state.isAdmin = false;
     });
   },
@@ -97,36 +91,17 @@ export const authenticationSlice = createSlice({
   name: 'authentication',
   reducers: {
     /**
-     * Clears the authentication state, reverting back to an unauthenticated state.
+     * Clears the authentication state, reverting back to an unauthenticated
+     * state. Dispatched when the session cannot be recovered (see the gRPC auth
+     * interceptor), which lets the page guard bounce the user to `/login`.
      */
     clearAuthenticationState: (state) => {
-      state.token = undefined;
-      state.user = undefined;
+      state.authenticated = false;
       state.isAdmin = false;
-    },
-    /**
-     * Set the authentication state to represent a logged in user.
-     *
-     * Stores the OIDC identity and bearer token. The admin status is resolved
-     * separately via `fetchCurrentUser`, which must be dispatched afterwards.
-     */
-    setOIDCUser: (
-      state,
-      action: PayloadAction<{ token: string; user: User }>,
-    ) => {
-      state.token = action.payload.token;
-
-      state.user = {
-        email: action.payload.user.email,
-        firstName: action.payload.user.firstName,
-        lastName: action.payload.user.lastName,
-        picture: action.payload.user.picture,
-      };
     },
   },
 });
 
-export const { clearAuthenticationState, setOIDCUser } =
-  authenticationSlice.actions;
+export const { clearAuthenticationState } = authenticationSlice.actions;
 
 export default authenticationSlice;

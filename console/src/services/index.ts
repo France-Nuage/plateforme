@@ -4,9 +4,9 @@ import { AppStore } from '@/store';
 
 import { configureTransport } from './transport.rpc';
 
+export * from './bff-auth';
 export * from './conversion';
 export * from './managed-services';
-export * from './user-manager';
 
 /**
  * Configures the complete service layer with store-aware transport.

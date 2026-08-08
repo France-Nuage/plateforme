@@ -26,7 +26,7 @@ import { useAppSelector } from './use-app-selector';
  */
 export function useControlplaneData() {
   const isAuthenticated = useAppSelector(
-    (state) => !!state.authentication.token,
+    (state) => state.authentication.authenticated,
   );
   const organizations = useAppSelector(
     (state) => state.resources.organizations,

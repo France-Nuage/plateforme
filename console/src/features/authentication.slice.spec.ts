@@ -1,168 +1,120 @@
-import { User } from 'oidc-client-ts';
 import { describe, expect, it } from 'vitest';
+
+import type { Me } from '@/services/bff-auth';
 
 import authenticationSlice, {
   clearAuthenticationState,
-  fetchCurrentUser,
+  fetchSession,
   logout,
-  parseOidcUser,
-  setOIDCUser,
 } from './authentication.slice';
 
 const reducer = authenticationSlice.reducer;
 
 /**
- * Builds a minimal valid OIDCUser for testing.
- * Only the fields required by parseOidcUser are populated.
+ * Builds a `/auth/me` payload. Defaults to an unauthenticated visitor; pass the
+ * fields relevant to the case under test.
  */
-function buildUser(overrides: {
-  email?: string;
-  family_name?: string;
-  given_name?: string;
-  id_token?: string;
-}): User {
-  return new User({
-    access_token: 'access',
-    id_token: overrides.id_token,
-    profile: {
-      aud: 'audience',
-      email: overrides.email,
-      exp: 0,
-      family_name: overrides.family_name,
-      given_name: overrides.given_name,
-      iat: 0,
-      iss: 'issuer',
-      sub: 'user-sub',
-    },
-    session_state: null,
-    token_type: 'Bearer',
-  });
+function me(overrides: Partial<Me>): Me {
+  return {
+    authenticated: false,
+    email: '',
+    firstName: '',
+    isAdmin: false,
+    lastName: '',
+    picture: '',
+    sub: '',
+    ...overrides,
+  };
 }
 
-describe('parseOidcUser', () => {
-  const validBase = {
-    email: 'user@example.com',
-    family_name: 'Dupont',
-    given_name: 'Alice',
-    id_token: 'tok',
-  };
+const request = 'req';
 
-  it('throws when id_token is absent', () => {
-    expect(() =>
-      parseOidcUser(buildUser({ ...validBase, id_token: undefined })),
-    ).toThrow();
+describe('fetchSession bootstrap', () => {
+  it('is unauthenticated and non-admin by default', () => {
+    const state = reducer(undefined, { type: '@@INIT' });
+    expect(state.authenticated).toBe(false);
+    expect(state.isAdmin).toBe(false);
   });
 
-  it('throws when email is absent', () => {
-    expect(() =>
-      parseOidcUser(buildUser({ ...validBase, email: undefined })),
-    ).toThrow();
+  it('authenticates an admin session', () => {
+    const state = reducer(
+      undefined,
+      fetchSession.fulfilled(
+        me({ authenticated: true, isAdmin: true }),
+        request,
+        undefined,
+      ),
+    );
+    expect(state.authenticated).toBe(true);
+    expect(state.isAdmin).toBe(true);
   });
 
-  it('maps token and user fields on a valid user', () => {
-    const result = parseOidcUser(buildUser(validBase));
-    expect(result.token).toBe('tok');
-    expect(result.user.email).toBe('user@example.com');
-    expect(result.user.firstName).toBe('Alice');
-    expect(result.user.lastName).toBe('Dupont');
+  it('authenticates a non-admin session', () => {
+    const state = reducer(
+      undefined,
+      fetchSession.fulfilled(
+        me({ authenticated: true, isAdmin: false }),
+        request,
+        undefined,
+      ),
+    );
+    expect(state.authenticated).toBe(true);
+    expect(state.isAdmin).toBe(false);
   });
 
-  it('does not derive admin status from the token', () => {
-    const result = parseOidcUser(buildUser(validBase));
-    expect('isAdmin' in result).toBe(false);
+  it('trusts the discriminant: no session means non-admin, even if the flag says otherwise', () => {
+    const state = reducer(
+      undefined,
+      fetchSession.fulfilled(
+        me({ authenticated: false, isAdmin: true }),
+        request,
+        undefined,
+      ),
+    );
+    expect(state.authenticated).toBe(false);
+    expect(state.isAdmin).toBe(false);
+  });
+
+  it('fails closed when /auth/me cannot be read', () => {
+    const authenticated = reducer(
+      undefined,
+      fetchSession.fulfilled(
+        me({ authenticated: true, isAdmin: true }),
+        request,
+        undefined,
+      ),
+    );
+    const state = reducer(
+      authenticated,
+      fetchSession.rejected(new Error('network'), request, undefined),
+    );
+    expect(state.authenticated).toBe(false);
+    expect(state.isAdmin).toBe(false);
   });
 });
 
-describe('authentication reducer admin status', () => {
-  it('is not admin by default', () => {
-    const state = reducer(undefined, { type: '@@INIT' });
+describe('logout and clear', () => {
+  const authenticatedAdmin = reducer(
+    undefined,
+    fetchSession.fulfilled(
+      me({ authenticated: true, isAdmin: true }),
+      request,
+      undefined,
+    ),
+  );
+
+  it('clears the session on logout', () => {
+    const state = reducer(
+      authenticatedAdmin,
+      logout.fulfilled(undefined, request, undefined),
+    );
+    expect(state.authenticated).toBe(false);
     expect(state.isAdmin).toBe(false);
   });
 
-  it('becomes admin when the control plane confirms it', () => {
-    const state = reducer(
-      undefined,
-      fetchCurrentUser.fulfilled(
-        { email: 'a@b.c', id: 'id', isAdmin: true },
-        'req',
-        undefined,
-      ),
-    );
-    expect(state.isAdmin).toBe(true);
-  });
-
-  it('stays non-admin when the control plane denies it', () => {
-    const state = reducer(
-      undefined,
-      fetchCurrentUser.fulfilled(
-        { email: 'a@b.c', id: 'id', isAdmin: false },
-        'req',
-        undefined,
-      ),
-    );
-    expect(state.isAdmin).toBe(false);
-  });
-
-  it('fails closed (drops admin) when the lookup fails', () => {
-    const admin = reducer(
-      undefined,
-      fetchCurrentUser.fulfilled(
-        { email: 'a@b.c', id: 'id', isAdmin: true },
-        'req',
-        undefined,
-      ),
-    );
-    const state = reducer(
-      admin,
-      fetchCurrentUser.rejected(new Error('network'), 'req', undefined),
-    );
-    expect(state.isAdmin).toBe(false);
-  });
-
-  it('does not change admin status when setting the OIDC user', () => {
-    const admin = reducer(
-      undefined,
-      fetchCurrentUser.fulfilled(
-        { email: 'a@b.c', id: 'id', isAdmin: true },
-        'req',
-        undefined,
-      ),
-    );
-    const state = reducer(
-      admin,
-      setOIDCUser({
-        token: 'tok',
-        user: { email: 'a@b.c', firstName: 'Alice', lastName: 'Dupont' },
-      }),
-    );
-    expect(state.token).toBe('tok');
-    expect(state.isAdmin).toBe(true);
-  });
-
-  it('clears admin status on logout', () => {
-    const admin = reducer(
-      undefined,
-      fetchCurrentUser.fulfilled(
-        { email: 'a@b.c', id: 'id', isAdmin: true },
-        'req',
-        undefined,
-      ),
-    );
-    const state = reducer(admin, logout.fulfilled(undefined, 'req', undefined));
-    expect(state.isAdmin).toBe(false);
-    expect(state.token).toBeUndefined();
-  });
-
-  it('clears admin status when clearing the auth state', () => {
-    const admin = reducer(
-      undefined,
-      fetchCurrentUser.fulfilled(
-        { email: 'a@b.c', id: 'id', isAdmin: true },
-        'req',
-        undefined,
-      ),
-    );
-    const state = reducer(admin, clearAuthenticationState());
+  it('clears the session on clearAuthenticationState', () => {
+    const state = reducer(authenticatedAdmin, clearAuthenticationState());
+    expect(state.authenticated).toBe(false);
     expect(state.isAdmin).toBe(false);
   });
 });
