@@ -12,7 +12,7 @@ use crate::{
     Config, Error,
     authorization::Authorize,
     compute::{Hypervisors, Instances, Zones},
-    identity::{IAM, Invitations, ServiceAccounts, Users},
+    identity::{IAM, Invitations, ServiceAccounts, SessionKey, Users},
     resourcemanager::{Organizations, Projects},
 };
 use auth::OpenID;
@@ -55,7 +55,12 @@ impl App<SpiceDB> {
         let openid = OpenID::discover(reqwest::Client::new(), &config.oidc_url)
             .await
             .map_err(|err| Error::Other(err.to_string()))?;
-        let iam = IAM::new(db.clone(), openid.clone());
+        // The BFF session key (opens `frn_session` cookies) is present only when
+        // the confidential-client BFF is configured. `AUTH_COOKIE_KEY` is the
+        // same base64 32-byte secret the server's `build_bff` seals cookies with,
+        // so the gRPC cookie path and the BFF agree on one key.
+        let session_key = session_key_from_env()?;
+        let iam = IAM::new(db.clone(), openid.clone(), session_key);
 
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
         let organizations = Organizations::new(auth.clone(), db.clone());
@@ -93,7 +98,12 @@ impl App<SpiceDB> {
         let auth = SpiceDB::mock().await;
         let config = Config::test();
         let openid = OpenID::mock().await;
-        let iam = IAM::new(db.clone(), openid.clone());
+        // Deterministic key so black-box tests can seal cookies the IAM opens.
+        let iam = IAM::new(
+            db.clone(),
+            openid.clone(),
+            Some(SessionKey::from_bytes(crate::identity::TEST_SESSION_KEY)),
+        );
 
         let instances = Instances::new(auth.clone(), db.clone());
         let hypervisors = Hypervisors::new(auth.clone(), db.clone());
@@ -122,5 +132,19 @@ impl App<SpiceDB> {
         };
 
         Ok(app)
+    }
+}
+
+/// Reads the BFF session-cookie key from `AUTH_COOKIE_KEY`.
+///
+/// Returns `None` when unset/empty (confidential-client BFF not configured), so
+/// the cookie credential path stays disabled and only bearer tokens authenticate.
+/// A present-but-malformed key is a hard startup error — never a silent downgrade.
+fn session_key_from_env() -> Result<Option<SessionKey>, Error> {
+    match std::env::var("AUTH_COOKIE_KEY") {
+        Ok(key) if !key.is_empty() => SessionKey::from_base64(&key)
+            .map(Some)
+            .map_err(|err| Error::Other(err.to_string())),
+        _ => Ok(None),
     }
 }

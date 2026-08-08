@@ -41,7 +41,8 @@ pub type TraceLayer = tower_http::trace::TraceLayer<SharedClassifier<GrpcErrorsA
 ///         tower_http::cors::AllowHeaders::any(),
 ///         tower_http::cors::AllowMethods::any(),
 ///         tower_http::cors::AllowOrigin::any(),
-///         tower_http::cors::ExposeHeaders::any()
+///         tower_http::cors::ExposeHeaders::any(),
+///         false,
 ///         );
 /// ```
 ///
@@ -204,7 +205,8 @@ impl<L> Server<L> {
     ///     tower_http::cors::AllowHeaders::any(),
     ///     tower_http::cors::AllowMethods::any(),
     ///     tower_http::cors::AllowOrigin::any(),
-    ///     tower_http::cors::ExposeHeaders::any()
+    ///     tower_http::cors::ExposeHeaders::any(),
+    ///     false,
     /// );
     /// ```
     ///
@@ -225,15 +227,17 @@ impl<L> Server<L> {
         allow_methods: AllowMethods,
         allow_origin: AllowOrigin,
         expose_headers: ExposeHeaders,
+        allow_credentials: bool,
     ) -> Server<Stack<CorsLayer, L>> {
+        let cors = CorsLayer::new()
+            .allow_headers(allow_headers)
+            .allow_methods(allow_methods)
+            .allow_origin(allow_origin)
+            .expose_headers(expose_headers)
+            .allow_credentials(allow_credentials);
+
         Server {
-            inner: self.inner.layer(
-                CorsLayer::new()
-                    .allow_headers(allow_headers)
-                    .allow_methods(allow_methods)
-                    .allow_origin(allow_origin)
-                    .expose_headers(expose_headers),
-            ),
+            inner: self.inner.layer(cors),
         }
     }
 }

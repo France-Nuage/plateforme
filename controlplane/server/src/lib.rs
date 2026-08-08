@@ -24,8 +24,10 @@
 //! will be rejected with an authentication error.
 
 pub mod application;
+pub mod bff;
 pub mod config;
 pub mod error;
+pub mod metrics;
 pub mod router;
 pub mod server;
 pub mod webhook;

@@ -132,8 +132,14 @@ impl OpenID {
 
         let decoding_key = self.get_or_fetch_key(&kid).await?;
         let mut validation = Validation::new(header.alg);
+        // Audience is verified by explicit code where an expected value exists
+        // (the BFF checks `aud` against its client id); the bearer/user path has
+        // no configured expected audience, so leave `aud` to explicit checks.
         validation.validate_aud = false;
-        validation.validate_exp = false;
+        // Reject expired tokens: an expired user id_token presented as a bearer
+        // credential must fail closed (service accounts are matched by KEY before
+        // this path, so they are unaffected).
+        validation.validate_exp = true;
 
         decode(token, &decoding_key, &validation).map_err(Into::into)
     }
@@ -297,6 +303,34 @@ pub mod mock {
                 .expect("could not create the encoding key");
 
             encode(&header, &claim, &e).expect("could not encode token")
+        }
+
+        /// Signs an arbitrary claims object as an RS256 JWT with the
+        /// deterministic mock key.
+        ///
+        /// Unlike [`OpenID::token`], this accepts a full claims payload, so
+        /// tests can mint id_tokens carrying `iss`, `aud`, `nonce`, profile
+        /// claims, etc. — everything the confidential-client BFF validates. The
+        /// signature is verifiable by an `OpenID` configured against the same
+        /// mock JWK Set.
+        ///
+        /// # Security Note
+        ///
+        /// Test-only, exactly like [`OpenID::token`]. Never use in production.
+        pub fn sign_claims(claims: &serde_json::Value) -> String {
+            let (private_key, _) = Self::rsa();
+
+            let mut header = Header::new(Algorithm::RS256);
+            header.kid = Some(MOCK_JWK_KID.to_owned());
+
+            let pem = private_key
+                .to_pkcs8_pem(LineEnding::LF)
+                .expect("could not create the pem");
+
+            let e = EncodingKey::from_rsa_pem(pem.as_bytes())
+                .expect("could not create the encoding key");
+
+            encode(&header, claims, &e).expect("could not encode token")
         }
     }
 }
