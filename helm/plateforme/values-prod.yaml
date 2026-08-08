@@ -104,6 +104,20 @@ controlplane:
     oidcUrl: ""
     logLevel: "warn"
     rootOrganizationName: "France Nuage"
+    # --- Activation du BFF (rollout gated — cf. plan console-bff) -------------
+    # À DÉCOMMENTER seulement APRÈS, dans l'ordre :
+    #  1. client confidentiel `console` provisionné côté FerrisKey
+    #     (redirect_uri = https://controlplane.france-nuage.fr/auth/callback,
+    #     terraform charts/ferriskey) ;
+    #  2. SealedSecret `plateforme-prod-secrets` régénéré avec les clés
+    #     `oidc-client-secret` (secret du client) + `auth-cookie-key`
+    #     (openssl rand -base64 32) ;
+    #  3. déploiement conjoint control-plane (BFF) + console (image sans PKCE).
+    # Le flip active le BFF ET bascule l'issuer sur FerrisKey en même temps :
+    # oidcUrl: "https://auth.france-nuage.fr/realms/france-nuage"
+    # bff:
+    #   enabled: true
+    #   redirectUrl: "https://controlplane.france-nuage.fr/auth/callback"
   resources:
     requests:
       memory: "512Mi"

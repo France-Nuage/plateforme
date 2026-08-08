@@ -28,12 +28,8 @@ ARG VITE_APPLICATION_DEFAULT_MODE=rpc
 ENV VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE}
 ARG VITE_CONTROLPLANE_URL=https://controlplane.france-nuage.fr
 ENV VITE_CONTROLPLANE_URL=${VITE_CONTROLPLANE_URL}
-ARG VITE_OIDC_CLIENT_ID=france-nuage-console
-ENV VITE_OIDC_CLIENT_ID=${VITE_OIDC_CLIENT_ID}
-ARG VITE_OIDC_PROVIDER_NAME=france-nuage
-ENV VITE_OIDC_PROVIDER_NAME=${VITE_OIDC_PROVIDER_NAME}
-ARG VITE_OIDC_PROVIDER_URL=https://auth.france-nuage.fr/realms/france-nuage
-ENV VITE_OIDC_PROVIDER_URL=${VITE_OIDC_PROVIDER_URL}
+# OIDC est géré server-side par le BFF (control-plane) : le SPA n'a plus aucune
+# config OIDC (le flow public PKCE + oidc-client-ts a été retiré).
 RUN npm run build
 
 FROM ${NGINX_BASE_IMAGE} AS release
