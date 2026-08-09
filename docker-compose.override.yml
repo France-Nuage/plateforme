@@ -7,11 +7,15 @@ services:
     volumes: !override
       - ./controlplane:/app
       - /app/target
+      - bff_secret:/shared
+      - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
     extra_hosts: !reset
+      - "auth.test:host-gateway"
+      - "iam.test:host-gateway"
       - "console.test:host-gateway"
       - "controlplane.test:host-gateway"
     environment:
-      OIDC_URL: http://keycloak.test:8080/realms/francenuage/.well-known/openid-configuration
+      OIDC_URL: https://auth.test/realms/france-nuage/.well-known/openid-configuration
 
   worker:
     build:
@@ -41,12 +45,6 @@ services:
     build:
       args:
         NODE_BASE_IMAGE: node:22-alpine
-
-  keycloak:
-    networks:
-      default:
-        aliases:
-          - keycloak.test
 
   spicedb:
     ports: !reset
