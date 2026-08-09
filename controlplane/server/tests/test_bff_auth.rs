@@ -197,8 +197,7 @@ impl Harness {
 
 /// A pool that never connects — sufficient for the flows that do not query the DB.
 fn lazy_pool() -> PgPool {
-    PgPool::connect_lazy("postgres://bff-tests@localhost/none")
-        .expect("could not build lazy pool")
+    PgPool::connect_lazy("postgres://bff-tests@localhost/none").expect("could not build lazy pool")
 }
 
 /// Extracts a `Set-Cookie` value (up to the first `;`) for `name`.
@@ -259,7 +258,11 @@ async fn login_redirects_to_authorization_endpoint_with_state_and_nonce() {
     // The CSRF/replay tokens are stashed as httpOnly cookies.
     assert!(set_cookie(&response, "frn_oauth_state").is_some());
     assert!(set_cookie(&response, "frn_oauth_nonce").is_some());
-    assert!(cookie_has_attribute(&response, "frn_oauth_state", "HttpOnly"));
+    assert!(cookie_has_attribute(
+        &response,
+        "frn_oauth_state",
+        "HttpOnly"
+    ));
 }
 
 #[tokio::test]
@@ -268,7 +271,10 @@ async fn callback_rejects_a_state_mismatch() {
 
     let response = harness
         .client
-        .get(format!("{}/auth/callback?code=whatever&state=forged", harness.base))
+        .get(format!(
+            "{}/auth/callback?code=whatever&state=forged",
+            harness.base
+        ))
         .header(
             reqwest::header::COOKIE,
             "frn_oauth_state=legitimate; frn_oauth_nonce=n0nce",
@@ -321,7 +327,10 @@ async fn callback_completes_the_flow_and_sets_an_encrypted_session(pool: PgPool)
     // 3. Complete the callback with the browser's login cookies.
     let response = harness
         .client
-        .get(format!("{}/auth/callback?code=auth-code&state={state}", harness.base))
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
         .header(
             reqwest::header::COOKIE,
             format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),
@@ -341,7 +350,10 @@ async fn callback_completes_the_flow_and_sets_an_encrypted_session(pool: PgPool)
 
     let session = set_cookie(&response, "frn_session").expect("session cookie must be set");
     // The cookie is now an opaque, encrypted blob — never the raw id_token.
-    assert_ne!(session, id_token, "the session cookie must not carry the id_token");
+    assert_ne!(
+        session, id_token,
+        "the session cookie must not carry the id_token"
+    );
     assert!(cookie_has_attribute(&response, "frn_session", "HttpOnly"));
     assert!(cookie_has_attribute(&response, "frn_session", "Secure"));
 
@@ -380,7 +392,10 @@ async fn callback_rejects_a_nonce_mismatch() {
 
     let response = harness
         .client
-        .get(format!("{}/auth/callback?code=auth-code&state={state}", harness.base))
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
         .header(
             reqwest::header::COOKIE,
             format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),

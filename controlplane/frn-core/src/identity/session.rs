@@ -174,7 +174,10 @@ mod tests {
     fn open_rejects_garbage() {
         let key = SessionKey::from_bytes(TEST_SESSION_KEY);
 
-        assert!(matches!(key.open("tampered.garbage"), Err(SessionError::Open)));
+        assert!(matches!(
+            key.open("tampered.garbage"),
+            Err(SessionError::Open)
+        ));
     }
 
     #[test]

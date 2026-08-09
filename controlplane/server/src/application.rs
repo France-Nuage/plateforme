@@ -169,16 +169,13 @@ impl<L> Application<L> {
         Application {
             config: self.config.clone(),
             router: self.router,
-            server: self
-                .server
-                .with_tracing()
-                .with_cors(
-                    self.config.allow_headers,
-                    self.config.allow_methods,
-                    self.config.allow_origin,
-                    self.config.expose_headers,
-                    self.config.allow_credentials,
-                ),
+            server: self.server.with_tracing().with_cors(
+                self.config.allow_headers,
+                self.config.allow_methods,
+                self.config.allow_origin,
+                self.config.expose_headers,
+                self.config.allow_credentials,
+            ),
         }
     }
 
@@ -399,7 +396,9 @@ impl Application<Middleware<Identity>> {
         // only when `OIDC_CLIENT_SECRET` is configured; otherwise the legacy
         // SPA/PKCE flow is the sole auth path (unchanged).
         if let Some(bff) = self.config.bff.clone() {
-            tracing::info!("BFF confidential-client auth enabled (/auth/login, /auth/callback, /auth/me, /auth/logout)");
+            tracing::info!(
+                "BFF confidential-client auth enabled (/auth/login, /auth/callback, /auth/me, /auth/logout)"
+            );
             axum_router = axum_router.merge(bff.into_router());
         }
 

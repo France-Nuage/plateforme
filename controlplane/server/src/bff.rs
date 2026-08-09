@@ -511,7 +511,11 @@ async fn callback(
         Some(code) => code,
         None => {
             metrics::callback_reject(CallbackReject::Exchange);
-            return reject(StatusCode::BAD_REQUEST, "missing authorization code", &clear);
+            return reject(
+                StatusCode::BAD_REQUEST,
+                "missing authorization code",
+                &clear,
+            );
         }
     };
 
@@ -644,9 +648,17 @@ async fn refresh(State(bff): State<Bff>, headers: HeaderMap) -> Response {
     let mut headers = HeaderMap::new();
     headers.append(
         header::SET_COOKIE,
-        header_value(&bff.cookie.set(SESSION_COOKIE_NAME, &sealed, bff.session_max_age_secs)),
+        header_value(
+            &bff.cookie
+                .set(SESSION_COOKIE_NAME, &sealed, bff.session_max_age_secs),
+        ),
     );
-    (StatusCode::OK, headers, Json(RefreshResponse { refreshed: true })).into_response()
+    (
+        StatusCode::OK,
+        headers,
+        Json(RefreshResponse { refreshed: true }),
+    )
+        .into_response()
 }
 
 /// `GET /auth/refresh` success body.

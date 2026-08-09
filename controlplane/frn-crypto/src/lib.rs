@@ -270,7 +270,10 @@ mod tests {
         let kek = test_kek();
         let token = seal(&kek, b"{\"email\":\"a@b.c\"}", b"session-aad").unwrap();
 
-        assert_eq!(open(&kek, &token, b"session-aad").unwrap(), b"{\"email\":\"a@b.c\"}");
+        assert_eq!(
+            open(&kek, &token, b"session-aad").unwrap(),
+            b"{\"email\":\"a@b.c\"}"
+        );
     }
 
     #[test]

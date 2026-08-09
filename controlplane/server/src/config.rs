@@ -332,7 +332,9 @@ impl Config {
                 .expect("OIDC_REDIRECT_URL must be set in BFF mode (OIDC_CLIENT_SECRET present)"),
             console_url: env::var("CONSOLE_URL")
                 .expect("CONSOLE_URL must be set in BFF mode (OIDC_CLIENT_SECRET present)"),
-            cookie_domain: env::var("AUTH_COOKIE_DOMAIN").ok().filter(|d| !d.is_empty()),
+            cookie_domain: env::var("AUTH_COOKIE_DOMAIN")
+                .ok()
+                .filter(|d| !d.is_empty()),
             cookie_secure,
             cookie_same_site: same_site,
             cookie_key,
@@ -350,16 +352,7 @@ impl Config {
     /// allowed, and the explicit method/header lists required whenever
     /// `Access-Control-Allow-Credentials` is set (a `*` wildcard is illegal with
     /// credentials).
-    fn bff_cors() -> Result<
-        (
-            AllowHeaders,
-            AllowMethods,
-            AllowOrigin,
-            ExposeHeaders,
-            bool,
-        ),
-        Error,
-    > {
+    fn bff_cors() -> Result<(AllowHeaders, AllowMethods, AllowOrigin, ExposeHeaders, bool), Error> {
         use http::{HeaderName, HeaderValue, Method};
 
         let console_url = env::var("CONSOLE_URL")
@@ -374,8 +367,7 @@ impl Config {
             HeaderName::from_static("x-user-agent"),
             HeaderName::from_static("grpc-timeout"),
         ]);
-        let allow_methods =
-            AllowMethods::list([Method::GET, Method::POST, Method::OPTIONS]);
+        let allow_methods = AllowMethods::list([Method::GET, Method::POST, Method::OPTIONS]);
         let expose_headers = ExposeHeaders::list([
             HeaderName::from_static("grpc-status"),
             HeaderName::from_static("grpc-message"),

@@ -60,7 +60,10 @@ impl IAM {
         }
 
         if let Some(cookie) = session_token_from_cookie(request) {
-            return self.principal_from_session(&cookie).await.map(Principal::User);
+            return self
+                .principal_from_session(&cookie)
+                .await
+                .map(Principal::User);
         }
 
         Err(Error::Unauthenticated)
@@ -70,7 +73,9 @@ impl IAM {
     /// any decrypt/parse error or an elapsed inner `exp`.
     async fn principal_from_session(&self, cookie: &str) -> Result<User, Error> {
         let session_key = self.session_key.as_ref().ok_or(Error::Unauthenticated)?;
-        let payload = session_key.open(cookie).map_err(|_| Error::Unauthenticated)?;
+        let payload = session_key
+            .open(cookie)
+            .map_err(|_| Error::Unauthenticated)?;
 
         if payload.exp <= unix_now() {
             return Err(Error::Unauthenticated);
