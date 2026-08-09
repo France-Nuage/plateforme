@@ -125,7 +125,7 @@ impl Application<Identity> {
 ///
 /// This represents the full middleware stack that will be applied to the
 /// server, composed on top of the existing layer `L`.
-type Middleware<L> = Stack<GrpcWebLayer, Stack<CorsLayer, Stack<TraceLayer, L>>>;
+type Middleware<L> = Stack<CorsLayer, Stack<TraceLayer, L>>;
 
 impl<L> Application<L> {
     /// Adds the complete middleware stack to the application server.
@@ -178,8 +178,7 @@ impl<L> Application<L> {
                     self.config.allow_origin,
                     self.config.expose_headers,
                     self.config.allow_credentials,
-                )
-                .with_web(),
+                ),
         }
     }
 
@@ -381,10 +380,18 @@ impl Application<Middleware<Identity>> {
         // process spins up.
         let _ = crate::metrics::handle();
 
+        // gRPC-web is applied ONLY to the gRPC routes. tonic-web's layer returns
+        // HTTP 400 for every non-gRPC request (`RequestKind::Other` → BAD_REQUEST
+        // for HTTP/1.1, which is what a reverse proxy speaks to the backend), so
+        // wrapping the whole service would make the plain-HTTP surfaces
+        // (`/metrics`, BFF `/auth/*`) unreachable. axum's `.layer()` only wraps
+        // the routes registered before the call, so the gRPC routes are wrapped
+        // here and the HTTP routes below stay un-wrapped.
         let mut axum_router = self
             .router
             .routes
             .into_axum_router()
+            .layer(GrpcWebLayer::new())
             .route("/metrics", axum::routing::get(metrics_endpoint));
 
         // Mount the confidential-client BFF (`/auth/*`) on the same origin as
