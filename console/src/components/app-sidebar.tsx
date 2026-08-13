@@ -1,10 +1,12 @@
 import { Box, Button, Flex, Stack, Text } from '@chakra-ui/react';
 import { FunctionComponent } from 'react';
 import { IconType } from 'react-icons';
+import { HiLogout } from 'react-icons/hi';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router';
 
-import { useAppSelector } from '@/hooks';
+import { logout } from '@/features';
+import { useAppDispatch, useAppSelector } from '@/hooks';
 
 export type SidebarLink = {
   Icon: IconType;
@@ -25,6 +27,7 @@ export type AppSidebarProps = {
 
 export const AppSidebar: FunctionComponent<AppSidebarProps> = ({ links }) => {
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const isAdmin = useAppSelector((state) => state.authentication.isAdmin);
 
   const activeLink = links
@@ -44,8 +47,8 @@ export const AppSidebar: FunctionComponent<AppSidebarProps> = ({ links }) => {
       title: 'Services managés',
     },
     {
-      // Admin links are a UX-only hint gated on the Keycloak 'admin' role.
-      // The backend remains authoritative via users.is_admin.
+      // Admin links are a UX-only hint gated on the server-authoritative
+      // users.is_admin flag (sourced from /auth/me). The backend enforces it.
       links: isAdmin ? links.filter((link) => link.adminOnly) : [],
       title: 'Administration',
     },
@@ -53,7 +56,7 @@ export const AppSidebar: FunctionComponent<AppSidebarProps> = ({ links }) => {
 
   return (
     <Box h="100%" w={320}>
-      <Stack bg="bg.panel" p={{ base: 4, md: 6 }} gap={4}>
+      <Stack bg="bg.panel" p={{ base: 4, md: 6 }} gap={4} h="100%">
         {sections
           .filter((section) => section.links.length > 0)
           .map((section) => (
@@ -86,6 +89,23 @@ export const AppSidebar: FunctionComponent<AppSidebarProps> = ({ links }) => {
               ))}
             </Flex>
           ))}
+        <Box flexGrow={1} />
+        <Button
+          aria-label="Se déconnecter"
+          gap={3}
+          justifyContent="start"
+          onClick={() => dispatch(logout())}
+          variant="ghost"
+          width="full"
+          color="fg.muted"
+          _hover={{
+            bg: 'colorPalette.subtle',
+            color: 'colorPalette.fg',
+          }}
+        >
+          <HiLogout />
+          Se déconnecter
+        </Button>
       </Stack>
     </Box>
   );

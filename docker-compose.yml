@@ -72,9 +72,6 @@ services:
     build:
       args:
         BUILDKIT_INLINE_CACHE: ${BUILDKIT_INLINE_CACHE:-1}
-        VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-        VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-keycloak}
-        VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage}
         VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
         VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
       cache_from:
@@ -88,22 +85,16 @@ services:
         condition: service_healthy
       node-sdk:
         condition: service_completed_successfully
-      keycloak:
-        condition: service_healthy
       traefik:
         condition: service_started
     environment:
       NODE_EXTRA_CA_CERTS: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
-      VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
-      VITE_OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-keycloak}
-      VITE_OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage}
       VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
       VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
       PORT: 80
     expose:
       - "80"
     extra_hosts:
-      - "keycloak.test:host-gateway"
       - "console.test:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost"]
@@ -131,9 +122,17 @@ services:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}controlplane:master-${TARGET:-development}
       context: controlplane
       target: ${TARGET:-development}
+    entrypoint: ["/bin/sh", "-c"]
+    # Attend le secret du client confidentiel écrit par ferriskey-seed (généré
+    # serveur, non connu au build), l'exporte, puis lance le serveur (dev CMD).
+    command:
+      - |
+        until [ -s /shared/oidc-client-secret ]; do echo "waiting for ferriskey seed secret..."; sleep 1; done
+        export OIDC_CLIENT_SECRET="$(cat /shared/oidc-client-secret)"
+        exec cargo run --bin=server
     depends_on:
-      keycloak:
-        condition: service_healthy
+      ferriskey-seed:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       postgres-migrate:
@@ -163,7 +162,14 @@ services:
       KUBECONFIG_ENCRYPTION_KEY: ${KUBECONFIG_ENCRYPTION_KEY:-ZGV2LWt1YmVjb25maWctZW5jcnlwdGlvbi1rZXkhMzI=}
       LLVM_PROFILE_FILE: ${LLVM_PROFILE_FILE:-}
       MANAGED_DEFAULT_STORAGE_CLASS: ${MANAGED_DEFAULT_STORAGE_CLASS:-}
-      OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
+      OIDC_URL: ${OIDC_URL:-https://auth.test/realms/france-nuage/.well-known/openid-configuration}
+      # BFF client confidentiel. OIDC_CLIENT_SECRET est injecté par l'entrypoint
+      # depuis /shared/oidc-client-secret (secret généré serveur par ferriskey-seed).
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-console}
+      OIDC_REDIRECT_URL: ${OIDC_REDIRECT_URL:-https://controlplane.test/auth/callback}
+      AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
+      # DEV ONLY : clé de chiffrement cookie (base64, 32 octets). Jamais en prod.
+      AUTH_COOKIE_KEY: ${AUTH_COOKIE_KEY:-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
       ROOT_ORGANIZATION_NAME: ${ROOT_ORGANIZATION_NAME:-acme}
       ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:-qDOiI0B686hr0wN479q7jmOQ6nYtSUsq}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
@@ -188,7 +194,8 @@ services:
       - "50052:80"
       - "50053:8081"
     extra_hosts:
-      - "keycloak.test:host-gateway"
+      - "auth.test:host-gateway"
+      - "iam.test:host-gateway"
       - "console.test:host-gateway"
     labels:
       - "traefik.enable=true"
@@ -199,67 +206,113 @@ services:
     volumes:
       - ./controlplane:/app
       - ./certs/ca.pem:/usr/local/share/ca-certificates/docker-compose-dev-ca.crt:ro
+      - bff_secret:/shared
       - type: volume
         source: nfs-snippets
         target: /mnt/pve/nfs-snippets
         volume:
           nocopy: true
 
-  keycloak-db:
-    image: postgres:16-alpine
+  # IAM = FerrisKey (client confidentiel BFF). Remplace Keycloak. Images pinnées sur
+  # le build charts (fix rôles #1207) ; surchargeables (FERRISKEY_*_IMAGE) vers les
+  # images publiques ghcr.io/ferriskey/* pour un dev sans accès au registry privé.
+  ferriskey-db:
+    image: postgres:18
     environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD:-keycloak}
+      POSTGRES_USER: ferriskey
+      POSTGRES_DB: ferriskey
+      POSTGRES_PASSWORD: ${FERRISKEY_DB_PASSWORD:-ferriskey}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ferriskey -d ferriskey"]
+      interval: 3s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 20
     volumes:
-      - postgres_keycloak_data:/var/lib/postgresql/data
+      - ferriskey_db_data:/var/lib/postgresql
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.0
-    command: start-dev --import-realm
+  ferriskey-migrate:
+    image: ${FERRISKEY_API_IMAGE:-registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/ferriskey/api:sha-b8318519}
+    entrypoint: ["sqlx"]
+    command: ["migrate", "run", "--source", "/usr/local/src/ferriskey/migrations"]
+    environment:
+      DATABASE_URL: postgresql://ferriskey:${FERRISKEY_DB_PASSWORD:-ferriskey}@ferriskey-db/ferriskey
     depends_on:
-      keycloak-db:
+      ferriskey-db:
         condition: service_healthy
+    restart: "no"
+
+  ferriskey-api:
+    image: ${FERRISKEY_API_IMAGE:-registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/ferriskey/api:sha-b8318519}
+    depends_on:
+      ferriskey-migrate:
+        condition: service_completed_successfully
       traefik:
         condition: service_started
     environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD:-keycloak}
-      KC_HOSTNAME: keycloak.test
-      KC_HOSTNAME_STRICT: false
-      KC_HTTP_ENABLED: true
-      KC_PROXY_HEADERS: xforwarded
-      KC_HEALTH_ENABLED: true
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      # Issuer dérivé du Host → derrière traefik = https://auth.test/realms/<realm>.
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: "3333"
+      SERVER_ROOT_PATH: ""
+      DATABASE_HOST: ferriskey-db
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: ferriskey
+      DATABASE_USER: ferriskey
+      DATABASE_PASSWORD: ${FERRISKEY_DB_PASSWORD:-ferriskey}
+      # CORS global exact (pas de glob) : origines browser qui tapent l'API.
+      ALLOWED_ORIGINS: https://iam.test,https://console.test,https://controlplane.test
+      WEBAPP_URL: https://iam.test
+      ADMIN_USERNAME: ${FERRISKEY_ADMIN:-admin}
+      ADMIN_EMAIL: admin@france-nuage.test
+      ADMIN_PASSWORD: ${FERRISKEY_ADMIN_PASSWORD:-admin}
+      LOG_FILTER: info
+      LOG_JSON: "false"
     expose:
-      - 8080
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e \"GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3;grep \"HTTP/1.1 200 OK\" <&3",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 24
-      start_period: 60s
+      - 3333
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.keycloak.rule=Host(`keycloak.test`)"
-      - "traefik.http.routers.keycloak.entrypoints=websecure"
-      - "traefik.http.routers.keycloak.tls=true"
-      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+      - "traefik.http.routers.ferriskey-api.rule=Host(`auth.test`)"
+      - "traefik.http.routers.ferriskey-api.entrypoints=websecure"
+      - "traefik.http.routers.ferriskey-api.tls=true"
+      - "traefik.http.services.ferriskey-api.loadbalancer.server.port=3333"
+
+  ferriskey-webapp:
+    image: ${FERRISKEY_WEBAPP_IMAGE:-registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/ferriskey/webapp:sha-b8318519}
+    depends_on:
+      ferriskey-api:
+        condition: service_started
+    environment:
+      API_URL: https://auth.test
+    expose:
+      - 80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ferriskey-webapp.rule=Host(`iam.test`)"
+      - "traefik.http.routers.ferriskey-webapp.entrypoints=websecure"
+      - "traefik.http.routers.ferriskey-webapp.tls=true"
+      - "traefik.http.services.ferriskey-webapp.loadbalancer.server.port=80"
+
+  # Seed idempotent : realm france-nuage + client confidentiel console + user dev.
+  # Écrit le secret (généré serveur) dans le volume partagé bff_secret pour le control-plane.
+  ferriskey-seed:
+    image: alpine:3.20
+    entrypoint: ["sh", "-c"]
+    command: ["apk add --no-cache curl jq >/dev/null && exec sh /seed/ferriskey-seed.sh"]
+    depends_on:
+      ferriskey-api:
+        condition: service_started
+    environment:
+      FERRISKEY_URL: http://ferriskey-api:3333
+      ADMIN_USERNAME: ${FERRISKEY_ADMIN:-admin}
+      ADMIN_PASSWORD: ${FERRISKEY_ADMIN_PASSWORD:-admin}
+      REALM: france-nuage
+      CLIENT_ID: console
+      REDIRECT_URI: https://controlplane.test/auth/callback
+      POST_LOGOUT_URI: https://console.test
+      OIDC_CLIENT_SECRET_FILE: /shared/oidc-client-secret
+    restart: "no"
     volumes:
-      - ./keycloak-realm.json:/opt/keycloak/data/import/francenuage-realm.json:ro
+      - ./sh/ferriskey-seed.sh:/seed/ferriskey-seed.sh:ro
+      - bff_secret:/shared
 
   markdown-lint:
     command: ["**/*.md"]
@@ -418,8 +471,8 @@ services:
       dockerfile: Dockerfile
       target: ${TARGET:-development}-synchronizer
     depends_on:
-      keycloak:
-        condition: service_healthy
+      ferriskey-seed:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       postgres-migrate:
@@ -431,13 +484,13 @@ services:
     environment:
       CURL_CA_BUNDLE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
-      OIDC_URL: ${OIDC_URL:-https://keycloak.test/realms/francenuage/.well-known/openid-configuration}
+      OIDC_URL: ${OIDC_URL:-https://auth.test/realms/france-nuage/.well-known/openid-configuration}
       RUST_BACKTRACE: ${RUST_BACKTRACE:-1}
       SPICEDB_URL: ${SPICEDB_URL:-http://spicedb:50051}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
       SSL_CERT_FILE: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
     extra_hosts:
-      - "keycloak.test:host-gateway"
+      - "auth.test:host-gateway"
     volumes:
       - ./controlplane:/app
       - /app/target
@@ -513,7 +566,8 @@ services:
       default:
         aliases:
           - console.test
-          - keycloak.test
+          - auth.test
+          - iam.test
           - controlplane.test
     command:
       - "--providers.docker=true"
@@ -573,6 +627,7 @@ volumes:
       o: addr=nfs-snippets-dev.france-nuage.fr,rw,nfsvers=4
       device: ":/mnt/Apps/France-Nuage/nfs-snippets-proxmox-dev"
   postgres_data:
-  postgres_keycloak_data:
+  ferriskey_db_data:
   postgres_spicedb_data:
+  bff_secret:
   target:

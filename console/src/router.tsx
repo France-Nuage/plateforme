@@ -22,7 +22,6 @@ import {
   ManagedInstancesPage,
   ManagedServiceDetailPage,
   ManagedServicesPage,
-  OidcRedirectPage,
 } from '@/pages';
 import { Routes as RoutePath } from '@/types';
 
@@ -60,10 +59,6 @@ const Router = () => (
           {/* Authentication routes */}
           <Route element={<PageGuard />}>
             <Route path={RoutePath.Login} element={<LoginPage />} />
-            <Route
-              path="/auth/redirect/:provider"
-              element={<OidcRedirectPage />}
-            />
           </Route>
           {/* Authenticated routes */}
           <Route element={<PageGuard authenticated />}>

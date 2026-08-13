@@ -1,14 +1,7 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from 'react';
 
-import {
-  clearAuthenticationState,
-  fetchCurrentUser,
-  parseOidcUser,
-  setOIDCUser,
-} from '@/features';
+import { fetchSession } from '@/features';
 import { useAppDispatch } from '@/hooks';
-import { registerUserEvents, userManager } from '@/services';
-import { toaster } from '@/toaster';
 
 export type UserProviderProps = {
   children: ReactNode;
@@ -17,11 +10,12 @@ export type UserProviderProps = {
 /**
  * The user provider.
  *
- * On application load, it calls the userManager to attempt to retrieve the
- * persisted user, and dispatch an action depending on the user retrieval.
- * The `oidc-client-ts` library provides several security features which is why
- * we rely on it for authentication persistance, rather than a custom-brewed
- * redux persistance middleware.
+ * On application load it reads the current session from the control plane
+ * (`GET /auth/me`, over the httpOnly session cookie) to establish the auth
+ * state (`authenticated` + `isAdmin`) before rendering the app. Authentication
+ * is entirely server-side (confidential-client BFF); the browser never handles
+ * a token, so there is no persistence or silent-renew to manage here — the
+ * cookie and its refresh live on the server.
  */
 export const UserProvider: FunctionComponent<UserProviderProps> = ({
   children,
@@ -29,64 +23,12 @@ export const UserProvider: FunctionComponent<UserProviderProps> = ({
   const dispatch = useAppDispatch();
   const [isUserStateRetrieved, setUserRetrieved] = useState<boolean>(false);
 
+  // Resolve the session once, then render regardless of the outcome: an
+  // unauthenticated result simply lets the page guard redirect to `/login`.
   useEffect(() => {
-    registerUserEvents(dispatch);
+    dispatch(fetchSession()).finally(() => setUserRetrieved(true));
   }, [dispatch]);
 
-  // Attempt to retrieve the persisted user, then mark the app as loaded
-  useEffect(() => {
-    pickAction()
-      .then((action) => {
-        dispatch(action);
-        // Once authenticated, resolve the authoritative admin status from the
-        // control plane (the token is now in the store for the bearer header).
-        if (action.type === setOIDCUser.type) {
-          dispatch(fetchCurrentUser());
-        }
-      })
-      .catch((error) => {
-        console.error('[UserProvider] Failed to load user:', error);
-        toaster.create({
-          description: error?.message || String(error),
-          title: 'Authentication Error',
-          type: 'error',
-        });
-      })
-      .finally(() => setUserRetrieved(true));
-  }, [dispatch]);
-
-  // Render the remaining tree only after user retrieval
+  // Render the remaining tree only after the session has been resolved
   return isUserStateRetrieved ? children : null;
 };
-
-async function pickAction() {
-  const user = await userManager.getUser();
-
-  // No user found: fresh state, user has never logged in or was previously cleared
-  if (!user) {
-    return clearAuthenticationState();
-  }
-
-  // Check if user needs refresh (expired or missing profile data)
-  const needsRefresh =
-    user.expired ||
-    !user.profile ||
-    !user.profile.email ||
-    !user.profile.given_name ||
-    !user.profile.family_name;
-
-  // User needs refresh (expired or missing profile): attempt silent signin
-  if (needsRefresh) {
-    const refreshedUser = await userManager.signinSilent();
-    if (refreshedUser) {
-      return setOIDCUser(parseOidcUser(refreshedUser));
-    } else {
-      // Cleanup: Remove the expired/incomplete user from storage and clear auth state
-      userManager.removeUser();
-      return clearAuthenticationState();
-    }
-  }
-
-  // User exists and is complete: dispatch to store
-  return setOIDCUser(parseOidcUser(user));
-}

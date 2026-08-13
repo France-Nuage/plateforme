@@ -2,7 +2,8 @@
 
 ![France nuage Logo](./mediakit/logo/animated-logo.gif)
 
-**The French cloud platform for modern applications and services.**
+**The open-source French cloud platform — a self-hostable, re-internalisable
+alternative to AWS, Azure, Google Cloud and OVHcloud.**
 
 [**Learn more**](https://france-nuage.fr) • [Website](https://france-nuage.fr) •
 [Issues](https://gitlab.com/groups/getbunker-france-nuage/france-nuage/-/issues)

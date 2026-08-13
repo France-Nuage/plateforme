@@ -7,9 +7,10 @@ import { useAppSelector } from '@/hooks';
 /**
  * Guard component that restricts access to admin users.
  *
- * Reads the `isAdmin` flag from the authentication slice (derived from the
- * Keycloak 'admin' realm role in the id_token) and renders the nested routes
- * for admins. Non-admin users see an "Accès refusé" message.
+ * Reads the `isAdmin` flag from the authentication slice, which is resolved
+ * server-side from `users.is_admin` (via `/auth/me`), never from a token claim.
+ * Renders the nested routes for admins; non-admin users see an "Accès refusé"
+ * message.
  *
  * NOTE: This is a UX-only gate. The server-side `users.is_admin` flag is
  * authoritative and enforced by the backend on every request.

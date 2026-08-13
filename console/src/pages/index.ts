@@ -9,5 +9,4 @@ export * from './managed-instance-detail.page';
 export * from './managed-instances.page';
 export * from './managed-service-detail.page';
 export * from './managed-services.page';
-export * from './oidc-redirect.page';
 export * from './private-beta.page';

@@ -125,7 +125,7 @@ impl Application<Identity> {
 ///
 /// This represents the full middleware stack that will be applied to the
 /// server, composed on top of the existing layer `L`.
-type Middleware<L> = Stack<GrpcWebLayer, Stack<CorsLayer, Stack<TraceLayer, L>>>;
+type Middleware<L> = Stack<CorsLayer, Stack<TraceLayer, L>>;
 
 impl<L> Application<L> {
     /// Adds the complete middleware stack to the application server.
@@ -169,16 +169,13 @@ impl<L> Application<L> {
         Application {
             config: self.config.clone(),
             router: self.router,
-            server: self
-                .server
-                .with_tracing()
-                .with_cors(
-                    self.config.allow_headers,
-                    self.config.allow_methods,
-                    self.config.allow_origin,
-                    self.config.expose_headers,
-                )
-                .with_web(),
+            server: self.server.with_tracing().with_cors(
+                self.config.allow_headers,
+                self.config.allow_methods,
+                self.config.allow_origin,
+                self.config.expose_headers,
+                self.config.allow_credentials,
+            ),
         }
     }
 
@@ -374,7 +371,49 @@ impl Application<Middleware<Identity>> {
             });
         }
 
-        let svc = self.router.routes.into_axum_router().into_service();
+        // Install the Prometheus recorder once and expose it at `/metrics`, so
+        // the auth counters emitted by the BFF (and any future instrumentation)
+        // are scrapable. Idempotent across the many server instances a test
+        // process spins up.
+        let _ = crate::metrics::handle();
+
+        // gRPC-web is applied ONLY to the gRPC routes. tonic-web's layer returns
+        // HTTP 400 for every non-gRPC request (`RequestKind::Other` → BAD_REQUEST
+        // for HTTP/1.1, which is what a reverse proxy speaks to the backend), so
+        // wrapping the whole service would make the plain-HTTP surfaces
+        // (`/metrics`, BFF `/auth/*`) unreachable. axum's `.layer()` only wraps
+        // the routes registered before the call, so the gRPC routes are wrapped
+        // here and the HTTP routes below stay un-wrapped.
+        let mut axum_router = self
+            .router
+            .routes
+            .into_axum_router()
+            .layer(GrpcWebLayer::new())
+            .route("/metrics", axum::routing::get(metrics_endpoint));
+
+        // Mount the confidential-client BFF (`/auth/*`) on the same origin as
+        // gRPC-web, so the browser reaches it at the control-plane URL. Present
+        // only when `OIDC_CLIENT_SECRET` is configured; otherwise the legacy
+        // SPA/PKCE flow is the sole auth path (unchanged).
+        if let Some(bff) = self.config.bff.clone() {
+            tracing::info!(
+                "BFF confidential-client auth enabled (/auth/login, /auth/callback, /auth/me, /auth/logout)"
+            );
+            axum_router = axum_router.merge(bff.into_router());
+        }
+
+        let svc = axum_router.into_service();
         self.server.serve(stream, svc, signal).await
     }
+}
+
+/// `GET /metrics` — renders the Prometheus text exposition format.
+async fn metrics_endpoint() -> ([(axum::http::HeaderName, &'static str); 1], String) {
+    (
+        [(
+            axum::http::header::CONTENT_TYPE,
+            "text/plain; version=0.0.4",
+        )],
+        crate::metrics::render(),
+    )
 }

@@ -111,6 +111,17 @@ pub struct Config {
 
     /// URL to redirect to after canceled Stripe checkout.
     pub stripe_checkout_cancel_url: Option<String>,
+
+    /// Whether CORS must allow credentials (cookies). Enabled together with the
+    /// BFF so browser gRPC-web calls can carry the httpOnly session cookie.
+    pub allow_credentials: bool,
+
+    /// Confidential-client BFF, present only when `OIDC_CLIENT_SECRET` is set.
+    ///
+    /// `None` keeps the legacy SPA/PKCE flow as the sole auth path (the `/auth/*`
+    /// routes are not mounted), so merging this change does not alter the
+    /// currently-deployed authentication.
+    pub bff: Option<crate::bff::Bff>,
 }
 
 /// Deterministic KEK used only by [`Config::test`]. Not a secret: tests run
@@ -175,6 +186,8 @@ impl Config {
             stripe_webhook_secret: None,
             stripe_checkout_success_url: None,
             stripe_checkout_cancel_url: None,
+            allow_credentials: false,
+            bff: None,
         })
     }
 
@@ -224,13 +237,33 @@ impl Config {
             .expect("KUBECONFIG_ENCRYPTION_KEY must be base64-encoded 32 bytes"),
         );
 
+        // Confidential-client BFF, gated on the presence of the client secret.
+        // Absent secret => `bff` is `None` and the CORS policy stays permissive:
+        // the legacy SPA/PKCE auth path is unchanged.
+        let bff = Self::build_bff(&app).await?;
+
+        // CORS: cookies require credentialed CORS with an explicit origin. Only
+        // switch to that stricter policy when the BFF is active; otherwise keep
+        // the historical `any()` policy used by the bearer-token SPA flow.
+        let (allow_headers, allow_methods, allow_origin, expose_headers, allow_credentials) =
+            match &bff {
+                Some(_) => Self::bff_cors()?,
+                None => (
+                    AllowHeaders::any(),
+                    AllowMethods::any(),
+                    AllowOrigin::any(),
+                    ExposeHeaders::any(),
+                    false,
+                ),
+            };
+
         Ok(Config {
             app,
             addr: Config::reserve_socket_addr(env::var("CONTROLPLANE_ADDR").ok()).await?,
-            allow_headers: AllowHeaders::any(),
-            allow_methods: AllowMethods::any(),
-            allow_origin: AllowOrigin::any(),
-            expose_headers: ExposeHeaders::any(),
+            allow_headers,
+            allow_methods,
+            allow_origin,
+            expose_headers,
             pool,
             worker_token,
             ci_token,
@@ -245,7 +278,115 @@ impl Config {
             stripe_webhook_secret: env::var("STRIPE_WEBHOOK_SECRET").ok(),
             stripe_checkout_success_url: env::var("STRIPE_CHECKOUT_SUCCESS_URL").ok(),
             stripe_checkout_cancel_url: env::var("STRIPE_CHECKOUT_CANCEL_URL").ok(),
+            allow_credentials,
+            bff,
         })
+    }
+
+    /// Builds the confidential-client BFF from the environment, or `None` when
+    /// no `OIDC_CLIENT_SECRET` is configured (the config gate).
+    ///
+    /// # Environment Variables (BFF mode only)
+    ///
+    /// * `OIDC_CLIENT_SECRET` — confidential client secret (its presence toggles
+    ///   BFF mode). Comes from a k8s sealed secret; never hardcode it.
+    /// * `OIDC_CLIENT_ID` — confidential client id (defaults to the console's
+    ///   historical `francenuage` client id).
+    /// * `OIDC_REDIRECT_URL` — absolute URL of `/auth/callback`, registered on
+    ///   the IdP (required in BFF mode).
+    /// * `OIDC_URL` — discovery URL (already required for gRPC auth).
+    /// * `CONSOLE_URL` — where the browser lands after login/logout, and the CORS
+    ///   allowed origin (already used for Stripe redirects).
+    /// * `AUTH_COOKIE_DOMAIN` — optional cookie `Domain`.
+    /// * `AUTH_COOKIE_SAMESITE` — `Lax` (default), `Strict`, or `None`.
+    /// * `AUTH_COOKIE_INSECURE` — set to `1`/`true` to drop `Secure` (local http
+    ///   dev only).
+    /// * `AUTH_COOKIE_KEY` — base64 32-byte key sealing the encrypted session
+    ///   cookie (required in BFF mode). The gRPC cookie path in `IAM` reads the
+    ///   same variable, so both agree on one key.
+    /// * `SESSION_MAX_TTL` — session cookie `Max-Age` in seconds (the refresh
+    ///   window). Defaults to [`crate::bff::DEFAULT_SESSION_MAX_TTL_SECS`]. The
+    ///   inner payload `exp` (short access lifetime) comes from the id_token.
+    async fn build_bff(app: &App<SpiceDB>) -> Result<Option<crate::bff::Bff>, Error> {
+        let client_secret = match env::var("OIDC_CLIENT_SECRET") {
+            Ok(secret) if !secret.is_empty() => secret,
+            _ => return Ok(None),
+        };
+
+        let same_site =
+            crate::bff::SameSite::from_env_value(env::var("AUTH_COOKIE_SAMESITE").ok().as_deref());
+        let cookie_secure = !matches!(
+            env::var("AUTH_COOKIE_INSECURE").ok().as_deref(),
+            Some("1") | Some("true")
+        );
+        let cookie_key = frn_core::identity::SessionKey::from_base64(
+            &env::var("AUTH_COOKIE_KEY")
+                .expect("AUTH_COOKIE_KEY must be set in BFF mode (OIDC_CLIENT_SECRET present)"),
+        )
+        .expect("AUTH_COOKIE_KEY must be base64-encoded 32 bytes");
+        let session_max_age_secs = env::var("SESSION_MAX_TTL")
+            .ok()
+            .and_then(|value| value.parse::<i64>().ok())
+            .filter(|secs| *secs > 0)
+            .unwrap_or(crate::bff::DEFAULT_SESSION_MAX_TTL_SECS);
+
+        let settings = crate::bff::Settings {
+            oidc_url: app.config.oidc_url.clone(),
+            client_id: env::var("OIDC_CLIENT_ID").unwrap_or_else(|_| "francenuage".to_owned()),
+            client_secret,
+            redirect_url: env::var("OIDC_REDIRECT_URL")
+                .expect("OIDC_REDIRECT_URL must be set in BFF mode (OIDC_CLIENT_SECRET present)"),
+            console_url: env::var("CONSOLE_URL")
+                .expect("CONSOLE_URL must be set in BFF mode (OIDC_CLIENT_SECRET present)"),
+            cookie_domain: env::var("AUTH_COOKIE_DOMAIN")
+                .ok()
+                .filter(|d| !d.is_empty()),
+            cookie_secure,
+            cookie_same_site: same_site,
+            cookie_key,
+            session_max_age_secs,
+        };
+
+        let bff = crate::bff::Bff::discover(app.openid.clone(), app.db.clone(), settings)
+            .await
+            .map_err(|err| Error::Core(frn_core::Error::Other(err.to_string())))?;
+
+        Ok(Some(bff))
+    }
+
+    /// Credentialed CORS policy for BFF mode: explicit console origin, cookies
+    /// allowed, and the explicit method/header lists required whenever
+    /// `Access-Control-Allow-Credentials` is set (a `*` wildcard is illegal with
+    /// credentials).
+    fn bff_cors() -> Result<(AllowHeaders, AllowMethods, AllowOrigin, ExposeHeaders, bool), Error> {
+        use http::{HeaderName, HeaderValue, Method};
+
+        let console_url = env::var("CONSOLE_URL")
+            .expect("CONSOLE_URL must be set in BFF mode (OIDC_CLIENT_SECRET present)");
+        let origin: HeaderValue = console_url
+            .parse()
+            .expect("CONSOLE_URL must be a valid origin");
+
+        let allow_headers = AllowHeaders::list([
+            HeaderName::from_static("content-type"),
+            HeaderName::from_static("x-grpc-web"),
+            HeaderName::from_static("x-user-agent"),
+            HeaderName::from_static("grpc-timeout"),
+        ]);
+        let allow_methods = AllowMethods::list([Method::GET, Method::POST, Method::OPTIONS]);
+        let expose_headers = ExposeHeaders::list([
+            HeaderName::from_static("grpc-status"),
+            HeaderName::from_static("grpc-message"),
+            HeaderName::from_static("grpc-status-details-bin"),
+        ]);
+
+        Ok((
+            allow_headers,
+            allow_methods,
+            AllowOrigin::exact(origin),
+            expose_headers,
+            true,
+        ))
     }
 
     /// Reserves a socket address, either from a preset string or by allocating dynamically.

@@ -11,6 +11,11 @@ secrets:
   keycloakAdminPassword: ""
   workerToken: ""
   ciServiceToken: ""
+  # BFF (control-plane client confidentiel OIDC). En prod, fournis via le
+  # SealedSecret (existingSecret), clés `oidc-client-secret` + `auth-cookie-key`.
+  # auth-cookie-key : clé de chiffrement du cookie de session (base64, 32 octets).
+  oidcClientSecret: ""
+  authCookieKey: ""
 
 postgres:
   enabled: true
@@ -119,6 +124,21 @@ controlplane:
     hoopApiUrl: "https://bastion.ssh.france-nuage.fr"
     deploymentLabels: ""
     deploymentAnnotations: ""
+    # BFF (Backend-For-Frontend) client confidentiel OIDC. Quand enabled=true, le
+    # control-plane fait l'échange de code server-side et n'expose qu'un cookie
+    # httpOnly chiffré (aucun token en JS). Requiert les secrets oidc-client-secret
+    # + auth-cookie-key (cf. secrets.oidcClientSecret / secrets.authCookieKey).
+    bff:
+      enabled: false
+      clientId: "console"
+      # Vide => dérivé de l'host public du control-plane
+      # (https://controlplane.<baseDomain>/auth/callback).
+      redirectUrl: ""
+      cookieSameSite: "lax"
+      # Vide => cookie host-only sur l'origine control-plane (recommandé).
+      cookieDomain: ""
+      # Max-Age du cookie / fenêtre de refresh.
+      sessionMaxTtl: "12h"
   resources:
     requests:
       memory: "256Mi"

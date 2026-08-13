@@ -14,7 +14,7 @@
 use std::fmt;
 
 use base64::Engine;
-use base64::engine::general_purpose::STANDARD;
+use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use chacha20poly1305::aead::{Aead, AeadCore, KeyInit, OsRng, Payload};
 use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
 use thiserror::Error;
@@ -175,6 +175,37 @@ pub fn decrypt(
     plaintext
 }
 
+/// Seals `plaintext` into a compact, URL-safe token: `base64url(nonce || ciphertext)`.
+///
+/// Single-key authenticated encryption (XChaCha20-Poly1305) under `kek`, with
+/// `aad` bound for domain separation. Unlike [`encrypt`], there is no envelope
+/// (no per-record DEK): the token stays small, which suits a short-lived
+/// credential carried in a cookie. The output is opaque and tamper-evident —
+/// any wrong key, wrong `aad`, truncation, or bit-flip makes [`open`] fail with
+/// [`EncryptionError::DecryptFailed`] (fail closed, never a panic).
+pub fn seal(kek: &Kek, plaintext: &[u8], aad: &[u8]) -> Result<String, EncryptionError> {
+    let (ciphertext, nonce) = aead_encrypt(&kek.0, plaintext, aad)?;
+    let mut blob = Vec::with_capacity(nonce.len() + ciphertext.len());
+    blob.extend_from_slice(&nonce);
+    blob.extend_from_slice(&ciphertext);
+    Ok(URL_SAFE_NO_PAD.encode(blob))
+}
+
+/// Reverses [`seal`], returning the original plaintext.
+///
+/// `aad` must be byte-identical to the value passed to [`seal`]. Any mismatch,
+/// wrong key, truncation, or tampering yields [`EncryptionError::DecryptFailed`].
+pub fn open(kek: &Kek, token: &str, aad: &[u8]) -> Result<Vec<u8>, EncryptionError> {
+    let blob = URL_SAFE_NO_PAD
+        .decode(token)
+        .map_err(|_| EncryptionError::DecryptFailed)?;
+    if blob.len() < NONCE_SIZE {
+        return Err(EncryptionError::DecryptFailed);
+    }
+    let (nonce, ciphertext) = blob.split_at(NONCE_SIZE);
+    aead_decrypt(&kek.0, ciphertext, nonce, aad)
+}
+
 /// Encrypts `plaintext` with a 256-bit `key`, returning `(ciphertext, nonce)`.
 fn aead_encrypt(
     key: &[u8],
@@ -228,10 +259,53 @@ fn aead_decrypt(
 mod tests {
     use base64::Engine;
 
-    use super::{CURRENT_KEY_VERSION, EncryptionError, Kek, decrypt, encrypt};
+    use super::{CURRENT_KEY_VERSION, EncryptionError, Kek, decrypt, encrypt, open, seal};
 
     fn test_kek() -> Kek {
         Kek::from_bytes([7u8; 32])
+    }
+
+    #[test]
+    fn seal_then_open_returns_original_plaintext() {
+        let kek = test_kek();
+        let token = seal(&kek, b"{\"email\":\"a@b.c\"}", b"session-aad").unwrap();
+
+        assert_eq!(
+            open(&kek, &token, b"session-aad").unwrap(),
+            b"{\"email\":\"a@b.c\"}"
+        );
+    }
+
+    #[test]
+    fn open_rejects_a_tampered_token() {
+        let kek = test_kek();
+        let token = seal(&kek, b"payload", b"aad").unwrap();
+        let mut bytes = token.into_bytes();
+        bytes[0] ^= 0x01;
+        let tampered = String::from_utf8(bytes).unwrap();
+
+        assert!(matches!(
+            open(&kek, &tampered, b"aad"),
+            Err(EncryptionError::DecryptFailed)
+        ));
+    }
+
+    #[test]
+    fn open_rejects_a_wrong_aad() {
+        let kek = test_kek();
+        let token = seal(&kek, b"payload", b"good-aad").unwrap();
+
+        assert!(open(&kek, &token, b"bad-aad").is_err());
+    }
+
+    #[test]
+    fn open_rejects_garbage() {
+        let kek = test_kek();
+
+        assert!(matches!(
+            open(&kek, "not-a-sealed-token", b"aad"),
+            Err(EncryptionError::DecryptFailed)
+        ));
     }
 
     #[test]

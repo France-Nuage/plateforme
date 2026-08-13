@@ -24,7 +24,7 @@ export const PageGuard: FunctionComponent<PageGuardProps> = ({
   authenticated,
 }) => {
   const isUserAuthenticated = useAppSelector(
-    (state) => !!state.authentication.user,
+    (state) => state.authentication.authenticated,
   );
   const navigate = useNavigate();
   useControlplaneData();

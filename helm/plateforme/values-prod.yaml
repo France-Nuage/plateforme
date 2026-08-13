@@ -21,27 +21,15 @@ spicedb:
       memory: "2Gi"
       cpu: "2000m"
 
+# IAM in-cluster Keycloak décommissionné : remplacé par FerrisKey
+# (auth.france-nuage.fr). Laisser à true recréait un Ingress concurrent sur
+# auth.france-nuage.fr → le kingress routait vers ce leftover (realm `francenuage`)
+# au lieu de FerrisKey → 404 "Realm does not exist" au swap DNS.
 keycloakDb:
-  enabled: true
-  persistence:
-    enabled: true
-    size: 1Gi
-    storageClass: "ceph-rbd"
+  enabled: false
 
 keycloak:
-  enabled: true
-  config:
-    startCommand: "start-dev"
-    importRealm: true
-    hostnameStrict: "false"
-    httpEnabled: "true"
-  resources:
-    requests:
-      memory: "1Gi"
-      cpu: "500m"
-    limits:
-      memory: "4Gi"
-      cpu: "2000m"
+  enabled: false
 
 postgres:
   cnpg:
@@ -92,8 +80,21 @@ systemTests:
 controlplane:
   replicas: 1
   config:
+    # Issuer OIDC externe (FerrisKey) : keycloak in-cluster décommissionné, donc
+    # le fallback dérivé du baseDomain (realm `francenuage`) ne s'applique pas —
+    # l'URL FerrisKey (realm `france-nuage`) est fixée explicitement.
+    oidcUrl: "https://auth.france-nuage.fr/realms/france-nuage"
     logLevel: "warn"
     rootOrganizationName: "France Nuage"
+    # BFF confidentiel activé (rollout console-bff). Le flip est atomique : BFF +
+    # issuer FerrisKey + swap DNS auth.france-nuage.fr en une bascule. Prérequis
+    # remplis : client confidentiel `console` (FerrisKey), SealedSecret
+    # plateforme-prod-secrets avec `oidc-client-secret` + `auth-cookie-key`.
+    # PROD_OIDC_URL (CI --set) doit valoir https://auth.france-nuage.fr/realms/france-nuage
+    # (= FerrisKey une fois le DNS basculé).
+    bff:
+      enabled: true
+      redirectUrl: "https://controlplane.france-nuage.fr/auth/callback"
   resources:
     requests:
       memory: "512Mi"

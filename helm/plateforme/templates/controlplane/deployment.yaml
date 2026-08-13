@@ -14,6 +14,13 @@ spec:
       app.kubernetes.io/component: controlplane
   template:
     metadata:
+      annotations:
+        # Scrape des compteurs BFF (auth_login/callback_reject/refresh) exposés sur
+        # GET /metrics — même écouteur HTTP que gRPC-web (port 80). Consommés par les
+        # alertes charts/grafana/orgs/france-nuage/rules/console-bff-auth.yaml.
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
       labels:
         {{- include "plateforme.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: controlplane
@@ -66,8 +73,40 @@ spec:
                   key: spicedb-preshared-key
             - name: CONSOLE_URL
               value: {{ include "plateforme.consoleUrl" . | quote }}
+            {{- if .Values.controlplane.config.oidcUrl }}
+            - name: OIDC_URL
+              value: {{ .Values.controlplane.config.oidcUrl | quote }}
+            {{- else if .Values.keycloak.enabled }}
             - name: OIDC_URL
               value: {{ include "plateforme.keycloakOidcUrl" . | quote }}
+            {{- end }}
+            {{- if .Values.controlplane.config.bff.enabled }}
+            # BFF client confidentiel : présence d'OIDC_CLIENT_SECRET => mode BFF actif.
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.controlplane.config.bff.clientId | quote }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: oidc-client-secret
+            - name: OIDC_REDIRECT_URL
+              value: {{ .Values.controlplane.config.bff.redirectUrl | default (printf "https://%s/auth/callback" (include "plateforme.controlplaneHost" .)) | quote }}
+            - name: AUTH_COOKIE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: auth-cookie-key
+            - name: AUTH_COOKIE_SAMESITE
+              value: {{ .Values.controlplane.config.bff.cookieSameSite | quote }}
+            {{- if .Values.controlplane.config.bff.cookieDomain }}
+            - name: AUTH_COOKIE_DOMAIN
+              value: {{ .Values.controlplane.config.bff.cookieDomain | quote }}
+            {{- end }}
+            {{- if .Values.controlplane.config.bff.sessionMaxTtl }}
+            - name: SESSION_MAX_TTL
+              value: {{ .Values.controlplane.config.bff.sessionMaxTtl | quote }}
+            {{- end }}
+            {{- end }}
             {{- if .Values.controlplane.config.logLevel }}
             - name: LOG_LEVEL
               value: {{ .Values.controlplane.config.logLevel | quote }}

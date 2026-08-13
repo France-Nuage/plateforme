@@ -1,12 +1,14 @@
 /**
  * Application configuration, resolved at runtime from `window.__RUNTIME_CONFIG__`
  * (see `public/config.js`), so a single build is portable across environments.
+ *
+ * Authentication is handled entirely by the control plane (confidential-client
+ * BFF): the browser reads its identity from `/auth/me` and the gRPC API is
+ * authenticated by the httpOnly session cookie, never by a token held in
+ * JavaScript. The console therefore holds no client-side OIDC configuration.
  */
 type RuntimeConfig = {
   controlplaneUrl: string;
-  oidcClientId: string;
-  oidcProviderName: string;
-  oidcProviderUrl: string;
   applicationMode: string;
 };
 
@@ -22,9 +24,4 @@ if (!runtime) {
 export default {
   controlplane: runtime.controlplaneUrl,
   mode: runtime.applicationMode,
-  oidc: {
-    clientId: runtime.oidcClientId,
-    name: runtime.oidcProviderName,
-    url: runtime.oidcProviderUrl,
-  },
 };
