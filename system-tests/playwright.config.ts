@@ -13,8 +13,10 @@ export default defineConfig({
   retries: 0,
   /* Opt out of parallel tests on CI. */
   workers: 1,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  /* Reporter to use. See https://playwright.dev/docs/test-reporters.
+   * `open: never` prevents the HTML reporter from starting a blocking server
+   * after the run (which would hang the CI job). */
+  reporter: [['dot'], ['html', { open: 'never' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */

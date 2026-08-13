@@ -66,6 +66,8 @@ async fn context_with(client: kube::Client) -> WorkerContext {
         platform_config: workflow::PlatformConfig {
             default_storage_class: None,
             cnpg_backup_enabled: false,
+            deployment_labels: BTreeMap::new(),
+            deployment_annotations: BTreeMap::new(),
         },
         kek: Arc::new(frn_crypto::Kek::from_bytes([42u8; 32])),
         kubeconfig_path: None,
@@ -82,6 +84,7 @@ async fn namespace_execute_creates_the_namespace() {
     CreateNamespaceOp {
         namespace: namespace.clone(),
         labels: BTreeMap::new(),
+        annotations: BTreeMap::new(),
     }
     .execute(ctx, WorkflowExecutionId::new())
     .await
@@ -105,6 +108,7 @@ async fn namespace_execute_is_idempotent() {
     CreateNamespaceOp {
         namespace: namespace.clone(),
         labels: BTreeMap::new(),
+        annotations: BTreeMap::new(),
     }
     .execute(ctx.clone(), WorkflowExecutionId::new())
     .await
@@ -113,6 +117,7 @@ async fn namespace_execute_is_idempotent() {
     let second = CreateNamespaceOp {
         namespace,
         labels: BTreeMap::new(),
+        annotations: BTreeMap::new(),
     }
     .execute(ctx, WorkflowExecutionId::new())
     .await;
@@ -205,6 +210,7 @@ async fn assert_namespace_absent_fails_when_namespace_exists() {
     CreateNamespaceOp {
         namespace: namespace.clone(),
         labels: BTreeMap::new(),
+        annotations: BTreeMap::new(),
     }
     .execute(ctx.clone(), WorkflowExecutionId::new())
     .await

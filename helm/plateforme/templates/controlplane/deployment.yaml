@@ -27,6 +27,7 @@ spec:
     spec:
       affinity:
         {{- include "plateforme.dbColocation" . | nindent 8 }}
+      {{- include "plateforme.oidcHairpinHostAliases" . | nindent 6 }}
       initContainers:
         {{- include "plateforme.waitForPostgres" . | nindent 8 }}
         {{- include "plateforme.runAtlasMigrations" . | nindent 8 }}
@@ -89,7 +90,7 @@ spec:
                   name: {{ include "plateforme.secretName" . }}
                   key: oidc-client-secret
             - name: OIDC_REDIRECT_URL
-              value: {{ .Values.controlplane.config.bff.redirectUrl | default (printf "https://%s/auth/callback" .Values.controlplane.ingress.host) | quote }}
+              value: {{ .Values.controlplane.config.bff.redirectUrl | default (printf "https://%s/auth/callback" (include "plateforme.controlplaneHost" .)) | quote }}
             - name: AUTH_COOKIE_KEY
               valueFrom:
                 secretKeyRef:
@@ -132,6 +133,14 @@ spec:
             {{- if .Values.controlplane.config.hoopApiUrl }}
             - name: HOOP_API_URL
               value: {{ .Values.controlplane.config.hoopApiUrl | quote }}
+            {{- end }}
+            {{- if .Values.controlplane.config.deploymentLabels }}
+            - name: DEPLOYMENT_LABELS
+              value: {{ .Values.controlplane.config.deploymentLabels | quote }}
+            {{- end }}
+            {{- if .Values.controlplane.config.deploymentAnnotations }}
+            - name: DEPLOYMENT_ANNOTATIONS
+              value: {{ .Values.controlplane.config.deploymentAnnotations | quote }}
             {{- end }}
             - name: WORKER_TOKEN
               valueFrom:

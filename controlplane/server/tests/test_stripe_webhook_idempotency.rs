@@ -78,6 +78,8 @@ fn build_billing(
         PlatformConfig {
             default_storage_class: None,
             cnpg_backup_enabled: false,
+            deployment_labels: std::collections::BTreeMap::new(),
+            deployment_annotations: std::collections::BTreeMap::new(),
         },
     );
     Billing::new(

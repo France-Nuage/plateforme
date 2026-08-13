@@ -131,14 +131,112 @@ podAffinity:
 {{- end }}
 {{- end }}
 
-{{- define "plateforme.keycloakUrl" -}}
-{{- $fullname := include "plateforme.fullname" . }}
-{{- printf "http://%s-keycloak:8080" $fullname }}
+{{- define "plateforme.baseDomain" -}}
+{{- required "ingress.baseDomain is required" .Values.ingress.baseDomain }}
 {{- end }}
 
+{{/*
+Builds a public host for the given service component.
+
+Without ingress.envId (prod, local) the host is "<service>.<baseDomain>".
+With an envId (ephemeral CI environments) the service and env id are joined into
+a single label via ingress.hostSeparator, e.g. "console--<envId>.<baseDomain>".
+Keeping the env id inside one label lets a single "*.<baseDomain>" wildcard
+certificate cover every environment (wildcards match only one level).
+
+Usage: {{ include "plateforme.hostFor" (dict "svc" "console" "ctx" .) }}
+*/}}
+{{- define "plateforme.hostFor" -}}
+{{- $svc := .svc }}
+{{- $ctx := .ctx }}
+{{- $base := include "plateforme.baseDomain" $ctx }}
+{{- $envId := $ctx.Values.ingress.envId | toString }}
+{{- if $envId }}
+{{- $sep := $ctx.Values.ingress.hostSeparator | default "--" }}
+{{- printf "%s%s%s.%s" $svc $sep $envId $base }}
+{{- else }}
+{{- printf "%s.%s" $svc $base }}
+{{- end }}
+{{- end }}
+
+{{- define "plateforme.consoleHost" -}}
+{{- include "plateforme.hostFor" (dict "svc" "console" "ctx" .) }}
+{{- end }}
+
+{{- define "plateforme.controlplaneHost" -}}
+{{- include "plateforme.hostFor" (dict "svc" "controlplane" "ctx" .) }}
+{{- end }}
+
+{{- define "plateforme.keycloakHost" -}}
+{{- include "plateforme.hostFor" (dict "svc" "auth" "ctx" .) }}
+{{- end }}
+
+{{/*
+cert-manager annotation for an ingress. Emitted only when no shared TLS secret
+is configured; with a pre-provisioned wildcard secret cert-manager must not
+issue a per-host certificate.
+*/}}
+{{- define "plateforme.ingressCertManagerAnnotation" -}}
+{{- if not .Values.ingress.tlsSecretName }}
+cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+TLS secret name for an ingress: the shared wildcard secret when configured,
+otherwise the given per-host secret (issued by cert-manager).
+Usage: {{ include "plateforme.ingressTlsSecret" (dict "default" "x-console-tls" "ctx" .) }}
+*/}}
+{{- define "plateforme.ingressTlsSecret" -}}
+{{- .ctx.Values.ingress.tlsSecretName | default .default }}
+{{- end }}
+
+{{- define "plateforme.keycloakUrl" -}}
+{{- printf "https://%s" (include "plateforme.keycloakHost" .) }}
+{{- end }}
+
+{{/* The OIDC issuer / realm base URL (authority) advertised to clients. */}}
+{{- define "plateforme.keycloakRealmUrl" -}}
+{{- printf "%s/realms/francenuage" (include "plateforme.keycloakUrl" .) }}
+{{- end }}
+
+{{/* The OIDC discovery document URL, derived from the realm URL. */}}
 {{- define "plateforme.keycloakOidcUrl" -}}
-{{- $fullname := include "plateforme.fullname" . }}
-{{- printf "http://%s-keycloak:8080/realms/francenuage/.well-known/openid-configuration" $fullname }}
+{{- printf "%s/.well-known/openid-configuration" (include "plateforme.keycloakRealmUrl" .) }}
+{{- end }}
+
+{{/*
+hostAliases pinning the public Keycloak host to an in-cluster ingress IP.
+Backend services (control plane, synchronizer) reach Keycloak over its public
+URL to match the token issuer, which normally requires a hairpin back through
+external DNS. On clusters where that hairpin does not resolve (e.g. qualif),
+set oidcHairpinIp to the ingress controller ClusterIP so the lookup stays
+in-cluster while keeping the public hostname (and issuer). No-op when unset.
+*/}}
+{{- define "plateforme.oidcHairpinHostAliases" -}}
+{{- with .Values.oidcHairpinIp }}
+hostAliases:
+  - ip: {{ . | quote }}
+    hostnames:
+      - {{ include "plateforme.keycloakHost" $ | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+hostAliases pinning every public host (console, control plane, Keycloak) to the
+in-cluster ingress IP. Used by the system tests, whose browser and SDK reach the
+stack through its public URLs; on clusters without a working hairpin these would
+otherwise be unreachable from inside the cluster. No-op when oidcHairpinIp unset.
+*/}}
+{{- define "plateforme.testsHostAliases" -}}
+{{- with .Values.oidcHairpinIp }}
+hostAliases:
+  - ip: {{ . | quote }}
+    hostnames:
+      - {{ include "plateforme.consoleHost" $ | quote }}
+      - {{ include "plateforme.controlplaneHost" $ | quote }}
+      - {{ include "plateforme.keycloakHost" $ | quote }}
+{{- end }}
 {{- end }}
 
 {{- define "plateforme.keycloakDatabaseUrl" -}}
@@ -151,17 +249,11 @@ podAffinity:
 {{- end }}
 
 {{- define "plateforme.consoleUrl" -}}
-{{- $fullname := include "plateforme.fullname" . }}
-{{- if .Values.console.enabled }}
-{{- printf "http://%s-console" $fullname }}
-{{- else }}
-{{- .Values.controlplane.config.consoleUrl }}
-{{- end }}
+{{- printf "https://%s" (include "plateforme.consoleHost" .) }}
 {{- end }}
 
 {{- define "plateforme.controlplaneUrl" -}}
-{{- $fullname := include "plateforme.fullname" . }}
-{{- printf "http://%s-controlplane" $fullname }}
+{{- printf "https://%s" (include "plateforme.controlplaneHost" .) }}
 {{- end }}
 
 {{- define "plateforme.secretName" -}}
@@ -209,6 +301,38 @@ podAffinity:
 - name: wait-for-console
   image: registry.france-nuage.fr/library/busybox:1.36
   command: ['sh', '-c', 'until nc -z {{ include "plateforme.fullname" . }}-console 80; do echo waiting for console; sleep 2; done']
+{{- end }}
+
+{{/*
+Waits for the public endpoints the system tests exercise (console, control
+plane, OIDC) to be served through the ingress with a valid TLS certificate.
+Unlike the TCP probes above, this validates the HTTPS chain (curl fails on an
+untrusted cert without -k), so the tests only start once cert-manager has issued
+the real certificate and every ingress route is live rather than while the
+ingress still serves its self-signed default or a 503. curl is required here:
+busybox wget does not implement TLS verification. The control plane speaks gRPC,
+so we only assert the TLS handshake succeeds (any HTTP status), not a 2xx.
+*/}}
+{{- define "plateforme.waitForPublicEndpoints" -}}
+- name: wait-for-public-endpoints
+  image: registry.france-nuage.fr/curlimages/curl:8.11.1
+  command:
+    - sh
+    - -c
+    - |
+      until curl -sf -o /dev/null --max-time 5 {{ include "plateforme.consoleUrl" . }}/config.js; do
+        echo "waiting for public console"
+        sleep 5
+      done
+      until curl -sf -o /dev/null --max-time 5 {{ include "plateforme.keycloakOidcUrl" . }}; do
+        echo "waiting for public OIDC certificate"
+        sleep 5
+      done
+      until curl -s -o /dev/null --max-time 5 {{ include "plateforme.controlplaneUrl" . }}; do
+        echo "waiting for public control plane"
+        sleep 5
+      done
+      echo "public endpoints ready"
 {{- end }}
 
 {{- define "plateforme.runAtlasMigrations" -}}

@@ -1,6 +1,21 @@
 global:
   imageTag: "development"  
 
+# The qualif cluster serves the "qual.local" DNS zone (kubelet clusterDomain),
+# not the standard "cluster.local". In-cluster service FQDNs must match it.
+clusterDomain: qual.local
+
+# On qualif the public OIDC URL (auth.<baseDomain>) does not hairpin back to the
+# in-cluster ingress, so the control plane cannot reach Keycloak at startup.
+# Pin the Keycloak host to the kingress-nodeport ClusterIP to keep the lookup
+# in-cluster while preserving the public hostname/issuer.
+oidcHairpinIp: "192.168.250.128"
+
+ingress:
+  # TLS is terminated upstream in prod (zero-trust) and forwarded as HTTP to the
+  # qualif cluster; a local HTTPS redirect would loop, so disable it here.
+  sslRedirect: false
+
 spicedbDb:
   enabled: true
   persistence:
@@ -49,6 +64,9 @@ systemTests:
   enabled: true
   config:
     headless: true
+  report:
+    enabled: true
+    storageClass: cephfs
 
 controlplane:
   config:

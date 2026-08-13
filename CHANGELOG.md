@@ -1,3 +1,10 @@
+# [1.66.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.65.3...v1.66.0) (2026-08-08)
+
+
+### Features
+
+* **helm:** ajoute les ingress console/controlplane/keycloak et dérive les URLs du baseDomain ([b8db09e](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/b8db09e9a7564ae4bdb0cbf6a7681127339d5229))
+
 ## [1.65.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.65.2...v1.65.3) (2026-07-27)
 
 

@@ -2,6 +2,7 @@ import { Organization, Project, ServiceMode } from '@france-nuage/sdk';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { PayloadAction } from '@reduxjs/toolkit';
 
+import config from '@/config';
 import { AppState } from '@/store';
 
 /**
@@ -21,10 +22,7 @@ const initialState: ApplicationState = {
   activeOrganization: undefined,
   activeProject: undefined,
   loaded: true,
-  mode:
-    import.meta.env.VITE_APPLICATION_DEFAULT_MODE === 'mock'
-      ? ServiceMode.Mock
-      : ServiceMode.Rpc,
+  mode: config.mode === 'mock' ? ServiceMode.Mock : ServiceMode.Rpc,
 };
 
 /**

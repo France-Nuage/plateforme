@@ -1,0 +1,37 @@
+"release":
+  image: registry.france-nuage.fr/library/node:22-alpine
+  services: []
+  stage: release
+  variables:
+    CI: true
+    HUSKY: 0
+    GIT_DEPTH: 0
+    GIT_STRATEGY: clone
+  before_script:
+    - apk add --no-cache git
+    - git remote set-url origin "https://oauth2:${GITLAB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
+    - npm ci
+  script:
+    - npx semantic-release
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never
+
+"release / docker-images":
+  extends: .buildkit_template
+  stage: release
+  script:
+    - |
+      set -e
+      IMAGES="controlplane operation-worker synchronizer console"
+      for image in $IMAGES; do
+        echo "Re-tagging ${image}:${CI_COMMIT_REF_SLUG}-release -> ${image}:release"
+        docker buildx imagetools create \
+          --tag ${CI_REGISTRY_IMAGE}/${image}:release \
+          ${CI_REGISTRY_IMAGE}/${image}:${CI_COMMIT_REF_SLUG}-release
+      done
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - when: never

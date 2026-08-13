@@ -24,16 +24,13 @@ CMD ["npm", "run", "dev"]
 
 FROM base AS build
 WORKDIR /app
-ARG VITE_APPLICATION_DEFAULT_MODE=rpc
-ENV VITE_APPLICATION_DEFAULT_MODE=${VITE_APPLICATION_DEFAULT_MODE}
-ARG VITE_CONTROLPLANE_URL=https://controlplane.france-nuage.fr
-ENV VITE_CONTROLPLANE_URL=${VITE_CONTROLPLANE_URL}
-# OIDC est géré server-side par le BFF (control-plane) : le SPA n'a plus aucune
-# config OIDC (le flow public PKCE + oidc-client-ts a été retiré).
+# Environment-specific settings are resolved at runtime via /config.js.
 RUN npm run build
 
 FROM ${NGINX_BASE_IMAGE} AS release
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY ./console/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./console/docker-entrypoint.sh /docker-entrypoint.d/40-runtime-config.sh
+RUN chmod +x /docker-entrypoint.d/40-runtime-config.sh
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

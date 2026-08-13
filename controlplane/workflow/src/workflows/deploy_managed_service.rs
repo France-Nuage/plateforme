@@ -33,6 +33,7 @@ pub struct DeployManagedServiceWorkflow {
     pub values: Value,
     pub secret_data: BTreeMap<String, String>,
     pub labels: BTreeMap<String, String>,
+    pub annotations: BTreeMap<String, String>,
     pub principal: Option<WorkflowPrincipal>,
 
     #[serde(default, skip_serializing, skip_deserializing)]
@@ -66,6 +67,7 @@ impl DeployManagedServiceWorkflow {
         values: Value,
         secret_data: BTreeMap<String, String>,
         labels: BTreeMap<String, String>,
+        annotations: BTreeMap<String, String>,
         principal: Option<WorkflowPrincipal>,
     ) -> Self {
         Self {
@@ -80,6 +82,7 @@ impl DeployManagedServiceWorkflow {
             values,
             secret_data,
             labels,
+            annotations,
             principal,
             status: DeployStatus::CheckingPermission,
         }
@@ -141,6 +144,7 @@ impl WorkflowDefinition for DeployManagedServiceWorkflow {
                 Ok(vec![Operations::CreateNamespace(CreateNamespaceOp {
                     namespace: self.namespace.clone(),
                     labels: self.labels.clone(),
+                    annotations: self.annotations.clone(),
                 })])
             }
             DeployStatus::CreatingSecret => {

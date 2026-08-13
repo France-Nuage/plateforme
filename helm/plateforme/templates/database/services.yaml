@@ -1,6 +1,7 @@
 {{- if .Values.postgres.enabled }}
 {{- $fullname := include "plateforme.fullname" . }}
-{{- $rw := printf "%s-db-rw.%s.svc.cluster.local" $fullname .Release.Namespace }}
+{{- $clusterDomain := .Values.clusterDomain | default "cluster.local" }}
+{{- $rw := printf "%s-db-rw.%s.svc.%s" $fullname .Release.Namespace $clusterDomain }}
 # Services alias : conservent les hostnames historiques attendus par les apps
 # (helpers + init containers inchangés) en pointant vers le service -rw (primary)
 # du Cluster CNPG. Les 3 apps atterrissent ainsi sur le même cluster, chacune

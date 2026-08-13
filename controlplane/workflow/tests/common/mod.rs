@@ -18,6 +18,8 @@ pub fn context_with_spicedb(spicedb: SpiceDB) -> WorkerContext {
         platform_config: workflow::PlatformConfig {
             default_storage_class: None,
             cnpg_backup_enabled: false,
+            deployment_labels: std::collections::BTreeMap::new(),
+            deployment_annotations: std::collections::BTreeMap::new(),
         },
         kek: Arc::new(frn_crypto::Kek::from_bytes([42u8; 32])),
         kubeconfig_path: None,

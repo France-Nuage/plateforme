@@ -542,7 +542,6 @@ services:
       PROXMOX_TEST_STORAGE_NAME: ${PROXMOX_TEST_STORAGE_NAME:-local-lvm}
       PROXMOX_TEST_URL: ${PROXMOX_TEST_URL:-https://pve01-test01.france-nuage.fr}
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
-      PW_TEST_HTML_REPORT_OPEN: never
       ROOT_ORGANIZATION_NAME: ${ROOT_ORGANIZATION_NAME:-acme}
       ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:-qDOiI0B686hr0wN479q7jmOQ6nYtSUsq}
       SPICEDB_GRPC_PRESHARED_KEY: ${SPICEDB_GRPC_PRESHARED_KEY:-PGOmLcWQCjqipv5gM8xzXUo4xqLJdEIifGkH5rR3xL1TLPlaWpcgBrgI62EbCWbO}
@@ -604,9 +603,9 @@ services:
       - ./seed.sql:/home/seed.sql:ro
 
   zed:
-    # TODO: pin to a specific version (was latest)
-    image: authzed/zed:latest
-    command: import /authz/seed.yaml
+    image: authzed/zed:v0.34.1
+    working_dir: /authz
+    command: import seed.yaml
     depends_on:
       spicedb:
         condition: service_healthy

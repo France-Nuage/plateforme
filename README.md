@@ -162,6 +162,58 @@ is handled by the included script.
 - **Location:** Certificates are stored in `certs/` directory
 - **Traefik:** Configured via `traefik/dynamic.yml` for automatic HTTPS
 
+### Running on a local Kubernetes cluster (kind)
+
+The platform is deployed through its Helm chart (`helm/plateforme`), the same way
+it runs in CI and production. To exercise this path locally, create a
+[kind](https://kind.sigs.k8s.io/) cluster wired for ingress. The port mappings
+expose the cluster on `localhost:80/443`, and the `ingress-ready` label lets the
+ingress controller schedule on the node:
+
+```sh
+kind create cluster --name france-nuage-local --config=- <<'EOF'
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+EOF
+```
+
+Then install the ingress controller. Production serves the platform through
+`nginx`-class ingresses, so we install `ingress-nginx` locally to match. Wait for
+the controller to become ready before deploying the chart:
+
+```sh
+kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
+
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=120s
+```
+
+The chart exposes the console, control plane and Keycloak as the `console`, `api`
+and `auth` subdomains of a configurable `ingress.baseDomain`. Locally we use the
+reserved `france-nuage.test` domain, so point its subdomains to the cluster:
+
+```sh
+echo "127.0.0.1 console.france-nuage.test api.france-nuage.test \
+auth.france-nuage.test" | sudo tee -a /etc/hosts
+```
+
 ## 📁 Architecture
 
 For developers working on the platform:

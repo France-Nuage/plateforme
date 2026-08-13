@@ -459,6 +459,8 @@ pub async fn seed_managed_service_instance(
         frn_core::managed::PlatformConfig {
             default_storage_class: None,
             cnpg_backup_enabled: false,
+            deployment_labels: std::collections::BTreeMap::new(),
+            deployment_annotations: std::collections::BTreeMap::new(),
         },
     );
     let mut conn = pool.acquire().await.expect("could not acquire connection");
@@ -544,6 +546,8 @@ pub async fn worker_context(pool: &Pool<Postgres>) -> workflow::WorkerContext {
         platform_config: frn_core::managed::PlatformConfig {
             default_storage_class: None,
             cnpg_backup_enabled: false,
+            deployment_labels: std::collections::BTreeMap::new(),
+            deployment_annotations: std::collections::BTreeMap::new(),
         },
         kek: Arc::new(Kek::from_bytes([42u8; 32])),
         kubeconfig_path: None,

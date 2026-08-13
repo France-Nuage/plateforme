@@ -1,0 +1,23 @@
+# Safety net: deletes ephemeral CI environments whose TTL has passed. Nominal
+# cleanup happens on job teardown and on GitLab's on_stop; this scheduled job
+# catches anything those missed. Triggered by a scheduled pipeline.
+"gc / ci-environments":
+  extends: .helm_qualif_template
+  stage: cleanup
+  script:
+    - |
+      set -eu
+      NOW=$(date -u +%s)
+
+      for ns in $(kubectl get namespaces -l frn.ci/managed=true -o jsonpath='{.items[*].metadata.name}'); do
+        expires_at=$(kubectl get namespace "${ns}" -o jsonpath='{.metadata.annotations.frn\.ci/expires-at}')
+        [ -n "${expires_at}" ] || continue
+
+        expires_epoch=$(date -u -d "${expires_at}" +%s 2>/dev/null || echo 0)
+        if [ "${expires_epoch}" -gt 0 ] && [ "${NOW}" -ge "${expires_epoch}" ]; then
+          echo "Deleting namespace ${ns} (expired at ${expires_at})"
+          kubectl delete namespace "${ns}" --wait=false || true
+        fi
+      done
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'

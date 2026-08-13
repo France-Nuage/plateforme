@@ -15,14 +15,12 @@ spec:
         app.kubernetes.io/component: system-tests
     spec:
       restartPolicy: Never
+      {{- include "plateforme.testsHostAliases" . | nindent 6 }}
       initContainers:
-        {{- include "plateforme.waitForControlplane" . | nindent 8 }}
-        {{- if .Values.console.enabled }}
-        {{- include "plateforme.waitForConsole" . | nindent 8 }}
-        {{- end }}
         {{- if .Values.keycloak.enabled }}
         {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
         {{- end }}
+        {{- include "plateforme.waitForPublicEndpoints" . | nindent 8 }}
       containers:
         - name: system-tests
           image: {{ include "plateforme.imageWithOverrides" (dict "component" "system-tests" "imageConfig" .Values.systemTests.image "context" .) }}
@@ -36,6 +34,13 @@ spec:
               value: {{ include "plateforme.consoleUrl" . | quote }}
             - name: CONTROLPLANE_URL
               value: {{ include "plateforme.controlplaneUrl" . | quote }}
+            - name: ROOT_ORGANIZATION_NAME
+              value: {{ .Values.controlplane.config.rootOrganizationName | quote }}
+            - name: ROOT_SERVICE_ACCOUNT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: root-service-account-key
             {{- if .Values.keycloak.enabled }}
             - name: KEYCLOAK_URL
               value: {{ include "plateforme.keycloakUrl" . | quote }}
@@ -49,7 +54,7 @@ spec:
             - name: OIDC_CLIENT_ID
               value: {{ .Values.systemTests.config.oidcClientId | quote }}
             - name: OIDC_PROVIDER_URL
-              value: {{ include "plateforme.keycloakOidcUrl" . | quote }}
+              value: {{ include "plateforme.keycloakRealmUrl" . | quote }}
             {{- end }}
             {{- if .Values.systemTests.config.headless }}
             - name: HEADLESS
@@ -57,4 +62,15 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.systemTests.resources | nindent 12 }}
+          {{- if .Values.systemTests.report.enabled }}
+          volumeMounts:
+            - name: report
+              mountPath: /app/playwright-report
+          {{- end }}
+      {{- if .Values.systemTests.report.enabled }}
+      volumes:
+        - name: report
+          persistentVolumeClaim:
+            claimName: {{ include "plateforme.fullname" . }}-playwright-report
+      {{- end }}
 {{- end }}

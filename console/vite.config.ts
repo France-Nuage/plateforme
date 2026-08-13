@@ -2,21 +2,9 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 
-// Validate required environment variables. Authentication is handled entirely
-// by the control plane (confidential-client BFF), so the only build-time config
-// the console needs is where to reach it.
-const requiredEnvVars = ['VITE_CONTROLPLANE_URL'];
-
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // Merge .env files with process.env, matching what the app sees in import.meta.env
   const env = loadEnv(mode, process.cwd(), '');
-
-  for (const envVar of requiredEnvVars) {
-    if (!env[envVar]) {
-      throw new Error(`Missing required environment variable: ${envVar}`);
-    }
-  }
 
   return {
     build: {
