@@ -1,3 +1,10 @@
+## [1.67.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.67.0...v1.67.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **plateforme:** OIDC_URL doit être l'URL de découverte complète (.well-known) ([d92510c](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/d92510cfc16920d215e081e54745126406a4cccc))
+
 # [1.67.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.66.0...v1.67.0) (2026-08-13)
 
 
