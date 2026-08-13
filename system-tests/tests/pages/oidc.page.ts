@@ -15,24 +15,40 @@ export class OidcPage extends BasePage {
    */
   public constructor(page: Page) {
     super(page, `${process.env.OIDC_PROVIDER_URL}/protocol/openid-connect/auth`);
-    // Sélecteurs FerrisKey (webapp login form, source-vérifié front/login-form.tsx +
-    // rendu live) : champ #email (type=email), #password, bouton submit. Diffère de
-    // Keycloak (#username / bouton "Sign In").
+    // Sélecteurs unifiés couvrant les deux IdP : l'env CI déploie Keycloak
+    // (identifiant #username, bouton submit #kc-login rendu en <input type=submit>
+    // "Sign In"), la prod FerrisKey (champ #email, <button type=submit>). Les deux
+    // ne coexistent jamais sur une même page, donc l'union CSS reste stricte.
     this.locators = {
       continueButton: page.getByRole('button', { name: 'Continue' }),
-      loginButton: page.locator('button[type="submit"]'),
-      emailInput: page.locator('#email'),
+      loginButton: page.locator('#kc-login, button[type="submit"]'),
+      emailInput: page.locator('#username, #email'),
       passwordInput: page.locator('#password')
     };
   }
 
   public async assertRedirectedTo(): Promise<void> {
     await test.step(`I should be redirected to the ${this.url} page`, async () => {
-      // FerrisKey redirige l'authorize (/protocol/openid-connect/auth) vers la page
-      // de login du webapp (/realms/<realm>/authentication/login).
+      // Keycloak rend le formulaire de login directement sur l'authorize
+      // (/protocol/openid-connect/auth) ; FerrisKey redirige vers la page de login
+      // du webapp (/realms/<realm>/authentication/login).
       await this.page.waitForURL((url) =>
         url.href.includes('/authentication/login') ||
         url.href.includes('/protocol/openid-connect/auth'));
     });
+  }
+
+  /**
+   * Completes the identity-provider login form and submits it.
+   *
+   * Waits for the authorize/login page, fills the credentials, then clicks the
+   * submit button (which POSTs to the IdP and redirects back to the control-plane
+   * BFF callback).
+   */
+  public async login(username: string, password: string): Promise<void> {
+    await this.assertRedirectedTo();
+    await this.locators.emailInput.fill(username);
+    await this.locators.passwordInput.fill(password);
+    await this.locators.loginButton.click();
   }
 }

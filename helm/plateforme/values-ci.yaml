@@ -70,8 +70,26 @@ systemTests:
 
 controlplane:
   config:
-    consoleUrl: "" 
-    oidcUrl: ""     
+    consoleUrl: ""
+    oidcUrl: ""
+    # BFF confidentiel : même flux qu'en prod, mais contre le Keycloak in-cluster
+    # de l'env CI. oidcUrl laissé vide → OIDC_URL dérive du helper keycloakOidcUrl
+    # (discovery https://auth--<envId>.<baseDomain>/realms/francenuage/.well-known/
+    # openid-configuration, résolu in-cluster via oidcHairpinIp ; le browser attaque
+    # le même host public). clientId (`console`) et redirectUrl
+    # (https://controlplane--<envId>.<baseDomain>/auth/callback) gardent leurs
+    # défauts. Le client confidentiel correspondant est injecté dans le realm importé
+    # (templates/keycloak/realm-configmap.yaml) avec le secret secrets.oidcClientSecret.
+    bff:
+      enabled: true
+
+# Secrets du BFF fournis en clair (env CI éphémère, IdP de test) : la prod passe
+# par le SealedSecret (secrets.existingSecret), jamais par ce chemin.
+# - oidcClientSecret : partagé avec le client Keycloak confidentiel `console`.
+# - authCookieKey : clé de scellement du cookie de session frn_session (base64, 32o).
+secrets:
+  oidcClientSecret: "ci-console-secret"
+  authCookieKey: "eu4dANxmmeT/cx7Y7aMy1RCp9ZgCMuoJlTqSzx92Ppo="
 
 synchronizer:
   config:

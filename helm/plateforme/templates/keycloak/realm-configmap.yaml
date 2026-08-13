@@ -15,6 +15,35 @@
 {{- end }}
 {{- end }}
 {{- end }}
+{{- /*
+  Confidential-client BFF: the control plane runs the OIDC authorization-code
+  flow server-side (client_secret_post, no PKCE) as a confidential client.
+  Register the matching confidential client in the imported realm so the code
+  exchange and the callback redirect are accepted. Its secret is the same value
+  the control plane reads from the k8s Secret (secrets.oidcClientSecret); its
+  single valid redirect URI is the control plane's /auth/callback (must match the
+  OIDC_REDIRECT_URL the control plane sends). The public `francenuage` client is
+  left untouched — the test harness still uses it for the direct-grant
+  (grant_type=password) token minting, which a confidential client would reject.
+*/}}
+{{- if .Values.controlplane.config.bff.enabled }}
+{{- $callback := .Values.controlplane.config.bff.redirectUrl | default (printf "https://%s/auth/callback" (include "plateforme.controlplaneHost" .)) }}
+{{- $consoleClient := dict
+      "clientId" .Values.controlplane.config.bff.clientId
+      "name" "France Nuage Console (BFF confidential client)"
+      "enabled" true
+      "protocol" "openid-connect"
+      "publicClient" false
+      "secret" (required "secrets.oidcClientSecret est requis quand le BFF est actif" .Values.secrets.oidcClientSecret)
+      "standardFlowEnabled" true
+      "implicitFlowEnabled" false
+      "directAccessGrantsEnabled" false
+      "serviceAccountsEnabled" false
+      "redirectUris" (list $callback)
+      "webOrigins" (list)
+      "attributes" (dict "post.logout.redirect.uris" "+") }}
+{{- $realm = set $realm "clients" (append $realm.clients $consoleClient) }}
+{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

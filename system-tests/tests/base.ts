@@ -67,17 +67,26 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   /**
    * @inheritdoc
    */
-  actingAs: async ({ keycloak, organization, page, services }, use) => {
+  actingAs: async ({ keycloak, organization, pages, services }, use) => {
     await use(async (user) => {
-      // compute key/value pair for session storage representation of the user
-      const key = `oidc.user:${process.env.OIDC_PROVIDER_URL}:${process.env.OIDC_CLIENT_ID}`;
-      const payload = await keycloak.createUser(user);
+      // Provision the user with an explicit password so the browser can complete
+      // the real OIDC login below (the direct-grant token minting keeps working
+      // for the returned RPC client).
+      const password = 'password';
+      const payload = await keycloak.createUser({ ...user, password });
       const userinfo = await keycloak.getUserInfo(payload.access_token);
       console.log(`attempting to invite user ${userinfo.email} on organization ${organization.slug}`)
       await services.invitation.create({ organizationSlug: organization.slug, email: userinfo.email });
 
-      // define the session storage value in the context of the page
-      await page.addInitScript(([key, value]) => sessionStorage.setItem(key, value), [key, JSON.stringify(payload)]);
+      // Confidential-client BFF: the console is authenticated by the httpOnly
+      // frn_session cookie the control plane sets at /auth/callback, never by a
+      // client-side token. Drive the real login flow so that cookie is set —
+      // injecting sessionStorage no longer authenticates the browser. Waiting for
+      // the managed-services page confirms the session is live before the test
+      // proceeds.
+      await pages.login.goto();
+      await pages.oidc.login(userinfo.preferred_username, password);
+      await pages.managedServices.assertRedirectedTo();
 
       return configureResolver(transport(controlplaneUrl(), payload.access_token))[ServiceMode.Rpc];
     });
