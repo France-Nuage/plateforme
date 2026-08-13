@@ -83,15 +83,20 @@ controlplane:
     # Issuer OIDC externe (FerrisKey) : keycloak in-cluster décommissionné, donc
     # le fallback dérivé du baseDomain (realm `francenuage`) ne s'applique pas —
     # l'URL FerrisKey (realm `france-nuage`) est fixée explicitement.
-    oidcUrl: "https://auth.france-nuage.fr/realms/france-nuage"
+    # OIDC_URL est fetché VERBATIM par le control-plane (bff.rs Bff::discover) et le
+    # synchronizer au boot ; il DOIT donc être l'URL de découverte complète
+    # (.../.well-known/openid-configuration). La racine de realm renvoie un JSON
+    # sans champ `issuer` → panic "missing field issuer" (crashloop au boot).
+    oidcUrl: "https://auth.france-nuage.fr/realms/france-nuage/.well-known/openid-configuration"
     logLevel: "warn"
     rootOrganizationName: "France Nuage"
     # BFF confidentiel activé (rollout console-bff). Le flip est atomique : BFF +
     # issuer FerrisKey + swap DNS auth.france-nuage.fr en une bascule. Prérequis
     # remplis : client confidentiel `console` (FerrisKey), SealedSecret
     # plateforme-prod-secrets avec `oidc-client-secret` + `auth-cookie-key`.
-    # PROD_OIDC_URL (CI --set) doit valoir https://auth.france-nuage.fr/realms/france-nuage
-    # (= FerrisKey une fois le DNS basculé).
+    # oidcUrl ci-dessus = découverte FerrisKey (realm france-nuage) une fois le DNS
+    # auth.france-nuage.fr basculé ; aucun override CI (le déploiement n'utilise que
+    # values-prod.yaml + --set global.image*).
     bff:
       enabled: true
       redirectUrl: "https://controlplane.france-nuage.fr/auth/callback"
