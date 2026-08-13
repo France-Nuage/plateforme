@@ -12,7 +12,15 @@ test.describe('Security', () => {
     await pages.managedServices.assertRedirectedTo();
   });
 
-  test('I can authenticate with a valid user', async ({ pages }) => {
+  test('I can authenticate with a valid user', async ({ pages, services, organization }) => {
+    // wile.coyote est un utilisateur préexistant du realm importé. Comme actingAs
+    // le fait pour les comptes qu'il crée, on le rattache à l'organisation de test :
+    // un utilisateur authentifié sans organisation n'atterrit pas sur la page des
+    // services managés. On teste ici le login par formulaire d'un utilisateur valide.
+    await services.invitation.create({
+      organizationSlug: organization.slug,
+      email: 'wile.coyote@acme.org',
+    });
     await pages.login.goto();
     await pages.oidc.assertRedirectedTo();
     await pages.oidc.locators.emailInput.fill('wile.coyote');
