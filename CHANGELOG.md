@@ -1,3 +1,10 @@
+# [1.67.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.66.0...v1.67.0) (2026-08-13)
+
+
+### Features
+
+* **auth:** bascule la console sur le BFF confidentiel FerrisKey + retire le Keycloak in-cluster ([bc1ee50](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/bc1ee50c9af761a1c3afc68dca159d09612eaaa0))
+
 # [1.66.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.65.3...v1.66.0) (2026-08-08)
 
 
