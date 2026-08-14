@@ -36,15 +36,42 @@ export function logoutRedirect(): void {
 }
 
 /**
+ * Raised when `/auth/me` fails with a server error (HTTP 5xx).
+ *
+ * This is distinct from an unauthenticated visitor: `/auth/me` answers `200`
+ * with `{ authenticated: false }` when there is no session, so a 5xx means the
+ * control plane itself is broken. Surfacing it as its own error lets the caller
+ * show an error state instead of treating the visitor as logged out and
+ * bouncing to `/login` — which would loop through the identity provider back to
+ * the same failing `/auth/me`.
+ */
+export class BffAuthServerError extends Error {
+  constructor(status: number) {
+    super(`GET /auth/me failed with server error ${status}`);
+    this.name = 'BffAuthServerError';
+  }
+}
+
+/**
  * Reads the current session identity from the control plane.
  *
  * The request carries the httpOnly session cookie (`credentials: 'include'`);
  * the token itself is never exposed to JavaScript.
+ *
+ * A `5xx` is thrown as a {@link BffAuthServerError} rather than parsed: a
+ * server error is NOT the "logged out" case (that is a `200` with
+ * `authenticated: false`), and parsing a text/plain error body as JSON would
+ * mask it behind a generic parse failure.
  */
 export function fetchMe(): Promise<Me> {
   return fetch(`${config.controlplane}/auth/me`, {
     credentials: 'include',
-  }).then((response) => response.json() as Promise<Me>);
+  }).then((response) => {
+    if (response.status >= 500) {
+      throw new BffAuthServerError(response.status);
+    }
+    return response.json() as Promise<Me>;
+  });
 }
 
 /**

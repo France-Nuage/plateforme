@@ -93,6 +93,61 @@ describe('fetchSession bootstrap', () => {
   });
 });
 
+describe('fetchSession server error vs unauthenticated', () => {
+  it('is not in error by default', () => {
+    const state = reducer(undefined, { type: '@@INIT' });
+    expect(state.sessionError).toBe(false);
+  });
+
+  it('flags a server error (5xx) so the app does not bounce to /login', () => {
+    const state = reducer(
+      undefined,
+      fetchSession.rejected(
+        new Error('Rejected'),
+        request,
+        undefined,
+        'server-error',
+      ),
+    );
+    expect(state.sessionError).toBe(true);
+    expect(state.authenticated).toBe(false);
+    expect(state.isAdmin).toBe(false);
+  });
+
+  it('does not flag a server error on an ordinary (network) rejection', () => {
+    const state = reducer(
+      undefined,
+      fetchSession.rejected(new Error('network'), request, undefined),
+    );
+    expect(state.sessionError).toBe(false);
+    expect(state.authenticated).toBe(false);
+  });
+
+  it('clears a previous server error once /auth/me succeeds again', () => {
+    const errored = reducer(
+      undefined,
+      fetchSession.rejected(
+        new Error('Rejected'),
+        request,
+        undefined,
+        'server-error',
+      ),
+    );
+    expect(errored.sessionError).toBe(true);
+
+    const recovered = reducer(
+      errored,
+      fetchSession.fulfilled(
+        me({ authenticated: true, isAdmin: false }),
+        request,
+        undefined,
+      ),
+    );
+    expect(recovered.sessionError).toBe(false);
+    expect(recovered.authenticated).toBe(true);
+  });
+});
+
 describe('logout and clear', () => {
   const authenticatedAdmin = reducer(
     undefined,

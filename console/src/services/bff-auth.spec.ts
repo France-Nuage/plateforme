@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import config from '@/config';
 
 import {
+  BffAuthServerError,
   fetchMe,
   loginRedirect,
   logoutRedirect,
@@ -45,7 +46,7 @@ describe('fetchMe', () => {
       sub: 's',
     };
     const fetchMock = vi.fn(() =>
-      Promise.resolve({ json: () => Promise.resolve(payload) }),
+      Promise.resolve({ json: () => Promise.resolve(payload), status: 200 }),
     );
     vi.stubGlobal('fetch', fetchMock);
 
@@ -53,6 +54,40 @@ describe('fetchMe', () => {
     expect(fetchMock).toHaveBeenCalledWith(`${config.controlplane}/auth/me`, {
       credentials: 'include',
     });
+  });
+
+  it('returns the unauthenticated payload on a 200 (a logged-out visitor)', async () => {
+    const payload = {
+      authenticated: false,
+      email: '',
+      firstName: '',
+      isAdmin: false,
+      lastName: '',
+      picture: '',
+      sub: '',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({ json: () => Promise.resolve(payload), status: 200 }),
+      ),
+    );
+
+    await expect(fetchMe()).resolves.toEqual(payload);
+  });
+
+  it('throws BffAuthServerError on a 5xx instead of treating it as logged out', async () => {
+    // A 500 with a text/plain body: `.json()` would throw and be mistaken for
+    // "unauthenticated" (→ redirect loop). It must surface as a server error,
+    // and the body must never be parsed as JSON.
+    const json = vi.fn(() => Promise.reject(new Error('not json')));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ json, status: 500 })),
+    );
+
+    await expect(fetchMe()).rejects.toBeInstanceOf(BffAuthServerError);
+    expect(json).not.toHaveBeenCalled();
   });
 });
 

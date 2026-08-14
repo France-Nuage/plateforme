@@ -1,6 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { Me, fetchMe, logoutRedirect } from '@/services/bff-auth';
+import {
+  BffAuthServerError,
+  Me,
+  fetchMe,
+  logoutRedirect,
+} from '@/services/bff-auth';
 
 /**
  * Represents the authentication state.
@@ -22,6 +27,15 @@ type AuthenticationState = {
    * for roles. Defaults to false until confirmed by the server.
    */
   isAdmin: boolean;
+  /**
+   * Whether the last `/auth/me` call failed with a server error (HTTP 5xx).
+   *
+   * This is distinct from being unauthenticated: a 5xx means the control plane
+   * is broken, not that the visitor is logged out. It lets the app show an
+   * error state instead of bouncing to `/login`, which on a persistent 5xx
+   * would loop through the identity provider back to the same failing endpoint.
+   */
+  sessionError: boolean;
 };
 
 /**
@@ -30,18 +44,31 @@ type AuthenticationState = {
 const initialState: AuthenticationState = {
   authenticated: false,
   isAdmin: false,
+  sessionError: false,
 };
 
 /**
  * Bootstraps (or refreshes) the authentication state from the control plane.
  *
  * Reads `/auth/me` over the httpOnly session cookie and returns the identity
- * payload. The reducers below turn it into `authenticated` + `isAdmin`; a
- * rejected request fails closed (unauthenticated, non-admin).
+ * payload. The reducers below turn it into `authenticated` + `isAdmin`.
+ *
+ * A control-plane 5xx ({@link BffAuthServerError}) is rejected with the
+ * `'server-error'` value so the reducer can flag `sessionError` and the app can
+ * show an error state; every other failure (network, unexpected) fails closed
+ * (unauthenticated, non-admin).
  */
-export const fetchSession = createAsyncThunk<Me, void>(
-  'authentication/fetchSession',
-  () => fetchMe(),
+export const fetchSession = createAsyncThunk<
+  Me,
+  void,
+  { rejectValue: 'server-error' }
+>('authentication/fetchSession', (_, { rejectWithValue }) =>
+  fetchMe().catch((error) => {
+    if (error instanceof BffAuthServerError) {
+      return rejectWithValue('server-error');
+    }
+    throw error;
+  }),
 );
 
 /**
@@ -69,6 +96,7 @@ export const authenticationSlice = createSlice({
     // `authenticated` discriminant; on failure we fail closed.
     builder.addCase(fetchSession.fulfilled, (state, action) => {
       const me = action.payload;
+      state.sessionError = false;
       if (me.authenticated) {
         state.authenticated = true;
         state.isAdmin = me.isAdmin;
@@ -77,14 +105,19 @@ export const authenticationSlice = createSlice({
         state.isAdmin = false;
       }
     });
-    builder.addCase(fetchSession.rejected, (state) => {
+    builder.addCase(fetchSession.rejected, (state, action) => {
       state.authenticated = false;
       state.isAdmin = false;
+      // A 5xx (`server-error`) is a broken control plane, not a logged-out
+      // visitor: flag it so the app shows an error state instead of bouncing to
+      // `/login`. Any other rejection (network, unexpected) fails closed.
+      state.sessionError = action.payload === 'server-error';
     });
 
     builder.addCase(logout.fulfilled, (state) => {
       state.authenticated = false;
       state.isAdmin = false;
+      state.sessionError = false;
     });
   },
   initialState,
@@ -98,6 +131,7 @@ export const authenticationSlice = createSlice({
     clearAuthenticationState: (state) => {
       state.authenticated = false;
       state.isAdmin = false;
+      state.sessionError = false;
     },
   },
 });

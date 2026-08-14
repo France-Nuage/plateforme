@@ -17,5 +17,6 @@ export default defineConfig({
         inline: ['@france-nuage/sdk'],
       },
     },
+    setupFiles: ['./vitest.setup.ts'],
   },
 });
