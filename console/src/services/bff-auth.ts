@@ -53,18 +53,21 @@ export function logoutRedirect(): void {
 }
 
 /**
- * Raised when `/auth/me` fails with a server error (HTTP 5xx).
+ * Raised when `/auth/me` could not be completed by the control plane — either a
+ * server error (HTTP 5xx) or a transport-level failure (control plane down,
+ * DNS, connection refused, CORS) that rejects the fetch itself.
  *
  * This is distinct from an unauthenticated visitor: `/auth/me` answers `200`
- * with `{ authenticated: false }` when there is no session, so a 5xx means the
- * control plane itself is broken. Surfacing it as its own error lets the caller
- * show an error state instead of treating the visitor as logged out and
- * bouncing to `/login` — which would loop through the identity provider back to
- * the same failing `/auth/me`.
+ * with `{ authenticated: false }` when there is no session, so neither a 5xx nor
+ * an unreachable control plane means "logged out". Surfacing it as its own error
+ * lets the caller show a retry state instead of treating the visitor as logged
+ * out and bouncing to `/login` — which would send the user to a dead
+ * `/auth/login` (unreachable control plane) or loop through the identity
+ * provider back to the same failing `/auth/me` (5xx).
  */
 export class BffAuthServerError extends Error {
-  constructor(status: number) {
-    super(`GET /auth/me failed with server error ${status}`);
+  constructor(detail: string) {
+    super(`GET /auth/me could not be completed: ${detail}`);
     this.name = 'BffAuthServerError';
   }
 }
@@ -75,20 +78,32 @@ export class BffAuthServerError extends Error {
  * The request carries the httpOnly session cookie (`credentials: 'include'`);
  * the token itself is never exposed to JavaScript.
  *
- * A `5xx` is thrown as a {@link BffAuthServerError} rather than parsed: a
- * server error is NOT the "logged out" case (that is a `200` with
- * `authenticated: false`), and parsing a text/plain error body as JSON would
- * mask it behind a generic parse failure.
+ * A `5xx` — or a transport failure that rejects the fetch (control plane down,
+ * DNS, connection refused, CORS) — is thrown as a {@link BffAuthServerError}
+ * rather than parsed or allowed to fail closed: neither is the "logged out" case
+ * (that is a `200` with `authenticated: false`), and treating them as logged out
+ * would bounce the user to a dead `/auth/login`. Parsing a text/plain error body
+ * as JSON would also mask a 5xx behind a generic parse failure.
  */
 export function fetchMe(): Promise<Me> {
   return fetch(`${config.controlplane}/auth/me`, {
     credentials: 'include',
-  }).then((response) => {
-    if (response.status >= 500) {
-      throw new BffAuthServerError(response.status);
-    }
-    return response.json() as Promise<Me>;
-  });
+  })
+    .then((response) => {
+      if (response.status >= 500) {
+        throw new BffAuthServerError(`server error ${response.status}`);
+      }
+      return response.json() as Promise<Me>;
+    })
+    .catch((error: unknown) => {
+      // Re-throw the 5xx we just raised as-is; wrap anything else (a transport
+      // rejection, or a malformed body from a broken control plane) so the
+      // caller shows the retry card instead of falling through to a logout.
+      if (error instanceof BffAuthServerError) {
+        throw error;
+      }
+      throw new BffAuthServerError('control plane unreachable');
+    });
 }
 
 /**

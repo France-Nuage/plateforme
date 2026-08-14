@@ -89,6 +89,18 @@ describe('fetchMe', () => {
     await expect(fetchMe()).rejects.toBeInstanceOf(BffAuthServerError);
     expect(json).not.toHaveBeenCalled();
   });
+
+  it('throws BffAuthServerError on a transport failure instead of failing closed to logout', async () => {
+    // The control plane is unreachable (down / DNS / connection refused / CORS):
+    // the fetch itself rejects. This is NOT "logged out" — it must surface as a
+    // server error (retry card), never bounce the user to a dead /auth/login.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
+    );
+
+    await expect(fetchMe()).rejects.toBeInstanceOf(BffAuthServerError);
+  });
 });
 
 describe('refreshSession', () => {
