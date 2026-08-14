@@ -602,7 +602,10 @@ async fn refresh(State(bff): State<Bff>, headers: HeaderMap) -> Response {
     let cookie = match cookie_value(&headers, SESSION_COOKIE_NAME) {
         Some(cookie) => cookie,
         None => {
-            metrics::refresh(RefreshResult::Rejected);
+            // No cookie at all: the console bootstrap probes /auth/refresh for
+            // every anonymous visitor, so this is benign volume, not a refresh
+            // failure. Its own label keeps it out of the failure-ratio alert.
+            metrics::refresh(RefreshResult::NoSession);
             return reject(StatusCode::UNAUTHORIZED, "no session", &cleared);
         }
     };

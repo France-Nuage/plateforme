@@ -560,12 +560,23 @@ pub fn same_site_cross_site_warning(
     if console_site == controlplane_site && !looks_like_public_suffix(&console_site) {
         return None;
     }
+    // Two ways to reach here: genuinely different registrable domains, or the
+    // same domain whose ccTLD-like shape makes the last-two-labels collapse
+    // unreliable. Word the diagnostic for each so it never claims "different"
+    // while printing two identical sites.
+    let diagnosis = if console_site == controlplane_site {
+        format!(
+            "share a registrable domain ({console_site}) whose public-suffix-like shape makes \
+             its same-site status unreliable"
+        )
+    } else {
+        format!("are on different registrable domains ({console_site} vs {controlplane_site})")
+    };
     Some(format!(
         "cookie SameSite policy is cross-site-unsafe: console origin ({console_url}) and \
-         control-plane origin ({controlplane_url}) are on different registrable domains \
-         ({console_site} vs {controlplane_site}), but AUTH_COOKIE_SAMESITE is not `none` with \
-         Secure. The browser will withhold the frn_session cookie on gRPC-web and /auth/me \
-         subresource calls, silently breaking authentication. Set AUTH_COOKIE_SAMESITE=none \
+         control-plane origin ({controlplane_url}) {diagnosis}, but AUTH_COOKIE_SAMESITE is not \
+         `none` with Secure. The browser will withhold the frn_session cookie on gRPC-web and \
+         /auth/me subresource calls, silently breaking authentication. Set AUTH_COOKIE_SAMESITE=none \
          (served over HTTPS) for cross-site deployments, or host the console and control plane \
          on the same registrable domain."
     ))

@@ -585,6 +585,10 @@ async fn refresh_rotates_the_session_on_success() {
 #[tokio::test]
 async fn refresh_clears_the_cookie_when_the_idp_rejects() {
     let mut harness = Harness::start(lazy_pool()).await;
+    // Force the process-global Prometheus recorder to install BEFORE the drive
+    // below: `metrics::counter!` is a no-op until the first render, so an
+    // increment emitted before any scrape would be silently lost.
+    warm_up_metrics();
     let cookie = harness.seal_session("rt-stale", "wile.coyote@acme.org", now() + 5);
 
     // The IdP rejects the refresh grant — hit AT MOST ONCE (bounded, no retry).
@@ -613,6 +617,23 @@ async fn refresh_clears_the_cookie_when_the_idp_rejects() {
 
     // The IdP token endpoint was hit exactly once (bounded refresh).
     token_mock.assert_async().await;
+
+    // A cookie WAS presented and the IdP rejected the grant => this is a genuine
+    // refresh failure, labelled `rejected` (the series the failure-ratio alert
+    // targets), never `no_session`.
+    let metrics = harness
+        .client
+        .get(format!("{}/metrics", harness.base))
+        .send()
+        .await
+        .expect("metrics request failed")
+        .text()
+        .await
+        .expect("metrics body");
+    assert!(
+        counter_value(&metrics, r#"auth_refresh_total{result="rejected"}"#) >= 1,
+        "a cookie-present IdP-reject must count as result=\"rejected\":\n{metrics}"
+    );
 }
 
 #[tokio::test]
@@ -861,15 +882,20 @@ fn cross_site_under_a_multi_label_public_suffix_is_flagged() {
     // last-two-labels heuristic collapses both to `co.uk` and would call them
     // same-site — suppressing the warning exactly when it is needed. The safer
     // default biases toward emitting it rather than silently under-warning.
+    let warning = server::config::same_site_cross_site_warning(
+        "https://app.co.uk",
+        "https://api.co.uk/auth/callback",
+        SameSite::Lax,
+        true,
+    )
+    .expect("a public-suffix-shaped shared site must warn");
+    // The message must not contradict itself: both sites collapse to `co.uk`, so
+    // it must NOT claim "different registrable domains (co.uk vs co.uk)".
     assert!(
-        server::config::same_site_cross_site_warning(
-            "https://app.co.uk",
-            "https://api.co.uk/auth/callback",
-            SameSite::Lax,
-            true,
-        )
-        .is_some()
+        !warning.contains("different registrable domains"),
+        "same-site public-suffix warning must not claim 'different': {warning}"
     );
+    assert!(warning.contains("co.uk"), "warning should name the shared site: {warning}");
 
     // Sanity: a genuine same-registrable-domain pair (subdomains only, non
     // public-suffix shape) is still correctly suppressed — no spurious warning.
@@ -1034,7 +1060,8 @@ async fn metrics_endpoint_reflects_auth_counters() {
             .contains("auth_error=session")
     );
 
-    // (2) A refresh with no session cookie => a `rejected` refresh outcome.
+    // (2) A refresh with no session cookie => a `no_session` outcome (benign
+    // anonymous probe), NOT a `rejected` failure — kept out of the alert.
     let refresh = harness
         .client
         .get(format!("{}/auth/refresh", harness.base))
@@ -1059,8 +1086,8 @@ async fn metrics_endpoint_reflects_auth_counters() {
         "auth_callback_reject_total{{reason=\"session\"}} must be present and non-zero:\n{metrics}"
     );
     assert!(
-        counter_value(&metrics, r#"auth_refresh_total{result="rejected"}"#) >= 1,
-        "auth_refresh_total{{result=\"rejected\"}} must be present and non-zero:\n{metrics}"
+        counter_value(&metrics, r#"auth_refresh_total{result="no_session"}"#) >= 1,
+        "a cookieless /auth/refresh must count as result=\"no_session\":\n{metrics}"
     );
 }
 
@@ -1068,6 +1095,15 @@ async fn metrics_endpoint_reflects_auth_counters() {
 /// same origin as `/auth/*` (mirrors production `application.rs`).
 async fn render_metrics() -> String {
     server::metrics::render()
+}
+
+/// Installs the process-global Prometheus recorder. `metrics::counter!` is a
+/// no-op until the recorder is installed (on the first render), so any test that
+/// asserts a counter value must call this BEFORE driving the flow it measures —
+/// otherwise the increment is silently dropped when this test happens to run
+/// before any `/metrics` scrape elsewhere in the process.
+fn warm_up_metrics() {
+    let _ = server::metrics::render();
 }
 
 /// Extracts the integer value of a Prometheus counter line by its exact

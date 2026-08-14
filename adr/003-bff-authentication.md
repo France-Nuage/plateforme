@@ -103,8 +103,11 @@ clé.
   round-trip de login.
 - **Validation cryptographique d'abord** : la signature de l'id_token est vérifiée
   avant tout décodage des claims (le payload n'est décodé qu'une fois signé).
-- **`exp` appliqué sur le chemin cookie** : `IAM::principal`, `/auth/me` et
-  `/auth/refresh` refusent une session dont l'`exp` interne a expiré.
+- **`exp` appliqué sur le chemin cookie** : `IAM::principal` (chemin gRPC) et
+  `/auth/me` refusent une session dont l'`exp` interne a expiré. `/auth/refresh`
+  n'inspecte **pas** cet `exp` — renouveler une session déjà expirée est
+  précisément son rôle ; il s'appuie sur la validité du `refresh_token` côté
+  provider et re-valide l'`exp` de l'id_token fraîchement émis.
 - **Fail-closed partout** sur `/auth/refresh` (pas de cookie, déchiffrement KO,
   refresh token absent/rejeté, id_token invalide → cookie effacé + 401).
 - **Refresh borné** : un `/auth/refresh` touche le provider **au plus une fois** (pas

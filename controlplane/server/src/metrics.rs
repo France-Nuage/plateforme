@@ -90,10 +90,19 @@ impl CallbackReject {
 pub enum RefreshResult {
     /// A fresh session was resealed.
     Ok,
-    /// The IdP rejected the refresh, or the response was unusable.
+    /// A session cookie WAS presented but the refresh failed: the IdP rejected
+    /// the refresh token, the response was unusable, or the fresh session could
+    /// not be resealed. This is a genuine session-renewal failure — the signal
+    /// the `frn-bff-auth-refresh-failure-ratio` alert targets.
     Rejected,
-    /// The presented cookie could not be decrypted/parsed.
+    /// The presented cookie could not be decrypted/parsed (e.g. after an
+    /// `AUTH_COOKIE_KEY` rotation invalidated every live cookie).
     DecryptFail,
+    /// No `frn_session` cookie was presented at all. This is NOT a refresh
+    /// failure: the console bootstrap probes `/auth/refresh` for every anonymous
+    /// visitor, so this is ordinary anonymous traffic. Kept as its own label so
+    /// the failure-ratio alert can exclude it and never page on benign volume.
+    NoSession,
 }
 
 impl RefreshResult {
@@ -102,6 +111,7 @@ impl RefreshResult {
             RefreshResult::Ok => "ok",
             RefreshResult::Rejected => "rejected",
             RefreshResult::DecryptFail => "decrypt_fail",
+            RefreshResult::NoSession => "no_session",
         }
     }
 }
