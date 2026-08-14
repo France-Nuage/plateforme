@@ -5,6 +5,7 @@ import {
   Me,
   fetchMe,
   logoutRedirect,
+  refreshSession,
 } from '@/services/bff-auth';
 
 /**
@@ -53,22 +54,44 @@ const initialState: AuthenticationState = {
  * Reads `/auth/me` over the httpOnly session cookie and returns the identity
  * payload. The reducers below turn it into `authenticated` + `isAdmin`.
  *
+ * When `/auth/me` reports no session, the short-lived access token may simply
+ * have lapsed while the longer-lived (12h) session cookie is still refreshable.
+ * A single silent {@link refreshSession} is attempted before giving up: on
+ * success `/auth/me` is read once more and that result is used; otherwise the
+ * unauthenticated payload stands. This is bounded to one attempt (no recursion,
+ * no loop) so a genuinely dead session still resolves to unauthenticated and
+ * lets the page guard redirect to `/login`, instead of every post-expiry page
+ * load paying a full identity-provider round-trip.
+ *
  * A control-plane 5xx ({@link BffAuthServerError}) is rejected with the
  * `'server-error'` value so the reducer can flag `sessionError` and the app can
- * show an error state; every other failure (network, unexpected) fails closed
- * (unauthenticated, non-admin).
+ * show an error state — it is thrown before the refresh branch, so a broken
+ * control plane never triggers a refresh. Every other failure (network,
+ * unexpected) fails closed (unauthenticated, non-admin).
  */
 export const fetchSession = createAsyncThunk<
   Me,
   void,
   { rejectValue: 'server-error' }
 >('authentication/fetchSession', (_, { rejectWithValue }) =>
-  fetchMe().catch((error) => {
-    if (error instanceof BffAuthServerError) {
-      return rejectWithValue('server-error');
-    }
-    throw error;
-  }),
+  fetchMe()
+    .then((me) => {
+      if (me.authenticated) {
+        return me;
+      }
+      return refreshSession().then((refreshed) => {
+        if (refreshed) {
+          return fetchMe();
+        }
+        return me;
+      });
+    })
+    .catch((error) => {
+      if (error instanceof BffAuthServerError) {
+        return rejectWithValue('server-error');
+      }
+      throw error;
+    }),
 );
 
 /**

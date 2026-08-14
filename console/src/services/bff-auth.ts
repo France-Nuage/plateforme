@@ -20,6 +20,23 @@ export type Me = {
 };
 
 /**
+ * Reason a `/auth/callback` was rejected by the control plane.
+ *
+ * On any failure the control plane 302-redirects the browser to
+ * `CONSOLE_URL?auth_error=<reason>` (see `bff.rs` `redirect_auth_error`); the
+ * console reads it back to explain why the login did not complete instead of
+ * silently retrying the flow and looping. These are the exact values emitted
+ * server-side (`metrics::CallbackReject::as_str`).
+ */
+export type AuthErrorReason =
+  | 'exchange'
+  | 'no_id_token'
+  | 'nonce'
+  | 'session'
+  | 'state'
+  | 'validation';
+
+/**
  * Redirects the browser to the server-side login endpoint, which starts the
  * OIDC authorization-code flow (state + nonce) against the identity provider.
  */
