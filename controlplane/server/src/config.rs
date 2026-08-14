@@ -118,9 +118,10 @@ pub struct Config {
 
     /// Confidential-client BFF, present only when `OIDC_CLIENT_SECRET` is set.
     ///
-    /// `None` keeps the legacy SPA/PKCE flow as the sole auth path (the `/auth/*`
-    /// routes are not mounted), so merging this change does not alter the
-    /// currently-deployed authentication.
+    /// `None` means the `/auth/*` routes are **not** mounted. The former SPA/PKCE
+    /// frontend has been removed, so in that state the console has no auth path at
+    /// all and cannot authenticate — an absent secret is a deployment
+    /// misconfiguration to avoid, not a graceful fallback to a legacy flow.
     pub bff: Option<crate::bff::Bff>,
 }
 
@@ -238,8 +239,9 @@ impl Config {
         );
 
         // Confidential-client BFF, gated on the presence of the client secret.
-        // Absent secret => `bff` is `None` and the CORS policy stays permissive:
-        // the legacy SPA/PKCE auth path is unchanged.
+        // Absent secret => `bff` is `None`, the `/auth/*` routes are not mounted,
+        // and the console cannot authenticate: the SPA/PKCE frontend has been
+        // removed, so this is a deployment misconfiguration, not a fallback path.
         let bff = Self::build_bff(&app).await?;
 
         // CORS: cookies require credentialed CORS with an explicit origin. Only
@@ -347,6 +349,20 @@ impl Config {
             session_max_age_secs,
         };
 
+        // Deployment-contract guard: a console and control plane on different
+        // registrable domains need `SameSite=None; Secure`, otherwise the browser
+        // withholds the session cookie on cross-site gRPC-web / `/auth/me` calls
+        // and authentication silently breaks. Surfaced loudly, never a panic (the
+        // registrable-domain check is a coarse heuristic).
+        if let Some(warning) = same_site_cross_site_warning(
+            &settings.console_url,
+            &settings.redirect_url,
+            settings.cookie_same_site,
+            settings.cookie_secure,
+        ) {
+            tracing::error!("{warning}");
+        }
+
         let bff = crate::bff::Bff::discover(app.openid.clone(), app.db.clone(), settings)
             .await
             .map_err(|err| Error::Core(frn_core::Error::Other(err.to_string())))?;
@@ -359,20 +375,15 @@ impl Config {
     /// `Access-Control-Allow-Credentials` is set (a `*` wildcard is illegal with
     /// credentials).
     fn bff_cors() -> Result<(AllowHeaders, AllowMethods, AllowOrigin, ExposeHeaders, bool), Error> {
-        use http::{HeaderName, HeaderValue, Method};
+        use http::{HeaderName, Method};
 
         let console_url = env::var("CONSOLE_URL")
             .expect("CONSOLE_URL must be set in BFF mode (OIDC_CLIENT_SECRET present)");
-        let origin: HeaderValue = console_url
-            .parse()
-            .expect("CONSOLE_URL must be a valid origin");
+        // Canonical bare origin so the exact-origin CORS match can never be
+        // silently defeated by a trailing slash or path in `CONSOLE_URL`.
+        let origin = console_cors_origin(&console_url)?;
 
-        let allow_headers = AllowHeaders::list([
-            HeaderName::from_static("content-type"),
-            HeaderName::from_static("x-grpc-web"),
-            HeaderName::from_static("x-user-agent"),
-            HeaderName::from_static("grpc-timeout"),
-        ]);
+        let allow_headers = AllowHeaders::list(bff_cors_allow_headers());
         let allow_methods = AllowMethods::list([Method::GET, Method::POST, Method::OPTIONS]);
         let expose_headers = ExposeHeaders::list([
             HeaderName::from_static("grpc-status"),
@@ -430,6 +441,106 @@ impl Config {
                 .map_err(Into::into),
         }
     }
+}
+
+/// Derives the canonical CORS allow-origin (scheme + host + optional non-default
+/// port — no path, no query, no trailing slash) from a `CONSOLE_URL`.
+///
+/// `CONSOLE_URL` doubles as the post-login redirect `Location` (which needs the
+/// full URL) and as the CORS exact-origin (which must equal the browser `Origin`
+/// header, a bare scheme+host+port). A value like `https://console.france-nuage.fr/`
+/// or one carrying a path parses fine yet never equals that bare `Origin`, so used
+/// verbatim it silently blocks every credentialed gRPC-web call. Normalizing here
+/// keeps the redirect on the full URL while the CORS layer gets the bare origin.
+/// Fails loud (at startup) when `CONSOLE_URL` is not a valid absolute http(s) origin.
+pub fn console_cors_origin(console_url: &str) -> Result<http::HeaderValue, Error> {
+    let url = reqwest::Url::parse(console_url).map_err(|err| {
+        config_error(format!(
+            "CONSOLE_URL is not a valid absolute URL ({console_url:?}): {err}"
+        ))
+    })?;
+    let origin = url.origin();
+    if !origin.is_tuple() {
+        return Err(config_error(format!(
+            "CONSOLE_URL must be an absolute http(s) origin, got {console_url:?}"
+        )));
+    }
+    http::HeaderValue::from_str(&origin.ascii_serialization())
+        .map_err(|err| config_error(format!("CONSOLE_URL yields a non-header-safe origin: {err}")))
+}
+
+/// The exact `Access-Control-Allow-Headers` allow-list advertised in BFF mode.
+///
+/// Single source of truth: the CORS layer builds its allow-list from this, and a
+/// black-box test asserts the gRPC-web browser transport's request headers are a
+/// subset — so dropping one here (or adding a transport header without adding it
+/// here) fails the test instead of silently breaking CORS preflight in the browser.
+pub fn bff_cors_allow_headers() -> Vec<http::HeaderName> {
+    ["content-type", "x-grpc-web", "x-user-agent", "grpc-timeout"]
+        .into_iter()
+        .map(http::HeaderName::from_static)
+        .collect()
+}
+
+/// Deployment-contract guard for the session cookie's `SameSite` policy.
+///
+/// The console's gRPC-web and `/auth/me` calls are cross-site *subresource*
+/// requests. With `SameSite=Lax`/`Strict` the browser withholds the `frn_session`
+/// cookie on those requests whenever the console and the control plane live on
+/// different registrable domains — the session then silently never arrives.
+/// Cross-site delivery requires `SameSite=None; Secure`. Returns the warning to
+/// surface loudly at startup, or `None` when the policy is safe.
+///
+/// The registrable-domain comparison is a last-two-labels approximation (it does
+/// not consult the public suffix list); it is a startup guard, not a security
+/// boundary, so the coarse heuristic is acceptable and errs toward warning.
+pub fn same_site_cross_site_warning(
+    console_url: &str,
+    controlplane_url: &str,
+    same_site: crate::bff::SameSite,
+    secure: bool,
+) -> Option<String> {
+    // `SameSite=None; Secure` is the only policy that delivers cross-site.
+    if matches!(same_site, crate::bff::SameSite::None) && secure {
+        return None;
+    }
+    let console_site = registrable_domain(console_url)?;
+    let controlplane_site = registrable_domain(controlplane_url)?;
+    if console_site == controlplane_site {
+        return None;
+    }
+    Some(format!(
+        "cookie SameSite policy is cross-site-unsafe: console origin ({console_url}) and \
+         control-plane origin ({controlplane_url}) are on different registrable domains \
+         ({console_site} vs {controlplane_site}), but AUTH_COOKIE_SAMESITE is not `none` with \
+         Secure. The browser will withhold the frn_session cookie on gRPC-web and /auth/me \
+         subresource calls, silently breaking authentication. Set AUTH_COOKIE_SAMESITE=none \
+         (served over HTTPS) for cross-site deployments, or host the console and control plane \
+         on the same registrable domain."
+    ))
+}
+
+/// Registrable domain of a URL, approximated as its last two DNS labels
+/// (e.g. `console.france-nuage.fr` -> `france-nuage.fr`). IP-literal or
+/// single-label hosts are returned whole; `None` when the URL has no host.
+fn registrable_domain(url: &str) -> Option<String> {
+    let parsed = reqwest::Url::parse(url).ok()?;
+    let host = parsed.host_str()?.to_ascii_lowercase();
+    if host.parse::<std::net::IpAddr>().is_ok() {
+        return Some(host);
+    }
+    let labels: Vec<&str> = host.split('.').filter(|label| !label.is_empty()).collect();
+    match labels.len() {
+        0 => None,
+        1 => Some(host),
+        n => Some(labels[n - 2..].join(".")),
+    }
+}
+
+/// Builds a fail-loud configuration error without adding a new `Error` variant —
+/// mirrors [`Config::build_bff`]'s use of `frn_core::Error::Other`.
+fn config_error(message: String) -> Error {
+    Error::Core(frn_core::Error::Other(message))
 }
 
 /// Parses a comma-separated list of `key=value` pairs into a map.

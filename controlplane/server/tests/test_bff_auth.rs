@@ -143,20 +143,6 @@ impl Harness {
         self.idp.mocks.push(token_mock);
     }
 
-    /// Registers the IdP token endpoint returning an error status (refresh
-    /// rejection).
-    fn stub_token_endpoint_error(&mut self, status: usize) {
-        let token_mock = self
-            .idp
-            .server
-            .mock("POST", "/oauth/token")
-            .with_status(status)
-            .with_header("content-type", "application/json")
-            .with_body(r#"{"error":"invalid_grant"}"#)
-            .create();
-        self.idp.mocks.push(token_mock);
-    }
-
     /// Seals a session cookie value exactly as the BFF would.
     fn seal_session(&self, refresh_token: &str, email: &str, exp: u64) -> String {
         self.cookie_key
@@ -283,7 +269,23 @@ async fn callback_rejects_a_state_mismatch() {
         .await
         .expect("callback request failed");
 
-    assert_eq!(response.status().as_u16(), 400);
+    // A rejected callback now 302-redirects to the console origin with a
+    // machine-readable `?auth_error=<reason>` (instead of a bare text page on the
+    // control-plane origin), and never establishes a session.
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("a rejected callback must redirect to the console");
+    assert!(
+        location.starts_with(CONSOLE_URL),
+        "must redirect to the console origin, got {location}"
+    );
+    assert!(
+        location.contains("auth_error=state"),
+        "must carry the state reject reason, got {location}"
+    );
     assert!(
         set_cookie(&response, "frn_session").is_none(),
         "a rejected callback must never establish a session"
@@ -302,7 +304,15 @@ async fn callback_rejects_a_missing_state() {
         .await
         .expect("callback request failed");
 
-    assert_eq!(response.status().as_u16(), 400);
+    // A missing state is a `state` reject: 302 to the console with `?auth_error=state`.
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("a rejected callback must redirect to the console");
+    assert!(location.starts_with(CONSOLE_URL));
+    assert!(location.contains("auth_error=state"));
     assert!(set_cookie(&response, "frn_session").is_none());
 }
 
@@ -404,7 +414,16 @@ async fn callback_rejects_a_nonce_mismatch() {
         .await
         .expect("callback failed");
 
-    assert_eq!(response.status().as_u16(), 401);
+    // The nonce mismatch is caught during id_token validation, so it surfaces as
+    // a `validation` reject: 302 to the console with `?auth_error=validation`.
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("a rejected callback must redirect to the console");
+    assert!(location.starts_with(CONSOLE_URL));
+    assert!(location.contains("auth_error=validation"));
     assert!(set_cookie(&response, "frn_session").is_none());
 }
 
@@ -514,9 +533,25 @@ async fn refresh_rotates_the_session_on_success() {
     let cookie = harness.seal_session("rt-initial", "wile.coyote@acme.org", now() + 5);
 
     // The IdP hands back a fresh id_token (longer expiry) and a rotated refresh
-    // token.
+    // token — and must be hit AT MOST ONCE, proving refresh is bounded
+    // server-side (no retry storm on a single `/auth/refresh`).
     let refreshed_id = harness.id_token("wile.coyote@acme.org", None, now() + 7200);
-    harness.stub_token_endpoint_with(&refreshed_id, "rt-rotated");
+    let token_body = json!({
+        "access_token": "opaque-access-token",
+        "id_token": refreshed_id,
+        "refresh_token": "rt-rotated",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    })
+    .to_string();
+    let token_mock = harness
+        .idp
+        .server
+        .mock("POST", "/oauth/token")
+        .with_header("content-type", "application/json")
+        .with_body(token_body)
+        .expect(1)
+        .create();
 
     let response = harness
         .client
@@ -537,6 +572,9 @@ async fn refresh_rotates_the_session_on_success() {
     assert_eq!(payload.exp, now() + 7200);
     assert_eq!(payload.refresh_token, "rt-rotated");
     assert_eq!(payload.email, "wile.coyote@acme.org");
+
+    // The IdP token endpoint was hit exactly once (bounded refresh).
+    token_mock.assert_async().await;
 }
 
 #[tokio::test]
@@ -544,8 +582,16 @@ async fn refresh_clears_the_cookie_when_the_idp_rejects() {
     let mut harness = Harness::start(lazy_pool()).await;
     let cookie = harness.seal_session("rt-stale", "wile.coyote@acme.org", now() + 5);
 
-    // The IdP rejects the refresh grant.
-    harness.stub_token_endpoint_error(400);
+    // The IdP rejects the refresh grant — hit AT MOST ONCE (bounded, no retry).
+    let token_mock = harness
+        .idp
+        .server
+        .mock("POST", "/oauth/token")
+        .with_status(400)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"error":"invalid_grant"}"#)
+        .expect(1)
+        .create();
 
     let response = harness
         .client
@@ -559,4 +605,247 @@ async fn refresh_clears_the_cookie_when_the_idp_rejects() {
     assert_eq!(response.status().as_u16(), 401);
     assert_eq!(set_cookie(&response, "frn_session").as_deref(), Some(""));
     assert!(cookie_has_attribute(&response, "frn_session", "Max-Age=0"));
+
+    // The IdP token endpoint was hit exactly once (bounded refresh).
+    token_mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn refresh_rejects_a_tampered_session_cookie() {
+    let harness = Harness::start(lazy_pool()).await;
+
+    // An undecryptable session cookie must fail closed: 401 + the cookie cleared
+    // (Max-Age=0), never a 500 — and it never even reaches the IdP.
+    let response = harness
+        .client
+        .get(format!("{}/auth/refresh", harness.base))
+        .header(reqwest::header::COOKIE, "frn_session=not-a-sealed-token")
+        .send()
+        .await
+        .expect("refresh request failed");
+
+    assert_eq!(response.status().as_u16(), 401);
+    assert_eq!(set_cookie(&response, "frn_session").as_deref(), Some(""));
+    assert!(cookie_has_attribute(&response, "frn_session", "Max-Age=0"));
+}
+
+#[tokio::test]
+async fn me_reports_unauthenticated_for_a_tampered_session_cookie() {
+    let harness = Harness::start(lazy_pool()).await;
+
+    // A tampered/undecryptable cookie yields the anonymous shape (HTTP 200,
+    // authenticated:false), never a 500.
+    let response = harness
+        .client
+        .get(format!("{}/auth/me", harness.base))
+        .header(reqwest::header::COOKIE, "frn_session=not-a-sealed-token")
+        .send()
+        .await
+        .expect("me request failed");
+
+    assert_eq!(response.status().as_u16(), 200);
+    let body: Value = response.json().await.expect("me must return json");
+    assert_eq!(body["authenticated"], json!(false));
+}
+
+#[tokio::test]
+async fn callback_seals_a_session_cookie_under_the_browser_size_limit() {
+    let mut harness = Harness::start(lazy_pool()).await;
+
+    let login = harness
+        .client
+        .get(format!("{}/auth/login", harness.base))
+        .send()
+        .await
+        .expect("login failed");
+    let state = set_cookie(&login, "frn_oauth_state").expect("state cookie");
+    let nonce = set_cookie(&login, "frn_oauth_nonce").expect("nonce cookie");
+
+    let id_token = harness.id_token("wile.coyote@acme.org", Some(&nonce), now() + 3600);
+    harness.stub_token_endpoint(&id_token);
+
+    let response = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
+        .header(
+            reqwest::header::COOKIE,
+            format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),
+        )
+        .send()
+        .await
+        .expect("callback failed");
+
+    assert_eq!(response.status().as_u16(), 302);
+    let session = set_cookie(&response, "frn_session").expect("session cookie must be set");
+    assert!(
+        session.len() < 4096,
+        "a normal sealed session must stay under the 4 KB browser cookie limit, got {} bytes",
+        session.len()
+    );
+}
+
+#[tokio::test]
+async fn callback_rejects_an_oversized_refresh_token_without_setting_a_cookie() {
+    let mut harness = Harness::start(lazy_pool()).await;
+
+    let login = harness
+        .client
+        .get(format!("{}/auth/login", harness.base))
+        .send()
+        .await
+        .expect("login failed");
+    let state = set_cookie(&login, "frn_oauth_state").expect("state cookie");
+    let nonce = set_cookie(&login, "frn_oauth_nonce").expect("nonce cookie");
+
+    // An IdP refresh token so large the sealed cookie would blow past the 4 KB
+    // browser limit. The BFF must fail loud, never emit an oversized cookie the
+    // browser would silently drop (which would be a broken session).
+    let oversized_refresh_token = "a".repeat(6000);
+    let id_token = harness.id_token("wile.coyote@acme.org", Some(&nonce), now() + 3600);
+    harness.stub_token_endpoint_with(&id_token, &oversized_refresh_token);
+
+    let response = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
+        .header(
+            reqwest::header::COOKIE,
+            format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),
+        )
+        .send()
+        .await
+        .expect("callback failed");
+
+    // Loud, machine-readable failure back to the console origin — and crucially
+    // NO oversized session cookie handed to the browser.
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("callback must redirect");
+    assert!(
+        location.starts_with(CONSOLE_URL),
+        "must redirect to the console origin, got {location}"
+    );
+    assert!(
+        location.contains("auth_error="),
+        "must carry a machine-readable auth_error, got {location}"
+    );
+    assert!(
+        set_cookie(&response, "frn_session").is_none(),
+        "an oversized session must never be shipped to the browser"
+    );
+}
+
+#[test]
+fn console_cors_origin_normalizes_a_trailing_slash_to_the_bare_origin() {
+    // A CONSOLE_URL with a trailing slash (or a path/query) must still yield the
+    // bare scheme+host origin the browser sends in `Origin`; otherwise credentialed
+    // CORS silently blocks every call.
+    let bare = server::config::console_cors_origin("https://console.france-nuage.fr")
+        .expect("valid absolute https origin");
+    assert_eq!(
+        bare.to_str().expect("header-safe origin"),
+        "https://console.france-nuage.fr"
+    );
+
+    let trailing_slash = server::config::console_cors_origin("https://console.france-nuage.fr/")
+        .expect("valid absolute https origin");
+    assert_eq!(
+        trailing_slash, bare,
+        "a trailing slash must not change the CORS origin"
+    );
+
+    let with_path =
+        server::config::console_cors_origin("https://console.france-nuage.fr/login?next=%2Fx")
+            .expect("valid absolute https origin");
+    assert_eq!(with_path, bare, "a path/query must not change the CORS origin");
+
+    // A non-default port is preserved (matches the browser `Origin`).
+    let ported = server::config::console_cors_origin("http://localhost:5173/")
+        .expect("valid absolute http origin");
+    assert_eq!(
+        ported.to_str().expect("header-safe origin"),
+        "http://localhost:5173"
+    );
+
+    // Not an absolute URL => fail loud at startup, never a silently-broken origin.
+    assert!(server::config::console_cors_origin("not-a-url").is_err());
+    assert!(server::config::console_cors_origin("/relative/path").is_err());
+}
+
+#[test]
+fn grpc_web_transport_headers_are_within_the_cors_allow_list() {
+    // The headers a gRPC-web browser transport puts on every unary call (grpc-web
+    // protocol): the request content-type, the grpc-web marker, the client
+    // user-agent, and the optional deadline. If any is absent from the BFF CORS
+    // allow-list, the browser's preflight fails and the call never runs — so this
+    // guards against a future allow-list edit silently breaking preflight.
+    let transport_headers = ["content-type", "x-grpc-web", "x-user-agent", "grpc-timeout"];
+    let allow_list: std::collections::HashSet<String> = server::config::bff_cors_allow_headers()
+        .into_iter()
+        .map(|header| header.as_str().to_owned())
+        .collect();
+
+    for header in transport_headers {
+        assert!(
+            allow_list.contains(header),
+            "gRPC-web sends `{header}` but the BFF CORS allow-list omits it — preflight would fail"
+        );
+    }
+}
+
+#[test]
+fn cross_site_lax_cookie_policy_is_flagged_at_startup() {
+    // Console and control plane on different registrable domains + SameSite=Lax:
+    // the browser withholds the cookie on cross-site subresource calls → warn.
+    assert!(
+        server::config::same_site_cross_site_warning(
+            "https://console.example.com",
+            "https://api.controlplane.io/auth/callback",
+            SameSite::Lax,
+            true,
+        )
+        .is_some()
+    );
+
+    // Same registrable domain (only the subdomain differs): Lax is safe → no warning.
+    assert!(
+        server::config::same_site_cross_site_warning(
+            "https://console.france-nuage.fr",
+            "https://api.france-nuage.fr/auth/callback",
+            SameSite::Lax,
+            true,
+        )
+        .is_none()
+    );
+
+    // Cross-site but `SameSite=None; Secure` — the only cross-site-safe policy.
+    assert!(
+        server::config::same_site_cross_site_warning(
+            "https://console.example.com",
+            "https://api.controlplane.io/auth/callback",
+            SameSite::None,
+            true,
+        )
+        .is_none()
+    );
+
+    // Cross-site + `SameSite=None` but NOT Secure: browsers reject None without
+    // Secure, so it stays unsafe → warn.
+    assert!(
+        server::config::same_site_cross_site_warning(
+            "https://console.example.com",
+            "https://api.controlplane.io/auth/callback",
+            SameSite::None,
+            false,
+        )
+        .is_some()
+    );
 }

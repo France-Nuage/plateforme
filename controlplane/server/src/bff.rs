@@ -9,9 +9,11 @@
 //!
 //! The flow is provider-agnostic — it works against the current Keycloak IdP and
 //! against FerrisKey — which makes it the safe migration path. It is guarded by
-//! configuration (see [`crate::config::Config`]): the routes only exist when an
-//! `OIDC_CLIENT_SECRET` is provided, so the legacy SPA/PKCE flow keeps working
-//! untouched until the confidential client is provisioned on the IdP.
+//! configuration (see [`crate::config::Config`]): the `/auth/*` routes exist only
+//! when an `OIDC_CLIENT_SECRET` is provided. The former SPA/PKCE frontend has been
+//! removed, so when the secret is absent the BFF is **not** mounted and the console
+//! has no way to authenticate — a deployment misconfiguration to avoid, not a
+//! graceful fallback to a legacy flow.
 //!
 //! ## Endpoints (all mounted on the control-plane origin, next to gRPC-web)
 //!
@@ -67,6 +69,13 @@ pub const DEFAULT_SESSION_MAX_TTL_SECS: i64 = 12 * 3600;
 /// Bound on every outbound HTTP call to the IdP (discovery + token exchange +
 /// refresh).
 const HTTP_TIMEOUT_SECS: u64 = 10;
+/// Hard ceiling on the sealed `frn_session` cookie value. Browsers cap a single
+/// cookie at ~4 KB and **silently drop** anything larger, which would leave a
+/// broken session behind with no error. The IdP `refresh_token` is the only
+/// unbounded input feeding the sealed payload, so bounding the sealed output also
+/// bounds it (space bound, per "Tout borner"): past this size we fail loud instead
+/// of shipping a cookie the browser will discard.
+const MAX_SESSION_COOKIE_BYTES: usize = 4096;
 
 /// `SameSite` attribute for the BFF cookies.
 #[derive(Clone, Copy, Debug)]
@@ -179,6 +188,9 @@ pub enum Error {
 
     #[error("could not seal the session cookie")]
     SessionSeal,
+
+    #[error("sealed session cookie exceeds the browser size limit")]
+    SessionTooLarge,
 }
 
 /// Settings required to build a [`Bff`], read from the environment at startup.
@@ -377,9 +389,16 @@ impl Bff {
             email,
             exp: claims.exp,
         };
-        self.session_key
+        let sealed = self
+            .session_key
             .seal(&payload)
-            .map_err(|_| Error::SessionSeal)
+            .map_err(|_| Error::SessionSeal)?;
+        // Bound the sealed cookie: past ~4 KB the browser silently drops it,
+        // leaving a broken session. Fail loud instead of shipping a dead cookie.
+        if sealed.len() > MAX_SESSION_COOKIE_BYTES {
+            return Err(Error::SessionTooLarge);
+        }
+        Ok(sealed)
     }
 
     /// Validates an id_token: signature (via the shared JWK cache), then
@@ -480,11 +499,7 @@ async fn callback(
     if let Some(error) = params.error {
         tracing::warn!(error = %error, "oidc provider returned an error at callback");
         metrics::callback_reject(CallbackReject::Exchange);
-        return reject(
-            StatusCode::BAD_REQUEST,
-            "authentication failed at the identity provider",
-            &clear,
-        );
+        return redirect_auth_error(&bff.console_url, CallbackReject::Exchange, &clear);
     }
 
     // CSRF: the state must be present on both sides and match exactly.
@@ -494,7 +509,7 @@ async fn callback(
         _ => {
             tracing::warn!("oidc callback rejected: state mismatch");
             metrics::callback_reject(CallbackReject::State);
-            return reject(StatusCode::BAD_REQUEST, "invalid state", &clear);
+            return redirect_auth_error(&bff.console_url, CallbackReject::State, &clear);
         }
     }
 
@@ -503,7 +518,7 @@ async fn callback(
         None => {
             tracing::warn!("oidc callback rejected: missing nonce cookie");
             metrics::callback_reject(CallbackReject::Nonce);
-            return reject(StatusCode::BAD_REQUEST, "missing nonce", &clear);
+            return redirect_auth_error(&bff.console_url, CallbackReject::Nonce, &clear);
         }
     };
 
@@ -511,11 +526,7 @@ async fn callback(
         Some(code) => code,
         None => {
             metrics::callback_reject(CallbackReject::Exchange);
-            return reject(
-                StatusCode::BAD_REQUEST,
-                "missing authorization code",
-                &clear,
-            );
+            return redirect_auth_error(&bff.console_url, CallbackReject::Exchange, &clear);
         }
     };
 
@@ -524,7 +535,7 @@ async fn callback(
         Err(err) => {
             tracing::warn!(error = %err, "authorization code exchange failed");
             metrics::callback_reject(CallbackReject::Exchange);
-            return reject(StatusCode::BAD_GATEWAY, "token exchange failed", &clear);
+            return redirect_auth_error(&bff.console_url, CallbackReject::Exchange, &clear);
         }
     };
 
@@ -533,7 +544,7 @@ async fn callback(
         None => {
             tracing::warn!("token response carried no id_token");
             metrics::callback_reject(CallbackReject::NoIdToken);
-            return reject(StatusCode::BAD_GATEWAY, "no id token", &clear);
+            return redirect_auth_error(&bff.console_url, CallbackReject::NoIdToken, &clear);
         }
     };
 
@@ -542,7 +553,7 @@ async fn callback(
         Err(err) => {
             tracing::warn!(error = %err, "id_token validation failed");
             metrics::callback_reject(CallbackReject::Validation);
-            return reject(StatusCode::UNAUTHORIZED, "invalid id token", &clear);
+            return redirect_auth_error(&bff.console_url, CallbackReject::Validation, &clear);
         }
     };
 
@@ -554,7 +565,7 @@ async fn callback(
         Err(err) => {
             tracing::warn!(error = %err, "could not seal the session cookie");
             metrics::callback_reject(CallbackReject::Validation);
-            return reject(StatusCode::UNAUTHORIZED, "invalid id token", &clear);
+            return redirect_auth_error(&bff.console_url, CallbackReject::Validation, &clear);
         }
     };
 
@@ -852,6 +863,23 @@ fn redirect(location: &str, cookies: &[String]) -> Response {
         headers.append(header::SET_COOKIE, header_value(cookie));
     }
     (StatusCode::FOUND, headers, String::new()).into_response()
+}
+
+/// Callback failure: 302 back to the console origin with a machine-readable
+/// `?auth_error=<reason>` the console login page can render — instead of stranding
+/// the user on a bare `text/plain` page served from the control-plane origin. The
+/// `reason` reuses the [`CallbackReject`] code already emitted as the metric label,
+/// so the redirect and the metric never diverge. Clears the one-shot login cookies.
+fn redirect_auth_error(console_url: &str, reason: CallbackReject, cookies: &[String]) -> Response {
+    let location = match reqwest::Url::parse(console_url) {
+        Ok(mut url) => {
+            url.query_pairs_mut()
+                .append_pair("auth_error", reason.as_str());
+            url.to_string()
+        }
+        Err(_) => console_url.to_owned(),
+    };
+    redirect(&location, cookies)
 }
 
 /// Loud rejection: the given status + message, attaching any cookies to clear.

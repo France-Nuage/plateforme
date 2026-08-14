@@ -66,7 +66,9 @@ pub enum CallbackReject {
 }
 
 impl CallbackReject {
-    fn as_str(self) -> &'static str {
+    /// Stable machine code for both the `reason` metric label and the
+    /// `?auth_error=<reason>` query param the callback redirects the console to.
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             CallbackReject::State => "state",
             CallbackReject::Nonce => "nonce",
