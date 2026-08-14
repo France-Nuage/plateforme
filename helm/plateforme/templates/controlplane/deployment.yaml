@@ -17,7 +17,7 @@ spec:
       annotations:
         # Scrape des compteurs BFF (auth_login/callback_reject/refresh) exposés sur
         # GET /metrics — même écouteur HTTP que gRPC-web (port 80). Consommés par les
-        # alertes charts/grafana/orgs/france-nuage/rules/console-bff-auth.yaml.
+        # alertes charts/grafana/orgs/france-nuage/rules/bff-auth.yaml.
         prometheus.io/scrape: "true"
         prometheus.io/port: "80"
         prometheus.io/path: "/metrics"

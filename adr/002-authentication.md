@@ -1,5 +1,16 @@
 # ADR : Architecture d'authentification et d'autorisation avec OpenID Connect
 
+> **Statut : Superseded** par [ADR 003 — Authentification BFF client confidentiel](003-bff-authentication.md).
+>
+> Ce document décrit le flux **retiré du code** : SPA publique NextJS + PKCE,
+> stockage des tokens en `sessionStorage`, tokens transmis dans le fragment d'URL,
+> route frontend `/auth/callback/[provider]`, id_token porté en `Authorization:
+> Bearer` dans les métadonnées gRPC, et l'affirmation « Pas de cookies : gRPC ne
+> supporte pas les cookies HTTP ». La plateforme livrée fait **l'inverse** : un BFF
+> client confidentiel côté control-plane et un cookie `frn_session` chiffré,
+> httpOnly, jamais exposé au JavaScript. Conservé pour l'historique de décision ;
+> pour la réalité en production, lire l'ADR 003.
+
 ## Contexte et Enjeux
 
 France-Nuage souhaite mettre en place une architecture d'authentification moderne

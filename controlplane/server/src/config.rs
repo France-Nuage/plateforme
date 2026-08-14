@@ -306,9 +306,12 @@ impl Config {
     /// * `AUTH_COOKIE_KEY` — base64 32-byte key sealing the encrypted session
     ///   cookie (required in BFF mode). The gRPC cookie path in `IAM` reads the
     ///   same variable, so both agree on one key.
-    /// * `SESSION_MAX_TTL` — session cookie `Max-Age` in seconds (the refresh
-    ///   window). Defaults to [`crate::bff::DEFAULT_SESSION_MAX_TTL_SECS`]. The
-    ///   inner payload `exp` (short access lifetime) comes from the id_token.
+    /// * `SESSION_MAX_TTL` — session cookie `Max-Age` as a positive integer number
+    ///   of **seconds** (the refresh window). Unset => the default
+    ///   [`crate::bff::DEFAULT_SESSION_MAX_TTL_SECS`]; set-but-unparseable => fail
+    ///   loud at startup (never a silent fallback that ignores the operator's
+    ///   value). The inner payload `exp` (short access lifetime) comes from the
+    ///   id_token.
     async fn build_bff(app: &App<SpiceDB>) -> Result<Option<crate::bff::Bff>, Error> {
         let client_secret = match env::var("OIDC_CLIENT_SECRET") {
             Ok(secret) if !secret.is_empty() => secret,
@@ -326,11 +329,8 @@ impl Config {
                 .expect("AUTH_COOKIE_KEY must be set in BFF mode (OIDC_CLIENT_SECRET present)"),
         )
         .expect("AUTH_COOKIE_KEY must be base64-encoded 32 bytes");
-        let session_max_age_secs = env::var("SESSION_MAX_TTL")
-            .ok()
-            .and_then(|value| value.parse::<i64>().ok())
-            .filter(|secs| *secs > 0)
-            .unwrap_or(crate::bff::DEFAULT_SESSION_MAX_TTL_SECS);
+        let session_max_age_secs =
+            parse_session_max_ttl(env::var("SESSION_MAX_TTL").ok().as_deref());
 
         let settings = crate::bff::Settings {
             oidc_url: app.config.oidc_url.clone(),
@@ -459,6 +459,16 @@ pub fn console_cors_origin(console_url: &str) -> Result<http::HeaderValue, Error
             "CONSOLE_URL is not a valid absolute URL ({console_url:?}): {err}"
         ))
     })?;
+    // `origin().is_tuple()` alone is not enough: `ws`/`wss`/`ftp` are "special"
+    // schemes that also yield a tuple origin, so a mistaken `CONSOLE_URL=ws://…`
+    // would pass yet never equal the browser's `https://` `Origin` header —
+    // silently blocking every credentialed call. Require http(s) explicitly.
+    if !matches!(url.scheme(), "http" | "https") {
+        return Err(config_error(format!(
+            "CONSOLE_URL must use the http or https scheme, got {:?} in {console_url:?}",
+            url.scheme()
+        )));
+    }
     let origin = url.origin();
     if !origin.is_tuple() {
         return Err(config_error(format!(
@@ -482,6 +492,38 @@ pub fn bff_cors_allow_headers() -> Vec<http::HeaderName> {
         .collect()
 }
 
+/// Parses `SESSION_MAX_TTL` (the session cookie `Max-Age` refresh window) into a
+/// positive number of seconds.
+///
+/// - `None` (unset) => the documented default
+///   [`crate::bff::DEFAULT_SESSION_MAX_TTL_SECS`].
+/// - `Some(positive integer seconds)` => that value, honored verbatim.
+/// - `Some(unparseable / non-positive)` => **fail loud** at startup.
+///
+/// The fail-loud path is deliberate: a silent fallback to the default would
+/// override an operator who set e.g. `"24h"` or `"12h"` (not a valid `i64`) or a
+/// negative value, and they would never know their configured TTL was ignored
+/// (the 0-silent-fail rule). `panic!` here is startup configuration validation,
+/// the one place a hard stop is the correct fail-fast (mirrors the `.expect`s on
+/// `AUTH_COOKIE_KEY` / `OIDC_REDIRECT_URL` in [`Config::build_bff`]).
+pub fn parse_session_max_ttl(raw: Option<&str>) -> i64 {
+    match raw {
+        None => crate::bff::DEFAULT_SESSION_MAX_TTL_SECS,
+        Some(value) => {
+            let secs = value.parse::<i64>().unwrap_or_else(|err| {
+                panic!(
+                    "SESSION_MAX_TTL must be a positive integer number of seconds, got {value:?}: {err}"
+                )
+            });
+            assert!(
+                secs > 0,
+                "SESSION_MAX_TTL must be a positive integer number of seconds, got {secs}"
+            );
+            secs
+        }
+    }
+}
+
 /// Deployment-contract guard for the session cookie's `SameSite` policy.
 ///
 /// The console's gRPC-web and `/auth/me` calls are cross-site *subresource*
@@ -491,9 +533,15 @@ pub fn bff_cors_allow_headers() -> Vec<http::HeaderName> {
 /// Cross-site delivery requires `SameSite=None; Secure`. Returns the warning to
 /// surface loudly at startup, or `None` when the policy is safe.
 ///
-/// The registrable-domain comparison is a last-two-labels approximation (it does
-/// not consult the public suffix list); it is a startup guard, not a security
-/// boundary, so the coarse heuristic is acceptable and errs toward warning.
+/// The registrable-domain comparison is a last-two-labels approximation: it does
+/// **not** consult the public suffix list, so under a multi-label public suffix it
+/// can **under-warn** — `app.co.uk` and `api.co.uk` are different registrable
+/// domains, yet both collapse to `co.uk` and would look same-site, suppressing the
+/// warning exactly when it is needed. This is a startup guard, not a security
+/// boundary, so rather than pull in a PSL we bias toward emitting the warning: a
+/// shared site whose shape looks like a ccTLD-style public suffix (see
+/// [`looks_like_public_suffix`]) is treated as ambiguous, not same-site. A
+/// spurious warning is the safe direction; a suppressed one is not.
 pub fn same_site_cross_site_warning(
     console_url: &str,
     controlplane_url: &str,
@@ -506,7 +554,10 @@ pub fn same_site_cross_site_warning(
     }
     let console_site = registrable_domain(console_url)?;
     let controlplane_site = registrable_domain(controlplane_url)?;
-    if console_site == controlplane_site {
+    // Suppress only when the two collapse to the SAME registrable domain AND that
+    // domain is not itself a public-suffix shape (in which case the last-two-labels
+    // collapse is unreliable and we must not claim same-site — bias to warning).
+    if console_site == controlplane_site && !looks_like_public_suffix(&console_site) {
         return None;
     }
     Some(format!(
@@ -520,9 +571,28 @@ pub fn same_site_cross_site_warning(
     ))
 }
 
+/// Whether a two-label domain looks like a ccTLD-style multi-label public suffix
+/// (`co.uk`, `com.au`, `co.jp`, `gov.uk`, `ac.uk`, …), for which the last-two-labels
+/// [`registrable_domain`] approximation is unreliable.
+///
+/// Cheap shape heuristic (no public-suffix-list dependency): exactly two labels
+/// where the first is short (≤ 3 chars, matching `co`/`com`/`gov`/`ac`/`edu`…) and
+/// the last is a 2-char ccTLD. This deliberately over-flags rather than under-flags
+/// — a false positive only produces a spurious startup warning (safe), whereas a
+/// false negative would silently suppress the cross-site cookie warning (the bug).
+fn looks_like_public_suffix(domain: &str) -> bool {
+    let labels: Vec<&str> = domain.split('.').filter(|label| !label.is_empty()).collect();
+    matches!(labels.as_slice(), [sld, tld] if sld.len() <= 3 && tld.len() == 2)
+}
+
 /// Registrable domain of a URL, approximated as its last two DNS labels
 /// (e.g. `console.france-nuage.fr` -> `france-nuage.fr`). IP-literal or
 /// single-label hosts are returned whole; `None` when the URL has no host.
+///
+/// This is a coarse last-two-labels heuristic that does not consult the public
+/// suffix list, so it collapses multi-label public suffixes (`app.co.uk` ->
+/// `co.uk`); callers that need same-site certainty must guard with
+/// [`looks_like_public_suffix`].
 fn registrable_domain(url: &str) -> Option<String> {
     let parsed = reqwest::Url::parse(url).ok()?;
     let host = parsed.host_str()?.to_ascii_lowercase();

@@ -63,6 +63,11 @@ pub enum CallbackReject {
     NoIdToken,
     /// id_token failed signature/iss/aud/exp validation.
     Validation,
+    /// Server-side session failure after a valid id_token: sealing the cookie
+    /// failed, or the sealed value would exceed the browser cookie size limit.
+    /// Kept distinct from `Validation` so a sizing/seal failure never inflates
+    /// the id_token-validation alert.
+    Session,
 }
 
 impl CallbackReject {
@@ -75,6 +80,7 @@ impl CallbackReject {
             CallbackReject::Exchange => "exchange",
             CallbackReject::NoIdToken => "no_id_token",
             CallbackReject::Validation => "validation",
+            CallbackReject::Session => "session",
         }
     }
 }

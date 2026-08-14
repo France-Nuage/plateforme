@@ -15,7 +15,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use auth::OpenID;
 use auth::mock::WithJwks;
 use fabrique::Factory;
-use frn_core::identity::{SessionKey, SessionPayload, User};
+use frn_core::identity::{SESSION_COOKIE_NAME, SessionKey, SessionPayload, User};
 use mock_server::MockServer;
 use serde_json::{Value, json};
 use server::bff::{Bff, SameSite, Settings};
@@ -99,8 +99,13 @@ impl Harness {
             .await
             .expect("could not bind bff listener");
         let addr = listener.local_addr().expect("could not read local addr");
+        // Mount `/metrics` on the same origin as `/auth/*`, mirroring production
+        // (`application.rs`), so tests can scrape the auth counters end-to-end.
+        let router = bff
+            .into_router()
+            .route("/metrics", axum::routing::get(render_metrics));
         tokio::spawn(async move {
-            axum::serve(listener, bff.into_router()).await.ok();
+            axum::serve(listener, router).await.ok();
         });
 
         let client = reqwest::Client::builder()
@@ -734,8 +739,8 @@ async fn callback_rejects_an_oversized_refresh_token_without_setting_a_cookie() 
         "must redirect to the console origin, got {location}"
     );
     assert!(
-        location.contains("auth_error="),
-        "must carry a machine-readable auth_error, got {location}"
+        location.contains("auth_error=session"),
+        "a server-side sizing failure is a `session` reject, not `validation`, got {location}"
     );
     assert!(
         set_cookie(&response, "frn_session").is_none(),
@@ -848,4 +853,229 @@ fn cross_site_lax_cookie_policy_is_flagged_at_startup() {
         )
         .is_some()
     );
+}
+
+#[test]
+fn cross_site_under_a_multi_label_public_suffix_is_flagged() {
+    // `app.co.uk` and `api.co.uk` are DIFFERENT registrable domains, but the
+    // last-two-labels heuristic collapses both to `co.uk` and would call them
+    // same-site — suppressing the warning exactly when it is needed. The safer
+    // default biases toward emitting it rather than silently under-warning.
+    assert!(
+        server::config::same_site_cross_site_warning(
+            "https://app.co.uk",
+            "https://api.co.uk/auth/callback",
+            SameSite::Lax,
+            true,
+        )
+        .is_some()
+    );
+
+    // Sanity: a genuine same-registrable-domain pair (subdomains only, non
+    // public-suffix shape) is still correctly suppressed — no spurious warning.
+    assert!(
+        server::config::same_site_cross_site_warning(
+            "https://console.france-nuage.fr",
+            "https://api.france-nuage.fr/auth/callback",
+            SameSite::Lax,
+            true,
+        )
+        .is_none()
+    );
+}
+
+#[test]
+fn console_cors_origin_rejects_non_http_schemes() {
+    // A tuple origin is not enough: ws/wss/ftp also yield tuple origins, but they
+    // never equal the browser's https `Origin` — a `CONSOLE_URL=ws://…` typo would
+    // silently block every credentialed call. Fail loud at startup instead.
+    assert!(server::config::console_cors_origin("ws://console.france-nuage.fr").is_err());
+    assert!(server::config::console_cors_origin("wss://console.france-nuage.fr").is_err());
+    assert!(server::config::console_cors_origin("ftp://console.france-nuage.fr").is_err());
+
+    // http(s) still pass.
+    assert!(server::config::console_cors_origin("https://console.france-nuage.fr").is_ok());
+    assert!(server::config::console_cors_origin("http://localhost:5173").is_ok());
+}
+
+#[test]
+fn session_max_ttl_honors_a_valid_non_default_value() {
+    // A valid override (positive integer seconds) must be honored verbatim, never
+    // silently replaced by the default.
+    assert_eq!(server::config::parse_session_max_ttl(Some("86400")), 86400);
+    // Unset falls back to the documented default.
+    assert_eq!(
+        server::config::parse_session_max_ttl(None),
+        server::bff::DEFAULT_SESSION_MAX_TTL_SECS
+    );
+}
+
+#[test]
+#[should_panic(expected = "SESSION_MAX_TTL")]
+fn session_max_ttl_fails_loud_on_an_unparseable_value() {
+    // `"12h"` is not a valid i64 — the old code silently fell back to the 12h
+    // default, ignoring the operator. It must now fail loud at startup.
+    let _ = server::config::parse_session_max_ttl(Some("12h"));
+}
+
+#[tokio::test]
+async fn callback_rejects_a_session_cookie_that_overflows_only_with_the_name_prefix() {
+    // The browser bounds the whole `frn_session=` + value PAIR at ~4 KB, not the
+    // value alone. This drives a sealed value that fits the 4096 B value-only view
+    // yet overflows once the name prefix is added — the ~11-byte window the
+    // value-only bound missed (which the browser silently drops → login loop).
+    let mut harness = Harness::start(lazy_pool()).await;
+
+    let login = harness
+        .client
+        .get(format!("{}/auth/login", harness.base))
+        .send()
+        .await
+        .expect("login failed");
+    let state = set_cookie(&login, "frn_oauth_state").expect("state cookie");
+    let nonce = set_cookie(&login, "frn_oauth_nonce").expect("nonce cookie");
+    let exp = now() + 3600;
+
+    // Find a refresh-token length whose sealed cookie value lands in the boundary
+    // window: value ≤ limit (old bound passes) but name + "=" + value > limit (new
+    // bound fails). Sealing is deterministic in the input length, so measuring via
+    // the harness matches exactly what the callback will produce.
+    const LIMIT: usize = 4096;
+    let overhead = SESSION_COOKIE_NAME.len() + 1; // name + "="
+    let boundary_refresh_token = (2500..LIMIT)
+        .map(|len| "a".repeat(len))
+        .find(|token| {
+            let sealed = harness.seal_session(token, "wile.coyote@acme.org", exp);
+            sealed.len() <= LIMIT && overhead + sealed.len() > LIMIT
+        })
+        .expect("a refresh token whose sealed value lands in the name-prefix boundary window");
+
+    let id_token = harness.id_token("wile.coyote@acme.org", Some(&nonce), exp);
+    harness.stub_token_endpoint_with(&id_token, &boundary_refresh_token);
+
+    let response = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
+        .header(
+            reqwest::header::COOKIE,
+            format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),
+        )
+        .send()
+        .await
+        .expect("callback failed");
+
+    // The value alone would have passed the old bound, but the pair overflows =>
+    // fail loud (no cookie), redirect to the console with `?auth_error=session`.
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("callback must redirect");
+    assert!(
+        location.starts_with(CONSOLE_URL),
+        "must redirect to the console origin, got {location}"
+    );
+    assert!(
+        location.contains("auth_error=session"),
+        "an oversized session is a `session` reject, got {location}"
+    );
+    assert!(
+        set_cookie(&response, "frn_session").is_none(),
+        "a cookie that would overflow the browser pair limit must never be shipped"
+    );
+}
+
+#[tokio::test]
+async fn metrics_endpoint_reflects_auth_counters() {
+    // O1-A guard: install the recorder, drive one `/auth/callback` reject and one
+    // `/auth/refresh` outcome, then scrape `/metrics` on the same origin and assert
+    // the exact series the Grafana alert keys on are present and non-zero. Without
+    // the recorder installed first the `counter!` calls are no-ops, so this also
+    // proves the metric wiring is live end-to-end.
+    server::metrics::handle();
+
+    let mut harness = Harness::start(lazy_pool()).await;
+
+    // (1) A callback that fails to seal (oversized refresh token) => a `session`
+    // reject, distinct from an id_token `validation` failure.
+    let login = harness
+        .client
+        .get(format!("{}/auth/login", harness.base))
+        .send()
+        .await
+        .expect("login failed");
+    let state = set_cookie(&login, "frn_oauth_state").expect("state cookie");
+    let nonce = set_cookie(&login, "frn_oauth_nonce").expect("nonce cookie");
+    let id_token = harness.id_token("wile.coyote@acme.org", Some(&nonce), now() + 3600);
+    harness.stub_token_endpoint_with(&id_token, &"a".repeat(6000));
+    let callback = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
+        .header(
+            reqwest::header::COOKIE,
+            format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),
+        )
+        .send()
+        .await
+        .expect("callback failed");
+    assert!(
+        callback
+            .headers()
+            .get(reqwest::header::LOCATION)
+            .and_then(|value| value.to_str().ok())
+            .expect("callback redirect")
+            .contains("auth_error=session")
+    );
+
+    // (2) A refresh with no session cookie => a `rejected` refresh outcome.
+    let refresh = harness
+        .client
+        .get(format!("{}/auth/refresh", harness.base))
+        .send()
+        .await
+        .expect("refresh failed");
+    assert_eq!(refresh.status().as_u16(), 401);
+
+    // (3) Scrape /metrics and assert the exact series are present and non-zero.
+    let metrics = harness
+        .client
+        .get(format!("{}/metrics", harness.base))
+        .send()
+        .await
+        .expect("metrics request failed")
+        .text()
+        .await
+        .expect("metrics body");
+
+    assert!(
+        counter_value(&metrics, r#"auth_callback_reject_total{reason="session"}"#) >= 1,
+        "auth_callback_reject_total{{reason=\"session\"}} must be present and non-zero:\n{metrics}"
+    );
+    assert!(
+        counter_value(&metrics, r#"auth_refresh_total{result="rejected"}"#) >= 1,
+        "auth_refresh_total{{result=\"rejected\"}} must be present and non-zero:\n{metrics}"
+    );
+}
+
+/// Renders the process-global Prometheus metrics; mounted on the harness at the
+/// same origin as `/auth/*` (mirrors production `application.rs`).
+async fn render_metrics() -> String {
+    server::metrics::render()
+}
+
+/// Extracts the integer value of a Prometheus counter line by its exact
+/// `name{labels}` prefix; `0` when the series is absent.
+fn counter_value(rendered: &str, series: &str) -> i64 {
+    rendered
+        .lines()
+        .find_map(|line| line.strip_prefix(series)?.trim().parse::<f64>().ok())
+        .map(|value| value as i64)
+        .unwrap_or(0)
 }

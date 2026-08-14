@@ -137,8 +137,11 @@ controlplane:
       cookieSameSite: "lax"
       # Vide => cookie host-only sur l'origine control-plane (recommandé).
       cookieDomain: ""
-      # Max-Age du cookie / fenêtre de refresh.
-      sessionMaxTtl: "12h"
+      # Max-Age du cookie / fenêtre de refresh, en SECONDES ENTIÈRES (le
+      # control-plane lit SESSION_MAX_TTL comme un i64 de secondes et échoue au
+      # démarrage sur une valeur non entière type "12h" — cf. config.rs
+      # parse_session_max_ttl).
+      sessionMaxTtl: 43200 # 12h
   resources:
     requests:
       memory: "256Mi"

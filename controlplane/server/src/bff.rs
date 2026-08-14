@@ -69,12 +69,16 @@ pub const DEFAULT_SESSION_MAX_TTL_SECS: i64 = 12 * 3600;
 /// Bound on every outbound HTTP call to the IdP (discovery + token exchange +
 /// refresh).
 const HTTP_TIMEOUT_SECS: u64 = 10;
-/// Hard ceiling on the sealed `frn_session` cookie value. Browsers cap a single
-/// cookie at ~4 KB and **silently drop** anything larger, which would leave a
-/// broken session behind with no error. The IdP `refresh_token` is the only
-/// unbounded input feeding the sealed payload, so bounding the sealed output also
-/// bounds it (space bound, per "Tout borner"): past this size we fail loud instead
-/// of shipping a cookie the browser will discard.
+/// Browser cap on a single cookie. Browsers bound the whole `name "=" value`
+/// pair (plus attributes) at ~4 KB and **silently drop** anything larger, which
+/// would leave a broken session behind with no error. The bound is applied to
+/// `SESSION_COOKIE_NAME.len() + 1 + sealed.len()` (name + `=` + value), never the
+/// value alone — a value of 4086..4096 B fits the value-only view yet blows past
+/// the pair limit once the `frn_session=` prefix is added, so the browser drops
+/// it (a login loop). The IdP `refresh_token` is the only unbounded input feeding
+/// the sealed payload, so bounding the sealed output also bounds it (space bound,
+/// per "Tout borner"): past this size we fail loud instead of shipping a cookie
+/// the browser will discard.
 const MAX_SESSION_COOKIE_BYTES: usize = 4096;
 
 /// `SameSite` attribute for the BFF cookies.
@@ -393,9 +397,11 @@ impl Bff {
             .session_key
             .seal(&payload)
             .map_err(|_| Error::SessionSeal)?;
-        // Bound the sealed cookie: past ~4 KB the browser silently drops it,
-        // leaving a broken session. Fail loud instead of shipping a dead cookie.
-        if sealed.len() > MAX_SESSION_COOKIE_BYTES {
+        // Bound the whole `name "=" value` pair, not the value alone: the browser
+        // counts the cookie NAME plus `=` plus the value and silently drops the
+        // cookie past ~4 KB, leaving a broken session. Fail loud instead of
+        // shipping a dead cookie.
+        if SESSION_COOKIE_NAME.len() + 1 + sealed.len() > MAX_SESSION_COOKIE_BYTES {
             return Err(Error::SessionTooLarge);
         }
         Ok(sealed)
@@ -563,9 +569,13 @@ async fn callback(
     let sealed = match bff.seal_session(&claims, tokens.refresh_token.unwrap_or_default()) {
         Ok(sealed) => sealed,
         Err(err) => {
+            // A seal/sizing failure is a server-side session error, NOT an
+            // id_token validation failure — label it distinctly so the metric and
+            // the `?auth_error` reason don't blame token validation (which would
+            // pollute the validation alert).
             tracing::warn!(error = %err, "could not seal the session cookie");
-            metrics::callback_reject(CallbackReject::Validation);
-            return redirect_auth_error(&bff.console_url, CallbackReject::Validation, &clear);
+            metrics::callback_reject(CallbackReject::Session);
+            return redirect_auth_error(&bff.console_url, CallbackReject::Session, &clear);
         }
     };
 
