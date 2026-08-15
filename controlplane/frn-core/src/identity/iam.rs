@@ -1,7 +1,10 @@
 //! Identity and access management
 //!
-//! Provides the `IAM` service for resolving user identity from access tokens.
-//! Currently returns a default user; will be extended to validate OIDC tokens.
+//! Provides the `IAM` service for resolving the [`Principal`] behind a request
+//! from one of two credentials: an `Authorization: Bearer` token (service-account
+//! key or a validated user OIDC access token) or our sealed `frn_session` cookie.
+//! Both paths enforce expiry and fail closed as [`Error::Unauthenticated`] — see
+//! [`IAM::principal`].
 
 use std::time::{SystemTime, UNIX_EPOCH};
 

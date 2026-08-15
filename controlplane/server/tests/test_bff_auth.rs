@@ -148,6 +148,26 @@ impl Harness {
         self.idp.mocks.push(token_mock);
     }
 
+    /// Registers the IdP token endpoint returning a 200 that carries NO id_token,
+    /// so the callback hits the `no_id_token` reject.
+    fn stub_token_endpoint_without_id_token(&mut self) {
+        let body = json!({
+            "access_token": "opaque-access-token",
+            "refresh_token": "refresh-token-from-idp",
+            "token_type": "Bearer",
+            "expires_in": 3600,
+        })
+        .to_string();
+        let token_mock = self
+            .idp
+            .server
+            .mock("POST", "/oauth/token")
+            .with_header("content-type", "application/json")
+            .with_body(body)
+            .create();
+        self.idp.mocks.push(token_mock);
+    }
+
     /// Seals a session cookie value exactly as the BFF would.
     fn seal_session(&self, refresh_token: &str, email: &str, exp: u64) -> String {
         self.cookie_key
@@ -319,6 +339,143 @@ async fn callback_rejects_a_missing_state() {
     assert!(location.starts_with(CONSOLE_URL));
     assert!(location.contains("auth_error=state"));
     assert!(set_cookie(&response, "frn_session").is_none());
+}
+
+#[tokio::test]
+async fn callback_rejects_a_provider_error() {
+    let harness = Harness::start(lazy_pool()).await;
+
+    // The IdP redirected back with `?error=...` (e.g. the user denied consent):
+    // an `exchange` reject, checked before anything else.
+    let response = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?error=access_denied&state=whatever",
+            harness.base
+        ))
+        .send()
+        .await
+        .expect("callback request failed");
+
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("a rejected callback must redirect to the console");
+    assert!(location.starts_with(CONSOLE_URL));
+    assert!(
+        location.contains("auth_error=exchange"),
+        "must carry the exchange reject reason, got {location}"
+    );
+    assert!(set_cookie(&response, "frn_session").is_none());
+}
+
+#[tokio::test]
+async fn callback_rejects_a_missing_nonce_cookie() {
+    let harness = Harness::start(lazy_pool()).await;
+
+    let login = harness
+        .client
+        .get(format!("{}/auth/login", harness.base))
+        .send()
+        .await
+        .expect("login failed");
+    let state = set_cookie(&login, "frn_oauth_state").expect("state cookie");
+
+    // State matches but the nonce cookie is absent → `nonce` reject (before the
+    // code exchange, so no token endpoint is even contacted).
+    let response = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
+        .header(reqwest::header::COOKIE, format!("frn_oauth_state={state}"))
+        .send()
+        .await
+        .expect("callback request failed");
+
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("a rejected callback must redirect to the console");
+    assert!(location.starts_with(CONSOLE_URL));
+    assert!(
+        location.contains("auth_error=nonce"),
+        "must carry the nonce reject reason, got {location}"
+    );
+    assert!(set_cookie(&response, "frn_session").is_none());
+}
+
+#[tokio::test]
+async fn callback_rejects_a_token_response_without_id_token() {
+    let mut harness = Harness::start(lazy_pool()).await;
+
+    let login = harness
+        .client
+        .get(format!("{}/auth/login", harness.base))
+        .send()
+        .await
+        .expect("login failed");
+    let state = set_cookie(&login, "frn_oauth_state").expect("state cookie");
+    let nonce = set_cookie(&login, "frn_oauth_nonce").expect("nonce cookie");
+
+    // The token endpoint answers 200 but omits the id_token → `no_id_token` reject.
+    harness.stub_token_endpoint_without_id_token();
+
+    let response = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
+        .header(
+            reqwest::header::COOKIE,
+            format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),
+        )
+        .send()
+        .await
+        .expect("callback request failed");
+
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("a rejected callback must redirect to the console");
+    assert!(location.starts_with(CONSOLE_URL));
+    assert!(
+        location.contains("auth_error=no_id_token"),
+        "must carry the no_id_token reject reason, got {location}"
+    );
+    assert!(set_cookie(&response, "frn_session").is_none());
+}
+
+#[tokio::test]
+async fn me_reports_unauthenticated_for_an_expired_session() {
+    let harness = Harness::start(lazy_pool()).await;
+
+    // A well-formed sealed cookie whose inner `exp` has already elapsed must fail
+    // closed on `/auth/me` — the anonymous shape, never the identity. This gate
+    // is a distinct code path from the gRPC-path `exp` check in frn-core, so a
+    // regression removing it would not be caught by the gRPC-path tests.
+    let expired = harness.seal_session("rt", "wile.coyote@acme.org", now() - 1);
+
+    let body: Value = harness
+        .client
+        .get(format!("{}/auth/me", harness.base))
+        .header(reqwest::header::COOKIE, format!("frn_session={expired}"))
+        .send()
+        .await
+        .expect("me request failed")
+        .json()
+        .await
+        .expect("me must return json");
+
+    assert_eq!(body["authenticated"], json!(false));
 }
 
 #[sqlx::test(migrations = "../migrations")]
