@@ -84,6 +84,14 @@ pub enum Error {
     #[error("missing email claim")]
     MissingEmailClaim,
 
+    /// The token carries an `email` claim, but `email_verified` is absent or
+    /// `false`. Since users are resolved by email, an unverified email must not
+    /// authenticate — otherwise an attacker could register a victim's address at
+    /// the provider (without proving mailbox control) and be resolved to that
+    /// user's row.
+    #[error("email not verified")]
+    EmailNotVerified,
+
     /// JWT header is missing the required "kid" (Key ID) claim.
     ///
     /// The JWT header must contain a "kid" field that identifies which key

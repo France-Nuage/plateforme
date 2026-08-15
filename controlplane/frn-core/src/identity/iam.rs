@@ -98,13 +98,14 @@ impl IAM {
     }
 
     async fn user(&self, access_token: String) -> Result<User, Error> {
-        let email = self
-            .identity
-            .validate_token(&access_token)
-            .await?
-            .claims
-            .email
-            .ok_or(auth::Error::MissingEmailClaim)?;
+        let claims = self.identity.validate_token(&access_token).await?.claims;
+        let email = claims.email.ok_or(auth::Error::MissingEmailClaim)?;
+        // Identity is keyed on the email, so an unverified one must not
+        // authenticate: an absent or `false` `email_verified` means the provider
+        // never confirmed the subject controls this address.
+        if claims.email_verified != Some(true) {
+            return Err(auth::Error::EmailNotVerified.into());
+        }
 
         User::find_or_create_one_by_email(&self.db, &email)
             .await

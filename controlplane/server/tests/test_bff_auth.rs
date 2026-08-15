@@ -196,12 +196,28 @@ impl Harness {
             "iat": now(),
             "sub": "subject-abc-123",
             "email": email,
+            "email_verified": true,
             "given_name": "Wile",
             "family_name": "Coyote",
         });
         if let Some(nonce) = nonce {
             claims["nonce"] = json!(nonce);
         }
+        OpenID::sign_claims(&claims)
+    }
+
+    /// Mints a signed id_token whose email is present but NOT verified.
+    fn id_token_unverified_email(&self, email: &str, nonce: &str, exp: u64) -> String {
+        let claims = json!({
+            "iss": self.idp_base,
+            "aud": CLIENT_ID,
+            "exp": exp,
+            "iat": now(),
+            "sub": "subject-abc-123",
+            "email": email,
+            "email_verified": false,
+            "nonce": nonce,
+        });
         OpenID::sign_claims(&claims)
     }
 }
@@ -450,6 +466,55 @@ async fn callback_rejects_a_token_response_without_id_token() {
     assert!(
         location.contains("auth_error=no_id_token"),
         "must carry the no_id_token reject reason, got {location}"
+    );
+    assert!(set_cookie(&response, "frn_session").is_none());
+}
+
+#[tokio::test]
+async fn callback_rejects_an_unverified_email() {
+    let mut harness = Harness::start(lazy_pool()).await;
+
+    let login = harness
+        .client
+        .get(format!("{}/auth/login", harness.base))
+        .send()
+        .await
+        .expect("login failed");
+    let state = set_cookie(&login, "frn_oauth_state").expect("state cookie");
+    let nonce = set_cookie(&login, "frn_oauth_nonce").expect("nonce cookie");
+
+    // The IdP returns a validly-signed id_token (iss/aud/exp/nonce all pass) but
+    // `email_verified` is false: an attacker could have self-registered a
+    // victim's (e.g. an admin's) address without proving mailbox control. Since
+    // identity is keyed on the email, this MUST be rejected with no session.
+    let id_token =
+        harness.id_token_unverified_email("admin@francenuage.fr", &nonce, now() + 3600);
+    harness.stub_token_endpoint(&id_token);
+
+    let response = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
+        .header(
+            reqwest::header::COOKIE,
+            format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),
+        )
+        .send()
+        .await
+        .expect("callback request failed");
+
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("a rejected callback must redirect to the console");
+    assert!(location.starts_with(CONSOLE_URL));
+    assert!(
+        location.contains("auth_error=validation"),
+        "an unverified email must be an id_token validation reject, got {location}"
     );
     assert!(set_cookie(&response, "frn_session").is_none());
 }

@@ -151,6 +151,57 @@ async fn an_expired_bearer_id_token_is_rejected(
 }
 
 #[sqlx::test(migrations = "../migrations")]
+async fn a_bearer_id_token_with_a_verified_email_authenticates(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    // A validly-signed, non-expired user token with a verified email resolves the
+    // user by email — the positive counterpart to the rejection below.
+    let token = auth::OpenID::sign_claims(&serde_json::json!({
+        "email": EMAIL,
+        "email_verified": true,
+        "exp": now() + 3600,
+        "iat": now(),
+        "nbf": now(),
+    }));
+
+    let response = api
+        .profile
+        .get_current_user(Request::new(GetCurrentUserRequest {}).with_user(&token))
+        .await;
+
+    assert!(response.is_ok(), "a verified-email bearer must authenticate");
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn a_bearer_id_token_with_an_unverified_email_is_rejected(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    // Validly-signed and non-expired, but `email_verified` is false: since users
+    // are resolved by email, an unverified address must NOT authenticate (it could
+    // belong to someone else — an admin — the attacker never proved control of).
+    let token = auth::OpenID::sign_claims(&serde_json::json!({
+        "email": EMAIL,
+        "email_verified": false,
+        "exp": now() + 3600,
+        "iat": now(),
+        "nbf": now(),
+    }));
+
+    let response = api
+        .profile
+        .get_current_user(Request::new(GetCurrentUserRequest {}).with_user(&token))
+        .await;
+
+    assert_eq!(response.unwrap_err().code(), Code::Unauthenticated);
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
 async fn a_service_account_bearer_still_authenticates(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {

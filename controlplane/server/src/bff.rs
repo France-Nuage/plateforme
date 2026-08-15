@@ -184,6 +184,9 @@ pub enum Error {
     #[error("id token missing email claim")]
     MissingEmailClaim,
 
+    #[error("id token carries an unverified email")]
+    EmailNotVerified,
+
     #[error("session cookie has no refresh token")]
     MissingRefreshToken,
 
@@ -438,6 +441,16 @@ impl Bff {
                 Some(got) if constant_time_eq(got, expected) => {}
                 _ => return Err(Error::NonceMismatch),
             }
+        }
+        // The email is the authoritative identity key (the session is sealed with
+        // it and users are resolved via find_or_create_one_by_email). An
+        // unverified email must never mint a session: otherwise an attacker who
+        // self-registers someone else's address at the IdP — without proving
+        // mailbox control — would be resolved to that victim's row (an admin's
+        // row grants admin). A present email therefore MUST be verified; a token
+        // with no email at all is rejected later by seal_session.
+        if claims.email.is_some() && !claims.email_verified {
+            return Err(Error::EmailNotVerified);
         }
 
         Ok(claims)
@@ -801,6 +814,11 @@ struct IdTokenClaims {
     nonce: Option<String>,
     #[serde(default)]
     email: Option<String>,
+    /// OIDC `email_verified`. Defaults to `false` when the provider omits it —
+    /// per OIDC an RP that keys accounts on `email` MUST treat an absent or
+    /// false value as unverified.
+    #[serde(default)]
+    email_verified: bool,
     #[serde(default)]
     sub: Option<String>,
 }
