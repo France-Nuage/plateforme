@@ -122,17 +122,21 @@ describe('refreshSession', () => {
     expect(fetchCalls).toBe(1); // all three share one in-flight request
 
     resolveFetch({ ok: true });
-    await expect(Promise.all([a, b, c])).resolves.toEqual([true, true, true]);
+    await expect(Promise.all([a, b, c])).resolves.toEqual([
+      'refreshed',
+      'refreshed',
+      'refreshed',
+    ]);
 
     // Once settled, the single-flight latch is released, so a later expiry can
     // refresh again.
     const d = refreshSession();
     expect(fetchCalls).toBe(2);
     resolveFetch({ ok: true });
-    await expect(d).resolves.toBe(true);
+    await expect(d).resolves.toBe('refreshed');
   });
 
-  it('(d) resolves false when /auth/refresh returns 401 (single fetch, no recursion)', async () => {
+  it("(d) resolves 'rejected' when /auth/refresh returns 401 (single fetch, no recursion)", async () => {
     let calls = 0;
     const fetchMock = vi.fn(() => {
       calls += 1;
@@ -141,17 +145,20 @@ describe('refreshSession', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     // A plain fetch, never retried: a 401 here cannot re-enter the gRPC
-    // interceptor, so there is no recursion — it is a definitive fail-closed.
-    await expect(refreshSession()).resolves.toBe(false);
+    // interceptor, so there is no recursion — it is a definitive fail-closed
+    // dead session.
+    await expect(refreshSession()).resolves.toBe('rejected');
     expect(calls).toBe(1);
   });
 
-  it('resolves false on a network error', async () => {
+  it("resolves 'unreachable' on a transport failure (NOT a dead session)", async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(() => Promise.reject(new Error('offline'))),
     );
 
-    await expect(refreshSession()).resolves.toBe(false);
+    // The control plane could not be reached — the caller must not treat this
+    // as a dead session and bounce to a dead /auth/login.
+    await expect(refreshSession()).resolves.toBe('unreachable');
   });
 });

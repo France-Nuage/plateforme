@@ -9,15 +9,18 @@ import { debounce } from 'lodash';
 
 import { ERROR_DEBOUNCE_WAIT } from '@/constants';
 import { clearAuthenticationState } from '@/features';
+import { RefreshOutcome } from '@/services/bff-auth';
 import { AppStore } from '@/store';
 import { toaster } from '@/toaster';
 
 /**
- * Renews the server-side session, resolving `true` when the session was
- * refreshed and `false` when it is definitively dead. Injected so the retry
+ * Renews the server-side session, resolving to a three-state
+ * {@link RefreshOutcome}: `'refreshed'` (replay the call), `'rejected'` (the
+ * session is definitively dead — fail closed), or `'unreachable'` (the control
+ * plane could not be reached — NOT a dead session). Injected so the retry
  * behaviour can be exercised in isolation.
  */
-export type RefreshFn = () => Promise<boolean>;
+export type RefreshFn = () => Promise<RefreshOutcome>;
 
 /**
  * A non-thenable box around a `UnaryCall`.
@@ -35,15 +38,20 @@ type CallHolder = { call: UnaryCall };
  * Authentication itself is carried by the httpOnly session cookie (the
  * transport is configured with `credentials: 'include'`), so there is no header
  * to add here. What this interceptor adds is bounded recovery: when a call
- * fails with `UNAUTHENTICATED` it
- *   1. refreshes the session (single-flight — concurrent 401s share one refresh),
- *   2. replays the failed call exactly once if the refresh succeeded,
- *   3. otherwise, or if the replay still returns `UNAUTHENTICATED`, clears the
- *      auth state so the page guard redirects the user to `/login`.
+ * fails with `UNAUTHENTICATED` it refreshes the session (single-flight —
+ * concurrent 401s share one refresh) and branches on the three-state outcome:
+ *   - `'refreshed'`: replays the failed call exactly once (or, if the replay
+ *     still returns `UNAUTHENTICATED`, clears the auth state so the page guard
+ *     redirects the user to `/login`),
+ *   - `'rejected'`: the session is definitively dead — clears the auth state so
+ *     the page guard redirects to `/login` (fail closed),
+ *   - `'unreachable'`: the control plane could not be reached — does NOT clear
+ *     auth and does NOT bounce (that would send the user to a dead `/login` on a
+ *     transient outage); surfaces a visible terminal error and rejects.
  *
  * The recovery is strictly bounded: at most one refresh and one replay per call,
  * never a loop. `/auth/refresh` is a plain fetch performed outside this
- * interceptor, so a 401 on the refresh itself resolves to `false` here and
+ * interceptor, so a 401 on the refresh itself resolves to `'rejected'` here and
  * cannot recurse back into the interceptor.
  */
 export function createUnaryAuthInterceptor(
@@ -111,10 +119,23 @@ function recover(
     return Promise.reject(error);
   }
 
-  return refresh().then((refreshed) => {
-    // Session is dead: fail closed. The page guard reacts to the cleared state
-    // and redirects to `/login`.
-    if (!refreshed) {
+  return refresh().then((outcome) => {
+    // Control plane unreachable: this is NOT a dead session. Do not clear the
+    // auth state (which would send the page guard to a then-dead `/auth/login`);
+    // surface a visible "service unavailable" toast and reject the call so the
+    // caller shows its own error state, keeping the user where they are.
+    if (outcome === 'unreachable') {
+      const unreachable = new RpcError(
+        'Le service est momentanément injoignable, réessayez.',
+        'UNAVAILABLE',
+      );
+      reportTerminalError(unreachable);
+      return Promise.reject(unreachable);
+    }
+
+    // Session is definitively dead: fail closed. The page guard reacts to the
+    // cleared state and redirects to `/login`.
+    if (outcome === 'rejected') {
       store.dispatch(clearAuthenticationState());
       return Promise.reject(error);
     }

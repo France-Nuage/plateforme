@@ -56,14 +56,15 @@ const initialState: AuthenticationState = {
  *
  * When `/auth/me` reports no session, the short-lived access token may simply
  * have lapsed while the longer-lived (12h) session cookie is still refreshable.
- * A single silent {@link refreshSession} is attempted before giving up: on
- * success `/auth/me` is read once more and that result is used; otherwise the
- * unauthenticated payload stands. This is bounded to one attempt (no recursion,
- * no loop) so a genuinely dead session still resolves to unauthenticated and
- * lets the page guard redirect to `/login`, instead of every post-expiry page
- * load paying a full identity-provider round-trip.
+ * A single silent {@link refreshSession} is attempted before giving up, and its
+ * three-state outcome is honoured: `'refreshed'` re-reads `/auth/me` and uses
+ * that result; `'rejected'` (the refresh cookie is dead) lets the unauthenticated
+ * payload stand so the page guard redirects to `/login`; `'unreachable'` (the
+ * control plane could not be reached) is rejected with `'server-error'` so the
+ * app shows the retry card instead of bouncing the user to a dead `/login`. This
+ * is bounded to one attempt (no recursion, no loop).
  *
- * A control-plane 5xx ({@link BffAuthServerError}) is rejected with the
+ * A control-plane 5xx ({@link BffAuthServerError}) is likewise rejected with the
  * `'server-error'` value so the reducer can flag `sessionError` and the app can
  * show an error state — it is thrown before the refresh branch, so a broken
  * control plane never triggers a refresh. Every other failure (network,
@@ -79,10 +80,20 @@ export const fetchSession = createAsyncThunk<
       if (me.authenticated) {
         return me;
       }
-      return refreshSession().then((refreshed) => {
-        if (refreshed) {
+      return refreshSession().then((outcome) => {
+        // The refresh succeeded: read the now-fresh identity.
+        if (outcome === 'refreshed') {
           return fetchMe();
         }
+        // The control plane could not be reached: this is NOT a dead session.
+        // Reject with `'server-error'` so the reducer flags `sessionError` and
+        // the app shows the retry card instead of bouncing to a dead `/login`.
+        if (outcome === 'unreachable') {
+          return rejectWithValue('server-error');
+        }
+        // `'rejected'`: the refresh cookie is definitively dead, the session
+        // really is gone. Return the unauthenticated payload so the page guard
+        // redirects to `/login`.
         return me;
       });
     })

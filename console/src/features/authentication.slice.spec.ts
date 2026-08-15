@@ -216,6 +216,32 @@ describe('fetchSession refreshes before giving up', () => {
     expect(calls.refresh).toBe(1); // one attempt, then it gives up
     expect(calls.me).toBe(1); // no re-fetch when the refresh failed
   });
+
+  it('flags sessionError (retry card, not logout) when the refresh is unreachable', async () => {
+    // /auth/me says logged-out, then /auth/refresh transport-fails: the control
+    // plane is unreachable, NOT a dead session. It must surface as sessionError
+    // (retry card), not fall through to unauthenticated + a /login bounce.
+    const calls = { me: 0, refresh: 0 };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url.endsWith('/auth/refresh')) {
+          calls.refresh += 1;
+          return Promise.reject(new Error('offline'));
+        }
+        calls.me += 1;
+        return Promise.resolve(jsonResponse(me({ authenticated: false })));
+      }),
+    );
+    const app = store();
+
+    await app.dispatch(fetchSession());
+
+    expect(app.getState().authentication.sessionError).toBe(true);
+    expect(app.getState().authentication.authenticated).toBe(false);
+    expect(calls.refresh).toBe(1); // one attempt
+    expect(calls.me).toBe(1); // no re-fetch — the control plane is unreachable
+  });
 });
 
 describe('logout and clear', () => {

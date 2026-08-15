@@ -107,27 +107,40 @@ export function fetchMe(): Promise<Me> {
 }
 
 /**
+ * The three distinguishable results of a session refresh.
+ *
+ * - `'refreshed'`: the control plane rotated the cookie (fresh session).
+ * - `'rejected'`: fail-closed dead session — the refresh cookie is definitively
+ *   dead (a resolved non-ok response, e.g. HTTP 401 on `/auth/refresh`).
+ * - `'unreachable'`: the control plane could not be reached (down / DNS /
+ *   connection refused / CORS — a transport-level rejection). This is NOT a dead
+ *   session: collapsing it into `'rejected'` would bounce the user to a dead
+ *   `/auth/login` on a transient control-plane-unreachable race.
+ */
+export type RefreshOutcome = 'refreshed' | 'rejected' | 'unreachable';
+
+/**
  * A single in-flight refresh, shared by every concurrent caller.
  *
  * When a burst of gRPC calls fail with `UNAUTHENTICATED` at once, they must not
  * each fire their own `/auth/refresh`: they all await this one promise, which
  * is cleared once it settles so a later expiry can refresh again.
  */
-let refreshInFlight: Promise<boolean> | undefined;
+let refreshInFlight: Promise<RefreshOutcome> | undefined;
 
 /**
  * Renews the session server-side via the httpOnly refresh cookie.
  *
- * Resolves to `true` when the control plane rotated the cookie (the browser now
- * holds a fresh session), `false` on any failure — an expired refresh cookie
- * (HTTP 401 on `/auth/refresh` itself) or a network error. It NEVER throws and
- * NEVER retries, so the caller can treat `false` as a definitive "session is
- * dead, fail closed".
+ * Resolves to a three-state {@link RefreshOutcome}: `'refreshed'` when the
+ * control plane rotated the cookie, `'rejected'` when a resolved response says
+ * the refresh cookie is definitively dead (fail closed), and `'unreachable'`
+ * when the fetch itself rejects (control plane down / DNS / connection refused /
+ * CORS) — which is NOT a dead session. It NEVER throws and NEVER retries.
  *
  * This is a plain `fetch`, not a gRPC call, so a 401 here does NOT re-enter the
  * gRPC auth interceptor — there is no recursion.
  */
-export function refreshSession(): Promise<boolean> {
+export function refreshSession(): Promise<RefreshOutcome> {
   if (refreshInFlight) {
     return refreshInFlight;
   }
@@ -135,8 +148,10 @@ export function refreshSession(): Promise<boolean> {
   refreshInFlight = fetch(`${config.controlplane}/auth/refresh`, {
     credentials: 'include',
   })
-    .then((response) => response.ok)
-    .catch(() => false)
+    .then(
+      (response): RefreshOutcome => (response.ok ? 'refreshed' : 'rejected'),
+    )
+    .catch((): RefreshOutcome => 'unreachable')
     .finally(() => {
       refreshInFlight = undefined;
     });
