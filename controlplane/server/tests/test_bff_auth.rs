@@ -859,6 +859,79 @@ async fn refresh_clears_the_cookie_when_the_idp_rejects() {
 }
 
 #[tokio::test]
+async fn refresh_rejects_an_unverified_email() {
+    let mut harness = Harness::start(lazy_pool()).await;
+    // Install the recorder before the drive so the `rejected` counter is recorded
+    // (no-op until the first render).
+    warm_up_metrics();
+
+    // A live session about to expire, carrying a refresh token.
+    let cookie = harness.seal_session("rt-initial", "wile.coyote@acme.org", now() + 5);
+
+    // The IdP answers the refresh grant with a validly-signed id_token whose email
+    // is present but NOT verified. Refresh re-validates the fresh id_token exactly
+    // like the callback (via `validate_id_token`), so it must fail closed here too:
+    // a session must never be resealed from an unverified email on renewal — the
+    // same self-registered-address → victim-row vector the callback rejects, on the
+    // refresh path. Hit AT MOST ONCE (bounded refresh, no retry storm).
+    let refreshed_id = harness.id_token_unverified_email(
+        "admin@francenuage.fr",
+        "unused-on-refresh",
+        now() + 7200,
+    );
+    let token_body = json!({
+        "access_token": "opaque-access-token",
+        "id_token": refreshed_id,
+        "refresh_token": "rt-rotated",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    })
+    .to_string();
+    let token_mock = harness
+        .idp
+        .server
+        .mock("POST", "/oauth/token")
+        .with_header("content-type", "application/json")
+        .with_body(token_body)
+        .expect(1)
+        .create();
+
+    let response = harness
+        .client
+        .get(format!("{}/auth/refresh", harness.base))
+        .header(reqwest::header::COOKIE, format!("frn_session={cookie}"))
+        .send()
+        .await
+        .expect("refresh failed");
+
+    // Fails closed: 401 + the session cookie cleared (Max-Age=0), never a resealed
+    // session and never a 500.
+    assert_eq!(response.status().as_u16(), 401);
+    assert_eq!(set_cookie(&response, "frn_session").as_deref(), Some(""));
+    assert!(cookie_has_attribute(&response, "frn_session", "Max-Age=0"));
+
+    // The IdP token endpoint was hit exactly once (bounded refresh).
+    token_mock.assert_async().await;
+
+    // A cookie WAS presented and the refreshed id_token failed validation => a
+    // genuine refresh failure, labelled `rejected` (the series the failure-ratio
+    // alert targets), never `no_session`.
+    let metrics = harness
+        .client
+        .get(format!("{}/metrics", harness.base))
+        .send()
+        .await
+        .expect("metrics request failed")
+        .text()
+        .await
+        .expect("metrics body");
+    assert!(
+        counter_value(&metrics, r#"auth_refresh_total{result="rejected"}"#) >= 1,
+        "an unverified-email refresh must count as result=\"rejected\":\n{metrics}"
+    );
+}
+
+#[tokio::test]
 async fn refresh_rejects_a_tampered_session_cookie() {
     let harness = Harness::start(lazy_pool()).await;
     // Install the recorder before the drive so the decrypt_fail counter is
