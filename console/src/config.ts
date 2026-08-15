@@ -12,8 +12,9 @@ type RuntimeConfig = {
   applicationMode: string;
 };
 
-const runtime = (window as unknown as { __RUNTIME_CONFIG__?: RuntimeConfig })
-  .__RUNTIME_CONFIG__;
+const runtime = (
+  window as unknown as { __RUNTIME_CONFIG__?: Partial<RuntimeConfig> }
+).__RUNTIME_CONFIG__;
 
 if (!runtime) {
   throw new Error(
@@ -21,7 +22,22 @@ if (!runtime) {
   );
 }
 
+// Validate the untrusted runtime object at this boundary and fail loud on a
+// partial config, so a missing field surfaces as a named error at boot instead
+// of degrading to `fetch('undefined/auth/me')` → a permanent, unexplained state.
+const { applicationMode, controlplaneUrl } = runtime;
+if (!controlplaneUrl) {
+  throw new Error(
+    'Runtime configuration is invalid: controlplaneUrl is missing or empty in /config.js',
+  );
+}
+if (!applicationMode) {
+  throw new Error(
+    'Runtime configuration is invalid: applicationMode is missing or empty in /config.js',
+  );
+}
+
 export default {
-  controlplane: runtime.controlplaneUrl,
-  mode: runtime.applicationMode,
+  controlplane: controlplaneUrl,
+  mode: applicationMode,
 };

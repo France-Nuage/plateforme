@@ -161,4 +161,16 @@ describe('refreshSession', () => {
     // as a dead session and bounce to a dead /auth/login.
     await expect(refreshSession()).resolves.toBe('unreachable');
   });
+
+  it("resolves 'unreachable' on a resolved 5xx (transient infra, NOT a dead session)", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: false, status: 503 })),
+    );
+
+    // /auth/refresh itself only ever returns 200 or 401, so a 503 is a gateway /
+    // ingress blip during a rollout — treat it like an unreachable control plane,
+    // never as a dead session.
+    await expect(refreshSession()).resolves.toBe('unreachable');
+  });
 });

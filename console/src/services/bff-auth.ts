@@ -133,9 +133,14 @@ let refreshInFlight: Promise<RefreshOutcome> | undefined;
  *
  * Resolves to a three-state {@link RefreshOutcome}: `'refreshed'` when the
  * control plane rotated the cookie, `'rejected'` when a resolved response says
- * the refresh cookie is definitively dead (fail closed), and `'unreachable'`
- * when the fetch itself rejects (control plane down / DNS / connection refused /
- * CORS) — which is NOT a dead session. It NEVER throws and NEVER retries.
+ * the refresh cookie is definitively dead (an HTTP 401 — fail closed), and
+ * `'unreachable'` when the control plane could not answer — either the fetch
+ * itself rejects (down / DNS / connection refused / CORS) or a resolved `5xx`.
+ * The `/auth/refresh` handler only ever returns 200 or 401, so a resolved `5xx`
+ * is always transient infrastructure (a gateway/ingress 502/503/504 during a
+ * control-plane rollout, or a WAF throttle) — NOT a dead session, and must not
+ * bounce the user to a dead `/auth/login`. Mirrors {@link fetchMe}'s 5xx rule.
+ * It NEVER throws and NEVER retries.
  *
  * This is a plain `fetch`, not a gRPC call, so a 401 here does NOT re-enter the
  * gRPC auth interceptor — there is no recursion.
@@ -148,9 +153,15 @@ export function refreshSession(): Promise<RefreshOutcome> {
   refreshInFlight = fetch(`${config.controlplane}/auth/refresh`, {
     credentials: 'include',
   })
-    .then(
-      (response): RefreshOutcome => (response.ok ? 'refreshed' : 'rejected'),
-    )
+    .then((response): RefreshOutcome => {
+      if (response.ok) {
+        return 'refreshed';
+      }
+      if (response.status >= 500) {
+        return 'unreachable';
+      }
+      return 'rejected';
+    })
     .catch((): RefreshOutcome => 'unreachable')
     .finally(() => {
       refreshInFlight = undefined;
