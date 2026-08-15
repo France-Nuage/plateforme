@@ -203,9 +203,9 @@ pub enum Error {
 /// Converts JWT library errors into our unified error type.
 ///
 /// This implementation allows seamless integration with the `jsonwebtoken` crate
-/// by automatically converting its error types into our [`Error::Other`] variant.
-/// This is particularly useful for JWT signature validation, token parsing, and
-/// cryptographic operations that may fail.
+/// by automatically converting its error types into our [`Error::MalformedBearerToken`]
+/// variant. This is particularly useful for JWT signature validation, token parsing,
+/// and cryptographic operations that may fail.
 impl From<jsonwebtoken::errors::Error> for Error {
     fn from(_: jsonwebtoken::errors::Error) -> Self {
         Error::MalformedBearerToken

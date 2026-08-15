@@ -106,7 +106,7 @@ impl OpenID {
     ///
     /// This method can fail with:
     /// * [`Error::MissingKid`] - JWT header lacks required `kid` field
-    /// * [`Error::Other`] - JWT signature invalid, expired, malformed, etc.
+    /// * [`Error::MalformedBearerToken`] - JWT signature invalid, expired, malformed, etc.
     /// * [`Error::UnreachableOidcProvider`] - Cannot fetch JWK Set for unknown key
     /// * [`Error::UnparsableJwks`] - JWK Set from provider is malformed
     ///

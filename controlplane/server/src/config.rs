@@ -201,12 +201,8 @@ impl Config {
     /// # Environment Variables
     ///
     /// * `DATABASE_URL` - PostgreSQL connection string (required)
-    /// * `OIDC_URL` - OIDC provider discovery URL (optional, defaults to GitLab)
-    ///
-    /// # Default Values
-    ///
-    /// - **OIDC Provider**: GitLab's OIDC discovery endpoint if `OIDC_URL` not set
-    /// - **Server Settings**: Same defaults as [`Config::new()`] for networking and CORS
+    /// * `OIDC_URL` - OIDC provider discovery (`.well-known/openid-configuration`)
+    ///   URL (required — a missing value fails startup, there is no default)
     ///
     /// # Errors
     ///
