@@ -72,8 +72,6 @@ services:
     build:
       args:
         BUILDKIT_INLINE_CACHE: ${BUILDKIT_INLINE_CACHE:-1}
-        VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
-        VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
       cache_from:
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:${CI_COMMIT_REF_SLUG:-latest}-${TARGET:-development}
         - ${CI_REGISTRY_IMAGE:+$CI_REGISTRY_IMAGE/}console:master-${TARGET:-development}
@@ -89,8 +87,6 @@ services:
         condition: service_started
     environment:
       NODE_EXTRA_CA_CERTS: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
-      VITE_APPLICATION_DEFAULT_MODE: ${VITE_APPLICATION_DEFAULT_MODE:-rpc}
-      VITE_CONTROLPLANE_URL: ${CONTROLPLANE_URL:-https://controlplane.test}
       PORT: 80
     expose:
       - "80"
