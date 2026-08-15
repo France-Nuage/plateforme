@@ -196,8 +196,6 @@ console:
   # Renseigner pour surcharger complètement le bloc affinity du pod.
   affinity: {}
   config:
-    oidcClientId: "francenuage"
-    oidcProviderName: "keycloak"
     applicationMode: "rpc"
   resources:
     requests:
