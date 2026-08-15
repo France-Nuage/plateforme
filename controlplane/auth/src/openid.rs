@@ -122,9 +122,12 @@ impl OpenID {
     /// - Cryptographically signed by the provider
     /// - Structurally valid JWT format
     /// - Decodable to the expected claims structure
+    /// - Not expired — `exp` is enforced here (`validate_exp = true`)
     ///
-    /// Additional validations (expiration, audience, etc.) should be performed
-    /// by the application using the returned claims data.
+    /// Audience (`aud`) is **not** verified here (`validate_aud = false`): the
+    /// bearer/user path has no single configured expected audience, so a caller
+    /// that has one (the BFF, against its client id) verifies `aud` explicitly on
+    /// the returned claims.
     pub async fn validate_token(&self, token: &str) -> Result<TokenData<Claim>, Error> {
         // Get the kid from header, without signature verification
         let header = jsonwebtoken::decode_header(token)?;
