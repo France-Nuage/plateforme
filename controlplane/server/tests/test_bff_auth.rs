@@ -639,6 +639,9 @@ async fn refresh_clears_the_cookie_when_the_idp_rejects() {
 #[tokio::test]
 async fn refresh_rejects_a_tampered_session_cookie() {
     let harness = Harness::start(lazy_pool()).await;
+    // Install the recorder before the drive so the decrypt_fail counter is
+    // recorded (no-op until the first render).
+    warm_up_metrics();
 
     // An undecryptable session cookie must fail closed: 401 + the cookie cleared
     // (Max-Age=0), never a 500 — and it never even reaches the IdP.
@@ -653,6 +656,23 @@ async fn refresh_rejects_a_tampered_session_cookie() {
     assert_eq!(response.status().as_u16(), 401);
     assert_eq!(set_cookie(&response, "frn_session").as_deref(), Some(""));
     assert!(cookie_has_attribute(&response, "frn_session", "Max-Age=0"));
+
+    // An unopenable cookie is a `decrypt_fail` refresh outcome — a numerator term
+    // of the refresh-failure-ratio alert (an AUTH_COOKIE_KEY-rotation eviction it
+    // must catch), so prove the exact series is emitted end-to-end.
+    let metrics = harness
+        .client
+        .get(format!("{}/metrics", harness.base))
+        .send()
+        .await
+        .expect("metrics request failed")
+        .text()
+        .await
+        .expect("metrics body");
+    assert!(
+        counter_value(&metrics, r#"auth_refresh_total{result="decrypt_fail"}"#) >= 1,
+        "an undecryptable cookie must count as result=\"decrypt_fail\":\n{metrics}"
+    );
 }
 
 #[tokio::test]
