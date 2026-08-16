@@ -1,7 +1,10 @@
 //! Identity and access management
 //!
-//! Provides the `IAM` service for resolving user identity from access tokens.
-//! Currently returns a default user; will be extended to validate OIDC tokens.
+//! Provides the `IAM` service for resolving the [`Principal`] behind a request
+//! from one of two credentials: an `Authorization: Bearer` token (service-account
+//! key or a validated user OIDC access token) or our sealed `frn_session` cookie.
+//! Both paths enforce expiry and fail closed as [`Error::Unauthenticated`] — see
+//! [`IAM::principal`].
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -81,9 +84,9 @@ impl IAM {
             return Err(Error::Unauthenticated);
         }
 
-        User::find_or_create_one_by_email(&self.db, &payload.email)
-            .await
-            .map_err(Into::into)
+        // The subject was sealed into the cookie at login (after the id_token was
+        // validated), so it is pinned to the resolved row here.
+        User::find_or_create_one_by_email(&self.db, &payload.email, &payload.sub).await
     }
 
     #[cfg(test)]
@@ -95,17 +98,22 @@ impl IAM {
     }
 
     async fn user(&self, access_token: String) -> Result<User, Error> {
-        let email = self
-            .identity
-            .validate_token(&access_token)
-            .await?
-            .claims
-            .email
-            .ok_or(auth::Error::MissingEmailClaim)?;
+        let claims = self.identity.validate_token(&access_token).await?.claims;
+        let email = claims.email.ok_or(auth::Error::MissingEmailClaim)?;
+        // Identity is keyed on the email, so an unverified one must not
+        // authenticate: an absent or `false` `email_verified` means the provider
+        // never confirmed the subject controls this address.
+        if claims.email_verified != Some(true) {
+            return Err(auth::Error::EmailNotVerified.into());
+        }
+        // The subject is pinned to the resolved row; a token without one cannot be
+        // resolved safely (the email alone is a reassignable handle).
+        let sub = claims
+            .sub
+            .filter(|sub| !sub.is_empty())
+            .ok_or(auth::Error::MissingSubClaim)?;
 
-        User::find_or_create_one_by_email(&self.db, &email)
-            .await
-            .map_err(Into::into)
+        User::find_or_create_one_by_email(&self.db, &email, &sub).await
     }
 }
 

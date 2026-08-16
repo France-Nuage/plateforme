@@ -34,6 +34,14 @@ export type ResourcesState = {
   organizations: Organization[];
   /** Whether organizations have been fetched from the API at least once. */
   organizationsLoaded: boolean;
+  /**
+   * Whether the last organizations fetch failed. Distinct from "not yet loaded"
+   * so the guard can show an error state with a retry instead of spinning
+   * forever when the org-list call rejects with an unrecoverable error (i.e.
+   * anything the gRPC auth interceptor does not recover, such as a backend
+   * failure).
+   */
+  organizationsError: boolean;
   projects: Project[];
 };
 
@@ -42,6 +50,7 @@ export type ResourcesState = {
  */
 const initialState: ResourcesState = {
   organizations: [],
+  organizationsError: false,
   organizationsLoaded: false,
   projects: [],
 };
@@ -52,9 +61,19 @@ const initialState: ResourcesState = {
 export const resourcesSlice = createSlice({
   extraReducers: (builder) => {
     builder
+      .addCase(fetchAllOrganizations.pending, (state) => {
+        // Clear any previous failure so a retry shows the spinner again.
+        state.organizationsError = false;
+      })
       .addCase(fetchAllOrganizations.fulfilled, (state, action) => {
         state.organizations = action.payload;
         state.organizationsLoaded = true;
+        state.organizationsError = false;
+      })
+      .addCase(fetchAllOrganizations.rejected, (state) => {
+        // Stop spinning: record the failure so the guard renders an error state
+        // with a retry instead of an infinite loading spinner.
+        state.organizationsError = true;
       })
       .addCase(fetchAllProjects.fulfilled, (state, action) => {
         state.projects = action.payload;
@@ -62,6 +81,7 @@ export const resourcesSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.organizations = [];
         state.organizationsLoaded = false;
+        state.organizationsError = false;
         state.projects = [];
       });
   },

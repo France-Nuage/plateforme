@@ -106,7 +106,7 @@ impl OpenID {
     ///
     /// This method can fail with:
     /// * [`Error::MissingKid`] - JWT header lacks required `kid` field
-    /// * [`Error::Other`] - JWT signature invalid, expired, malformed, etc.
+    /// * [`Error::MalformedBearerToken`] - JWT signature invalid, expired, malformed, etc.
     /// * [`Error::UnreachableOidcProvider`] - Cannot fetch JWK Set for unknown key
     /// * [`Error::UnparsableJwks`] - JWK Set from provider is malformed
     ///
@@ -122,9 +122,12 @@ impl OpenID {
     /// - Cryptographically signed by the provider
     /// - Structurally valid JWT format
     /// - Decodable to the expected claims structure
+    /// - Not expired — `exp` is enforced here (`validate_exp = true`)
     ///
-    /// Additional validations (expiration, audience, etc.) should be performed
-    /// by the application using the returned claims data.
+    /// Audience (`aud`) is **not** verified here (`validate_aud = false`): the
+    /// bearer/user path has no single configured expected audience, so a caller
+    /// that has one (the BFF, against its client id) verifies `aud` explicitly on
+    /// the returned claims.
     pub async fn validate_token(&self, token: &str) -> Result<TokenData<Claim>, Error> {
         // Get the kid from header, without signature verification
         let header = jsonwebtoken::decode_header(token)?;
@@ -174,6 +177,15 @@ impl Debug for OpenID {
 /// Generated tokens are valid JWTs that can be validated by the same `OpenID`
 /// instance when configured with the corresponding mock server endpoints.
 pub mod mock {
+    // Tripwire: the mock backend (deterministic RSA signing key + mock IdP) must
+    // never ship in a release binary. This module only compiles when the `mock`
+    // feature is on; failing the build when that coincides with a release profile
+    // means a successful `cargo build --release` proves mock is disabled in
+    // production. (`cargo test --release --all-features` would trip it too — CI
+    // runs tests in debug, so it doesn't.)
+    #[cfg(not(debug_assertions))]
+    compile_error!("the `mock` feature must not be enabled in a release build");
+
     use std::sync::OnceLock;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -286,6 +298,11 @@ pub mod mock {
 
             let claim = Claim {
                 email: Some(email.to_owned()),
+                // A conformant OIDC user token carries a verified email and a
+                // subject; the control plane requires both (unverified email or
+                // missing subject fails closed), so the mock must supply them.
+                email_verified: Some(true),
+                sub: Some(format!("mock-subject-{email}")),
                 iat: Some(now),
                 exp: Some(now + 3600),
                 nbf: Some(now),

@@ -1,25 +1,58 @@
-import { Center, Spinner } from '@chakra-ui/react';
+import { Alert, Button, Center, Spinner, Stack } from '@chakra-ui/react';
 import { FunctionComponent } from 'react';
 import { Outlet } from 'react-router';
 
-import { useAppSelector } from '@/hooks';
+import { fetchAllOrganizations } from '@/features';
+import { useAppDispatch, useAppSelector } from '@/hooks';
 import { PrivateBetaPage } from '@/pages';
 
 /**
  * Guard component that restricts access to users with organization membership.
  *
- * Displays a loading spinner while organizations are being fetched. Once loaded,
- * if the user has no organizations, the private beta page is shown instead of
- * the normal application layout. Users who belong to at least one organization
- * see the standard application content.
+ * While organizations are being fetched a loading spinner is shown. If the
+ * fetch fails, an error state with a retry button is displayed instead of
+ * spinning forever. Once loaded, users without any organization see the private
+ * beta page; users who belong to at least one organization see the standard
+ * application content.
  */
 export const OrganizationGuard: FunctionComponent = () => {
+  const dispatch = useAppDispatch();
   const organizations = useAppSelector(
     (state) => state.resources.organizations,
   );
   const organizationsLoaded = useAppSelector(
     (state) => state.resources.organizationsLoaded,
   );
+  const organizationsError = useAppSelector(
+    (state) => state.resources.organizationsError,
+  );
+
+  if (organizationsError) {
+    return (
+      <Center h="100vh">
+        <Alert.Root status="error" maxW="480px">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>Impossible de charger vos organisations</Alert.Title>
+            <Alert.Description>
+              <Stack gap="3" align="flex-start">
+                Une erreur est survenue lors du chargement de vos organisations.
+                Veuillez réessayer.
+                <Button
+                  variant="outline"
+                  size="sm"
+                  colorPalette="red"
+                  onClick={() => dispatch(fetchAllOrganizations())}
+                >
+                  Réessayer
+                </Button>
+              </Stack>
+            </Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+      </Center>
+    );
+  }
 
   if (!organizationsLoaded) {
     return (

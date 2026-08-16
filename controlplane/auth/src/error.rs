@@ -84,6 +84,22 @@ pub enum Error {
     #[error("missing email claim")]
     MissingEmailClaim,
 
+    /// The token carries an `email` claim, but `email_verified` is absent or
+    /// `false`. Since users are resolved by email, an unverified email must not
+    /// authenticate — otherwise an attacker could register a victim's address at
+    /// the provider (without proving mailbox control) and be resolved to that
+    /// user's row.
+    #[error("email not verified")]
+    EmailNotVerified,
+
+    /// The token carries no `sub` (subject) claim, or it is empty.
+    ///
+    /// Identity is pinned to the immutable subject, so a token without one cannot
+    /// be resolved safely: a verified email alone is a mutable, reassignable
+    /// handle. A conformant OIDC id_token always carries `sub`.
+    #[error("missing sub claim")]
+    MissingSubClaim,
+
     /// JWT header is missing the required "kid" (Key ID) claim.
     ///
     /// The JWT header must contain a "kid" field that identifies which key
@@ -102,12 +118,11 @@ pub enum Error {
     #[error("not a bearer token")]
     MalformedBearerToken,
 
-    /// A general error from JWT processing operations.
+    /// A general-purpose error carrying a free-form message.
     ///
-    /// This wraps errors from the underlying `jsonwebtoken` library,
-    /// such as signature validation failures, expired tokens, or
-    /// malformed JWT structure. The inner message provides specific
-    /// details about what went wrong during JWT processing.
+    /// Currently unused in this crate: `jsonwebtoken` failures (bad signature,
+    /// expired, malformed structure) map to [`Error::MalformedBearerToken`] via the
+    /// `From` impl below, not here. Kept for callers needing an ad-hoc message.
     #[error("other: {0}")]
     Other(String),
 
@@ -184,18 +199,16 @@ pub enum Error {
     #[error("unreachable oidc provider {0}")]
     UnreachableOidcProvider(String),
 
-    /// Authenticated user is not registered in the authorization system.
+    /// Authenticated subject has no provisioned user record.
     ///
-    /// This error occurs when a JWT token is successfully validated and contains
-    /// a valid email claim, but no corresponding user record exists in the database.
-    /// This typically indicates that the user exists in the identity provider (GitLab)
-    /// but hasn't been provisioned in the controlplane authorization system.
+    /// **Currently unused.** The auth path resolves users with
+    /// `find_or_create_one_by_email`, which auto-provisions a missing record
+    /// (`is_admin = false`) instead of rejecting — so a validated token with a
+    /// verified email never produces this error; the user is created on first
+    /// login. The variant is retained for a future mode where provisioning is
+    /// decoupled from authentication (a user must be pre-registered to be let in).
     ///
-    /// The contained string value is the email address from the JWT token that
-    /// couldn't be found in the user registry.
-    ///
-    /// **Note**: This error is specific to the current database-backed authorization
-    /// and will be replaced by SpiceDB relationship-based access control.
+    /// The contained string value is the subject's email address.
     #[error("user {0} is not registered")]
     UserNotRegistered(String),
 }
@@ -203,9 +216,9 @@ pub enum Error {
 /// Converts JWT library errors into our unified error type.
 ///
 /// This implementation allows seamless integration with the `jsonwebtoken` crate
-/// by automatically converting its error types into our [`Error::Other`] variant.
-/// This is particularly useful for JWT signature validation, token parsing, and
-/// cryptographic operations that may fail.
+/// by automatically converting its error types into our [`Error::MalformedBearerToken`]
+/// variant. This is particularly useful for JWT signature validation, token parsing,
+/// and cryptographic operations that may fail.
 impl From<jsonwebtoken::errors::Error> for Error {
     fn from(_: jsonwebtoken::errors::Error) -> Self {
         Error::MalformedBearerToken

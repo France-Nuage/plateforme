@@ -433,6 +433,10 @@ table "users" {
     null = false
     type = text
   }
+  column "sub" {
+    null = true
+    type = text
+  }
   column "is_admin" {
     null = false
     type = bool

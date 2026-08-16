@@ -9,6 +9,7 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import { clearAuthenticationState } from '@/features';
+import { RefreshOutcome } from '@/services/bff-auth';
 import { AppStore } from '@/store';
 
 import { createUnaryAuthInterceptor } from './rpc';
@@ -66,7 +67,7 @@ function unauthenticated(): RpcError {
 
 function intercept(
   store: AppStore,
-  refresh: () => Promise<boolean>,
+  refresh: () => Promise<RefreshOutcome>,
   next: NextUnaryFn,
 ) {
   return createUnaryAuthInterceptor(store, refresh).interceptUnary(
@@ -83,7 +84,7 @@ describe('createUnaryAuthInterceptor — bounded 401 recovery', () => {
     let refreshCalls = 0;
     const refresh = () => {
       refreshCalls += 1;
-      return Promise.resolve(true);
+      return Promise.resolve<RefreshOutcome>('refreshed');
     };
     const payload = { value: 'ok' };
     const { count, next } = recordingNext([() => Promise.resolve(payload)]);
@@ -101,7 +102,7 @@ describe('createUnaryAuthInterceptor — bounded 401 recovery', () => {
     let refreshCalls = 0;
     const refresh = () => {
       refreshCalls += 1;
-      return Promise.resolve(true);
+      return Promise.resolve<RefreshOutcome>('refreshed');
     };
     const payload = { value: 'ok' };
     const { count, next } = recordingNext([
@@ -122,7 +123,7 @@ describe('createUnaryAuthInterceptor — bounded 401 recovery', () => {
     let refreshCalls = 0;
     const refresh = () => {
       refreshCalls += 1;
-      return Promise.resolve(false);
+      return Promise.resolve<RefreshOutcome>('rejected');
     };
     const { count, next } = recordingNext([
       () => Promise.reject(unauthenticated()),
@@ -138,12 +139,41 @@ describe('createUnaryAuthInterceptor — bounded 401 recovery', () => {
     );
   });
 
+  it('(b bis) keeps the session (no logout, no replay) when the refresh is unreachable', async () => {
+    // Control plane unreachable during the refresh: NOT a dead session. The
+    // interceptor must not clear auth (which would bounce the user to a dead
+    // /auth/login) — it rejects with an UNAVAILABLE error and leaves auth intact.
+    const { dispatched, store } = createRecordingStore();
+    let refreshCalls = 0;
+    const refresh = () => {
+      refreshCalls += 1;
+      return Promise.resolve<RefreshOutcome>('unreachable');
+    };
+    const { count, next } = recordingNext([
+      () => Promise.reject(unauthenticated()),
+    ]);
+
+    const call = intercept(store, refresh, next);
+
+    const rejection = await call.response.then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+    expect(rejection).toBeInstanceOf(RpcError);
+    expect((rejection as RpcError).code).toBe('UNAVAILABLE');
+    expect(refreshCalls).toBe(1);
+    expect(count()).toBe(1); // never replayed — bounded
+    expect(dispatched.map((action) => action.type)).not.toContain(
+      clearAuthenticationState.type,
+    );
+  });
+
   it('fails closed when the replay still returns 401 (exactly one refresh, one replay)', async () => {
     const { dispatched, store } = createRecordingStore();
     let refreshCalls = 0;
     const refresh = () => {
       refreshCalls += 1;
-      return Promise.resolve(true);
+      return Promise.resolve<RefreshOutcome>('refreshed');
     };
     const { count, next } = recordingNext([
       () => Promise.reject(unauthenticated()),
@@ -165,7 +195,7 @@ describe('createUnaryAuthInterceptor — bounded 401 recovery', () => {
     let refreshCalls = 0;
     const refresh = () => {
       refreshCalls += 1;
-      return Promise.resolve(true);
+      return Promise.resolve<RefreshOutcome>('refreshed');
     };
     const failure = new RpcError('boom', 'INTERNAL');
     const { count, next } = recordingNext([() => Promise.reject(failure)]);
@@ -183,7 +213,7 @@ describe('createUnaryAuthInterceptor — bounded 401 recovery', () => {
     let refreshCalls = 0;
     const refresh = () => {
       refreshCalls += 1;
-      return Promise.resolve(true);
+      return Promise.resolve<RefreshOutcome>('refreshed');
     };
     const payload = { value: 'ok' };
     const first = recordingNext([

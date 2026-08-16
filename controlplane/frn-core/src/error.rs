@@ -36,6 +36,13 @@ pub enum Error {
     #[error("unauthenticated")]
     Unauthenticated,
 
+    /// A verified email resolved to a user row pinned to a different OIDC
+    /// subject (`sub`), or the credential carried no stable subject. Fails
+    /// closed: identity keys on the immutable subject, never the mutable email
+    /// alone (a recycled address must not inherit its former owner's row).
+    #[error("subject mismatch")]
+    SubjectMismatch,
+
     /// Authorization builder missing principal.
     #[error("authorization check missing principal")]
     UnspecifiedPrincipal,
@@ -80,6 +87,7 @@ impl From<Error> for tonic::Status {
                 tonic::Status::unauthenticated(error.to_string())
             }
             Error::Unauthenticated => tonic::Status::unauthenticated(value.to_string()),
+            Error::SubjectMismatch => tonic::Status::unauthenticated(value.to_string()),
             Error::Forbidden => tonic::Status::permission_denied(value.to_string()),
             Error::SlugAlreadyExists(_) => tonic::Status::already_exists(value.to_string()),
             err => {

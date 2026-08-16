@@ -13,6 +13,7 @@ use crate::api::v1::{
     WriteRelationshipsRequest, ZedToken, permissions_service_client::PermissionsServiceClient,
 };
 use crate::api::v1::{LookupResourcesRequest, Relationship};
+#[cfg(feature = "mock")]
 use crate::mock::SpiceDBServer;
 use std::str::FromStr;
 use tonic::service::{Interceptor, interceptor::InterceptedService};
@@ -65,6 +66,7 @@ impl SpiceDB {
         Ok(client)
     }
 
+    #[cfg(feature = "mock")]
     pub async fn mock() -> Self {
         let channel = SpiceDBServer::new().serve().await;
         Self::new(channel, String::new())

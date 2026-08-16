@@ -38,9 +38,12 @@ pub struct SessionPayload {
     /// OIDC refresh token, used server-side by `/auth/refresh`. Never exposed to
     /// JavaScript, never logged.
     pub refresh_token: String,
-    /// OIDC subject identifier (`sub`).
+    /// OIDC subject identifier (`sub`) — the immutable identity key pinned to the
+    /// user row on the control plane.
     pub sub: String,
-    /// User email — the authoritative identity key on the control plane.
+    /// User email — the lookup handle for resolving the user row, NOT authoritative
+    /// on its own: a mutable, reassignable address cannot key identity alone (the
+    /// `sub` above is the pinned authoritative key).
     pub email: String,
     /// Access/id-token expiry (unix seconds): the short lifetime after which the
     /// browser must call `/auth/refresh`.

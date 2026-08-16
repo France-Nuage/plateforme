@@ -393,8 +393,9 @@ impl Application<Middleware<Identity>> {
 
         // Mount the confidential-client BFF (`/auth/*`) on the same origin as
         // gRPC-web, so the browser reaches it at the control-plane URL. Present
-        // only when `OIDC_CLIENT_SECRET` is configured; otherwise the legacy
-        // SPA/PKCE flow is the sole auth path (unchanged).
+        // only when `OIDC_CLIENT_SECRET` is configured; when absent the BFF is not
+        // mounted and the console cannot authenticate at all (the SPA/PKCE frontend
+        // has been removed) — a deployment misconfiguration to avoid.
         if let Some(bff) = self.config.bff.clone() {
             tracing::info!(
                 "BFF confidential-client auth enabled (/auth/login, /auth/callback, /auth/me, /auth/logout)"

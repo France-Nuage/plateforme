@@ -260,6 +260,10 @@ pub async fn seed_admin_token(pool: &Pool<Postgres>, email: &str) -> String {
     User::factory()
         .id(Uuid::new_v4())
         .email(email.to_owned())
+        // Unpinned (NULL) subject: the row pins the token's subject on first
+        // authentication. Without this the factory's Faker fills `sub` with a
+        // random value that would never match the token → SubjectMismatch.
+        .sub(None)
         .is_admin(true)
         .create(pool)
         .await
@@ -302,6 +306,7 @@ pub async fn seed_kubernetes_cluster(pool: &Pool<Postgres>, name: &str) -> Kuber
     let admin = User {
         id: Uuid::new_v4(),
         email: format!("seed-admin-{name}@francenuage.fr"),
+        sub: None,
         is_admin: true,
         created_at: Utc::now(),
         updated_at: Utc::now(),

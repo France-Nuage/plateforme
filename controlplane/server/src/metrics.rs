@@ -63,16 +63,24 @@ pub enum CallbackReject {
     NoIdToken,
     /// id_token failed signature/iss/aud/exp validation.
     Validation,
+    /// Server-side session failure after a valid id_token: sealing the cookie
+    /// failed, or the sealed value would exceed the browser cookie size limit.
+    /// Kept distinct from `Validation` so a sizing/seal failure never inflates
+    /// the id_token-validation alert.
+    Session,
 }
 
 impl CallbackReject {
-    fn as_str(self) -> &'static str {
+    /// Stable machine code for both the `reason` metric label and the
+    /// `?auth_error=<reason>` query param the callback redirects the console to.
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             CallbackReject::State => "state",
             CallbackReject::Nonce => "nonce",
             CallbackReject::Exchange => "exchange",
             CallbackReject::NoIdToken => "no_id_token",
             CallbackReject::Validation => "validation",
+            CallbackReject::Session => "session",
         }
     }
 }
@@ -82,10 +90,19 @@ impl CallbackReject {
 pub enum RefreshResult {
     /// A fresh session was resealed.
     Ok,
-    /// The IdP rejected the refresh, or the response was unusable.
+    /// A session cookie WAS presented but the refresh failed: the IdP rejected
+    /// the refresh token, the response was unusable, or the fresh session could
+    /// not be resealed. This is a genuine session-renewal failure — the signal
+    /// the `frn-bff-auth-refresh-failure-ratio` alert targets.
     Rejected,
-    /// The presented cookie could not be decrypted/parsed.
+    /// The presented cookie could not be decrypted/parsed (e.g. after an
+    /// `AUTH_COOKIE_KEY` rotation invalidated every live cookie).
     DecryptFail,
+    /// No `frn_session` cookie was presented at all. This is NOT a refresh
+    /// failure: the console bootstrap probes `/auth/refresh` for every anonymous
+    /// visitor, so this is ordinary anonymous traffic. Kept as its own label so
+    /// the failure-ratio alert can exclude it and never page on benign volume.
+    NoSession,
 }
 
 impl RefreshResult {
@@ -94,6 +111,7 @@ impl RefreshResult {
             RefreshResult::Ok => "ok",
             RefreshResult::Rejected => "rejected",
             RefreshResult::DecryptFail => "decrypt_fail",
+            RefreshResult::NoSession => "no_session",
         }
     }
 }

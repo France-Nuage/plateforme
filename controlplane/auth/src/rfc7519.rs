@@ -91,6 +91,15 @@ pub struct Claim {
     /// SpiceDB for stateless authorization.
     pub email: Option<String>,
 
+    /// Email Verified Claim (OIDC standard claim, `email_verified`).
+    ///
+    /// Whether the provider has verified that the subject controls the `email`
+    /// above. Because users are resolved by `email`, callers keying identity on
+    /// it MUST require this to be `true`: an absent or `false` value means the
+    /// email is unverified (an attacker could have registered someone else's
+    /// address at the provider without proving mailbox control).
+    pub email_verified: Option<bool>,
+
     /// Expiration Time Claim.
     ///
     /// The "exp" (expiration time) claim identifies the expiration time on or

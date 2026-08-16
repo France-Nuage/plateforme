@@ -94,6 +94,9 @@ impl App<SpiceDB> {
     /// Creates a test application instance with mock authorization.
     ///
     /// Uses the provided database pool and a mock SpiceDB server for testing.
+    /// Test-only: gated behind the `mock` feature so it never reaches a
+    /// production build (it wires the mock auth backend and its signing key).
+    #[cfg(feature = "mock")]
     pub async fn test(db: Pool<Postgres>) -> Result<Self, Error> {
         let auth = SpiceDB::mock().await;
         let config = Config::test();

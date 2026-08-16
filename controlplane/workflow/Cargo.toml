@@ -25,3 +25,9 @@ workflow-macros = { path = "../workflow-macros" }
 
 [dev-dependencies]
 k8s-openapi = { workspace = true, features = ["v1_32"] }
+# The e2e/permission tests build `SpiceDB::mock()`, which lives behind the
+# `mock` feature (dev-only so its signing key never ships in prod). This crate
+# is tested in isolation (`cargo test -p workflow …`), so it must enable the
+# feature itself — the workspace-wide `--all-features` run unifies it, an
+# isolated `-p` build does not.
+spicedb = { path = "../spicedb", features = ["mock"] }

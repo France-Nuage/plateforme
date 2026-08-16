@@ -20,6 +20,23 @@ export type Me = {
 };
 
 /**
+ * Reason a `/auth/callback` was rejected by the control plane.
+ *
+ * On any failure the control plane 302-redirects the browser to
+ * `CONSOLE_URL?auth_error=<reason>` (see `bff.rs` `redirect_auth_error`); the
+ * console reads it back to explain why the login did not complete instead of
+ * silently retrying the flow and looping. These are the exact values emitted
+ * server-side (`metrics::CallbackReject::as_str`).
+ */
+export type AuthErrorReason =
+  | 'exchange'
+  | 'no_id_token'
+  | 'nonce'
+  | 'session'
+  | 'state'
+  | 'validation';
+
+/**
  * Redirects the browser to the server-side login endpoint, which starts the
  * OIDC authorization-code flow (state + nonce) against the identity provider.
  */
@@ -36,16 +53,71 @@ export function logoutRedirect(): void {
 }
 
 /**
+ * Raised when `/auth/me` could not be completed by the control plane — either a
+ * server error (HTTP 5xx) or a transport-level failure (control plane down,
+ * DNS, connection refused, CORS) that rejects the fetch itself.
+ *
+ * This is distinct from an unauthenticated visitor: `/auth/me` answers `200`
+ * with `{ authenticated: false }` when there is no session, so neither a 5xx nor
+ * an unreachable control plane means "logged out". Surfacing it as its own error
+ * lets the caller show a retry state instead of treating the visitor as logged
+ * out and bouncing to `/login` — which would send the user to a dead
+ * `/auth/login` (unreachable control plane) or loop through the identity
+ * provider back to the same failing `/auth/me` (5xx).
+ */
+export class BffAuthServerError extends Error {
+  constructor(detail: string) {
+    super(`GET /auth/me could not be completed: ${detail}`);
+    this.name = 'BffAuthServerError';
+  }
+}
+
+/**
  * Reads the current session identity from the control plane.
  *
  * The request carries the httpOnly session cookie (`credentials: 'include'`);
  * the token itself is never exposed to JavaScript.
+ *
+ * A `5xx` — or a transport failure that rejects the fetch (control plane down,
+ * DNS, connection refused, CORS) — is thrown as a {@link BffAuthServerError}
+ * rather than parsed or allowed to fail closed: neither is the "logged out" case
+ * (that is a `200` with `authenticated: false`), and treating them as logged out
+ * would bounce the user to a dead `/auth/login`. Parsing a text/plain error body
+ * as JSON would also mask a 5xx behind a generic parse failure.
  */
 export function fetchMe(): Promise<Me> {
   return fetch(`${config.controlplane}/auth/me`, {
     credentials: 'include',
-  }).then((response) => response.json() as Promise<Me>);
+  })
+    .then((response) => {
+      if (response.status >= 500) {
+        throw new BffAuthServerError(`server error ${response.status}`);
+      }
+      return response.json() as Promise<Me>;
+    })
+    .catch((error: unknown) => {
+      // Re-throw the 5xx we just raised as-is; wrap anything else (a transport
+      // rejection, or a malformed body from a broken control plane) so the
+      // caller shows the retry card instead of falling through to a logout.
+      if (error instanceof BffAuthServerError) {
+        throw error;
+      }
+      throw new BffAuthServerError('control plane unreachable');
+    });
 }
+
+/**
+ * The three distinguishable results of a session refresh.
+ *
+ * - `'refreshed'`: the control plane rotated the cookie (fresh session).
+ * - `'rejected'`: fail-closed dead session — the refresh cookie is definitively
+ *   dead (a resolved non-ok response, e.g. HTTP 401 on `/auth/refresh`).
+ * - `'unreachable'`: the control plane could not be reached (down / DNS /
+ *   connection refused / CORS — a transport-level rejection). This is NOT a dead
+ *   session: collapsing it into `'rejected'` would bounce the user to a dead
+ *   `/auth/login` on a transient control-plane-unreachable race.
+ */
+export type RefreshOutcome = 'refreshed' | 'rejected' | 'unreachable';
 
 /**
  * A single in-flight refresh, shared by every concurrent caller.
@@ -54,21 +126,26 @@ export function fetchMe(): Promise<Me> {
  * each fire their own `/auth/refresh`: they all await this one promise, which
  * is cleared once it settles so a later expiry can refresh again.
  */
-let refreshInFlight: Promise<boolean> | undefined;
+let refreshInFlight: Promise<RefreshOutcome> | undefined;
 
 /**
  * Renews the session server-side via the httpOnly refresh cookie.
  *
- * Resolves to `true` when the control plane rotated the cookie (the browser now
- * holds a fresh session), `false` on any failure — an expired refresh cookie
- * (HTTP 401 on `/auth/refresh` itself) or a network error. It NEVER throws and
- * NEVER retries, so the caller can treat `false` as a definitive "session is
- * dead, fail closed".
+ * Resolves to a three-state {@link RefreshOutcome}: `'refreshed'` when the
+ * control plane rotated the cookie, `'rejected'` when a resolved response says
+ * the refresh cookie is definitively dead (an HTTP 401 — fail closed), and
+ * `'unreachable'` when the control plane could not answer — either the fetch
+ * itself rejects (down / DNS / connection refused / CORS) or a resolved `5xx`.
+ * The `/auth/refresh` handler only ever returns 200 or 401, so a resolved `5xx`
+ * is always transient infrastructure (a gateway/ingress 502/503/504 during a
+ * control-plane rollout, or a WAF throttle) — NOT a dead session, and must not
+ * bounce the user to a dead `/auth/login`. Mirrors {@link fetchMe}'s 5xx rule.
+ * It NEVER throws and NEVER retries.
  *
  * This is a plain `fetch`, not a gRPC call, so a 401 here does NOT re-enter the
  * gRPC auth interceptor — there is no recursion.
  */
-export function refreshSession(): Promise<boolean> {
+export function refreshSession(): Promise<RefreshOutcome> {
   if (refreshInFlight) {
     return refreshInFlight;
   }
@@ -76,8 +153,16 @@ export function refreshSession(): Promise<boolean> {
   refreshInFlight = fetch(`${config.controlplane}/auth/refresh`, {
     credentials: 'include',
   })
-    .then((response) => response.ok)
-    .catch(() => false)
+    .then((response): RefreshOutcome => {
+      if (response.ok) {
+        return 'refreshed';
+      }
+      if (response.status >= 500) {
+        return 'unreachable';
+      }
+      return 'rejected';
+    })
+    .catch((): RefreshOutcome => 'unreachable')
     .finally(() => {
       refreshInFlight = undefined;
     });
