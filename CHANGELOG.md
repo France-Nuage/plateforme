@@ -1,3 +1,10 @@
+## [1.67.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.67.1...v1.67.2) (2026-08-16)
+
+
+### Bug Fixes
+
+* **console:** durcir le lien d'auth BFF côté frontend ([9e7960f](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/9e7960f0d62ae599d6c23900e3d41ec03c9e375f))
+
 ## [1.67.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.67.0...v1.67.1) (2026-08-13)
 
 
