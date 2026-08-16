@@ -264,6 +264,35 @@ async fn a_recycled_email_with_a_new_subject_is_rejected(
 }
 
 #[sqlx::test(migrations = "../migrations")]
+async fn a_returning_user_with_the_same_subject_authenticates(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    // First login binds (pins) the subject to the freshly created row.
+    let first = seal_with_sub(EMAIL, "subject-stable", now() + 3600);
+    api.profile
+        .get_current_user(Request::new(GetCurrentUserRequest {}).with_session_cookie(&first))
+        .await
+        .expect("the first login pins the subject and authenticates");
+
+    // The SAME user returns with the SAME subject: the pinned subject matches, so
+    // it authenticates again — the returning-user steady state (a regression in the
+    // `pinned == sub` arm would lock out every already-provisioned user).
+    let again = seal_with_sub(EMAIL, "subject-stable", now() + 3600);
+    let response = api
+        .profile
+        .get_current_user(Request::new(GetCurrentUserRequest {}).with_session_cookie(&again))
+        .await
+        .expect("a returning user with the same subject must authenticate")
+        .into_inner();
+
+    assert_eq!(response.email, EMAIL);
+    assert!(!response.is_admin);
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
 async fn a_service_account_bearer_still_authenticates(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {

@@ -445,13 +445,14 @@ impl Bff {
                 _ => return Err(Error::NonceMismatch),
             }
         }
-        // The email is the authoritative identity key (the session is sealed with
-        // it and users are resolved via find_or_create_one_by_email). An
-        // unverified email must never mint a session: otherwise an attacker who
-        // self-registers someone else's address at the IdP — without proving
-        // mailbox control — would be resolved to that victim's row (an admin's
-        // row grants admin). A present email therefore MUST be verified; a token
-        // with no email at all is rejected later by seal_session.
+        // The email is the lookup handle used to resolve the user row (the session
+        // is sealed with it and users are resolved via find_or_create_one_by_email;
+        // the immutable subject gated below is the authoritative pin). An unverified
+        // email must never mint a session: otherwise an attacker who self-registers
+        // someone else's address at the IdP — without proving mailbox control —
+        // would be resolved to that victim's row (an admin's row grants admin). A
+        // present email therefore MUST be verified; a token with no email at all is
+        // rejected later by seal_session.
         if claims.email.is_some() && !claims.email_verified {
             return Err(Error::EmailNotVerified);
         }
