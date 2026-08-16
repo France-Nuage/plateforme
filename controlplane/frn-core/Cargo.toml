@@ -3,6 +3,12 @@ name = "frn-core"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+# Test-only: pulls the mock auth/spicedb backends so `App::test` and other test
+# helpers compile. Never enable in a production build (the auth mock carries a
+# deterministic signing key). CI enables it via `cargo test --all-features`.
+mock = ["auth/mock", "spicedb/mock"]
+
 [dependencies]
 async-stripe = "1.0.0-rc.6"
 async-stripe-billing = { version = "1.0.0-rc.6", features = ["subscription"] }
@@ -11,7 +17,7 @@ async-stripe-core = { version = "1.0.0-rc.6", features = ["customer"] }
 async-stripe-shared = "1.0.0-rc.6"
 async-stripe-webhook = "1.0.0-rc.6"
 async-trait = "0.1"
-auth = { path = "../auth", features = ["mock"] }
+auth = { path = "../auth" }
 base64 = "0.22"
 chrono = "0.4"
 database = { path = "../database" }
@@ -45,3 +51,9 @@ tonic = "0.14"
 trait-variant = "0.1"
 tracing = "0.1"
 uuid = "1"
+
+[dev-dependencies]
+# Mock backends for this crate's own tests (e.g. the SpiceDB::mock unit test).
+# Kept in dev-dependencies so they never reach a production build.
+auth = { path = "../auth", features = ["mock"] }
+spicedb = { path = "../spicedb", features = ["mock"] }

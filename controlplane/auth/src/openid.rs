@@ -177,6 +177,15 @@ impl Debug for OpenID {
 /// Generated tokens are valid JWTs that can be validated by the same `OpenID`
 /// instance when configured with the corresponding mock server endpoints.
 pub mod mock {
+    // Tripwire: the mock backend (deterministic RSA signing key + mock IdP) must
+    // never ship in a release binary. This module only compiles when the `mock`
+    // feature is on; failing the build when that coincides with a release profile
+    // means a successful `cargo build --release` proves mock is disabled in
+    // production. (`cargo test --release --all-features` would trip it too — CI
+    // runs tests in debug, so it doesn't.)
+    #[cfg(not(debug_assertions))]
+    compile_error!("the `mock` feature must not be enabled in a release build");
+
     use std::sync::OnceLock;
     use std::time::{SystemTime, UNIX_EPOCH};
 

@@ -9,6 +9,7 @@
 use crate::error::Error;
 use frn_core::App;
 use frn_crypto::Kek;
+#[cfg(feature = "mock")]
 use mock_server::MockServer;
 use spicedb::SpiceDB;
 use sqlx::{Pool, Postgres};
@@ -127,6 +128,7 @@ pub struct Config {
 
 /// Deterministic KEK used only by [`Config::test`]. Not a secret: tests run
 /// against an isolated database, and a fixed value keeps runs reproducible.
+#[cfg(feature = "mock")]
 const TEST_KUBECONFIG_ENCRYPTION_KEK: [u8; frn_crypto::KEK_SIZE] = [42u8; 32];
 
 impl Config {
@@ -159,6 +161,7 @@ impl Config {
     /// - **Dynamic Port**: Uses `reserve_socket_addr(None)` to allocate an available port
     /// - **Mock Authentication**: Configures OpenID for the mock server
     /// - **Test Isolation**: Each test gets its own port to avoid interference
+    #[cfg(feature = "mock")]
     pub async fn test(pool: &Pool<Postgres>, _mock_server: &MockServer) -> Result<Self, Error> {
         let addr = Config::reserve_socket_addr(None).await?;
 

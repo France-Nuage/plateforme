@@ -3,6 +3,12 @@ name = "server"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+# Test-only: pulls the mock auth backend + the mock IdP server so `Config::test`
+# and the integration harness compile. Never enable in a production build. CI
+# enables it via `cargo test --all-features`.
+mock = ["dep:mock_server", "frn-core/mock", "auth/mock"]
+
 [dependencies]
 async-stripe-webhook = { version = "1.0.0-rc.6", features = ["async-stripe-checkout", "async-stripe-billing"] }
 auth = { path = "../auth" }
@@ -20,7 +26,7 @@ infrastructure = { path = "../infrastructure" }
 jsonwebtoken = "9"
 metrics = "0.23"
 metrics-exporter-prometheus = { version = "0.15", default-features = false }
-mock_server = { path = "../mock_server" }
+mock_server = { path = "../mock_server", optional = true }
 prost = "0.14"
 prost-types = "0.14"
 reqwest = { version = "0.12", features = ["json"] }
