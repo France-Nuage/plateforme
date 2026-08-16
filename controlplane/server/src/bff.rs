@@ -756,25 +756,24 @@ async fn me(State(bff): State<Bff>, headers: HeaderMap) -> Response {
 
     // The admin flag is authoritative from the control-plane database (the exact
     // same source as the Profile.GetCurrentUser RPC), never from a token role.
-    let is_admin = match User::find_or_create_one_by_email(&bff.db, &payload.email, &payload.sub)
-        .await
-    {
-        Ok(user) => user.is_admin,
-        Err(frn_core::Error::SubjectMismatch) => {
-            // The verified email now resolves to a row pinned to a different
-            // subject (a recycled address) — treat as unauthenticated, exactly
-            // like an expired session, never a 500.
-            return Json(MeResponse::default()).into_response();
-        }
-        Err(err) => {
-            tracing::error!(error = %err, "failed to resolve user for /auth/me");
-            return reject(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "could not resolve identity",
-                &[],
-            );
-        }
-    };
+    let is_admin =
+        match User::find_or_create_one_by_email(&bff.db, &payload.email, &payload.sub).await {
+            Ok(user) => user.is_admin,
+            Err(frn_core::Error::SubjectMismatch) => {
+                // The verified email now resolves to a row pinned to a different
+                // subject (a recycled address) — treat as unauthenticated, exactly
+                // like an expired session, never a 500.
+                return Json(MeResponse::default()).into_response();
+            }
+            Err(err) => {
+                tracing::error!(error = %err, "failed to resolve user for /auth/me");
+                return reject(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "could not resolve identity",
+                    &[],
+                );
+            }
+        };
 
     Json(MeResponse {
         authenticated: true,

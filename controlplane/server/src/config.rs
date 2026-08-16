@@ -474,8 +474,11 @@ pub fn console_cors_origin(console_url: &str) -> Result<http::HeaderValue, Error
             "CONSOLE_URL must be an absolute http(s) origin, got {console_url:?}"
         )));
     }
-    http::HeaderValue::from_str(&origin.ascii_serialization())
-        .map_err(|err| config_error(format!("CONSOLE_URL yields a non-header-safe origin: {err}")))
+    http::HeaderValue::from_str(&origin.ascii_serialization()).map_err(|err| {
+        config_error(format!(
+            "CONSOLE_URL yields a non-header-safe origin: {err}"
+        ))
+    })
 }
 
 /// The exact `Access-Control-Allow-Headers` allow-list advertised in BFF mode.
@@ -591,7 +594,10 @@ pub fn same_site_cross_site_warning(
 /// — a false positive only produces a spurious startup warning (safe), whereas a
 /// false negative would silently suppress the cross-site cookie warning (the bug).
 fn looks_like_public_suffix(domain: &str) -> bool {
-    let labels: Vec<&str> = domain.split('.').filter(|label| !label.is_empty()).collect();
+    let labels: Vec<&str> = domain
+        .split('.')
+        .filter(|label| !label.is_empty())
+        .collect();
     matches!(labels.as_slice(), [sld, tld] if sld.len() <= 3 && tld.len() == 2)
 }
 

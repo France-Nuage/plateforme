@@ -501,8 +501,7 @@ async fn callback_rejects_an_unverified_email() {
     // `email_verified` is false: an attacker could have self-registered a
     // victim's (e.g. an admin's) address without proving mailbox control. Since
     // identity is keyed on the email, this MUST be rejected with no session.
-    let id_token =
-        harness.id_token_unverified_email("admin@francenuage.fr", &nonce, now() + 3600);
+    let id_token = harness.id_token_unverified_email("admin@francenuage.fr", &nonce, now() + 3600);
     harness.stub_token_endpoint(&id_token);
 
     let response = harness
@@ -1323,7 +1322,10 @@ fn console_cors_origin_normalizes_a_trailing_slash_to_the_bare_origin() {
     let with_path =
         server::config::console_cors_origin("https://console.france-nuage.fr/login?next=%2Fx")
             .expect("valid absolute https origin");
-    assert_eq!(with_path, bare, "a path/query must not change the CORS origin");
+    assert_eq!(
+        with_path, bare,
+        "a path/query must not change the CORS origin"
+    );
 
     // A non-default port is preserved (matches the browser `Origin`).
     let ported = server::config::console_cors_origin("http://localhost:5173/")
@@ -1427,7 +1429,10 @@ fn cross_site_under_a_multi_label_public_suffix_is_flagged() {
         !warning.contains("different registrable domains"),
         "same-site public-suffix warning must not claim 'different': {warning}"
     );
-    assert!(warning.contains("co.uk"), "warning should name the shared site: {warning}");
+    assert!(
+        warning.contains("co.uk"),
+        "warning should name the shared site: {warning}"
+    );
 
     // Sanity: a genuine same-registrable-domain pair (subdomains only, non
     // public-suffix shape) is still correctly suppressed — no spurious warning.

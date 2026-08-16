@@ -1,25 +1,26 @@
 # ADR : Architecture d'authentification et d'autorisation avec OpenID Connect
 
-> **Statut : Superseded** par [ADR 003 — Authentification BFF client confidentiel](003-bff-authentication.md).
+> **Statut : Superseded** par
+> [ADR 003 — Authentification BFF client confidentiel](003-bff-authentication.md).
 >
 > Ce document décrit le flux **retiré du code** : SPA publique NextJS + PKCE,
-> stockage des tokens en `sessionStorage`, tokens transmis dans le fragment d'URL,
-> route frontend `/auth/callback/[provider]`, id_token porté en `Authorization:
-> Bearer` dans les métadonnées gRPC, et l'affirmation « Pas de cookies : gRPC ne
-> supporte pas les cookies HTTP ». La plateforme livrée fait **l'inverse** : un BFF
-> client confidentiel côté control-plane et un cookie `frn_session` chiffré,
-> httpOnly, jamais exposé au JavaScript. Conservé pour l'historique de décision ;
-> pour la réalité en production, lire l'ADR 003.
+> stockage des tokens en `sessionStorage`, tokens transmis dans le fragment
+> d'URL, route frontend `/auth/callback/[provider]`, id_token porté en
+> `Authorization: Bearer` dans les métadonnées gRPC, et l'affirmation « Pas de
+> cookies : gRPC ne supporte pas les cookies HTTP ». La plateforme livrée fait
+> **l'inverse** : un BFF client confidentiel côté control-plane et un cookie
+> `frn_session` chiffré, httpOnly, jamais exposé au JavaScript. Conservé pour
+> l'historique de décision ; pour la réalité en production, lire l'ADR 003.
 
 ## Contexte et Enjeux
 
-France-Nuage souhaite mettre en place une architecture d'authentification moderne
-et sécurisée pour ses services backend en Rust et applications frontend. Le
-système doit permettre aux utilisateurs de s'authentifier via des fournisseurs
-d'identité externes (Google, GitHub, etc.) tout en maintenant un contrôle fin
-des autorisations côté backend. L'objectif est de fournir une expérience
-utilisateur fluide avec une Single Page Application (SPA) en NextJS, tout en
-garantissant la sécurité des API gRPC backend.
+France-Nuage souhaite mettre en place une architecture d'authentification
+moderne et sécurisée pour ses services backend en Rust et applications frontend.
+Le système doit permettre aux utilisateurs de s'authentifier via des
+fournisseurs d'identité externes (Google, GitHub, etc.) tout en maintenant un
+contrôle fin des autorisations côté backend. L'objectif est de fournir une
+expérience utilisateur fluide avec une Single Page Application (SPA) en NextJS,
+tout en garantissant la sécurité des API gRPC backend.
 
 Ce besoin s'inscrit dans une optique de **modernité et de sécurité** : en
 évitant de gérer directement les mots de passe utilisateurs, on réduit les
@@ -51,8 +52,8 @@ gérant les sessions via cookies.
 - Complexité pour exposer l'état d'authentification aux services external
 - Sessions stateful incompatibles avec l'architecture microservices ciblée
 
-Cette option a été écartée car elle ne correspond pas à l'architecture distribuée
-souhaitée avec des services Rust indépendants.
+Cette option a été écartée car elle ne correspond pas à l'architecture
+distribuée souhaitée avec des services Rust indépendants.
 
 ### Option 2 : Sessions traditionnelles avec base de données partagée
 
@@ -66,7 +67,8 @@ tous les services.
 
 **Inconvénients** :
 
-- Nécessite un stockage partagé (Redis/PostgreSQL) accessible par tous les services
+- Nécessite un stockage partagé (Redis/PostgreSQL) accessible par tous les
+  services
 - Complexité des appels réseau pour chaque validation
 - Point de défaillance unique
 - Scaling horizontal plus complexe
@@ -74,8 +76,8 @@ tous les services.
 
 ### Option 3 : Architecture stateless avec validation de tokens côté services
 
-**Description** : Authentification via OIDC (OpenID Connect) avec tokens JWT validés
-directement par chaque service backend.
+**Description** : Authentification via OIDC (OpenID Connect) avec tokens JWT
+validés directement par chaque service backend.
 
 **Avantages** :
 
@@ -101,34 +103,35 @@ basée sur OpenID Connect**, avec les caractéristiques suivantes :
 
 ### Frontend SPA (NextJS)
 
-- **Gestion d'état avec Redux Toolkit** pour centraliser l'état d'authentification
-dans le store global de l'application
-- **Flux OIDC Authorization Code + PKCE** : redirection avec `response_type=code`
-et échange de code côté frontend (PKCE) ou via un BFF.
+- **Gestion d'état avec Redux Toolkit** pour centraliser l'état
+  d'authentification dans le store global de l'application
+- **Flux OIDC Authorization Code + PKCE** : redirection avec
+  `response_type=code` et échange de code côté frontend (PKCE) ou via un BFF.
 - **Stockage des tokens en mémoire** (ou cookies HttpOnly SameSite via BFF) pour
-réduire l'impact XSS.
+  réduire l'impact XSS.
 - **Validation côté backend** à partir de l'Access Token obtenu via l'échange de
-code.
+  code.
 - **Gestion automatique des redirections** après authentification via une route
-de callback dynamique `/auth/callback/[provider]`
+  de callback dynamique `/auth/callback/[provider]`
 
 ### Backend Rust (Services gRPC)
 
-- **Validation des Access Tokens** par chaque service (JWT signés ou introspection
-si opaque).
+- **Validation des Access Tokens** par chaque service (JWT signés ou
+  introspection si opaque).
 - **Utilisation de la crate `openidconnect`** pour découverte/configuration OIDC
-et JWKS, ou `jsonwebtoken` pour la vérification locale des JWT.
-- **Cache des clés publiques JWKS** avec TTL (24h) pour éviter les appels répétés
-  aux providers
-- **Support multi-providers** : architecture agnostique permettant Google, GitHub,
-  Facebook, etc.
+  et JWKS, ou `jsonwebtoken` pour la vérification locale des JWT.
+- **Cache des clés publiques JWKS** avec TTL (24h) pour éviter les appels
+  répétés aux providers
+- **Support multi-providers** : architecture agnostique permettant Google,
+  GitHub, Facebook, etc.
 - **Extraction automatique des informations utilisateur** depuis les claims JWT
   (sub, email, name, etc.)
 
 ### Intégration gRPC avec Authentification
 
-- **Transmission via metadata gRPC** : envoi de `authorization: Bearer <access_token>`
-  dans les métadonnées de chaque appel gRPC
+- **Transmission via metadata gRPC** : envoi de
+  `authorization: Bearer <access_token>` dans les métadonnées de chaque appel
+  gRPC
 - **Intercepteur d'authentification** : middleware Rust validant automatiquement
   les tokens sur tous les appels protégés
 - **Injection des informations utilisateur** dans le contexte de la requête pour
@@ -137,19 +140,19 @@ et JWKS, ou `jsonwebtoken` pour la vérification locale des JWT.
 ### Configuration des Providers OIDC
 
 - **Google OAuth** : configuration avec `authorized_javascript_origins` pour le
-flux implicite
-- **Support extensible** : table de configuration des providers avec endpoints de
-découverte automatique
+  flux implicite
+- **Support extensible** : table de configuration des providers avec endpoints
+  de découverte automatique
 - **Validation des audiences** : vérification que les tokens sont bien destinés
-aux client IDs France-Nuage
+  aux client IDs France-Nuage
 
 ## Flux d'Authentification Détaillé
 
 ### 1. Initiation de l'authentification
 
 Le processus commence lorsque l'utilisateur clique sur "Se connecter". Le
-frontend Redux dispatch une action `initiateLogin()` qui génère une URL OAuth
-et redirige le navigateur vers le provider d'identité externe.
+frontend Redux dispatch une action `initiateLogin()` qui génère une URL OAuth et
+redirige le navigateur vers le provider d'identité externe.
 
 ### 2. Callback et validation
 
@@ -222,11 +225,11 @@ permissions sont vérifiées avant l'exécution de la logique métier.
 
 ### Choix d'OpenID Connect sur OAuth 2.0 pur
 
-OpenID Connect apporte une **standardisation** des informations d'identité au-dessus
-d'OAuth 2.0. Les ID tokens JWT contiennent des claims standardisés (sub, email,
-name) qui simplifient l'extraction des informations utilisateur sans appel
-supplémentaire à une API userinfo. De plus, OIDC est largement supporté par les
-providers majeurs (Google, Microsoft, etc.).
+OpenID Connect apporte une **standardisation** des informations d'identité
+au-dessus d'OAuth 2.0. Les ID tokens JWT contiennent des claims standardisés
+(sub, email, name) qui simplifient l'extraction des informations utilisateur
+sans appel supplémentaire à une API userinfo. De plus, OIDC est largement
+supporté par les providers majeurs (Google, Microsoft, etc.).
 
 ### Utilisation des ID tokens pour l'authentification
 

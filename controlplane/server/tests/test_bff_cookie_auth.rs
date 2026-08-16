@@ -178,7 +178,10 @@ async fn a_bearer_id_token_with_a_verified_email_authenticates(
         .get_current_user(Request::new(GetCurrentUserRequest {}).with_user(&token))
         .await;
 
-    assert!(response.is_ok(), "a verified-email bearer must authenticate");
+    assert!(
+        response.is_ok(),
+        "a verified-email bearer must authenticate"
+    );
     Ok(())
 }
 
