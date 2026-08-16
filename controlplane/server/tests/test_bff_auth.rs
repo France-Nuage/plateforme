@@ -839,6 +839,50 @@ async fn me_pins_a_pre_existing_null_subject_row(pool: PgPool) {
 }
 
 #[sqlx::test(migrations = "../migrations")]
+async fn me_reports_unauthenticated_for_a_recycled_email(pool: PgPool) {
+    // An admin row already pinned to a specific subject — a departed platform-admin
+    // whose control-plane row was never cleaned up.
+    let id = Uuid::new_v4();
+    sqlx::query("INSERT INTO users (id, email, sub, is_admin) VALUES ($1, $2, $3, true)")
+        .bind(id)
+        .bind("admin@francenuage.fr")
+        .bind("subject-departed-admin")
+        .execute(&pool)
+        .await
+        .expect("could not seed a pinned admin row");
+
+    let harness = Harness::start(pool.clone()).await;
+    // A perfectly valid, correctly-sealed session for the SAME email but the
+    // DEFAULT subject `subject-abc-123` — the recycled-address successor, a
+    // DIFFERENT subject from the pinned one. /auth/me is the authoritative isAdmin
+    // surface for the SPA admin-guard, so it must fail closed HERE at the HTTP
+    // layer: an anonymous 200 (never authenticated, never leaking isAdmin), and
+    // never a 500.
+    let session = harness.seal_session("rt", "admin@francenuage.fr", now() + 3600);
+
+    let response = harness
+        .client
+        .get(format!("{}/auth/me", harness.base))
+        .header(reqwest::header::COOKIE, format!("frn_session={session}"))
+        .send()
+        .await
+        .expect("me request failed");
+
+    assert_eq!(response.status().as_u16(), 200);
+    let body: Value = response.json().await.expect("me must return json");
+    assert_eq!(body["authenticated"], json!(false));
+    assert_ne!(body["isAdmin"], json!(true));
+
+    // The mismatch did NOT re-pin the row (no downgrade of the pinned subject).
+    let pinned: (Option<String>,) = sqlx::query_as("SELECT sub FROM users WHERE id = $1")
+        .bind(id)
+        .fetch_one(&pool)
+        .await
+        .expect("could not read back the subject");
+    assert_eq!(pinned.0.as_deref(), Some("subject-departed-admin"));
+}
+
+#[sqlx::test(migrations = "../migrations")]
 async fn me_reports_non_admin_for_a_fresh_user(pool: PgPool) {
     let harness = Harness::start(pool).await;
     let session = harness.seal_session("rt", "regular@francenuage.fr", now() + 3600);
