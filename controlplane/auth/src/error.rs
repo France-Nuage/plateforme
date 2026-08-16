@@ -118,12 +118,11 @@ pub enum Error {
     #[error("not a bearer token")]
     MalformedBearerToken,
 
-    /// A general error from JWT processing operations.
+    /// A general-purpose error carrying a free-form message.
     ///
-    /// This wraps errors from the underlying `jsonwebtoken` library,
-    /// such as signature validation failures, expired tokens, or
-    /// malformed JWT structure. The inner message provides specific
-    /// details about what went wrong during JWT processing.
+    /// Currently unused in this crate: `jsonwebtoken` failures (bad signature,
+    /// expired, malformed structure) map to [`Error::MalformedBearerToken`] via the
+    /// `From` impl below, not here. Kept for callers needing an ad-hoc message.
     #[error("other: {0}")]
     Other(String),
 
