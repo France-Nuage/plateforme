@@ -169,6 +169,11 @@ impl<Auth: Authorize> Users<Auth> {
         User::factory()
             .id(Uuid::new_v4())
             .email(email)
+            // Unpinned (NULL) subject: an invited user has not authenticated yet,
+            // so their OIDC subject is pinned on first login. The factory's Faker
+            // would otherwise fill `sub` with a random value that never matches the
+            // real token → the invitee could never authenticate.
+            .sub(None)
             .is_admin(false)
             .create(&self.db)
             .await

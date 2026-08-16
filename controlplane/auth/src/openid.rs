@@ -289,6 +289,11 @@ pub mod mock {
 
             let claim = Claim {
                 email: Some(email.to_owned()),
+                // A conformant OIDC user token carries a verified email and a
+                // subject; the control plane requires both (unverified email or
+                // missing subject fails closed), so the mock must supply them.
+                email_verified: Some(true),
+                sub: Some(format!("mock-subject-{email}")),
                 iat: Some(now),
                 exp: Some(now + 3600),
                 nbf: Some(now),
