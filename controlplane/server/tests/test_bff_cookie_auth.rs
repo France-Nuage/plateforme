@@ -28,13 +28,19 @@ fn now() -> u64 {
         .as_secs()
 }
 
-/// Seals a session cookie with the same deterministic key the test server's IAM
-/// opens with (`App::test` → `TEST_SESSION_KEY`).
+/// Seals a session cookie for `email` with the default test subject.
 fn seal(email: &str, exp: u64) -> String {
+    seal_with_sub(email, "subject-1", exp)
+}
+
+/// Seals a session cookie binding `email` to a specific OIDC subject `sub`, using
+/// the same deterministic key the test server's IAM opens with (`App::test` →
+/// `TEST_SESSION_KEY`).
+fn seal_with_sub(email: &str, sub: &str, exp: u64) -> String {
     SessionKey::from_bytes(TEST_SESSION_KEY)
         .seal(&SessionPayload {
             refresh_token: "rt".to_owned(),
-            sub: "subject-1".to_owned(),
+            sub: sub.to_owned(),
             email: email.to_owned(),
             exp,
         })
@@ -156,11 +162,12 @@ async fn a_bearer_id_token_with_a_verified_email_authenticates(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut api = Api::start(&pool).await.expect("could not start api");
 
-    // A validly-signed, non-expired user token with a verified email resolves the
-    // user by email — the positive counterpart to the rejection below.
+    // A validly-signed, non-expired user token with a verified email AND a subject
+    // resolves the user — the positive counterpart to the rejections below.
     let token = auth::OpenID::sign_claims(&serde_json::json!({
         "email": EMAIL,
         "email_verified": true,
+        "sub": "subject-1",
         "exp": now() + 3600,
         "iat": now(),
         "nbf": now(),
@@ -195,6 +202,61 @@ async fn a_bearer_id_token_with_an_unverified_email_is_rejected(
     let response = api
         .profile
         .get_current_user(Request::new(GetCurrentUserRequest {}).with_user(&token))
+        .await;
+
+    assert_eq!(response.unwrap_err().code(), Code::Unauthenticated);
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn a_bearer_id_token_without_a_sub_is_rejected(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    // Validly-signed, non-expired, verified email — but no `sub`. Identity is
+    // pinned to the immutable subject, so a token that carries none cannot be
+    // resolved by its (mutable) email alone and must NOT authenticate.
+    let token = auth::OpenID::sign_claims(&serde_json::json!({
+        "email": EMAIL,
+        "email_verified": true,
+        "exp": now() + 3600,
+        "iat": now(),
+        "nbf": now(),
+    }));
+
+    let response = api
+        .profile
+        .get_current_user(Request::new(GetCurrentUserRequest {}).with_user(&token))
+        .await;
+
+    assert_eq!(response.unwrap_err().code(), Code::Unauthenticated);
+    Ok(())
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn a_recycled_email_with_a_new_subject_is_rejected(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut api = Api::start(&pool).await.expect("could not start api");
+
+    // First login for this email binds (pins) its OIDC subject to the freshly
+    // created row.
+    let first = seal_with_sub(EMAIL, "subject-original", now() + 3600);
+    api.profile
+        .get_current_user(Request::new(GetCurrentUserRequest {}).with_session_cookie(&first))
+        .await
+        .expect("the first login pins the subject and authenticates");
+
+    // The email is later recycled to a DIFFERENT subject (e.g. a departed admin's
+    // address reassigned to someone new). Even with a perfectly valid,
+    // correctly-sealed cookie, it must NOT resolve to the original row: the pinned
+    // subject differs, so it fails closed instead of silently inheriting that
+    // (possibly admin) identity.
+    let recycled = seal_with_sub(EMAIL, "subject-successor", now() + 3600);
+    let response = api
+        .profile
+        .get_current_user(Request::new(GetCurrentUserRequest {}).with_session_cookie(&recycled))
         .await;
 
     assert_eq!(response.unwrap_err().code(), Code::Unauthenticated);

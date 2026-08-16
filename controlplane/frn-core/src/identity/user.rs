@@ -15,6 +15,16 @@ pub struct User {
     /// The user email
     pub email: String,
 
+    /// OIDC subject (`sub`) pinned to this row on first login.
+    ///
+    /// `email` is a mutable, reassignable handle; `sub` is the immutable subject
+    /// the identity provider issues. Pinning `sub` here lets the resolver reject a
+    /// token whose verified email matches this row but whose subject differs —
+    /// e.g. a departed platform-admin's address later recycled to someone else.
+    /// `None` on rows created before subject-pinning (or provisioned by
+    /// invitation); the value is recorded the first time such a user authenticates.
+    pub sub: Option<String>,
+
     /// Platform-administration flag.
     ///
     /// Indicates whether this user holds platform-wide administrative
@@ -46,25 +56,75 @@ impl User {
             .await
     }
 
+    /// Resolves the user for a **verified** `email`, pinning the OIDC subject
+    /// `sub` to the row.
+    ///
+    /// `email` is a mutable, reassignable handle, so keying identity on it alone
+    /// lets a recycled address (e.g. a departed platform-admin's, later reassigned
+    /// to someone else) inherit the original row — including its `is_admin` flag.
+    /// The immutable subject is therefore pinned on first login and compared on
+    /// every later one:
+    /// - the row has no pinned subject yet (created before pinning, or by
+    ///   invitation) → record `sub`;
+    /// - the pinned subject equals `sub` → the same principal, allow;
+    /// - the pinned subject differs → the email was reassigned to another subject
+    ///   → fail closed with [`crate::Error::SubjectMismatch`].
+    ///
+    /// An empty `sub` is refused for the same reason (no stable subject to key on).
+    /// Callers pass the subject from an already-validated credential (the sealed
+    /// session cookie or a signature-verified bearer token).
     pub async fn find_or_create_one_by_email(
         pool: &Pool<Postgres>,
         email: &str,
-    ) -> Result<User, fabrique::Error> {
-        let maybe_user = User::find_one_by_email(pool, email).await?;
+        sub: &str,
+    ) -> Result<User, crate::Error> {
+        if sub.is_empty() {
+            return Err(crate::Error::SubjectMismatch);
+        }
 
-        match maybe_user {
-            Some(user) => Ok(user),
-            None => {
-                User {
-                    id: Uuid::new_v4(),
-                    is_admin: false,
-                    email: email.to_owned(),
-                    created_at: chrono::Utc::now(),
-                    updated_at: chrono::Utc::now(),
+        match User::find_one_by_email(pool, email).await? {
+            Some(user) => {
+                // Clone the pinned value so the match scrutinee borrows the local,
+                // leaving `user` free to move into the arms.
+                let pinned = user.sub.clone();
+                match pinned.as_deref() {
+                    // Already pinned to this subject: the same principal.
+                    Some(existing) if existing == sub => Ok(user),
+                    // Pinned to a DIFFERENT, non-empty subject: the email was
+                    // reassigned to another subject → fail closed.
+                    Some(existing) if !existing.is_empty() => {
+                        tracing::warn!(
+                            email,
+                            "auth rejected: verified email resolves to a row pinned to a different subject"
+                        );
+                        Err(crate::Error::SubjectMismatch)
+                    }
+                    // Not yet pinned — the row predates subject-pinning (`NULL`) or
+                    // is an empty placeholder from invitation: bind this subject now.
+                    _ => {
+                        User::update()
+                            .set(User::SUB, Some(sub.to_owned()))
+                            .r#where(User::ID, "=", user.id)
+                            .execute(pool)
+                            .await?;
+                        Ok(User {
+                            sub: Some(sub.to_owned()),
+                            ..user
+                        })
+                    }
                 }
-                .create(pool)
-                .await
             }
+            None => User {
+                id: Uuid::new_v4(),
+                sub: Some(sub.to_owned()),
+                is_admin: false,
+                email: email.to_owned(),
+                created_at: chrono::Utc::now(),
+                updated_at: chrono::Utc::now(),
+            }
+            .create(pool)
+            .await
+            .map_err(Into::into),
         }
     }
 }

@@ -302,6 +302,7 @@ pub async fn seed_kubernetes_cluster(pool: &Pool<Postgres>, name: &str) -> Kuber
     let admin = User {
         id: Uuid::new_v4(),
         email: format!("seed-admin-{name}@francenuage.fr"),
+        sub: None,
         is_admin: true,
         created_at: Utc::now(),
         updated_at: Utc::now(),

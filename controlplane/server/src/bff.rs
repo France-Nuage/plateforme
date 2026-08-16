@@ -187,6 +187,9 @@ pub enum Error {
     #[error("id token carries an unverified email")]
     EmailNotVerified,
 
+    #[error("id token missing sub claim")]
+    MissingSubClaim,
+
     #[error("session cookie has no refresh token")]
     MissingRefreshToken,
 
@@ -451,6 +454,14 @@ impl Bff {
         // with no email at all is rejected later by seal_session.
         if claims.email.is_some() && !claims.email_verified {
             return Err(Error::EmailNotVerified);
+        }
+        // The subject (`sub`) is pinned to the resolved user row and sealed into
+        // the session, so an id_token without one must never mint a session:
+        // identity keys on the immutable subject, never the mutable email alone (a
+        // recycled address would otherwise inherit its former owner's row). A
+        // conformant OIDC id_token always carries `sub`.
+        if claims.sub.as_deref().unwrap_or_default().is_empty() {
+            return Err(Error::MissingSubClaim);
         }
 
         Ok(claims)
@@ -744,8 +755,16 @@ async fn me(State(bff): State<Bff>, headers: HeaderMap) -> Response {
 
     // The admin flag is authoritative from the control-plane database (the exact
     // same source as the Profile.GetCurrentUser RPC), never from a token role.
-    let is_admin = match User::find_or_create_one_by_email(&bff.db, &payload.email).await {
+    let is_admin = match User::find_or_create_one_by_email(&bff.db, &payload.email, &payload.sub)
+        .await
+    {
         Ok(user) => user.is_admin,
+        Err(frn_core::Error::SubjectMismatch) => {
+            // The verified email now resolves to a row pinned to a different
+            // subject (a recycled address) — treat as unauthenticated, exactly
+            // like an expired session, never a 500.
+            return Json(MeResponse::default()).into_response();
+        }
         Err(err) => {
             tracing::error!(error = %err, "failed to resolve user for /auth/me");
             return reject(

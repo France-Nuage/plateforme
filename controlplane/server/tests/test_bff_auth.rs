@@ -220,6 +220,20 @@ impl Harness {
         });
         OpenID::sign_claims(&claims)
     }
+
+    /// Mints a signed id_token with a verified email but NO `sub` claim.
+    fn id_token_without_sub(&self, email: &str, nonce: &str, exp: u64) -> String {
+        let claims = json!({
+            "iss": self.idp_base,
+            "aud": CLIENT_ID,
+            "exp": exp,
+            "iat": now(),
+            "email": email,
+            "email_verified": true,
+            "nonce": nonce,
+        });
+        OpenID::sign_claims(&claims)
+    }
 }
 
 /// A pool that never connects — sufficient for the flows that do not query the DB.
@@ -520,6 +534,54 @@ async fn callback_rejects_an_unverified_email() {
 }
 
 #[tokio::test]
+async fn callback_rejects_a_missing_sub() {
+    let mut harness = Harness::start(lazy_pool()).await;
+
+    let login = harness
+        .client
+        .get(format!("{}/auth/login", harness.base))
+        .send()
+        .await
+        .expect("login failed");
+    let state = set_cookie(&login, "frn_oauth_state").expect("state cookie");
+    let nonce = set_cookie(&login, "frn_oauth_nonce").expect("nonce cookie");
+
+    // The IdP returns a validly-signed id_token (iss/aud/exp/nonce/email_verified
+    // all pass) but carries NO `sub`. The subject is pinned to the user row so a
+    // recycled email cannot inherit a former owner's identity, so a token without
+    // a stable subject cannot mint a session and MUST be rejected with none.
+    let id_token = harness.id_token_without_sub("admin@francenuage.fr", &nonce, now() + 3600);
+    harness.stub_token_endpoint(&id_token);
+
+    let response = harness
+        .client
+        .get(format!(
+            "{}/auth/callback?code=auth-code&state={state}",
+            harness.base
+        ))
+        .header(
+            reqwest::header::COOKIE,
+            format!("frn_oauth_state={state}; frn_oauth_nonce={nonce}"),
+        )
+        .send()
+        .await
+        .expect("callback request failed");
+
+    assert_eq!(response.status().as_u16(), 302);
+    let location = response
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|value| value.to_str().ok())
+        .expect("a rejected callback must redirect to the console");
+    assert!(location.starts_with(CONSOLE_URL));
+    assert!(
+        location.contains("auth_error=validation"),
+        "a missing sub must be an id_token validation reject, got {location}"
+    );
+    assert!(set_cookie(&response, "frn_session").is_none());
+}
+
+#[tokio::test]
 async fn me_reports_unauthenticated_for_an_expired_session() {
     let harness = Harness::start(lazy_pool()).await;
 
@@ -730,6 +792,46 @@ async fn me_reports_admin_from_the_database(pool: PgPool) {
     assert_eq!(body["authenticated"], json!(true));
     assert_eq!(body["email"], json!("admin@francenuage.fr"));
     assert_eq!(body["isAdmin"], json!(true));
+}
+
+#[sqlx::test(migrations = "../migrations")]
+async fn me_pins_a_pre_existing_null_subject_row(pool: PgPool) {
+    // A row that predates subject-pinning has `sub = NULL` — exactly the state of
+    // every existing user right after the migration adds the column. Its owner's
+    // first login must pin the cookie's subject and authenticate normally, never
+    // lock the user out.
+    let id = Uuid::new_v4();
+    sqlx::query("INSERT INTO users (id, email, is_admin) VALUES ($1, $2, true)")
+        .bind(id)
+        .bind("legacy-admin@francenuage.fr")
+        .execute(&pool)
+        .await
+        .expect("could not seed a pre-pinning admin row");
+
+    let harness = Harness::start(pool.clone()).await;
+    let session = harness.seal_session("rt", "legacy-admin@francenuage.fr", now() + 3600);
+
+    let body: Value = harness
+        .client
+        .get(format!("{}/auth/me", harness.base))
+        .header(reqwest::header::COOKIE, format!("frn_session={session}"))
+        .send()
+        .await
+        .expect("me request failed")
+        .json()
+        .await
+        .expect("me must return json");
+
+    assert_eq!(body["authenticated"], json!(true));
+    assert_eq!(body["isAdmin"], json!(true));
+
+    // The subject was pinned to the row on that first login.
+    let pinned: (Option<String>,) = sqlx::query_as("SELECT sub FROM users WHERE id = $1")
+        .bind(id)
+        .fetch_one(&pool)
+        .await
+        .expect("could not read back the pinned subject");
+    assert_eq!(pinned.0.as_deref(), Some("subject-abc-123"));
 }
 
 #[sqlx::test(migrations = "../migrations")]

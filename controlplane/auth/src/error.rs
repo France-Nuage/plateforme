@@ -92,6 +92,14 @@ pub enum Error {
     #[error("email not verified")]
     EmailNotVerified,
 
+    /// The token carries no `sub` (subject) claim, or it is empty.
+    ///
+    /// Identity is pinned to the immutable subject, so a token without one cannot
+    /// be resolved safely: a verified email alone is a mutable, reassignable
+    /// handle. A conformant OIDC id_token always carries `sub`.
+    #[error("missing sub claim")]
+    MissingSubClaim,
+
     /// JWT header is missing the required "kid" (Key ID) claim.
     ///
     /// The JWT header must contain a "kid" field that identifies which key

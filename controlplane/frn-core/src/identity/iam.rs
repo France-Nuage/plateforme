@@ -84,9 +84,9 @@ impl IAM {
             return Err(Error::Unauthenticated);
         }
 
-        User::find_or_create_one_by_email(&self.db, &payload.email)
-            .await
-            .map_err(Into::into)
+        // The subject was sealed into the cookie at login (after the id_token was
+        // validated), so it is pinned to the resolved row here.
+        User::find_or_create_one_by_email(&self.db, &payload.email, &payload.sub).await
     }
 
     #[cfg(test)]
@@ -106,10 +106,14 @@ impl IAM {
         if claims.email_verified != Some(true) {
             return Err(auth::Error::EmailNotVerified.into());
         }
+        // The subject is pinned to the resolved row; a token without one cannot be
+        // resolved safely (the email alone is a reassignable handle).
+        let sub = claims
+            .sub
+            .filter(|sub| !sub.is_empty())
+            .ok_or(auth::Error::MissingSubClaim)?;
 
-        User::find_or_create_one_by_email(&self.db, &email)
-            .await
-            .map_err(Into::into)
+        User::find_or_create_one_by_email(&self.db, &email, &sub).await
     }
 }
 

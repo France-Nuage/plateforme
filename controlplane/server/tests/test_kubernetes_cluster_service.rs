@@ -89,6 +89,7 @@ fn user(is_admin: bool) -> User {
     User {
         id: Uuid::new_v4(),
         email: format!("{}@francenuage.fr", if is_admin { "admin" } else { "user" }),
+        sub: None,
         is_admin,
         created_at: Utc::now(),
         updated_at: Utc::now(),
