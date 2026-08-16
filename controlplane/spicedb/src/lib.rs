@@ -22,7 +22,7 @@ pub use error::Error;
 #[cfg(feature = "mock")]
 pub mod mock;
 
-#[cfg(test)]
+#[cfg(all(test, feature = "mock"))]
 mod tests {
     use crate::api::v1::{
         CheckPermissionRequest, Consistency, ObjectReference, SubjectReference,
