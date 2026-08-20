@@ -106,12 +106,16 @@ impl IAM {
         if claims.email_verified != Some(true) {
             return Err(auth::Error::EmailNotVerified.into());
         }
-        // The subject is pinned to the resolved row; a token without one cannot be
-        // resolved safely (the email alone is a reassignable handle).
-        let sub = claims
-            .sub
-            .filter(|sub| !sub.is_empty())
-            .ok_or(auth::Error::MissingSubClaim)?;
+        // The subject pins identity to the immutable principal (the email alone is
+        // a reassignable handle). OIDC does not standardise the access token
+        // format, so `sub` may be absent from its claims (Keycloak includes it,
+        // FerrisKey does not). When it is, resolve the subject the idiomatic way:
+        // from the provider's UserInfo endpoint, which the access token is meant
+        // to authorize. This keeps us portable across conformant OIDC providers.
+        let sub = match claims.sub.filter(|sub| !sub.is_empty()) {
+            Some(sub) => sub,
+            None => self.identity.userinfo_subject(&access_token).await?,
+        };
 
         User::find_or_create_one_by_email(&self.db, &email, &sub).await
     }

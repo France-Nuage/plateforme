@@ -211,6 +211,12 @@ pub enum Error {
     /// The contained string value is the subject's email address.
     #[error("user {0} is not registered")]
     UserNotRegistered(String),
+
+    /// The access token carried no usable `sub`, and resolving it from the
+    /// provider's UserInfo endpoint failed (endpoint unadvertised, unreachable,
+    /// or its response carried no `sub`). Fails closed as unauthenticated.
+    #[error("could not resolve subject from userinfo")]
+    UserInfoSubjectUnresolved,
 }
 
 /// Converts JWT library errors into our unified error type.
