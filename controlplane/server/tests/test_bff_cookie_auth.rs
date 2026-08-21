@@ -212,14 +212,16 @@ async fn a_bearer_id_token_with_an_unverified_email_is_rejected(
 }
 
 #[sqlx::test(migrations = "../migrations")]
-async fn a_bearer_id_token_without_a_sub_is_rejected(
+async fn a_bearer_without_a_sub_resolves_the_subject_from_userinfo(
     pool: sqlx::PgPool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut api = Api::start(&pool).await.expect("could not start api");
 
-    // Validly-signed, non-expired, verified email — but no `sub`. Identity is
-    // pinned to the immutable subject, so a token that carries none cannot be
-    // resolved by its (mutable) email alone and must NOT authenticate.
+    // Validly-signed, non-expired, verified email — but no `sub` in the token.
+    // OIDC does not standardise the access token format, so `sub` may be absent
+    // (FerrisKey omits it). The control plane must then resolve the subject the
+    // idiomatic way — from the provider's UserInfo endpoint — and authenticate,
+    // rather than rejecting a perfectly valid credential.
     let token = auth::OpenID::sign_claims(&serde_json::json!({
         "email": EMAIL,
         "email_verified": true,
@@ -233,7 +235,10 @@ async fn a_bearer_id_token_without_a_sub_is_rejected(
         .get_current_user(Request::new(GetCurrentUserRequest {}).with_user(&token))
         .await;
 
-    assert_eq!(response.unwrap_err().code(), Code::Unauthenticated);
+    assert!(
+        response.is_ok(),
+        "a verified bearer without a sub must authenticate via UserInfo"
+    );
     Ok(())
 }
 

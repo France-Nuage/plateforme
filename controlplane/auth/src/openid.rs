@@ -146,6 +146,51 @@ impl OpenID {
 
         decode(token, &decoding_key, &validation).map_err(Into::into)
     }
+
+    /// Resolves the subject (`sub`) of an access token from the provider's
+    /// UserInfo endpoint (OpenID Connect Core 1.0, Section 5.3).
+    ///
+    /// The access token's format is not standardised by OIDC, so it is not
+    /// guaranteed to carry a `sub` claim (Keycloak includes one, FerrisKey does
+    /// not). The UserInfo endpoint, in contrast, is the standard way to obtain
+    /// the authenticated subject's claims *from* an access token, and always
+    /// identifies the subject. We call it only as a fallback, when the token
+    /// itself has no usable `sub`.
+    ///
+    /// # Errors
+    /// Returns [`Error::UserInfoSubjectUnresolved`] when the provider does not
+    /// advertise a UserInfo endpoint, it cannot be reached, or its response
+    /// carries no non-empty `sub`.
+    pub async fn userinfo_subject(&self, access_token: &str) -> Result<String, Error> {
+        let endpoint = self
+            .config
+            .userinfo_endpoint
+            .as_deref()
+            .ok_or(Error::UserInfoSubjectUnresolved)?;
+
+        #[derive(Deserialize)]
+        struct UserInfo {
+            sub: Option<String>,
+        }
+
+        let user_info: UserInfo = self
+            .client
+            .get(endpoint)
+            .bearer_auth(access_token)
+            .send()
+            .await
+            .map_err(|_| Error::UserInfoSubjectUnresolved)?
+            .error_for_status()
+            .map_err(|_| Error::UserInfoSubjectUnresolved)?
+            .json()
+            .await
+            .map_err(|_| Error::UserInfoSubjectUnresolved)?;
+
+        user_info
+            .sub
+            .filter(|sub| !sub.is_empty())
+            .ok_or(Error::UserInfoSubjectUnresolved)
+    }
 }
 
 impl Debug for OpenID {
@@ -190,7 +235,7 @@ pub mod mock {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use super::*;
-    use crate::mock::{MOCK_JWK_KID, WithJwks, WithWellKnown};
+    use crate::mock::MOCK_JWK_KID;
     use crate::rfc7519::Claim;
     use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
     use mock_server::MockServer;
@@ -207,7 +252,18 @@ pub mod mock {
 
     impl OpenID {
         pub async fn mock() -> Self {
-            let server = MockServer::new().await.with_well_known().with_jwks();
+            use crate::mock::{
+                MOCK_USERINFO_EMAIL, MOCK_USERINFO_SUBJECT, WithJwks, WithUserInfo, WithWellKnown,
+            };
+
+            let server = MockServer::new()
+                .await
+                .with_well_known()
+                .with_jwks()
+                // Serve a subject from the UserInfo endpoint so the control
+                // plane can resolve identity from an access token that carries no
+                // `sub` (the FerrisKey case). `MOCK_USERINFO_*` mirror it.
+                .with_userinfo(MOCK_USERINFO_SUBJECT, MOCK_USERINFO_EMAIL);
             let openid = OpenID::discover(
                 reqwest::Client::new(),
                 &format!("{}/.well-known/openid-configuration", &server.url()),
@@ -215,13 +271,9 @@ pub mod mock {
             .await
             .expect("could not initialize mock openid");
 
-            // manually validate a dummy token to force fetching the jwks before the server goes
-            // out of scope
-            let token = OpenID::token("wile.coyote@acme.org");
-            openid
-                .validate_token(&token)
-                .await
-                .expect("could not validate token");
+            // Keep the mock server alive for the whole test process: its endpoints
+            // (jwks, userinfo) must answer at request time, not just here. Test-only.
+            Box::leak(Box::new(server));
 
             openid
         }
@@ -407,6 +459,14 @@ pub struct OpenIDProviderConfiguration {
     /// match those in the certificate. The JWK Set MUST NOT contain private or
     /// symmetric key values.
     pub jwks_uri: String,
+
+    /// RECOMMENDED. URL of the OP's UserInfo Endpoint. Present when the provider
+    /// supports it (OpenID Connect Core 1.0, Section 5.3). We use it to resolve
+    /// the subject from an access token when the token itself does not carry a
+    /// `sub` claim — the access token's format is not standardised, so `sub` is
+    /// not guaranteed in it, whereas the UserInfo response always identifies the
+    /// subject.
+    pub userinfo_endpoint: Option<String>,
 }
 
 #[cfg(test)]
@@ -469,5 +529,69 @@ mod tests {
             result.unwrap().claims.email.unwrap(),
             "wile.coyote@acme.org"
         );
+    }
+
+    /// The subject is resolved from the UserInfo endpoint — the case that lets an
+    /// access token without a `sub` claim (e.g. FerrisKey) still authenticate.
+    #[tokio::test]
+    async fn test_userinfo_resolves_the_subject() {
+        use crate::mock::{WithJwks, WithUserInfo, WithWellKnown};
+        use mock_server::MockServer;
+
+        let server = MockServer::new()
+            .await
+            .with_well_known()
+            .with_jwks()
+            .with_userinfo("subject-42", "roadrunner@acme.org");
+        let openid = OpenID::discover(
+            reqwest::Client::new(),
+            &format!("{}/.well-known/openid-configuration", &server.url()),
+        )
+        .await
+        .expect("could not initialize mock openid");
+
+        let sub = openid
+            .userinfo_subject("any-access-token")
+            .await
+            .expect("userinfo should resolve the subject");
+
+        assert_eq!(sub, "subject-42");
+    }
+
+    /// When the provider advertises no UserInfo endpoint, resolving a subject
+    /// from it fails closed rather than panicking.
+    #[tokio::test]
+    async fn test_userinfo_without_an_endpoint_fails_closed() {
+        use mock_server::MockServer;
+
+        // A discovery document without `userinfo_endpoint`.
+        let mut server = MockServer::new().await;
+        let base = server.url();
+        let body = serde_json::json!({
+            "issuer": base,
+            "jwks_uri": format!("{base}/oauth/discovery/keys"),
+        })
+        .to_string();
+        let mock = server
+            .server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(r"^/.well-known/openid-configuration$".to_string()),
+            )
+            .with_body(body)
+            .create();
+        server.mocks.push(mock);
+
+        let openid = OpenID::discover(
+            reqwest::Client::new(),
+            &format!("{}/.well-known/openid-configuration", &server.url()),
+        )
+        .await
+        .expect("discovery should still succeed without a userinfo endpoint");
+
+        assert!(matches!(
+            openid.userinfo_subject("any-access-token").await,
+            Err(Error::UserInfoSubjectUnresolved)
+        ));
     }
 }

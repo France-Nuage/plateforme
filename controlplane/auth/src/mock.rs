@@ -39,6 +39,12 @@ use crate::OpenID;
 /// and the corresponding JWK exposed by `WithJwks::with_jwks()` will have the same ID.
 pub const MOCK_JWK_KID: &str = "mock-key-01";
 
+/// Subject and email served by the mock UserInfo endpoint wired into
+/// [`OpenID::mock`]. Tests exercising an access token without a `sub` expect the
+/// control plane to resolve identity to these values via UserInfo.
+pub const MOCK_USERINFO_SUBJECT: &str = "mock-userinfo-subject";
+pub const MOCK_USERINFO_EMAIL: &str = "cookie-user@francenuage.fr";
+
 /// Trait for configuring JWK Set endpoints on mock servers.
 ///
 /// This trait extends mock servers with the ability to respond to JWK Set requests
@@ -97,6 +103,34 @@ impl WithJwks for MockServer {
                 "GET",
                 mockito::Matcher::Regex(r"^/oauth/discovery/keys$".to_string()),
             )
+            .with_body(body)
+            .create();
+        self.mocks.push(mock);
+        self
+    }
+}
+
+/// Trait for configuring the OIDC UserInfo endpoint on mock servers.
+///
+/// Lets tests emulate a provider whose access token carries no `sub` (like
+/// FerrisKey): the subject is instead served from the UserInfo endpoint, which
+/// the control plane falls back to.
+pub trait WithUserInfo {
+    /// Configures the mock server to answer `GET /oauth/userinfo` with the given
+    /// subject (and a matching email), as the discovery document advertises.
+    fn with_userinfo(self, sub: &str, email: &str) -> Self;
+}
+
+impl WithUserInfo for MockServer {
+    fn with_userinfo(mut self, sub: &str, email: &str) -> Self {
+        let body = json!({ "sub": sub, "email": email }).to_string();
+        let mock = self
+            .server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(r"^/oauth/userinfo$".to_string()),
+            )
+            .with_header("content-type", "application/json")
             .with_body(body)
             .create();
         self.mocks.push(mock);
