@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use auth::mock::{WithUserInfo, WithWellKnown};
+use auth::mock::WithWellKnown;
 use fabrique::{Factory, Persist, Query, SoftDelete};
 use frn_core::identity::ServiceAccount;
 use frn_core::managed::{
@@ -44,12 +44,6 @@ use std::str::FromStr;
 use tokio::sync::oneshot;
 use tonic::{Request, metadata::MetadataValue, transport::Channel};
 use uuid::Uuid;
-
-/// Subject and email served by the mock UserInfo endpoint. Tests exercising an
-/// access token without a `sub` expect the control plane to resolve identity to
-/// these values via UserInfo.
-pub const USERINFO_SUBJECT: &str = "userinfo-subject";
-pub const USERINFO_EMAIL: &str = "cookie-user@francenuage.fr";
 
 #[derive(Clone)]
 struct NoopWorkflowScheduler;
@@ -166,11 +160,7 @@ impl Api {
             .with_vm_status_read()
             .with_vm_status_start()
             .with_vm_status_stop()
-            .with_well_known()
-            // Emulate a provider whose access token omits `sub`: the subject is
-            // served from the UserInfo endpoint, which the control plane falls
-            // back to. `USERINFO_SUBJECT`/`USERINFO_EMAIL` mirror this response.
-            .with_userinfo(USERINFO_SUBJECT, USERINFO_EMAIL);
+            .with_well_known();
         let config = Config::test(pool, &mock_server).await?;
         let server_url = format!("http://{}", config.addr);
         let shutdown = server::serve(config).await?;

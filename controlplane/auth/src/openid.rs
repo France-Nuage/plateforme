@@ -235,7 +235,7 @@ pub mod mock {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use super::*;
-    use crate::mock::{MOCK_JWK_KID, WithJwks, WithWellKnown};
+    use crate::mock::MOCK_JWK_KID;
     use crate::rfc7519::Claim;
     use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
     use mock_server::MockServer;
@@ -252,7 +252,18 @@ pub mod mock {
 
     impl OpenID {
         pub async fn mock() -> Self {
-            let server = MockServer::new().await.with_well_known().with_jwks();
+            use crate::mock::{
+                MOCK_USERINFO_EMAIL, MOCK_USERINFO_SUBJECT, WithJwks, WithUserInfo, WithWellKnown,
+            };
+
+            let server = MockServer::new()
+                .await
+                .with_well_known()
+                .with_jwks()
+                // Serve a subject from the UserInfo endpoint so the control
+                // plane can resolve identity from an access token that carries no
+                // `sub` (the FerrisKey case). `MOCK_USERINFO_*` mirror it.
+                .with_userinfo(MOCK_USERINFO_SUBJECT, MOCK_USERINFO_EMAIL);
             let openid = OpenID::discover(
                 reqwest::Client::new(),
                 &format!("{}/.well-known/openid-configuration", &server.url()),
@@ -260,13 +271,9 @@ pub mod mock {
             .await
             .expect("could not initialize mock openid");
 
-            // manually validate a dummy token to force fetching the jwks before the server goes
-            // out of scope
-            let token = OpenID::token("wile.coyote@acme.org");
-            openid
-                .validate_token(&token)
-                .await
-                .expect("could not validate token");
+            // Keep the mock server alive for the whole test process: its endpoints
+            // (jwks, userinfo) must answer at request time, not just here. Test-only.
+            Box::leak(Box::new(server));
 
             openid
         }

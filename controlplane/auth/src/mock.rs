@@ -39,6 +39,12 @@ use crate::OpenID;
 /// and the corresponding JWK exposed by `WithJwks::with_jwks()` will have the same ID.
 pub const MOCK_JWK_KID: &str = "mock-key-01";
 
+/// Subject and email served by the mock UserInfo endpoint wired into
+/// [`OpenID::mock`]. Tests exercising an access token without a `sub` expect the
+/// control plane to resolve identity to these values via UserInfo.
+pub const MOCK_USERINFO_SUBJECT: &str = "mock-userinfo-subject";
+pub const MOCK_USERINFO_EMAIL: &str = "cookie-user@francenuage.fr";
+
 /// Trait for configuring JWK Set endpoints on mock servers.
 ///
 /// This trait extends mock servers with the ability to respond to JWK Set requests
