@@ -79,7 +79,7 @@ FROM base AS builder
 # TEMP PROBE (ci/build-timings-probe): --timings=html,json émet un rapport par
 # crate dans target/cargo-timings/. On le récupère ensuite via une cible dédiée
 # pour chiffrer précisément ce qui coûte dans #29 (le cargo build du workspace).
-RUN SQLX_OFFLINE=true cargo build --release --timings=html \
+RUN SQLX_OFFLINE=true cargo build --release --timings \
   --bin server \
   --bin worker \
   --bin synchronizer
