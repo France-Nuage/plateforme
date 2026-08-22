@@ -1,3 +1,59 @@
+# TEMP PROBE (ci/build-timings-probe): mesure factuelle de #29 (cargo build du
+# workspace, deps cachées via chef cook). Reproduit exactement la condition d'un
+# commit ordinaire — deps lues depuis le buildcache registry, workspace recompilé
+# — puis extrait le rapport --timings et affiche le classement par crate dans le
+# log. Objectif: chiffrer où partent les ~600s, sans deviner. À supprimer ensuite.
+"probe / build-timings":
+  extends: .buildkit_template
+  stage: build
+  variables:
+    TARGET: release
+  script:
+    - |
+      set -e
+      # Build de la cible builder avec --timings, en réutilisant le buildcache
+      # registry pour les deps (chef cook caché), comme un commit normal.
+      # --no-cache-filter=builder force la ré-exécution de #29 (le cargo build du
+      # workspace) même si une couche identique existait, pour mesurer le pire cas
+      # réel d'un changement de code (COPY . . invalidé).
+      START=$(date +%s)
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --no-cache-filter=builder \
+        --target timings \
+        --output type=local,dest=./cargo-timings \
+        --file controlplane/Dockerfile \
+        controlplane
+      END=$(date +%s)
+      echo "=========================================================="
+      echo "PROBE: docker build (cible timings) wall-clock = $((END-START))s"
+      echo "=========================================================="
+    - |
+      # Classement par crate depuis le HTML de --timings. Le rapport embarque un
+      # tableau JS `UNIT_DATA = [ {name, version, duration, ...}, ... ]`. On en
+      # extrait (name, duration) sans dépendance externe (l'image docker n'a pas
+      # python) via grep/sed sur les paires "name":.. et "duration":..
+      THTML=$(ls ./cargo-timings/cargo-timing*.html 2>/dev/null | head -1) || true
+      echo "rapport HTML: ${THTML:-<absent>}"
+      if [ -n "$THTML" ]; then
+        echo "=== TOP crates par durée de compilation (s) ==="
+        # Le rapport HTML embarque UNIT_DATA (un objet par unité de compilation),
+        # pretty-printed (une clé par ligne). On lit name puis le duration du même
+        # objet en awk (robuste au multi-ligne, aucune dépendance externe).
+        awk '
+          /"name":/     { if (match($0,/"name": *"[^"]+"/)) { s=substr($0,RSTART,RLENGTH); gsub(/"name": *"|"/,"",s); name=s } }
+          /"duration":/ { if (match($0,/"duration": *[0-9.]+/)) { s=substr($0,RSTART,RLENGTH); gsub(/"duration": *|,/,"",s); if(name!=""){print s, name; name=""} } }
+        ' "$THTML" | sort -rn | head -30
+      fi
+  artifacts:
+    when: always
+    paths:
+      - cargo-timings/
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "ci/build-timings-probe"
+
 # Unified build job for all Rust services (controlplane, operation-worker, synchronizer)
 # Builds all 3 binaries in a single cargo invocation to share compilation
 "build / rust-services":

@@ -76,10 +76,18 @@ CMD ["cargo", "run", "--bin=synchronizer"]
 
 # Build Stage - Build all 3 binaries in a single cargo invocation
 FROM base AS builder
-RUN SQLX_OFFLINE=true cargo build --release \
+# TEMP PROBE (ci/build-timings-probe): --timings=html,json émet un rapport par
+# crate dans target/cargo-timings/. On le récupère ensuite via une cible dédiée
+# pour chiffrer précisément ce qui coûte dans #29 (le cargo build du workspace).
+RUN SQLX_OFFLINE=true cargo build --release --timings=html \
   --bin server \
   --bin worker \
   --bin synchronizer
+
+# TEMP PROBE: cible minimale dont le seul rôle est d'exposer les rapports de
+# timing pour un `docker buildx build --target timings --output type=local`.
+FROM scratch AS timings
+COPY --from=builder /app/target/cargo-timings/ /
 
 # Production Stage - Server
 FROM ${ALPINE_BASE_IMAGE} AS release
