@@ -113,6 +113,16 @@ spec:
             {{- end }}
             - name: ROOT_ORGANIZATION_NAME
               value: {{ .Values.controlplane.config.rootOrganizationName | quote }}
+            {{- /*
+            Founding platform admin. When set, the control plane seeds/promotes
+            this email to platform admin at startup (a fresh install otherwise
+            has no admin and cannot register a hosting cluster). Optional: unset
+            means no admin is bootstrapped.
+            */}}
+            {{- with .Values.controlplane.config.rootAdminEmail }}
+            - name: ROOT_ADMIN_EMAIL
+              value: {{ . | quote }}
+            {{- end }}
             - name: ROOT_SERVICE_ACCOUNT_KEY
               valueFrom:
                 secretKeyRef:
@@ -152,6 +162,43 @@ spec:
                 secretKeyRef:
                   name: {{ include "plateforme.secretName" . }}
                   key: ci-service-token
+            {{- /*
+            Charts registry read credentials, to discover deployable chart
+            versions from the OCI registry at startup. Emitted only when provided.
+            */}}
+            {{- if and .Values.secrets.chartsRegistryUser .Values.secrets.chartsRegistryToken }}
+            - name: CHARTS_REGISTRY_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: charts-registry-user
+            - name: CHARTS_REGISTRY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: charts-registry-token
+            {{- end }}
+            {{- if include "plateforme.billingEnabled" . }}
+            {{- /*
+            Stripe billing. The keys come from the shared secret; the checkout
+            success/cancel URLs are derived from the console host so they follow
+            each ephemeral environment automatically (never hardcoded).
+            */}}
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: stripe-secret-key
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: stripe-webhook-secret
+            - name: STRIPE_CHECKOUT_SUCCESS_URL
+              value: {{ include "plateforme.stripeCheckoutSuccessUrl" . | quote }}
+            - name: STRIPE_CHECKOUT_CANCEL_URL
+              value: {{ include "plateforme.stripeCheckoutCancelUrl" . | quote }}
+            {{- end }}
           livenessProbe:
             exec:
               command: ["/bin/grpc_health_probe", "-addr=localhost:80"]
@@ -168,4 +215,40 @@ spec:
             failureThreshold: 3
           resources:
             {{- toYaml .Values.controlplane.resources | nindent 12 }}
+        {{- if and (include "plateforme.billingEnabled" .) .Values.controlplane.config.billing.webhookRelay.enabled }}
+        {{- /*
+        Stripe webhook relay sidecar. Ephemeral environments have no public
+        webhook ingress, so `stripe listen` forwards Stripe events to the
+        control plane's in-pod webhook port (8081) over localhost. Its signing
+        secret must equal secrets.stripeWebhookSecret (the CLI's endpoint secret
+        is stable per account: `stripe listen --print-secret`), so the control
+        plane verifies the forwarded events with the same secret it was given.
+        */}}
+        - name: stripe-webhook-relay
+          image: {{ printf "%s:%s" .Values.controlplane.config.billing.webhookRelay.image.repository .Values.controlplane.config.billing.webhookRelay.image.tag | quote }}
+          imagePullPolicy: {{ .Values.controlplane.config.billing.webhookRelay.image.pullPolicy | default .Values.global.imagePullPolicy }}
+          args:
+            - listen
+            - --api-key
+            - $(STRIPE_SECRET_KEY)
+            - --forward-to
+            - http://localhost:8081/webhooks/stripe
+          env:
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: stripe-secret-key
+            {{- /*
+            Pin the relay to the same endpoint signing secret the control plane
+            verifies against, instead of letting the CLI mint an ephemeral one.
+            */}}
+            - name: STRIPE_CLI_WEBHOOK_ENDPOINT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: stripe-webhook-secret
+          resources:
+            {{- toYaml .Values.controlplane.config.billing.webhookRelay.resources | nindent 12 }}
+        {{- end }}
 {{- end }}

@@ -16,6 +16,20 @@ secrets:
   # auth-cookie-key : clé de chiffrement du cookie de session (base64, 32 octets).
   oidcClientSecret: ""
   authCookieKey: ""
+  # Stripe billing secrets. Empty by default: billing stays disabled unless both
+  # are provided (see controlplane.config.billing). Injected at deploy time from
+  # protected CI variables / a sandbox key — never committed. The webhook secret
+  # (whsec_...) is the signing secret the control plane uses to verify inbound
+  # webhooks; in ephemeral environments it is the stable secret of the Stripe CLI
+  # relay (`stripe listen --print-secret`) that forwards events to the pod.
+  stripeSecretKey: ""
+  stripeWebhookSecret: ""
+  # Charts registry read credentials (GitLab Container Registry). Empty by
+  # default: chart-version discovery stays off unless both are provided. Use a
+  # deploy token with the read_registry scope. Injected at deploy time, never
+  # committed.
+  chartsRegistryUser: ""
+  chartsRegistryToken: ""
 
 postgres:
   enabled: true
@@ -116,6 +130,10 @@ controlplane:
     addr: "0.0.0.0:80"
     logLevel: "info"
     rootOrganizationName: "acme"
+    # Email of the founding platform admin, seeded/promoted to admin at startup
+    # (like a database engine seeding its root account). Empty => no admin is
+    # bootstrapped. Should match an identity the IdP can authenticate.
+    rootAdminEmail: ""
     rootServiceAccountKey: "changeme"
     # Base64-encoded 32-byte key encrypting cluster kubeconfigs at rest.
     # Generate with: openssl rand -base64 32. Override in prod via the sealed secret.
@@ -142,6 +160,36 @@ controlplane:
       # démarrage sur une valeur non entière type "12h" — cf. config.rs
       # parse_session_max_ttl).
       sessionMaxTtl: 43200 # 12h
+    # Stripe billing. Enabled only when secrets.stripeSecretKey AND
+    # secrets.stripeWebhookSecret are both set. When enabled, the control plane
+    # gets its Stripe env (keys + checkout redirect URLs derived from the console
+    # host) and — if billing.webhookRelay.enabled — a `stripe listen` sidecar
+    # forwards Stripe events to the pod's webhook port (8081). The checkout
+    # success/cancel URLs are derived from the console host, so they follow each
+    # ephemeral environment automatically (never hardcoded per environment).
+    billing:
+      # Path of the checkout success redirect, appended to the console URL.
+      checkoutSuccessPath: "/managed-services/instances?checkout=success"
+      # Path of the checkout cancel redirect, appended to the console URL.
+      checkoutCancelPath: "/managed-services?checkout=cancel"
+      # In-pod Stripe CLI relay for ephemeral environments (no public webhook
+      # ingress). It forwards Stripe events to http://localhost:8081. Its signing
+      # secret must equal secrets.stripeWebhookSecret so the control plane can
+      # verify the forwarded events (the CLI's endpoint secret is stable per
+      # account: fetch it with `stripe listen --print-secret` at deploy time).
+      webhookRelay:
+        enabled: false
+        image:
+          repository: registry.france-nuage.fr/stripe/stripe-cli
+          tag: "latest"
+          pullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
   resources:
     requests:
       memory: "256Mi"
@@ -235,6 +283,10 @@ systemTests:
     keycloakAdminPassword: ""  
     oidcClientId: "francenuage"
     headless: true
+    # Kubeconfig of the cluster the environment runs on. When set (billing CI),
+    # the payment E2E enrols it as a hosting cluster so a paid deploy can resolve
+    # a target. Empty => the deploy-cluster precondition is not wired.
+    deployKubeconfig: ""
   resources:
     requests:
       memory: "512Mi"

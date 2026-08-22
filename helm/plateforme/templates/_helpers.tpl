@@ -264,6 +264,36 @@ hostAliases:
 {{- end }}
 {{- end }}
 
+{{/*
+Whether Stripe billing is enabled. Billing is opt-in and only wires itself up
+when BOTH Stripe secrets are provided (an ephemeral environment without the
+protected CI variables keeps billing off and the payment E2E is skipped). Every
+billing-conditional block (control plane env, webhook relay sidecar, secret
+keys) keys off this single predicate so they enable together.
+*/}}
+{{- define "plateforme.billingEnabled" -}}
+{{- if and (not (empty .Values.secrets.stripeSecretKey)) (not (empty .Values.secrets.stripeWebhookSecret)) -}}
+true
+{{- end -}}
+{{- end }}
+
+{{/*
+Stripe Checkout success URL: the console URL with the configured success path
+appended. Derived from the console host so it follows each ephemeral environment
+automatically instead of being hardcoded per environment.
+*/}}
+{{- define "plateforme.stripeCheckoutSuccessUrl" -}}
+{{- printf "%s%s" (include "plateforme.consoleUrl" .) .Values.controlplane.config.billing.checkoutSuccessPath }}
+{{- end }}
+
+{{/*
+Stripe Checkout cancel URL: the console URL with the configured cancel path
+appended. Derived from the console host, like the success URL above.
+*/}}
+{{- define "plateforme.stripeCheckoutCancelUrl" -}}
+{{- printf "%s%s" (include "plateforme.consoleUrl" .) .Values.controlplane.config.billing.checkoutCancelPath }}
+{{- end }}
+
 {{- define "plateforme.waitForPostgres" -}}
 - name: wait-for-postgres
   image: registry.france-nuage.fr/library/busybox:1.36

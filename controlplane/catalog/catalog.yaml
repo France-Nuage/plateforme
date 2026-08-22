@@ -1,0 +1,496 @@
+# France Nuage catalogue — single source of truth for Stripe billing.
+#
+# Every entry here generates Stripe products and prices; the Stripe `price_...`
+# ids are produced by reconciliation (NOT declared here). Because this file is
+# exhaustive, Stripe can be regenerated from it identically in production and in
+# a test sandbox. Reconciliation only touches objects it owns (tagged
+# `managed_by=france-nuage-catalog`), so it never affects unrelated Stripe data.
+#
+# Sections:
+#   - managed_services: handpicked apps deployable via a Helm chart, shown in the
+#     console.
+#   - resources: bare Kubernetes resources billed by usage (no chart, hidden).
+#   - legacy: historical VM "instance" products for not-yet-migrated customers
+#     (no chart, hidden; retired as a block once no customer remains).
+#
+# Amounts are in cents (HT, excl. tax). lookup_key values are aligned with the
+# keys already present in production so reconciliation reuses existing prices.
+
+managed_services:
+  - slug: gitlab-runner
+    stripe_product_id: prod_T3eptu5GDvtXxA
+    name: GitLab Runner
+    description: >-
+      Runners Kubernetes managés pour vos pipelines GitLab CI. BuildKit
+      rootless, pas de Docker-in-Docker, isolation multi-tenant.
+    category: automation
+    deploy_target:
+      availability: fr
+    chart:
+      name: gitlab-runner
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/gitlab-runner
+    plans:
+      - slug: gitlab-runner-standard
+        name: GitLab Runner
+        description: >-
+          Runner CI/CD Kubernetes managé. BuildKit rootless, cache registry,
+          isolation multi-tenant.
+        highlighted: false
+        requires_payment: true
+        prices:
+          - lookup_key: gitlab-managed-v1-monthly
+            unit_amount_cents: 5000
+            currency: eur
+            interval: month
+        entitlements:
+          - { key: buildkit, label: Build, value: BuildKit rootless sécurisé }
+          - { key: multiplatform, label: Plateformes, value: Builds multi-plateformes }
+          - { key: cache, label: Cache, value: Cache registry intégré }
+          - { key: isolation, label: Isolation, value: Multi-tenant }
+
+  - slug: postgres
+    stripe_product_id: prod_UQp9CeIBoRwB4a
+    name: PostgreSQL
+    description: >-
+      PostgreSQL hébergé en France (CloudNativePG). Backups, mises à jour et
+      monitoring gérés. Vous récupérez une chaîne de connexion.
+    category: database
+    database_engine: cnpg
+    deploy_target:
+      availability: fr
+    chart:
+      name: postgres
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/postgres
+    plans:
+      - slug: postgres-pico
+        name: Pico
+        description: Instance PostgreSQL single-replica. Backups quotidiens, monitoring 24/7.
+        highlighted: false
+        requires_payment: true
+        prices:
+          - lookup_key: postgresql-managed-pico-v1-monthly
+            unit_amount_cents: 2500
+            currency: eur
+            interval: month
+            nickname: pico
+          - lookup_key: postgresql-managed-pico-v1-yearly
+            unit_amount_cents: 30000
+            currency: eur
+            interval: year
+            nickname: pico
+        entitlements:
+          - { key: hosting, label: Hébergement, value: "France, conforme RGPD" }
+          - { key: backup, label: Sauvegarde, value: Quotidienne }
+          - { key: monitoring, label: Monitoring, value: "24/7" }
+      - slug: postgres-nano
+        name: Nano
+        description: >-
+          Instance PostgreSQL haute disponibilité (3 replicas). Sauvegarde
+          continue PITR, monitoring 24/7.
+        highlighted: true
+        requires_payment: true
+        prices:
+          - lookup_key: postgresql-managed-nano-v1-monthly
+            unit_amount_cents: 5000
+            currency: eur
+            interval: month
+            nickname: nano
+        entitlements:
+          - { key: hosting, label: Hébergement, value: "France, conforme RGPD" }
+          - { key: backup, label: Sauvegarde, value: "Continue (PITR)" }
+          - { key: monitoring, label: Monitoring, value: "24/7" }
+
+  - slug: matomo
+    stripe_product_id: prod_UGfPV2Dr87lJct
+    name: Matomo
+    description: Web analytics souverain (Matomo) hébergé en France.
+    category: analytics
+    deploy_target:
+      availability: fr
+    chart:
+      name: matomo
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/matomo
+    plans:
+      - slug: matomo-standard
+        name: Matomo
+        requires_payment: true
+        prices:
+          - lookup_key: matomo-managed-v1-monthly
+            unit_amount_cents: 5000
+            currency: eur
+            interval: month
+
+  - slug: n8n
+    stripe_product_id: prod_TphLSVSPiWGrna
+    name: n8n HA
+    description: Automatisation de workflows (n8n) en haute disponibilité, hébergée en France.
+    category: automation
+    deploy_target:
+      availability: fr
+    chart:
+      name: n8n
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/n8n
+    plans:
+      - slug: n8n-ha
+        name: n8n HA
+        requires_payment: true
+        prices:
+          - lookup_key: n8n-ha-managed-v1-monthly
+            unit_amount_cents: 3000
+            currency: eur
+            interval: month
+
+  - slug: metabase
+    stripe_product_id: prod_SOGnUadaf9QjhA
+    name: Metabase
+    description: Business intelligence (Metabase) hébergée en France.
+    category: analytics
+    deploy_target:
+      availability: fr
+    chart:
+      name: metabase
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/metabase
+    plans:
+      - slug: metabase-standard
+        name: Metabase
+        requires_payment: true
+        prices:
+          - lookup_key: metabase-managed-v1-monthly
+            unit_amount_cents: 7000
+            currency: eur
+            interval: month
+
+  - slug: odoo
+    stripe_product_id: prod_UGfLCLbswuAVa1
+    name: Odoo Community
+    description: ERP open source (Odoo Community) hébergé en France.
+    category: erp
+    deploy_target:
+      availability: fr
+    chart:
+      name: odoo
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/odoo
+    plans:
+      - slug: odoo-standard
+        name: Odoo Community
+        requires_payment: true
+        prices:
+          - lookup_key: odoo-managed-v1-monthly
+            unit_amount_cents: 9000
+            currency: eur
+            interval: month
+
+  - slug: vaultwarden
+    stripe_product_id: prod_T3eqLTDFjggjuz
+    name: Vaultwarden
+    description: >-
+      Gestionnaire de mots de passe (Vaultwarden) hébergé en France. Sous
+      conditions, limité aux entreprises de moins de 100 employés.
+    category: security
+    deploy_target:
+      availability: fr
+    chart:
+      name: vaultwarden
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/vaultwarden
+    plans:
+      - slug: vaultwarden-pme
+        name: Vaultwarden PME
+        requires_payment: true
+        prices:
+          - lookup_key: vault-managed-mutualized-pme-v1-monthly
+            unit_amount_cents: 5000
+            currency: eur
+            interval: month
+            nickname: Sous conditions, limité aux entreprises de moins de 100 employés.
+
+  - slug: caldiy
+    stripe_product_id: prod_UjPPsrYB9qAqnC
+    name: Cal.diy
+    description: Prise de rendez-vous open source (Cal.com), alternative française à Calendly.
+    category: collaboration
+    deploy_target:
+      availability: fr
+    chart:
+      name: caldiy
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/caldiy
+    plans:
+      - slug: caldiy-standard
+        name: Cal.diy
+        requires_payment: true
+        prices:
+          - lookup_key: caldiy-managed-v1-monthly
+            unit_amount_cents: 7000
+            currency: eur
+            interval: month
+
+  - slug: observability
+    stripe_product_id: prod_T3eyUijorWab4L
+    name: Stack d'observabilité
+    description: >-
+      Stack d'observabilité managée mutualisée (Grafana, Loki, Mimir, Tempo,
+      Alloy) hébergée en France.
+    category: dashboard
+    deploy_target:
+      availability: fr
+    chart:
+      name: grafana
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/grafana
+    plans:
+      - slug: observability-mutualized
+        name: Observabilité mutualisée
+        requires_payment: true
+        prices:
+          - lookup_key: observability-managed-mutualized-v1-monthly
+            unit_amount_cents: 3000
+            currency: eur
+            interval: month
+          - lookup_key: observability-managed-mutualized-v1-yearly
+            unit_amount_cents: 36000
+            currency: eur
+            interval: year
+
+  - slug: chatwoot
+    stripe_product_id: prod_UzEQ20rgGhdui8
+    name: Chatwoot
+    description: >-
+      Support client omnicanal managé (Chatwoot Community, open source) hébergé
+      en France — chat, email, réseaux sociaux, WhatsApp, agents illimités.
+    category: collaboration
+    deploy_target:
+      availability: fr
+    chart:
+      name: chatwoot
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/chatwoot
+    plans:
+      - slug: chatwoot-standard
+        name: Chatwoot
+        requires_payment: true
+        prices:
+          - lookup_key: chatwoot-managed-v1-monthly
+            unit_amount_cents: 9900
+            currency: eur
+            interval: month
+
+  - slug: directus
+    stripe_product_id: prod_URmeacSV9v7gzE
+    name: Directus
+    description: Headless CMS open source (Directus) hébergé en France.
+    category: cms
+    deploy_target:
+      availability: fr
+    chart:
+      name: directus
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/directus
+    plans:
+      - slug: directus-standard
+        name: Directus
+        requires_payment: true
+        prices:
+          - lookup_key: directus-managed-v1-monthly
+            unit_amount_cents: 6000
+            currency: eur
+            interval: month
+
+  - slug: docuseal
+    stripe_product_id: prod_UGfOPECzPoRqFw
+    name: DocuSeal
+    description: Signature électronique de documents open source (DocuSeal) hébergée en France.
+    category: collaboration
+    deploy_target:
+      availability: fr
+    chart:
+      name: docuseal
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/docuseal
+    plans:
+      - slug: docuseal-standard
+        name: DocuSeal
+        requires_payment: true
+        prices:
+          - lookup_key: docuseal-managed-v1-monthly
+            unit_amount_cents: 10000
+            currency: eur
+            interval: month
+
+  - slug: ferriskey
+    stripe_product_id: prod_V1tbHnbCPRHlkx
+    name: FerrisKey
+    description: >-
+      IAM & SSO souverain managé (FerrisKey, open source Apache-2.0) hébergé en
+      France — SSO OIDC, realms multi-organisations, brokering d'identités.
+    category: security
+    deploy_target:
+      availability: fr
+    chart:
+      name: ferriskey
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/ferriskey
+    plans:
+      - slug: ferriskey-standard
+        name: FerrisKey
+        requires_payment: true
+        prices:
+          - lookup_key: ferriskey-managed-v1-monthly
+            unit_amount_cents: 3000
+            currency: eur
+            interval: month
+
+  - slug: gitlab
+    stripe_product_id: prod_V1OgAjvEf5PvSk
+    name: GitLab CE
+    description: >-
+      Forge logicielle managée (GitLab Community Edition, licence MIT) hébergée
+      en France — dépôts Git, CI/CD, Container Registry.
+    category: automation
+    deploy_target:
+      availability: fr
+    chart:
+      name: gitlab
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/gitlab
+    plans:
+      - slug: gitlab-ce-standard
+        name: GitLab CE
+        requires_payment: true
+        prices:
+          - lookup_key: gitlab-ce-managed-v1-monthly
+            unit_amount_cents: 9000
+            currency: eur
+            interval: month
+
+  - slug: private-gpt
+    stripe_product_id: prod_Uu2WjH0eaeNoNt
+    name: Private GPT
+    description: >-
+      IA privée hébergée en France : chat et RAG sur vos documents, routage vers
+      vos modèles locaux ou une IA cloud souveraine.
+    category: analytics
+    deploy_target:
+      availability: fr
+    chart:
+      name: private-gpt
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/private-gpt
+    plans:
+      - slug: private-gpt-standard
+        name: Private GPT
+        requires_payment: true
+        prices:
+          - lookup_key: private-gpt-managed-v1-monthly
+            unit_amount_cents: 19000
+            currency: eur
+            interval: month
+
+  - slug: headscale
+    stripe_product_id: prod_UkG8hGjYjhbcwZ
+    name: VPN Zero Trust souverain
+    description: >-
+      Plan de contrôle Headscale managé en France, trafic WireGuard chiffré de
+      bout en bout. L'alternative auto-hébergeable à Tailscale.
+    category: security
+    deploy_target:
+      availability: fr
+    chart:
+      name: headscale
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/headscale
+    plans:
+      - slug: headscale-standard
+        name: VPN Zero Trust
+        requires_payment: true
+        prices:
+          - lookup_key: headscale-managed-v1-monthly
+            unit_amount_cents: 2000
+            currency: eur
+            interval: month
+
+# Bare Kubernetes resources billed by usage. Customers take a France Nuage
+# namespace and we bill the vCPU / RAM / storage they consume. No Helm chart,
+# not displayed as an installable service.
+resources:
+  - slug: k8s-vcpu
+    stripe_product_id: prod_UQoulsHlu7iBI4
+    name: K8S - vCPU
+    prices:
+      - { lookup_key: k8s-vcpu-v1-monthly, unit_amount_cents: 1250, currency: eur, interval: month }
+      - { lookup_key: k8s-vcpu-v1-yearly, unit_amount_cents: 15000, currency: eur, interval: year }
+  - slug: k8s-ram
+    stripe_product_id: prod_UQovtCUos4a2HA
+    name: K8S - RAM (Go)
+    prices:
+      - { lookup_key: k8s-ram-v1-monthly, unit_amount_cents: 375, currency: eur, interval: month }
+      - { lookup_key: k8s-ram-v1-yearly, unit_amount_cents: 4500, currency: eur, interval: year }
+  - slug: k8s-storage
+    stripe_product_id: prod_UQowBuFLndh3I7
+    name: K8S - Storage (10Go)
+    prices:
+      - { lookup_key: k8s-storage-v1-monthly, unit_amount_cents: 15, currency: eur, interval: month }
+      - { lookup_key: k8s-storage-v1-yearly, unit_amount_cents: 180, currency: eur, interval: year }
+  - slug: s3-storage
+    stripe_product_id: prod_UvYA2MtYpbpDVB
+    name: S3 - Storage (10Go)
+    prices:
+      - { lookup_key: s3-storage-hot-v1-monthly, unit_amount_cents: 15, currency: eur, interval: month, nickname: "stockage chaud" }
+      - { lookup_key: s3-storage-cold-v2-monthly, unit_amount_cents: 7, currency: eur, interval: month, nickname: "stockage froid" }
+  - slug: sftp
+    stripe_product_id: prod_UT4WFIEdcVWhXg
+    name: Serveur SFTP
+    description: Serveur SFTP mutualisé, 10 Go de stockage inclus.
+    prices:
+      - { lookup_key: sftp-managed-mutualized-v1-monthly, unit_amount_cents: 1000, currency: eur, interval: month }
+  - slug: poc-ia-on-premise
+    stripe_product_id: prod_V1OTHUkJN9y4e9
+    name: PoC IA on-premise
+    description: >-
+      Prestation ponctuelle : cadrage, déploiement d'un modèle open-source sur
+      votre infrastructure, démonstration sur vos données. Paiement unique.
+    prices:
+      # One-shot price (no interval): fixed-fee prestation.
+      - { lookup_key: poc-ia-on-premise-v1, unit_amount_cents: 540000, currency: eur }
+
+# Historical VM "instance" products from the earlier VM-as-a-service offering.
+# Kept for not-yet-migrated customers; no chart, not displayed. To be retired as
+# a block once no customer remains on them.
+legacy:
+  - slug: plasmic
+    stripe_product_id: prod_Sjba6fl3VuDpP5
+    name: Plasmic Managé Mutualisé
+    description: Plasmic managé mutualisé (offre historique). Pas de chart déployable.
+    prices:
+      - { lookup_key: plasmic-managed-mutualised-v1-monthly, unit_amount_cents: 1114, currency: eur, interval: month }
+  - slug: n8n-simple
+    stripe_product_id: prod_TMOtZ2kquetoeg
+    name: N8N
+    description: n8n non-HA (offre historique, produit archivé). Conservé pour le client existant.
+    prices:
+      - { lookup_key: n8n-managed-v1-monthly, unit_amount_cents: 1500, currency: eur, interval: month }
+  - slug: instance-xs
+    stripe_product_id: prod_Rz78B98bFBPaS9
+    name: Instance XS
+    prices:
+      - { lookup_key: instance-xs-v1-monthly, unit_amount_cents: 972, currency: eur, interval: month }
+  - slug: instance-s
+    stripe_product_id: prod_RzUjYUMV7LP9Vu
+    name: Instance S
+    prices:
+      - { lookup_key: instance-s-v1-monthly, unit_amount_cents: 1943, currency: eur, interval: month }
+  - slug: instance-m
+    stripe_product_id: prod_RzUlYGE77BYrJo
+    name: Instance M
+    prices:
+      - { lookup_key: instance-m-v1-monthly, unit_amount_cents: 2163, currency: eur, interval: month }
+  - slug: instance-l
+    stripe_product_id: prod_RzUl9LrFf4hjtT
+    name: Instance L
+    prices:
+      - { lookup_key: instance-l-v1-monthly, unit_amount_cents: 4056, currency: eur, interval: month }
+  - slug: instance-xl
+    stripe_product_id: prod_Rz79OkIOGQgDgW
+    name: Instance XL
+    prices:
+      - { lookup_key: instance-xl-v1-monthly, unit_amount_cents: 4177, currency: eur, interval: month }
+  - slug: instance-xxl
+    stripe_product_id: prod_ScOaEU1m7qDhmu
+    name: Instance XXL
+    prices:
+      - { lookup_key: instance-xxl-v1-monthly, unit_amount_cents: 8552, currency: eur, interval: month }
+  - slug: instance-ia
+    stripe_product_id: prod_RzUrSRNvrMxbQc
+    name: Instance IA
+    prices:
+      - { lookup_key: instance-ia-m1max-v1-monthly, unit_amount_cents: 16000, currency: eur, interval: month }

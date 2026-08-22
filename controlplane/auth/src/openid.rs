@@ -147,20 +147,13 @@ impl OpenID {
         decode(token, &decoding_key, &validation).map_err(Into::into)
     }
 
-    /// Resolves the subject (`sub`) of an access token from the provider's
-    /// UserInfo endpoint (OpenID Connect Core 1.0, Section 5.3).
-    ///
-    /// The access token's format is not standardised by OIDC, so it is not
-    /// guaranteed to carry a `sub` claim (Keycloak includes one, FerrisKey does
-    /// not). The UserInfo endpoint, in contrast, is the standard way to obtain
-    /// the authenticated subject's claims *from* an access token, and always
-    /// identifies the subject. We call it only as a fallback, when the token
-    /// itself has no usable `sub`.
+    /// Resolves the subject (`sub`) from the provider's UserInfo endpoint (OIDC
+    /// Core 1.0, §5.3), the standard fallback when the access token itself has no
+    /// `sub` (its format is not standardised by OIDC — FerrisKey omits it).
     ///
     /// # Errors
-    /// Returns [`Error::UserInfoSubjectUnresolved`] when the provider does not
-    /// advertise a UserInfo endpoint, it cannot be reached, or its response
-    /// carries no non-empty `sub`.
+    /// [`Error::UserInfoSubjectUnresolved`] when there is no UserInfo endpoint,
+    /// it is unreachable, or its response carries no non-empty `sub`.
     pub async fn userinfo_subject(&self, access_token: &str) -> Result<String, Error> {
         let endpoint = self
             .config

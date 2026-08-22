@@ -130,37 +130,145 @@ pub trait ClusterHealthChecker: Send + Sync {
 #[derive(Debug, Clone, Default)]
 pub struct KubeHealthChecker;
 
+/// Subset of the API server `GET /version` response we surface.
+#[derive(serde::Deserialize)]
+struct ApiServerVersion {
+    #[serde(rename = "gitVersion")]
+    git_version: String,
+    platform: String,
+}
+
 #[async_trait]
 impl ClusterHealthChecker for KubeHealthChecker {
     async fn check(&self, kubeconfig_yaml: &str) -> Result<ClusterHealthInfo, ClusterHealthError> {
-        let mut config = parse_kubeconfig(kubeconfig_yaml)
-            .await
-            .map_err(ClusterHealthError::InvalidKubeconfig)?;
-        config.connect_timeout = Some(CONNECT_TIMEOUT);
-        config.read_timeout = Some(READ_TIMEOUT);
+        // We deliberately do NOT use the kube-rs client here. kube-rs speaks TLS
+        // through rustls with the `ring` provider, which cannot verify our
+        // clusters' ECDSA P-521 (ES512) CA. reqwest with native-tls (OpenSSL)
+        // validates P-521 like kubectl/helm do. The check only needs an
+        // unauthenticated `GET /version`, so no client identity is required.
+        let cluster = Kubeconfig::from_yaml(kubeconfig_yaml)
+            .map_err(|e| ClusterHealthError::InvalidKubeconfig(e.to_string()))?
+            .clusters
+            .into_iter()
+            .next()
+            .and_then(|c| c.cluster)
+            .ok_or_else(|| {
+                ClusterHealthError::InvalidKubeconfig("kubeconfig has no cluster".to_owned())
+            })?;
 
-        let api_server_url = config.cluster_url.to_string();
+        let server = cluster.server.ok_or_else(|| {
+            ClusterHealthError::InvalidKubeconfig("cluster has no server URL".to_owned())
+        })?;
+        let api_server_url = server.clone();
 
-        let client =
-            Client::try_from(config).map_err(|e| ClusterHealthError::ClientBuild(e.to_string()))?;
+        // The API server cert is signed by a private CA that must be trusted
+        // explicitly (it is not in the system roots).
+        let ca_pem = decode_cluster_ca(&cluster.certificate_authority_data)?;
+        let ca = reqwest::Certificate::from_pem(&ca_pem)
+            .map_err(|e| ClusterHealthError::InvalidKubeconfig(format!("invalid CA: {e}")))?;
 
-        match timeout(HEALTH_CHECK_TIMEOUT, client.apiserver_version()).await {
-            Err(_) => Err(ClusterHealthError::Timeout),
-            Ok(Err(error)) => {
-                let message = error.to_string();
-                if message.contains("401") || message.contains("403") {
-                    Err(ClusterHealthError::Unauthorized(message))
-                } else {
-                    Err(ClusterHealthError::Unreachable(message))
-                }
+        let mut builder = reqwest::Client::builder()
+            .add_root_certificate(ca)
+            .connect_timeout(CONNECT_TIMEOUT)
+            .timeout(READ_TIMEOUT);
+
+        // `tls-server-name` pins TLS validation to a name the cert actually
+        // carries in its SANs, even though the connection targets `server`
+        // (e.g. a load balancer host absent from the SANs). Honour it by
+        // requesting that name and resolving it to the server's address.
+        let request_url = if let Some(sni) = cluster.tls_server_name.as_deref() {
+            let (host, port) = split_host_port(&server)?;
+            for addr in resolve_host(&host, port).await? {
+                builder = builder.resolve(sni, addr);
             }
-            Ok(Ok(info)) => Ok(ClusterHealthInfo {
-                api_server_url,
-                kubernetes_version: info.git_version,
-                platform: info.platform,
-            }),
+            format!("https://{sni}:{port}/version")
+        } else {
+            format!("{}/version", server.trim_end_matches('/'))
+        };
+
+        let client = builder
+            .build()
+            .map_err(|e| ClusterHealthError::ClientBuild(e.to_string()))?;
+
+        let response = match timeout(HEALTH_CHECK_TIMEOUT, client.get(&request_url).send()).await {
+            Err(_) => return Err(ClusterHealthError::Timeout),
+            Ok(Err(error)) => {
+                return Err(if error.is_timeout() {
+                    ClusterHealthError::Timeout
+                } else {
+                    ClusterHealthError::Unreachable(error.to_string())
+                });
+            }
+            Ok(Ok(response)) => response,
+        };
+
+        if response.status() == reqwest::StatusCode::UNAUTHORIZED
+            || response.status() == reqwest::StatusCode::FORBIDDEN
+        {
+            return Err(ClusterHealthError::Unauthorized(
+                response.status().to_string(),
+            ));
         }
+        if !response.status().is_success() {
+            return Err(ClusterHealthError::Unreachable(format!(
+                "GET /version returned {}",
+                response.status()
+            )));
+        }
+
+        let version: ApiServerVersion = response
+            .json()
+            .await
+            .map_err(|e| ClusterHealthError::Unreachable(format!("invalid /version body: {e}")))?;
+
+        Ok(ClusterHealthInfo {
+            api_server_url,
+            kubernetes_version: version.git_version,
+            platform: version.platform,
+        })
     }
+}
+
+/// Decodes the cluster CA (base64 PEM in `certificate-authority-data`) into
+/// PEM bytes. The health check requires an explicitly trusted CA.
+fn decode_cluster_ca(ca_data: &Option<String>) -> Result<Vec<u8>, ClusterHealthError> {
+    use base64::Engine as _;
+    let b64 = ca_data.as_deref().ok_or_else(|| {
+        ClusterHealthError::InvalidKubeconfig(
+            "cluster has no certificate-authority-data".to_owned(),
+        )
+    })?;
+    base64::engine::general_purpose::STANDARD
+        .decode(b64)
+        .map_err(|e| ClusterHealthError::InvalidKubeconfig(format!("invalid CA base64: {e}")))
+}
+
+/// Splits a `https://host:port` URL into its host and port (defaulting to 443).
+fn split_host_port(server: &str) -> Result<(String, u16), ClusterHealthError> {
+    let url = reqwest::Url::parse(server)
+        .map_err(|e| ClusterHealthError::InvalidKubeconfig(format!("invalid server URL: {e}")))?;
+    let host = url
+        .host_str()
+        .ok_or_else(|| ClusterHealthError::InvalidKubeconfig("server URL has no host".to_owned()))?
+        .to_owned();
+    Ok((host, url.port().unwrap_or(443)))
+}
+
+/// Resolves a host to socket addresses on the given port.
+async fn resolve_host(
+    host: &str,
+    port: u16,
+) -> Result<Vec<std::net::SocketAddr>, ClusterHealthError> {
+    let addrs = tokio::net::lookup_host((host, port))
+        .await
+        .map_err(|e| ClusterHealthError::Unreachable(format!("DNS resolution failed: {e}")))?
+        .collect::<Vec<_>>();
+    if addrs.is_empty() {
+        return Err(ClusterHealthError::Unreachable(format!(
+            "no address for {host}"
+        )));
+    }
+    Ok(addrs)
 }
 
 /// Errors raised by the cluster service layer.

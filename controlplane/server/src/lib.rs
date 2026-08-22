@@ -25,6 +25,7 @@
 
 pub mod application;
 pub mod bff;
+pub mod catalog;
 pub mod config;
 pub mod error;
 pub mod metrics;

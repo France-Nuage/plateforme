@@ -179,4 +179,55 @@ impl<Auth: Authorize> Users<Auth> {
             .await
             .map_err(Into::into)
     }
+
+    /// Ensures the platform has a bootstrap administrator.
+    ///
+    /// Called once at control-plane startup (like the root organization and
+    /// root service account). A fresh install has no administrator, which makes
+    /// the platform unusable — no one can register a hosting cluster or perform
+    /// any platform-admin action. This seeds the founding admin the same way a
+    /// database engine seeds its `root` account on first boot.
+    ///
+    /// Idempotent, and safe to run on every boot:
+    /// - if no user has `email`, it is created with `is_admin = true`;
+    /// - if the user exists but is not an admin, it is promoted;
+    /// - if the user already is an admin, nothing changes.
+    ///
+    /// Authentication itself stays with the external IdP: this only designates
+    /// which email is the platform administrator. When someone signs in through
+    /// the IdP with that email, they are matched to this row (by email) and
+    /// recognised as an admin. No password is stored here.
+    ///
+    /// # Errors
+    /// Returns [`Error`] on any database failure.
+    pub async fn initialize_root_admin(&self, email: String) -> Result<User, Error> {
+        match User::find_one_by_email(&self.db, &email).await? {
+            Some(user) if user.is_admin => Ok(user),
+            Some(user) => {
+                User::query()
+                    .update()
+                    .set(User::IS_ADMIN, true)
+                    .r#where(User::ID, "=", user.id)
+                    .execute(&self.db)
+                    .await?;
+                Ok(User {
+                    is_admin: true,
+                    ..user
+                })
+            }
+            None => User::factory()
+                .id(Uuid::new_v4())
+                .email(email)
+                // Unpinned (NULL) subject: the bootstrap admin has not authenticated
+                // yet, so their OIDC subject is pinned on first login. The factory's
+                // Faker would otherwise fill `sub` with a random value that never
+                // matches the real token → the admin could never authenticate
+                // (SubjectMismatch), exactly as for an invited user.
+                .sub(None)
+                .is_admin(true)
+                .create(&self.db)
+                .await
+                .map_err(Into::into),
+        }
+    }
 }

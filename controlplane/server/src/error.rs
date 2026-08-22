@@ -47,4 +47,16 @@ pub enum Error {
     /// transport-related operations managed by the tonic transport layer.
     #[error("transport error: {0}")]
     Transport(#[from] tonic::transport::Error),
+
+    /// Billing/Stripe errors raised during catalogue synchronization.
+    #[error("billing error: {0}")]
+    Billing(#[from] frn_core::billing::BillingError),
+
+    /// Catalogue parsing/loading errors.
+    #[error("catalogue error: {0}")]
+    Catalog(#[from] frn_core::managed::CatalogError),
+
+    /// Missing configuration required by a command (e.g. Stripe keys).
+    #[error("configuration error: {0}")]
+    Config(String),
 }

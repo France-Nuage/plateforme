@@ -11,6 +11,8 @@
     # the shared *.qual.apps wildcard certificate covers them; a wildcard only
     # matches one level, hence the "--" separator instead of a dot.
     BASE_DOMAIN: "qual.apps.france-nuage.fr"
+    # Environment identifier. Defaults to the pipeline id (review-env); test-env
+    # overrides it with the branch slug (see its resource_group below).
     ENV_ID: "${CI_PIPELINE_ID}"
     RELEASE_NAME: plateforme
     # Shared wildcard certificate reused by every ephemeral environment.
@@ -28,6 +30,48 @@
   script:
     - |
       set -e
+
+      # Stripe billing is opt-in: only wire it up when both protected variables
+      # are present. Absent them (e.g. forks, or pipelines without the protected
+      # scope), the stack deploys billing-off and the payment E2E is skipped —
+      # every billing block in the chart is guarded by both keys being set.
+      STRIPE_HELM_ARGS=""
+      if [ -n "${STRIPE_SECRET_KEY:-}" ] && [ -n "${STRIPE_WEBHOOK_SECRET:-}" ]; then
+        echo "Stripe billing enabled for this environment."
+        STRIPE_HELM_ARGS="--set-string secrets.stripeSecretKey=${STRIPE_SECRET_KEY} --set-string secrets.stripeWebhookSecret=${STRIPE_WEBHOOK_SECRET}"
+        # The payment E2E enrols a hosting cluster so a paid deploy can resolve a
+        # target. Reuse this job's kubeconfig verbatim — the very one that already
+        # deploys the whole environment on qualif (client cert + tls-server-name),
+        # so both the control plane's health check and the worker's helm install
+        # use working credentials. No transformation: rewriting the server or CA
+        # only breaks the TLS server-name pinning the kubeconfig relies on.
+        STRIPE_HELM_ARGS="${STRIPE_HELM_ARGS} --set-file systemTests.config.deployKubeconfig=${KUBECONFIG}"
+      else
+        echo "Stripe billing disabled (STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET not set); the payment E2E will be skipped."
+      fi
+
+      # Charts registry read credentials: let the control plane discover
+      # deployable chart versions from the OCI registry at startup. Without them,
+      # discovery is skipped and no managed service is deployable — so the
+      # deployment E2E needs them. Injected from protected CI variables.
+      REGISTRY_HELM_ARGS=""
+      if [ -n "${CHARTS_REGISTRY_USER:-}" ] && [ -n "${CHARTS_REGISTRY_TOKEN:-}" ]; then
+        echo "Charts registry discovery enabled for this environment."
+        REGISTRY_HELM_ARGS="--set-string secrets.chartsRegistryUser=${CHARTS_REGISTRY_USER} --set-string secrets.chartsRegistryToken=${CHARTS_REGISTRY_TOKEN}"
+      else
+        echo "Charts registry credentials not set; chart-version discovery will be skipped."
+      fi
+
+      # Start from a clean slate: the environment is keyed by branch and reused
+      # across runs, so a previous run can leave persistent state behind
+      # (PersistentVolumeClaims for Postgres/SpiceDB/Keycloak). That state can rot
+      # — e.g. a CNPG volume going read-only — and a plain `helm upgrade` over it
+      # cannot recover. Delete any existing namespace and wait for it to be fully
+      # gone (PVCs included) before recreating, so every run deploys fresh.
+      if kubectl get namespace "${NAMESPACE}" >/dev/null 2>&1; then
+        echo "Deleting stale environment ${NAMESPACE} before redeploying..."
+        kubectl delete namespace "${NAMESPACE}" --wait=true --timeout=5m || true
+      fi
 
       kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply --validate=false -f -
       kubectl label namespace "${NAMESPACE}" --overwrite \
@@ -72,6 +116,8 @@
         --set secrets.workerToken="ci-worker-token" \
         --set secrets.ciServiceToken="ci-service-token" \
         --set-string controlplane.config.deploymentLabels="frn.ci/managed=true\,frn.ci/pipeline-id=${CI_PIPELINE_ID}" \
+        ${STRIPE_HELM_ARGS} \
+        ${REGISTRY_HELM_ARGS} \
         ${HELM_EXTRA_ARGS:-} \
         --wait \
         --timeout 15m
@@ -79,14 +125,26 @@
 .cleanup_ci_env:
   extends: .helm_qualif_template
   script:
-    - kubectl delete namespace -l frn.ci/pipeline-id="${CI_PIPELINE_ID}" --wait=false || true
+    # Delete the environment's namespace directly. Using ${NAMESPACE} (keyed by
+    # branch slug for test-env, by pipeline id for review-env) is robust even when
+    # a later run redeployed the namespace: we always target the right one,
+    # whereas a pipeline-id label selector could miss a namespace last written by
+    # a different pipeline of the same branch.
+    - kubectl delete namespace "${NAMESPACE}" --ignore-not-found --wait=false || true
 
 "deploy / test-env":
   extends: .deploy_ci_env
   stage: deploy
-  resource_group: "test-env-${CI_PIPELINE_ID}"
+  # Keyed by branch slug, not pipeline id: at most one test environment per
+  # branch (runs don't stack up and exhaust the cluster). The deploy step drops
+  # any existing namespace first and recreates it from scratch, so each run
+  # starts on a clean slate — no rotten persistent state carried over. The
+  # resource_group serialises concurrent runs of the same branch so the drop and
+  # recreate never race another pipeline on the same namespace.
+  resource_group: "test-env-${CI_COMMIT_REF_SLUG}"
   variables:
-    NAMESPACE: "frn-ci-test-${CI_PIPELINE_ID}"
+    ENV_ID: "${CI_COMMIT_REF_SLUG}"
+    NAMESPACE: "frn-ci-test-${CI_COMMIT_REF_SLUG}"
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: never
@@ -101,10 +159,11 @@
     - job: "deploy / test-env"
       artifacts: false
   variables:
-    NAMESPACE: "frn-ci-test-${CI_PIPELINE_ID}"
+    ENV_ID: "${CI_COMMIT_REF_SLUG}"
+    NAMESPACE: "frn-ci-test-${CI_COMMIT_REF_SLUG}"
   environment:
     name: "report/${CI_COMMIT_REF_SLUG}"
-    url: "https://report--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+    url: "https://report--${CI_COMMIT_REF_SLUG}.qual.apps.france-nuage.fr"
     on_stop: "cleanup / test-env"
     auto_stop_in: 1 week
   script:
@@ -112,7 +171,10 @@
       JOB="${RELEASE_NAME}-system-tests"
       kubectl logs -n "${NAMESPACE}" -f job/"${JOB}" --pod-running-timeout=10m 2>&1 | tee system-tests-logs.txt || true
       RESULT=0
-      kubectl wait -n "${NAMESPACE}" job/"${JOB}" --for=condition=complete --timeout=5m \
+      # 10m (was 5m): the Stripe payment E2E adds a hosted-checkout round trip
+      # plus the asynchronous webhook -> subscription activation -> instance
+      # provisioning chain, which the shorter budget could clip on a busy runner.
+      kubectl wait -n "${NAMESPACE}" job/"${JOB}" --for=condition=complete --timeout=10m \
         && echo "System tests passed" \
         || { echo "System tests failed"; RESULT=1; }
 
@@ -123,7 +185,7 @@
       kubectl delete deployment,statefulset -n "${NAMESPACE}" \
         -l app.kubernetes.io/instance="${RELEASE_NAME}",app.kubernetes.io/component!=system-tests-report \
         --ignore-not-found || true
-      echo "Report available at https://report--${CI_PIPELINE_ID}.qual.apps.france-nuage.fr"
+      echo "Report available at https://report--${ENV_ID}.qual.apps.france-nuage.fr"
 
       exit ${RESULT}
   artifacts:

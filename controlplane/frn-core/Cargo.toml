@@ -14,7 +14,9 @@ async-stripe = "1.0.0-rc.6"
 async-stripe-billing = { version = "1.0.0-rc.6", features = ["subscription"] }
 async-stripe-checkout = { version = "1.0.0-rc.6", features = ["checkout_session"] }
 async-stripe-core = { version = "1.0.0-rc.6", features = ["customer"] }
+async-stripe-product = { version = "1.0.0-rc.6", features = ["price", "product"] }
 async-stripe-shared = "1.0.0-rc.6"
+async-stripe-types = "1.0.0-rc.6"
 async-stripe-webhook = "1.0.0-rc.6"
 async-trait = "0.1"
 auth = { path = "../auth" }
@@ -23,6 +25,7 @@ chrono = "0.4"
 database = { path = "../database" }
 fabrique = { workspace = true }
 fake = { workspace = true }
+flate2 = "1"
 frn-crypto = { path = "../frn-crypto" }
 frn-derive = { path = "../frn-derive" }
 futures = "0.3"
@@ -34,17 +37,19 @@ k8s-openapi = { workspace = true, features = ["v1_32"] }
 kube = { workspace = true }
 moka = { version = "0.12", features = ["future"] }
 rand = "0.8"
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", features = ["json", "native-tls"] }
 semver = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_plain = "1.0"
+serde_yaml = "0.9"
 slug = "0.1"
 sqlx = { workspace = true }
 spicedb = { path = "../spicedb" }
 ssh-key = { version = "0.6", features = ["ed25519", "std"] }
 strum = "0.27"
 strum_macros = "0.27"
+tar = "0.4"
 thiserror = "2"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 tonic = "0.14"

@@ -3,6 +3,7 @@ definition organization {
   relation parent: organization
 
   permission get = member + parent->member
+  permission list = get
   permission invite_member = member + parent->member
 }
 
@@ -23,6 +24,7 @@ definition hypervisor {
   relation parent: organization
 
   permission get = parent->get
+  permission delete = get
 }
 
 definition instance {

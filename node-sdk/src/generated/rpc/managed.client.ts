@@ -86,7 +86,7 @@ export interface IManagedServicesClient {
     options?: RpcOptions,
   ): UnaryCall<RegisterVersionRequest, RegisterVersionResponse>;
   /**
-   * Syncs (upserts) all plans for a service from the catalogue.yaml (called by CI).
+   * Syncs (upserts) all plans for a service from the catalog.yaml (called by CI).
    *
    * @generated from protobuf rpc: SyncPlans
    */
@@ -263,7 +263,7 @@ export class ManagedServicesClient
     );
   }
   /**
-   * Syncs (upserts) all plans for a service from the catalogue.yaml (called by CI).
+   * Syncs (upserts) all plans for a service from the catalog.yaml (called by CI).
    *
    * @generated from protobuf rpc: SyncPlans
    */

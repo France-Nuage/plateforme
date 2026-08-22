@@ -72,6 +72,10 @@ controlplane:
   config:
     consoleUrl: ""
     oidcUrl: ""
+    # Founding platform admin, seeded at control-plane startup. The payment E2E
+    # authenticates as this identity to enrol the hosting cluster (a
+    # platform-admin operation). Matches the IdP account the test creates.
+    rootAdminEmail: "admin@france-nuage.test"
     # BFF confidentiel : même flux qu'en prod, mais contre le Keycloak in-cluster
     # de l'env CI. oidcUrl laissé vide → OIDC_URL dérive du helper keycloakOidcUrl
     # (discovery https://auth--<envId>.<baseDomain>/realms/francenuage/.well-known/
@@ -82,6 +86,17 @@ controlplane:
     # (templates/keycloak/realm-configmap.yaml) avec le secret secrets.oidcClientSecret.
     bff:
       enabled: true
+    # Ephemeral environments have no public webhook ingress, so relay Stripe
+    # events into the pod with an in-cluster `stripe listen` sidecar. It stays
+    # inert unless the deploy also injects the Stripe secrets (--set
+    # secrets.stripeSecretKey / stripeWebhookSecret): every billing block is
+    # guarded by billingEnabled, which requires both keys. So a pipeline without
+    # the protected Stripe variables deploys billing-off and the payment spec is
+    # skipped, while one with them gets the full flow. (The catalogue itself is
+    # reconciled at control-plane startup, not here — see catalog::sync_at_boot.)
+    billing:
+      webhookRelay:
+        enabled: true
 
 # Secrets du BFF fournis en clair (env CI éphémère, IdP de test) : la prod passe
 # par le SealedSecret (secrets.existingSecret), jamais par ce chemin.

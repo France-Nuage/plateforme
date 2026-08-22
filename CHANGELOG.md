@@ -1,10 +1,3 @@
-## [1.67.3](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.67.2...v1.67.3) (2026-08-21)
-
-
-### Bug Fixes
-
-* **auth:** résout le sujet OIDC via UserInfo quand l'access token n'a pas de sub ([bea4355](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/bea4355973aeb1ad752a04ae54c394c9ae7053c7))
-
 ## [1.67.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.67.1...v1.67.2) (2026-08-16)
 
 

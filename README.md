@@ -135,6 +135,66 @@ psql -U postgres -d postgres \
 "
 ```
 
+### Billing / Stripe (dev)
+
+Le controlplane intègre la facturation Stripe (checkout, webhooks, abonnements,
+provisioning). En local, on travaille contre une **sandbox Stripe dédiée**
+(nommée « test »), jamais la production. Le catalogue déclaratif
+[`controlplane/catalog/catalog.yaml`](controlplane/catalog/catalog.yaml) est
+la source de vérité : le controlplane le réconcilie dans Stripe **à son
+démarrage** (dès que `STRIPE_SECRET_KEY` est présent), ce qui permet de
+régénérer la sandbox à l'identique. Pour re-synchroniser à la main après avoir
+édité le catalogue, sans redémarrer : `docker compose exec controlplane server
+catalog sync`.
+
+**Prérequis :**
+
+- [Stripe CLI](https://stripe.com/docs/stripe-cli) installée et authentifiée
+  sur la sandbox « test » (`stripe login`).
+- Stack de dev démarrée (`docker compose up -d`).
+- `.env` racine renseigné à partir de [`.env.example`](.env.example), avec au
+  minimum `STRIPE_SECRET_KEY` pointant sur la sandbox (`sk_test_...`).
+
+**Démarrage :**
+
+```sh
+./stripe/dev-billing.sh
+```
+
+Ce script est l'équivalent local du sidecar `stripe listen` déployé dans les
+environnements éphémères : il donne à Stripe un chemin vers le webhook du
+controlplane, qui n'a pas d'URL publique en local. Il :
+
+1. récupère le secret de signature webhook (`whsec_...`) et l'écrit dans
+   `.env` (`STRIPE_WEBHOOK_SECRET`) ;
+2. démarre `stripe listen`, qui relaie les événements Stripe vers l'endpoint
+   webhook local du controlplane
+   (`http://localhost:50053/webhooks/stripe`).
+
+> **Note :** le controlplane valide la signature des webhooks. Si le script
+> met à jour `STRIPE_WEBHOOK_SECRET`, relance le controlplane pour qu'il prenne
+> la nouvelle valeur : `docker compose up -d controlplane`. Laisse le terminal
+> `stripe listen` ouvert pendant les tests de paiement (carte de test
+> `4242 4242 4242 4242`).
+
+Sans les variables `STRIPE_*`, la facturation est simplement désactivée : le
+controlplane démarre normalement, seul le flux de paiement est indisponible.
+
+### Services managés — versions déployables (dev)
+
+Un service du catalogue n'est **déployable** qu'une fois qu'une version de son
+chart est connue (coordonnées + schéma du formulaire de déploiement). Le
+controlplane découvre ces versions **au démarrage**, en lisant les charts depuis
+le registry OCI (GitLab Container Registry) déclaré par `oci_reference` dans le
+catalogue. Le schéma du formulaire vit dans le chart, sous `frn/`.
+
+Cette découverte a besoin d'un identifiant de **lecture** du registry : un deploy
+token GitLab avec le scope `read_registry`, renseigné dans `.env` via
+`CHARTS_REGISTRY_USER` / `CHARTS_REGISTRY_TOKEN` (voir [`.env.example`](.env.example)).
+Sans eux, la découverte est simplement ignorée (aucun service déployable en
+local). Les charts sans schéma `frn/` restent déployables : leur formulaire est
+alors vide.
+
 ### SSL Certificates
 
 For HTTPS communication between services, this project uses a self-signed

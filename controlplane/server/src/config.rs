@@ -113,6 +113,11 @@ pub struct Config {
     /// URL to redirect to after canceled Stripe checkout.
     pub stripe_checkout_cancel_url: Option<String>,
 
+    /// Read credentials for the charts OCI registry (GitLab Container Registry),
+    /// used to discover deployable chart versions at startup. `None` disables
+    /// chart discovery (e.g. local dev without registry access).
+    pub charts_registry_credentials: Option<frn_core::managed::RegistryCredentials>,
+
     /// Whether CORS must allow credentials (cookies). Enabled together with the
     /// BFF so browser gRPC-web calls can carry the httpOnly session cookie.
     pub allow_credentials: bool,
@@ -190,6 +195,7 @@ impl Config {
             stripe_webhook_secret: None,
             stripe_checkout_success_url: None,
             stripe_checkout_cancel_url: None,
+            charts_registry_credentials: None,
             allow_credentials: false,
             bff: None,
         })
@@ -279,6 +285,19 @@ impl Config {
             stripe_webhook_secret: env::var("STRIPE_WEBHOOK_SECRET").ok(),
             stripe_checkout_success_url: env::var("STRIPE_CHECKOUT_SUCCESS_URL").ok(),
             stripe_checkout_cancel_url: env::var("STRIPE_CHECKOUT_CANCEL_URL").ok(),
+            // Charts registry read credentials. Both must be present to enable
+            // chart-version discovery; otherwise it is skipped.
+            charts_registry_credentials: match (
+                env::var("CHARTS_REGISTRY_USER").ok(),
+                env::var("CHARTS_REGISTRY_TOKEN").ok(),
+            ) {
+                (Some(username), Some(password))
+                    if !username.is_empty() && !password.is_empty() =>
+                {
+                    Some(frn_core::managed::RegistryCredentials { username, password })
+                }
+                _ => None,
+            },
             allow_credentials,
             bff,
         })

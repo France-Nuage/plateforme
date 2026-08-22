@@ -22,7 +22,7 @@ service ManagedServices {
     // Registers a new chart version for a service (called by CI after OCI publish).
     rpc RegisterVersion(RegisterVersionRequest) returns (RegisterVersionResponse);
 
-    // Syncs (upserts) all plans for a service from the catalogue.yaml (called by CI).
+    // Syncs (upserts) all plans for a service from the catalog.yaml (called by CI).
     rpc SyncPlans(SyncPlansRequest) returns (SyncPlansResponse);
 
     // Creates a managed service instance and schedules deployment.

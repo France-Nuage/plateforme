@@ -100,6 +100,14 @@ RUN ATLAS_VERSION=v1.0.0 && \
 # Copy migrations
 COPY --from=builder /app/migrations /app/migrations
 
+# Ship the declarative catalogue alongside the binary at a stable absolute path.
+# The startup reconciliation (catalog::sync_at_boot) and the `catalog`
+# sync/prune subcommands load it from here, so the release image carries both the
+# binary and the catalogue it reconciles — no ConfigMap or file mount needed, and
+# no dependency on the server's working directory (the boot path resolver falls
+# back to this absolute path, see catalog::boot_catalog_path).
+COPY --from=builder /app/catalog/catalog.yaml /app/catalog/catalog.yaml
+
 COPY --from=builder /app/target/release/server /usr/bin/server
 RUN chmod +x /usr/bin/server
 CMD ["/usr/bin/server"]

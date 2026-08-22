@@ -3,6 +3,7 @@ definition organization {
   relation parent: organization
 
   permission get = member + parent->get
+  permission list = get
   permission invite_member = member + parent->get
 }
 
@@ -15,6 +16,7 @@ definition project {
   relation parent: folder | organization
 
   permission get = parent->get
+  permission list = get
   permission create_instance = get
 }
 
@@ -22,6 +24,7 @@ definition hypervisor {
   relation parent: organization
 
   permission get = parent->get
+  permission delete = get
 }
 
 definition instance {

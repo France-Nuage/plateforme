@@ -22,6 +22,13 @@ pub struct RootOrganization {
     pub name: String,
     pub service_account_key: Option<String>,
     pub service_account_name: String,
+    /// Email of the bootstrap platform administrator.
+    ///
+    /// Designates which user is seeded/promoted to platform admin at startup
+    /// (see [`crate::identity::Users::initialize_root_admin`]). Optional: when
+    /// unset, no admin is bootstrapped (the platform then has no administrator
+    /// until one is provisioned by other means).
+    pub admin_email: Option<String>,
 }
 
 impl Config {
@@ -36,6 +43,7 @@ impl Config {
                 service_account_key: env::var("ROOT_SERVICE_ACCOUNT_KEY").ok(),
                 service_account_name: env::var("ROOT_SERVICE_ACCOUNT_NAME")
                     .unwrap_or("acme_svc".to_owned()),
+                admin_email: env::var("ROOT_ADMIN_EMAIL").ok(),
             },
         })
     }
@@ -50,6 +58,7 @@ impl Config {
                 name: "".to_owned(),
                 service_account_key: None,
                 service_account_name: "".to_owned(),
+                admin_email: None,
             },
         }
     }

@@ -41,6 +41,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "plateforme.secretName" . }}
                   key: root-service-account-key
+            {{- /*
+            CI service token: authenticates administrative RPCs the tests use as
+            preconditions (e.g. RegisterVersion, which makes a managed service
+            deployable). Same token the control plane validates via authenticate_ci.
+            */}}
+            - name: CI_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: ci-service-token
             {{- if .Values.keycloak.enabled }}
             - name: KEYCLOAK_URL
               value: {{ include "plateforme.keycloakUrl" . | quote }}
@@ -59,6 +69,31 @@ spec:
             {{- if .Values.systemTests.config.headless }}
             - name: HEADLESS
               value: "true"
+            {{- end }}
+            {{- /*
+            Signals to the payment E2E whether billing is wired up. When unset
+            (no Stripe secrets), the spec skips instead of failing on a checkout
+            it can never reach. Emitted only when billing is enabled.
+            */}}
+            {{- if include "plateforme.billingEnabled" . }}
+            - name: BILLING_ENABLED
+              value: "true"
+            {{- end }}
+            {{- /*
+            Deploy-cluster precondition for the payment E2E: the founding admin
+            email (matched to the bootstrap admin the control plane seeds) and
+            the kubeconfig of the cluster the environment runs on, which the test
+            enrols as a hosting cluster. Both are only needed for the billing
+            flow; emitted when billing is enabled and the kubeconfig is provided.
+            */}}
+            {{- if and (include "plateforme.billingEnabled" .) .Values.controlplane.config.rootAdminEmail .Values.systemTests.config.deployKubeconfig }}
+            - name: ROOT_ADMIN_EMAIL
+              value: {{ .Values.controlplane.config.rootAdminEmail | quote }}
+            - name: DEPLOY_KUBECONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "plateforme.secretName" . }}
+                  key: deploy-kubeconfig
             {{- end }}
           resources:
             {{- toYaml .Values.systemTests.resources | nindent 12 }}

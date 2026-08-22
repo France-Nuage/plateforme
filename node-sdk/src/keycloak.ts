@@ -26,7 +26,14 @@ export class KeyCloakApi {
   }
 
   /**
-   * Create a new user.
+   * Create a user (idempotently) and return a token for it.
+   *
+   * Most callers pass a randomly generated identity, but some use a fixed email
+   * (e.g. the platform admin the payment E2E signs in as). When the environment
+   * is reused across runs — its Keycloak database persists on a PVC — that fixed
+   * user already exists, and Keycloak answers the creation with `409 Conflict`.
+   * We treat that as success: the user is present with the same fixed password,
+   * so we skip straight to fetching its token instead of failing the whole run.
    */
   public async createUser(
     data?: Partial<User>,
@@ -34,6 +41,14 @@ export class KeyCloakApi {
   ): Promise<TokenResponse> {
     const token = (await this.getAdminToken()).access_token;
     const newUser = { ...user({ password: 'password' }), ...data };
+
+    if (!newUser.username) {
+      throw new Error('missing username for authentication');
+    }
+
+    if (!newUser.password) {
+      throw new Error('missing password for authentication');
+    }
 
     const response = await fetch(
       `${this.url}/admin/realms/${realm ?? this.realm}/users`,
@@ -61,16 +76,10 @@ export class KeyCloakApi {
       },
     );
 
-    if (!response.ok) {
+    // 409 Conflict => the user already exists (reused environment). That is not
+    // an error for us: fall through to fetch its token below.
+    if (!response.ok && response.status !== 409) {
       throw new Error(`could not create user -- ${await response.text()}`);
-    }
-
-    if (!newUser.username) {
-      throw new Error('missing username for authentication');
-    }
-
-    if (!newUser.password) {
-      throw new Error('missing password for authentication');
     }
 
     return await this.getUserToken(newUser.username, newUser.password);

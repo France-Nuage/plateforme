@@ -182,6 +182,12 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_CHECKOUT_SUCCESS_URL: ${STRIPE_CHECKOUT_SUCCESS_URL:-https://console.test/managed-services/instances?checkout=success}
       STRIPE_CHECKOUT_CANCEL_URL: ${STRIPE_CHECKOUT_CANCEL_URL:-https://console.test/managed-services?checkout=cancel}
+      # Identifiants de LECTURE du registry OCI des charts (GitLab Container
+      # Registry), pour découvrir les versions déployables au démarrage. Sans eux,
+      # la découverte est simplement ignorée. À renseigner dans le .env racine
+      # (token deploy avec scope read_registry).
+      CHARTS_REGISTRY_USER: ${CHARTS_REGISTRY_USER:-}
+      CHARTS_REGISTRY_TOKEN: ${CHARTS_REGISTRY_TOKEN:-}
       WORKER_TOKEN: ${WORKER_TOKEN:-dev-worker-token-secret}
     expose:
       - 80
@@ -352,9 +358,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
-      PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
-      PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
-      PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev00-dc03.france-nuage.fr}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -526,17 +529,6 @@ services:
       NODE_EXTRA_CA_CERTS: /usr/local/share/ca-certificates/docker-compose-dev-ca.crt
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-francenuage}
       OIDC_PROVIDER_URL: ${OIDC_PROVIDER_URL:-https://keycloak.test/realms/francenuage}
-      PRODUCTION_CONTROLPLANE_URL: ${PRODUCTION_CONTROLPLANE_URL:-https://controlplane.france-nuage.fr}
-      PRODUCTION_CONTROLPLANE_TOKEN: ${PRODUCTION_CONTROLPLANE_TOKEN}
-      PRODUCTION_DATACENTER_ID: ${PRODUCTION_DATACENTER_ID:-}
-      PRODUCTION_ORGANIZATION_ID: ${PRODUCTION_ORGANIZATION_ID:-7e90812b-608f-4dc2-81d2-a2ebb25834e0}
-      PROXMOX_DEV_AUTHORIZATION_TOKEN: ${PROXMOX_DEV_AUTHORIZATION_TOKEN}
-      PROXMOX_DEV_STORAGE_NAME: ${PROXMOX_DEV_STORAGE_NAME:-local-lvm}
-      PROXMOX_DEV_URL: ${PROXMOX_DEV_URL:-https://pvedev00-dc03.france-nuage.fr}
-      PROXMOX_DIRTY_ID: ${PROXMOX_DIRTY_ID}
-      PROXMOX_TEST_AUTHORIZATION_TOKEN: ${PROXMOX_TEST_AUTHORIZATION_TOKEN}
-      PROXMOX_TEST_STORAGE_NAME: ${PROXMOX_TEST_STORAGE_NAME:-local-lvm}
-      PROXMOX_TEST_URL: ${PROXMOX_TEST_URL:-https://pve01-test01.france-nuage.fr}
       PW_TEST_CONNECT_WS_ENDPOINT: ws://playwright:4444
       ROOT_ORGANIZATION_NAME: ${ROOT_ORGANIZATION_NAME:-acme}
       ROOT_SERVICE_ACCOUNT_KEY: ${ROOT_SERVICE_ACCOUNT_KEY:-qDOiI0B686hr0wN479q7jmOQ6nYtSUsq}

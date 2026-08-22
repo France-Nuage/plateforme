@@ -137,7 +137,12 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
             return Ok(());
         };
 
-        let subscription = BillingSubscription::query()
+        // A checkout session unknown to this instance is not an error: Stripe
+        // fans every event out to all listeners connected to the same account,
+        // so a control plane routinely receives sessions created by another
+        // (e.g. a concurrent ephemeral environment sharing the sandbox). Ack it
+        // as a no-op so Stripe marks it delivered instead of retrying forever.
+        let Some(subscription) = BillingSubscription::query()
             .select()
             .r#where(
                 BillingSubscription::STRIPE_CHECKOUT_SESSION_ID,
@@ -146,7 +151,14 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
             )
             .first(&mut *conn)
             .await?
-            .ok_or_else(|| BillingError::SubscriptionNotFound(session_id.to_owned()))?;
+        else {
+            tracing::debug!(
+                event_id = %event.event_id,
+                checkout_session_id = %session_id,
+                "checkout session not found locally, ignoring event (not for this instance)"
+            );
+            return Ok(());
+        };
 
         if subscription.status != SubscriptionStatus::PendingPayment {
             return Err(BillingError::InvalidStatusTransition {
@@ -284,8 +296,16 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
             let period_end = DateTime::<Utc>::from_timestamp(end, 0)
                 .ok_or(BillingError::InvalidTimestamp(end))?;
 
-            let subscription =
-                Self::find_subscription_by_stripe_id_on(&mut *conn, stripe_sub_id).await?;
+            let Some(subscription) =
+                Self::find_subscription_by_stripe_id_on(&mut *conn, stripe_sub_id).await?
+            else {
+                tracing::debug!(
+                    event_id = %event.event_id,
+                    stripe_subscription_id = %stripe_sub_id,
+                    "subscription not found locally, ignoring invoice.paid (not for this instance)"
+                );
+                return Ok(());
+            };
 
             BillingSubscription::query()
                 .update()
@@ -317,8 +337,17 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
             return Ok(());
         };
 
-        let subscription =
-            Self::find_subscription_by_stripe_id_on(&mut *conn, stripe_sub_id).await?;
+        let Some(subscription) =
+            Self::find_subscription_by_stripe_id_on(&mut *conn, stripe_sub_id).await?
+        else {
+            tracing::debug!(
+                event_id = %event.event_id,
+                event_type = %event.event_type,
+                stripe_subscription_id = %stripe_sub_id,
+                "subscription not found locally, ignoring status change (not for this instance)"
+            );
+            return Ok(());
+        };
 
         validate_status_transition(subscription.status, new_status)?;
 
@@ -340,11 +369,19 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
         Ok(())
     }
 
+    /// Looks up a subscription by its Stripe id, returning `None` when this
+    /// instance does not own it.
+    ///
+    /// A missing subscription is not an error for webhook handling: Stripe
+    /// broadcasts each event to every listener on the account, so events for
+    /// subscriptions owned by another environment (sharing the same sandbox)
+    /// are expected. Callers ignore `None` and ack the event rather than
+    /// returning a 500 that would make Stripe retry indefinitely.
     async fn find_subscription_by_stripe_id_on(
         conn: &mut PgConnection,
         stripe_subscription_id: &str,
-    ) -> Result<BillingSubscription, BillingError> {
-        BillingSubscription::query()
+    ) -> Result<Option<BillingSubscription>, BillingError> {
+        Ok(BillingSubscription::query()
             .select()
             .r#where(
                 BillingSubscription::STRIPE_SUBSCRIPTION_ID,
@@ -352,8 +389,7 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
                 Some(stripe_subscription_id.to_owned()),
             )
             .first(&mut *conn)
-            .await?
-            .ok_or_else(|| BillingError::SubscriptionNotFound(stripe_subscription_id.to_owned()))
+            .await?)
     }
 
     // fabrique limitation: DELETE with specific WHERE not supported via builder

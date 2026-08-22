@@ -15,6 +15,7 @@ auth = { path = "../auth" }
 axum = "0.8"
 base64 = { workspace = true }
 bytes = "1"
+clap = { workspace = true }
 frn-core = { path = "../frn-core" }
 frn-crypto = { path = "../frn-crypto" }
 frn-rpc = { path = "../frn-rpc" }

@@ -51,6 +51,42 @@ impl StripeClient for UnreachableStripeClient {
     async fn delete_customer(&self, _: &str) -> Result<(), BillingError> {
         unreachable!("StripeClient::delete_customer must not be called in this test")
     }
+
+    async fn ensure_product(
+        &self,
+        _: &str,
+        _: &str,
+        _: Option<&str>,
+    ) -> Result<String, BillingError> {
+        unreachable!("StripeClient::ensure_product must not be called in this test")
+    }
+
+    async fn ensure_price(
+        &self,
+        _: &frn_core::billing::PriceSpec,
+    ) -> Result<frn_core::billing::EnsurePriceResult, BillingError> {
+        unreachable!("StripeClient::ensure_price must not be called in this test")
+    }
+
+    async fn delete_or_archive_price(&self, _: &str) -> Result<(), BillingError> {
+        unreachable!("StripeClient::delete_or_archive_price must not be called in this test")
+    }
+
+    async fn archive_product(&self, _: &str) -> Result<(), BillingError> {
+        unreachable!("StripeClient::archive_product must not be called in this test")
+    }
+
+    async fn list_managed_prices(
+        &self,
+    ) -> Result<Vec<frn_core::billing::ManagedPrice>, BillingError> {
+        unreachable!("StripeClient::list_managed_prices must not be called in this test")
+    }
+
+    async fn list_managed_products(
+        &self,
+    ) -> Result<Vec<frn_core::billing::ManagedProduct>, BillingError> {
+        unreachable!("StripeClient::list_managed_products must not be called in this test")
+    }
 }
 
 /// Scheduler stub: the status-change path schedules no workflow, but the dispatch
@@ -248,6 +284,62 @@ async fn test_distinct_events_are_each_processed(
         .fetch_one(&pool)
         .await?;
     assert_eq!(processed, 2, "each distinct event must be recorded");
+
+    Ok(())
+}
+
+/// An event whose subscription is unknown to this instance must be acked as a
+/// no-op, not fail. Stripe broadcasts every event to all listeners on the same
+/// account, so a control plane routinely receives events for subscriptions owned
+/// by another environment sharing the sandbox (concurrent ephemeral CI runs). A
+/// 500 there would make Stripe retry forever and wedge the delivery; instead the
+/// handler returns Ok so Stripe marks it delivered, and no local row is touched.
+#[sqlx::test(migrations = "../migrations")]
+async fn test_event_for_unknown_subscription_is_ignored(
+    pool: sqlx::PgPool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let organization = Organization::factory()
+        .slug("wh-org-foreign".to_owned())
+        .parent_slug(None)
+        .create(&pool)
+        .await
+        .expect("could not seed organization");
+    let service_id = seed_managed_service(&pool, "wh-mysql", "WH MySQL", "database").await;
+    let plan_id =
+        seed_managed_service_plan(&pool, service_id, "wh-mysql-standard", "Standard").await;
+    // This instance owns exactly one subscription...
+    let owned_id =
+        seed_active_subscription(&pool, &organization.slug, plan_id, "sub_wh_owned").await;
+
+    let billing = build_billing(&pool, SpiceDB::mock().await);
+    let scheduler = NoopWorkflowScheduler;
+    let mut conn = pool.acquire().await?;
+
+    // ...but the event references a subscription created by another environment.
+    let foreign_event = StripeWebhookEvent {
+        event_id: "evt_foreign".to_owned(),
+        event_type: "customer.subscription.deleted".to_owned(),
+        checkout_session_id: None,
+        stripe_subscription_id: Some("sub_belongs_to_another_env".to_owned()),
+        period_start: None,
+        period_end: None,
+    };
+
+    billing
+        .dispatch_webhook_event(&mut conn, &scheduler, foreign_event)
+        .await
+        .expect("an event for an unknown subscription must be a no-op, not an error");
+
+    // The locally owned subscription is left untouched.
+    let owned_status: String =
+        sqlx::query_scalar("SELECT status FROM billing.subscription WHERE id = $1")
+            .bind(owned_id)
+            .fetch_one(&pool)
+            .await?;
+    assert_eq!(
+        owned_status, "active",
+        "a foreign event must not alter this instance's subscriptions"
+    );
 
     Ok(())
 }

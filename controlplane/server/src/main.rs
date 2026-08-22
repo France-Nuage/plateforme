@@ -1,23 +1,83 @@
-//! Main executable for the gRPC server application.
+//! Main executable for the control plane.
 //!
-//! This binary serves as the entry point for the control plane gRPC server.
-//! It initializes the tokio async runtime and delegates to the server library
-//! for complete application orchestration.
+//! Runs the gRPC server by default, or a `catalog` subcommand that reconciles
+//! or checks the declarative catalogue and exits. Command parsing uses clap.
 
+use std::path::PathBuf;
+
+use clap::{Parser, Subcommand};
+use server::catalog::{self, DEFAULT_CATALOG_PATH};
 use server::{Config, serve, shutdown_signal};
 
-/// Entry point for the gRPC server application.
-///
-/// This function initializes the tokio async runtime and starts the complete
-/// server application by calling the [`server::serve`] function. It serves
-/// as the bridge between the synchronous main entry point and the async
-/// server implementation.
+/// Control plane binary: gRPC server, plus catalogue management subcommands.
+#[derive(Parser)]
+#[command(name = "server", about = "France Nuage control plane")]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Command>,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Manage the declarative service catalogue.
+    #[command(subcommand)]
+    Catalog(CatalogCommand),
+}
+
+#[derive(Subcommand)]
+enum CatalogCommand {
+    /// Parse and validate the catalogue only (no Stripe, no database).
+    Validate {
+        /// Path to catalog.yaml (defaults to the bundled catalogue).
+        #[arg(default_value = DEFAULT_CATALOG_PATH)]
+        path: PathBuf,
+    },
+    /// Reconcile the catalogue into Stripe and the database.
+    Sync {
+        #[arg(default_value = DEFAULT_CATALOG_PATH)]
+        path: PathBuf,
+    },
+    /// Archive catalogue-owned Stripe objects no longer declared.
+    Prune {
+        #[arg(default_value = DEFAULT_CATALOG_PATH)]
+        path: PathBuf,
+        /// Apply the changes; without this flag the run is a dry run.
+        #[arg(long)]
+        force: bool,
+    },
+}
+
 #[tokio::main]
 async fn main() -> Result<(), server::error::Error> {
-    // Setup tracing
     tracing_subscriber::fmt::init();
 
-    // create the application configuration
+    let cli = Cli::parse();
+
+    if let Some(Command::Catalog(command)) = cli.command {
+        return run_catalog_command(command).await;
+    }
+
+    run_server().await
+}
+
+/// Runs a one-shot `catalog` subcommand and exits.
+async fn run_catalog_command(command: CatalogCommand) -> Result<(), server::error::Error> {
+    match command {
+        // Pure parse/validate: no Config, no Stripe, no database.
+        CatalogCommand::Validate { path } => catalog::run_validate(&path),
+        CatalogCommand::Sync { path } => {
+            let config = Config::from_env().await?;
+            catalog::run_sync(config, &path).await
+        }
+        CatalogCommand::Prune { path, force } => {
+            let config = Config::from_env().await?;
+            catalog::run_prune(config, &path, force).await
+        }
+    }
+}
+
+/// Boots the control plane: self-initializes its baseline state, then serves.
+async fn run_server() -> Result<(), server::error::Error> {
     let config = Config::from_env().await?;
 
     let root_organization = config
@@ -55,7 +115,20 @@ async fn main() -> Result<(), server::error::Error> {
         .add_service_account(&root_organization, &root_service_account)
         .await?;
 
-    // serve the application
+    // Without a seeded admin, a fresh install can register no hosting cluster
+    // nor perform any platform-admin action.
+    if let Some(admin_email) = config.app.config.root_organization.admin_email.clone() {
+        config
+            .app
+            .users
+            .clone()
+            .initialize_root_admin(admin_email)
+            .await?;
+    }
+
+    catalog::sync_at_boot(&config).await?;
+    catalog::spawn_version_discovery(&config);
+
     let sender = serve(config).await?;
 
     shutdown_signal().await;

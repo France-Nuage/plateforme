@@ -3,12 +3,16 @@
 //! Provides entity definitions and the service layer for managing
 //! the marketplace of managed services.
 
+mod catalog;
 mod create;
 mod delete;
+mod oci;
 mod upgrade;
 
+pub use catalog::*;
 pub use create::*;
 pub use delete::*;
+pub use oci::*;
 pub use upgrade::*;
 
 use std::collections::BTreeMap;
@@ -108,7 +112,7 @@ pub struct PlanEntitlement {
 ///
 /// Each service can offer multiple plans with different Helm values,
 /// entitlements (SLA guarantees), and pricing. Plans are synced from
-/// the charts repository `catalogue.yaml` via the `SyncPlans` RPC.
+/// the charts repository `catalog.yaml` via the `SyncPlans` RPC.
 #[derive(Debug, Clone, Model, Serialize)]
 #[fabrique(table = "managed.service_plan")]
 pub struct ManagedServicePlan {
@@ -779,6 +783,49 @@ impl<A: Authorize> ManagedServices<A> {
             .first(&self.db)
             .await?
             .ok_or_else(|| ManagedServiceError::PlanNotFound(plan_id.to_string()))
+    }
+
+    /// Upserts a managed service by slug. Used by the catalogue sync runner.
+    ///
+    /// Creates the service when absent and updates its mutable fields
+    /// (name/description/category/engine/deploy_target) otherwise, clearing any
+    /// soft-delete. Returns the persisted row.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn upsert_service(
+        &self,
+        conn: &mut PgConnection,
+        slug: &str,
+        name: &str,
+        description: Option<&str>,
+        category: ManagedServiceCategory,
+        database_engine: Option<ManagedDatabaseEngine>,
+        deploy_target: Option<&Value>,
+    ) -> Result<ManagedService, ManagedServiceError> {
+        // fabrique limitation: ON CONFLICT on non-PK unique constraint (slug),
+        // plus enum casts on bind parameters.
+        let service = sqlx::query_as::<_, ManagedService>(
+            r#"INSERT INTO managed.service
+                   (id, slug, name, description, category, database_engine, deploy_target)
+               VALUES (gen_random_uuid(), $1, $2, $3, $4::managed_service_category,
+                       $5::managed_database_engine, $6)
+               ON CONFLICT (slug) DO UPDATE SET
+                   name = EXCLUDED.name,
+                   description = EXCLUDED.description,
+                   category = EXCLUDED.category,
+                   database_engine = EXCLUDED.database_engine,
+                   deploy_target = EXCLUDED.deploy_target,
+                   deactivated_at = NULL
+               RETURNING *"#,
+        )
+        .bind(slug)
+        .bind(name)
+        .bind(description)
+        .bind(category.to_string())
+        .bind(database_engine.map(|e| e.to_string()))
+        .bind(deploy_target)
+        .fetch_one(&mut *conn)
+        .await?;
+        Ok(service)
     }
 
     /// Upserts a plan for a service. Used by the `SyncPlans` RPC and the seed.
