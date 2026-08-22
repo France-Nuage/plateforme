@@ -1,3 +1,10 @@
+# [1.68.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.67.3...v1.68.0) (2026-08-22)
+
+
+### Features
+
+* **billing:** catalogue Stripe source de vérité + déploiement self-service ([6bc8613](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/6bc8613e3afcdf15582a105009bc4d6f69d88363)), closes [#8033](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/issues/8033)
+
 ## [1.67.2](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.67.1...v1.67.2) (2026-08-16)
 
 
