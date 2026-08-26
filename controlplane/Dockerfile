@@ -48,9 +48,12 @@ RUN rustup default stable && \
 RUN cargo install sqlx-cli --version 0.9.0-alpha.1 && \
   cargo install grcov --version 0.8.20
 
-# Build dependencies (cached layer - only rebuilds when dependencies change)
+# Build dependencies (cached layer - only rebuilds when dependencies change).
+# Both profiles are cooked: release for the production binaries, test for the
+# unit-test job (their artifacts are distinct).
 COPY --from=planner /app/recipe.json recipe.json
 RUN SQLX_OFFLINE=true cargo chef cook --release --recipe-path recipe.json
+RUN SQLX_OFFLINE=true cargo chef cook --tests --recipe-path recipe.json
 
 # Copy source code
 COPY . .
@@ -80,6 +83,11 @@ RUN SQLX_OFFLINE=true cargo build --release \
   --bin server \
   --bin worker \
   --bin synchronizer
+
+# Test-deps Stage - image for the unit-test job: toolchain, source, and the test
+# dependencies already compiled in target/ (from base). The job compiles only
+# the workspace crates on top, then runs the tests against a live Postgres.
+FROM base AS test-deps
 
 # Production Stage - Server
 FROM ${ALPINE_BASE_IMAGE} AS release

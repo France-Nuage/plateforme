@@ -135,14 +135,44 @@
         - controlplane/**/*
         - .gitlab-ci.yml
 
+# Builds the test-deps image (test dependencies pre-compiled via cargo-chef) so
+# the unit-test job below compiles only the workspace, not every dependency.
+"build / test-image":
+  extends: .buildkit_template
+  stage: build
+  script:
+    - |
+      set -e
+      docker buildx build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/rust-services:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/test-image:buildcache-${CI_COMMIT_REF_SLUG} \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/test-image:buildcache \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/test-image:buildcache-${CI_COMMIT_REF_SLUG},mode=max \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/test-image:buildcache,mode=max \
+        --target test-deps \
+        --tag ${CI_REGISTRY_IMAGE}/test-image:${CI_COMMIT_REF_SLUG} \
+        --push \
+        --file controlplane/Dockerfile \
+        controlplane
+  rules:
+    - changes:
+        - controlplane/**/*
+        - .gitlab-ci.yml
+
+# Compiles the workspace on top of the pre-compiled test dependencies, then runs
+# the tests against a live Postgres (the `#[sqlx::test]` cases need a database).
 "unit tests / controlplane":
   stage: unit-tests
-  image: registry.france-nuage.fr/library/rust:1.90-alpine
-  needs: []
+  image: ${CI_REGISTRY_IMAGE}/test-image:${CI_COMMIT_REF_SLUG}
+  needs:
+    - "build / test-image"
   services:
     - name: registry.france-nuage.fr/library/postgres:16-alpine
       alias: test-postgres
   variables:
+    # Code and cooked dependencies are in the image; no checkout needed.
+    GIT_STRATEGY: none
     CARGO_INCREMENTAL: "0"
     SQLX_OFFLINE: "true"
     POSTGRES_PASSWORD: postgres
@@ -152,8 +182,8 @@
     KUBERNETES_CPU_LIMIT: "8000m"
     KUBERNETES_MEMORY_LIMIT: "20480Mi"
   before_script:
-    - apk add --no-cache musl-dev openssl-dev openssl-libs-static protobuf-dev
-    - cd controlplane
+    # Run from the image's app dir so cargo reuses the compiled dependencies.
+    - cd /app
   script:
     - cargo test --workspace --all-features
   rules:
