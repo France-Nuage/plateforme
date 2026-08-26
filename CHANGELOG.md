@@ -1,3 +1,10 @@
+## [1.68.1](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.68.0...v1.68.1) (2026-08-26)
+
+
+### Performance Improvements
+
+* **ci:** cache les dépendances de test pour accélérer les unit-tests ([09c6a02](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/commit/09c6a02479270b8e46e0354cca79b21b65997142))
+
 # [1.68.0](https://gitlab.com/getbunker-france-nuage/france-nuage/plateforme/compare/v1.67.3...v1.68.0) (2026-08-22)
 
 
