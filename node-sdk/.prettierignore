@@ -1,0 +1,9 @@
+# Dépendances
+node_modules/
+
+# Sorties de build
+dist/
+
+# Fichiers de lock générés (jamais formatés par Prettier)
+package-lock.json
+pnpm-lock.yaml
