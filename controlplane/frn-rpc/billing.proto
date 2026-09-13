@@ -32,6 +32,9 @@ message BillingSubscriptionProto {
     optional google.protobuf.Timestamp current_period_end = 9;
     optional google.protobuf.Timestamp canceled_at = 10;
     google.protobuf.Timestamp created_at = 11;
+    // Declared seat count for a per-seat plan, frozen at checkout. Absent for
+    // flat plans (billed with quantity 1).
+    optional uint32 seats = 12;
 }
 
 // CreateCheckoutSession
@@ -45,6 +48,9 @@ message CreateCheckoutSessionRequest {
     string billing_period = 6;
     optional string user_values = 7;
     optional string secret_values = 8;
+    // Seat count for a per-seat plan. Required (>= 1) when the plan's
+    // pricing_model is not "flat"; must be omitted for a flat plan.
+    optional uint32 seats = 9;
 }
 
 message CreateCheckoutSessionResponse {

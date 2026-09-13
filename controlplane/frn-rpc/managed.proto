@@ -97,6 +97,9 @@ message ManagedServicePlanProto {
     optional string stripe_price_id_monthly = 13;
     optional string stripe_price_id_yearly = 14;
     bool requires_payment = 15;
+    // Product-level pricing model: "flat" (default), "per_unit" or "tiered".
+    // The console shows a seat selector when this is not "flat".
+    string pricing_model = 16;
 }
 
 // ListServices
@@ -170,6 +173,9 @@ message SyncPlanEntry {
     optional string stripe_price_id_monthly = 10;
     optional string stripe_price_id_yearly = 11;
     optional bool requires_payment = 12;
+    // Product-level pricing model ("flat" | "per_unit" | "tiered"). Defaults to
+    // "flat" when empty.
+    optional string pricing_model = 13;
 }
 
 message SyncPlansResponse {

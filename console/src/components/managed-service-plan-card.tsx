@@ -15,20 +15,46 @@ function formatPrice(cents: number): string {
   return (cents / 100).toFixed(2).replace('.', ',');
 }
 
+/**
+ * Displays a single managed-service plan as a selectable card.
+ *
+ * The price section adapts to the plan's `pricingModel` (FRA-15):
+ * - `flat`: the monthly/yearly amount, billed with quantity 1.
+ * - `per_unit`: the per-seat amount (`… / siège`) plus an indicative total
+ *   (`per-seat × seats`) once a seat quantity is known.
+ * - `tiered`: a "tarif dégressif" label — the exact amount is computed by
+ *   Stripe at checkout, since the declining tiers are not projected onto the
+ *   plan's two price columns.
+ *
+ * @param seats - The seat quantity chosen on the detail page. Used to render the
+ *   indicative total for `per_unit` plans; ignored for `flat`/`tiered`.
+ */
 export const ManagedServicePlanCard: FunctionComponent<{
   plan: ManagedServicePlan;
   billingPeriod: 'monthly' | 'yearly';
   selected: boolean;
   onSelect: () => void;
-}> = ({ plan, billingPeriod, selected, onSelect }) => {
-  const displayPrice = useMemo(() => {
-    const cents =
+  seats?: number;
+}> = ({ plan, billingPeriod, selected, onSelect, seats }) => {
+  const intervalLabel = billingPeriod === 'monthly' ? 'mois' : 'an';
+  const isPerSeat =
+    plan.pricingModel === 'per_unit' || plan.pricingModel === 'tiered';
+
+  const unitCents = useMemo(
+    () =>
       billingPeriod === 'monthly'
         ? plan.priceMonthlyCents
-        : plan.priceYearlyCents;
-    if (cents === undefined) return null;
-    return formatPrice(cents);
-  }, [plan.priceMonthlyCents, plan.priceYearlyCents, billingPeriod]);
+        : plan.priceYearlyCents,
+    [plan.priceMonthlyCents, plan.priceYearlyCents, billingPeriod],
+  );
+
+  // Indicative total for per_unit plans: per-seat amount × seats. Tiered plans
+  // carry no per-seat amount here, so no total is computed client-side.
+  const totalCents = useMemo(() => {
+    if (plan.pricingModel !== 'per_unit') return null;
+    if (unitCents === undefined || !seats || seats < 1) return null;
+    return unitCents * seats;
+  }, [plan.pricingModel, unitCents, seats]);
 
   return (
     <Card.Root
@@ -57,15 +83,41 @@ export const ManagedServicePlanCard: FunctionComponent<{
 
       <Card.Body>
         <Stack gap={4}>
-          {displayPrice !== null && (
-            <Flex align="baseline" gap={1}>
-              <Text fontSize="3xl" fontWeight="bold">
-                {displayPrice}
+          {plan.pricingModel === 'tiered' ? (
+            <Text fontSize="lg" fontWeight="bold">
+              Tarif dégressif
+              <Text
+                as="span"
+                fontSize="sm"
+                fontWeight="normal"
+                color="fg.muted"
+              >
+                {' '}
+                / siège / {intervalLabel}
               </Text>
-              <Text fontSize="sm" color="fg.muted">
-                EUR /{billingPeriod === 'monthly' ? 'mois' : 'an'}
-              </Text>
-            </Flex>
+            </Text>
+          ) : (
+            unitCents !== undefined && (
+              <Stack gap={0}>
+                <Flex align="baseline" gap={1}>
+                  <Text fontSize="3xl" fontWeight="bold">
+                    {formatPrice(unitCents)}
+                  </Text>
+                  <Text fontSize="sm" color="fg.muted">
+                    EUR{' '}
+                    {isPerSeat
+                      ? `/ siège / ${intervalLabel}`
+                      : `/${intervalLabel}`}
+                  </Text>
+                </Flex>
+                {totalCents !== null && (
+                  <Text fontSize="sm" color="fg.muted">
+                    Soit {formatPrice(totalCents)} EUR /{intervalLabel} pour{' '}
+                    {seats} siège{seats && seats > 1 ? 's' : ''}
+                  </Text>
+                )}
+              </Stack>
+            )
           )}
 
           {plan.entitlements.length > 0 && (

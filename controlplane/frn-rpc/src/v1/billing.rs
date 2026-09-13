@@ -38,6 +38,7 @@ impl From<&BillingSubscription> for BillingSubscriptionProto {
             current_period_end: sub.current_period_end.map(to_timestamp),
             canceled_at: sub.canceled_at.map(to_timestamp),
             created_at: Some(to_timestamp(sub.created_at)),
+            seats: sub.seats.map(|s| s as u32),
         }
     }
 }
@@ -51,6 +52,9 @@ fn billing_error_to_status(err: BillingError) -> Status {
         BillingError::InvalidStatusTransition { .. }
         | BillingError::PlanRequiresNoPayment(_)
         | BillingError::MissingStripePrice { .. } => Status::failed_precondition(message),
+        BillingError::SeatsRequired { .. } | BillingError::SeatsNotApplicable { .. } => {
+            Status::invalid_argument(message)
+        }
         BillingError::DuplicateEvent(_) => Status::already_exists(message),
         BillingError::InvalidWebhookSignature => Status::unauthenticated(message),
         BillingError::ManagedService(ref inner) => {
@@ -140,6 +144,7 @@ impl<A: Authorize + 'static, S: StripeClient + 'static> billing_service_server::
             billing_period,
             user_values,
             secret_values,
+            seats: req.seats,
         };
 
         let response = self

@@ -49,6 +49,17 @@ export type ManagedServicePlanEntitlement = {
   value: string;
 };
 
+/**
+ * Pricing model of a plan (FRA-15).
+ *
+ * - `flat`: fixed price, billed with quantity 1 (no seat selector).
+ * - `per_unit`: fixed price per seat, billed with the chosen quantity.
+ * - `tiered`: graduated/volume tiers priced per seat.
+ *
+ * `per_unit` and `tiered` require a seat quantity at checkout.
+ */
+export type PricingModel = 'flat' | 'per_unit' | 'tiered';
+
 export type ManagedServicePlan = {
   id: string;
   serviceId: string;
@@ -62,6 +73,11 @@ export type ManagedServicePlan = {
   priceMonthlyCents?: number;
   priceYearlyCents?: number;
   requiresPayment: boolean;
+  /**
+   * Pricing model of the plan. Defaults to `flat` when the backend reports an
+   * empty value, keeping pre-FRA-15 plans unchanged.
+   */
+  pricingModel: PricingModel;
   createdAt: string;
 };
 

@@ -74,6 +74,117 @@ impl From<CatalogInterval> for PriceInterval {
     }
 }
 
+/// How a plan's price is computed, and whether a quantity (seats) is required.
+///
+/// This is France Nuage's product-level notion (declared on the plan), distinct
+/// from the Stripe `billing_scheme` (declared on the price). It answers "must
+/// the console ask for a seat count, and must checkout require one?".
+///
+/// - `flat` (default): a single fixed fee, billed quantity 1. No seats.
+/// - `per_unit`: a fixed amount per seat, times the declared seat count.
+/// - `tiered`: graduated/volume tiers over the declared seat count.
+///
+/// Every existing plan omits this field and therefore defaults to `flat`, so
+/// the whole existing catalogue stays valid unchanged.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum PricingModel {
+    #[default]
+    Flat,
+    PerUnit,
+    Tiered,
+}
+
+impl PricingModel {
+    /// Returns the snake_case string persisted in `managed.service_plan` and
+    /// carried over the RPC/SDK (`flat` | `per_unit` | `tiered`).
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PricingModel::Flat => "flat",
+            PricingModel::PerUnit => "per_unit",
+            PricingModel::Tiered => "tiered",
+        }
+    }
+
+    /// Whether this pricing model requires a seat quantity at checkout.
+    pub fn requires_seats(&self) -> bool {
+        !matches!(self, PricingModel::Flat)
+    }
+}
+
+/// Stripe `billing_scheme` on a price: the two values Stripe supports.
+///
+/// Defaults to `per_unit` (Stripe's own default), which is what every existing
+/// "flat" price already is (billed with quantity 1). `tiered` selects the
+/// `tiers` + `tiers_mode` model.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum BillingScheme {
+    #[default]
+    PerUnit,
+    Tiered,
+}
+
+/// Stripe `tiers_mode`, required on a `tiered` price.
+///
+/// `graduated` bills each tier's units at that tier's rate and sums them;
+/// `volume` applies the single tier the total quantity lands in to all units.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TiersMode {
+    Graduated,
+    Volume,
+}
+
+/// The upper bound of a pricing tier: a finite seat count, or `inf` (fallback).
+///
+/// Declared in the YAML as either an integer (`up_to: 100`) or the literal
+/// string `inf` (`up_to: inf`), matching Stripe's `tiers[i][up_to]`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TierUpTo {
+    /// Inclusive upper bound (a positive seat count).
+    Finite(i64),
+    /// Unbounded fallback tier (Stripe `inf`); only valid as the last tier.
+    Inf,
+}
+
+impl<'de> Deserialize<'de> for TierUpTo {
+    /// Accepts a positive integer or the exact literal string `inf`.
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Raw {
+            Int(i64),
+            Str(String),
+        }
+
+        match Raw::deserialize(deserializer)? {
+            Raw::Int(n) => Ok(TierUpTo::Finite(n)),
+            Raw::Str(s) if s == "inf" => Ok(TierUpTo::Inf),
+            Raw::Str(s) => Err(D::Error::custom(format!(
+                "invalid tier up_to '{s}', expected a positive integer or 'inf'"
+            ))),
+        }
+    }
+}
+
+/// A single pricing tier for a `tiered` price.
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CatalogTier {
+    /// Inclusive upper bound of this tier (finite) or `inf` for the last tier.
+    pub up_to: TierUpTo,
+    /// Per-seat amount in the currency's smallest unit (cents). Kept as
+    /// `unit_amount_cents` for internal consistency; mapped to Stripe's
+    /// `tiers[i][unit_amount]` at reconciliation.
+    pub unit_amount_cents: i64,
+}
+
 /// A single recurring price to reconcile into Stripe.
 ///
 /// The `lookup_key` is declared explicitly (never generated): it is the stable
@@ -85,8 +196,10 @@ impl From<CatalogInterval> for PriceInterval {
 pub struct CatalogPrice {
     /// Stable Stripe lookup key (e.g. `postgresql-managed-pico-v1-monthly`).
     pub lookup_key: String,
-    /// Amount in the currency's smallest unit (cents).
-    pub unit_amount_cents: i64,
+    /// Fixed amount in the currency's smallest unit (cents). Required for a
+    /// `per_unit` price; omitted for a `tiered` price (amounts live in `tiers`).
+    #[serde(default)]
+    pub unit_amount_cents: Option<i64>,
     /// Three-letter ISO currency code, lowercase (e.g. `eur`).
     pub currency: String,
     /// Recurring billing interval. `None` for a one-time (one-shot) price, e.g.
@@ -96,6 +209,16 @@ pub struct CatalogPrice {
     /// Optional Stripe nickname (internal label, hidden from customers).
     #[serde(default)]
     pub nickname: Option<String>,
+    /// Stripe billing scheme. Optional, defaults to `per_unit`, so every
+    /// existing price stays valid unchanged.
+    #[serde(default)]
+    pub billing_scheme: BillingScheme,
+    /// Stripe `tiers_mode`, required when `billing_scheme` is `tiered`.
+    #[serde(default)]
+    pub tiers_mode: Option<TiersMode>,
+    /// Pricing tiers, required (non-empty) when `billing_scheme` is `tiered`.
+    #[serde(default)]
+    pub tiers: Vec<CatalogTier>,
 }
 
 /// A Stripe product with prices but no chart/plan semantics.
@@ -179,6 +302,12 @@ pub struct CatalogPlan {
     /// Whether purchasing this plan requires payment. Defaults to `true`.
     #[serde(default = "default_true")]
     pub requires_payment: bool,
+    /// Pricing model of the plan (flat / per_unit / tiered). Defaults to `flat`,
+    /// so every existing plan stays valid unchanged. Drives whether a seat count
+    /// is required at checkout and shown in the console. Must be coherent with
+    /// the `billing_scheme` of the plan's prices (see [`Catalog::validate`]).
+    #[serde(default)]
+    pub pricing_model: PricingModel,
     /// Prices for this plan (each with an explicit lookup key). Empty for free
     /// plans (`requires_payment: false`).
     #[serde(default)]
@@ -258,9 +387,17 @@ impl Catalog {
 
     /// Validates invariants that serde alone cannot express.
     ///
-    /// Ensures lookup keys are unique across the whole catalogue (a lookup key
-    /// identifies exactly one price in Stripe) and that a payment-requiring plan
-    /// with no prices is rejected.
+    /// Ensures:
+    /// - lookup keys are unique across the whole catalogue (a lookup key
+    ///   identifies exactly one price in Stripe);
+    /// - a payment-requiring plan with no prices is rejected;
+    /// - every price is internally consistent with its `billing_scheme`
+    ///   (`per_unit` needs an amount and forbids tiers; `tiered` needs a
+    ///   `tiers_mode` and a tier list whose last entry is `inf`, and forbids a
+    ///   top-level amount);
+    /// - each plan's `pricing_model` is coherent with the `billing_scheme` of
+    ///   its prices (`tiered` plan ⇒ tiered prices; `flat`/`per_unit` plan ⇒
+    ///   `per_unit` prices).
     fn validate(&self) -> Result<(), CatalogError> {
         let mut seen = std::collections::HashSet::new();
 
@@ -271,7 +408,7 @@ impl Catalog {
                     price.lookup_key
                 )));
             }
-            Ok(())
+            validate_price_structure(price).map_err(CatalogError::Invalid)
         };
 
         for service in &self.managed_services {
@@ -284,6 +421,8 @@ impl Catalog {
                 }
                 for price in &plan.prices {
                     check_price(price)?;
+                    validate_plan_price_coherence(&service.slug, plan, price)
+                        .map_err(CatalogError::Invalid)?;
                 }
             }
         }
@@ -294,6 +433,102 @@ impl Catalog {
         }
         Ok(())
     }
+}
+
+/// Validates a single price's internal consistency with its `billing_scheme`.
+///
+/// Returns a human-readable error message (wrapped by the caller into
+/// [`CatalogError::Invalid`]) when an invariant is violated.
+fn validate_price_structure(price: &CatalogPrice) -> Result<(), String> {
+    let key = &price.lookup_key;
+    match price.billing_scheme {
+        BillingScheme::PerUnit => {
+            if price.unit_amount_cents.is_none() {
+                return Err(format!(
+                    "price '{key}': per_unit requires unit_amount_cents"
+                ));
+            }
+            if !price.tiers.is_empty() || price.tiers_mode.is_some() {
+                return Err(format!(
+                    "price '{key}': per_unit must not declare tiers or tiers_mode"
+                ));
+            }
+        }
+        BillingScheme::Tiered => {
+            if price.unit_amount_cents.is_some() {
+                return Err(format!(
+                    "price '{key}': tiered must not declare a top-level unit_amount_cents \
+                     (amounts live in tiers)"
+                ));
+            }
+            if price.tiers_mode.is_none() {
+                return Err(format!("price '{key}': tiered requires tiers_mode"));
+            }
+            if price.tiers.is_empty() {
+                return Err(format!("price '{key}': tiered requires at least one tier"));
+            }
+            let last = price.tiers.len() - 1;
+            // Finite bounds must be strictly increasing positive integers, as
+            // Stripe requires: each tier's `up_to` is an inclusive seat count
+            // greater than the previous tier's.
+            let mut prev_finite: Option<i64> = None;
+            for (i, tier) in price.tiers.iter().enumerate() {
+                let is_last = i == last;
+                match (tier.up_to, is_last) {
+                    (TierUpTo::Inf, true) => {}
+                    (TierUpTo::Inf, false) => {
+                        return Err(format!(
+                            "price '{key}': only the last tier may use up_to: inf"
+                        ));
+                    }
+                    (TierUpTo::Finite(_), true) => {
+                        return Err(format!("price '{key}': the last tier must use up_to: inf"));
+                    }
+                    (TierUpTo::Finite(bound), false) => {
+                        if bound <= 0 {
+                            return Err(format!(
+                                "price '{key}': tier up_to must be a positive integer, got {bound}"
+                            ));
+                        }
+                        if let Some(prev) = prev_finite
+                            && bound <= prev
+                        {
+                            return Err(format!(
+                                "price '{key}': tier up_to values must be strictly \
+                                 increasing (got {bound} after {prev})"
+                            ));
+                        }
+                        prev_finite = Some(bound);
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Validates that a plan's `pricing_model` matches its price's `billing_scheme`.
+///
+/// A `tiered` plan must carry `tiered` prices; a `flat` or `per_unit` plan must
+/// carry `per_unit` prices (both are billed with Stripe `per_unit`, they differ
+/// only in whether a seat quantity is requested).
+fn validate_plan_price_coherence(
+    service_slug: &str,
+    plan: &CatalogPlan,
+    price: &CatalogPrice,
+) -> Result<(), String> {
+    let expected = match plan.pricing_model {
+        PricingModel::Tiered => BillingScheme::Tiered,
+        PricingModel::Flat | PricingModel::PerUnit => BillingScheme::PerUnit,
+    };
+    if price.billing_scheme != expected {
+        return Err(format!(
+            "plan '{service_slug}/{}' has pricing_model {:?} but price '{}' has \
+             billing_scheme {:?} (expected {:?})",
+            plan.slug, plan.pricing_model, price.lookup_key, price.billing_scheme, expected
+        ));
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -363,10 +598,17 @@ legacy:
         assert_eq!(service.category, ManagedServiceCategory::Automation);
         assert_eq!(service.chart.name, "gitlab-runner");
 
-        let price = &service.plans[0].prices[0];
+        let plan = &service.plans[0];
+        assert_eq!(plan.pricing_model, PricingModel::Flat, "defaults to flat");
+        let price = &plan.prices[0];
         assert_eq!(price.lookup_key, "gitlab-managed-v1-monthly");
-        assert_eq!(price.unit_amount_cents, 5000);
+        assert_eq!(price.unit_amount_cents, Some(5000));
         assert_eq!(price.interval, Some(CatalogInterval::Month));
+        assert_eq!(
+            price.billing_scheme,
+            BillingScheme::PerUnit,
+            "defaults to per_unit"
+        );
     }
 
     #[test]
@@ -455,5 +697,358 @@ managed_services:
         assert_eq!(plan.status, "active");
         assert!(!plan.requires_payment);
         assert!(plan.prices.is_empty());
+    }
+
+    /// A `per_unit` (per-seat, fixed amount) plan parses with the right scheme.
+    #[test]
+    fn parses_per_unit_seat_plan() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: caldiy
+    stripe_product_id: prod_caldiy
+    name: Cal.diy
+    category: collaboration
+    chart: { name: caldiy }
+    plans:
+      - slug: caldiy-team
+        name: Cal.diy Team
+        requires_payment: true
+        pricing_model: per_unit
+        prices:
+          - lookup_key: caldiy-seat-v1-monthly
+            billing_scheme: per_unit
+            unit_amount_cents: 9000
+            currency: eur
+            interval: month
+"#;
+
+        // Act
+        let catalog = Catalog::from_yaml(yaml).unwrap();
+
+        // Assert
+        let plan = &catalog.managed_services[0].plans[0];
+        assert_eq!(plan.pricing_model, PricingModel::PerUnit);
+        let price = &plan.prices[0];
+        assert_eq!(price.billing_scheme, BillingScheme::PerUnit);
+        assert_eq!(price.unit_amount_cents, Some(9000));
+        assert!(price.tiers.is_empty());
+    }
+
+    /// A `tiered`/`graduated` plan parses its tiers, including `up_to: inf`.
+    #[test]
+    fn parses_tiered_graduated_plan() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: gitlab
+    stripe_product_id: prod_gitlab
+    name: GitLab CE
+    category: automation
+    chart: { name: gitlab }
+    plans:
+      - slug: gitlab-ce-graduated
+        name: GitLab CE
+        requires_payment: true
+        pricing_model: tiered
+        prices:
+          - lookup_key: gitlab-ce-seat-graduated-v1-monthly
+            billing_scheme: tiered
+            tiers_mode: graduated
+            currency: eur
+            interval: month
+            tiers:
+              - { up_to: 100, unit_amount_cents: 1000 }
+              - { up_to: 200, unit_amount_cents: 800 }
+              - { up_to: inf, unit_amount_cents: 600 }
+"#;
+
+        // Act
+        let catalog = Catalog::from_yaml(yaml).unwrap();
+
+        // Assert
+        let price = &catalog.managed_services[0].plans[0].prices[0];
+        assert_eq!(price.billing_scheme, BillingScheme::Tiered);
+        assert_eq!(price.tiers_mode, Some(TiersMode::Graduated));
+        assert_eq!(price.unit_amount_cents, None);
+        assert_eq!(price.tiers.len(), 3);
+        assert_eq!(price.tiers[0].up_to, TierUpTo::Finite(100));
+        assert_eq!(price.tiers[0].unit_amount_cents, 1000);
+        assert_eq!(price.tiers[2].up_to, TierUpTo::Inf);
+    }
+
+    /// A `tiered`/`volume` plan parses with the volume tiers_mode.
+    #[test]
+    fn parses_tiered_volume_plan() {
+        // Arrange
+        let yaml = tiered_yaml("volume");
+
+        // Act
+        let catalog = Catalog::from_yaml(&yaml).unwrap();
+
+        // Assert
+        let price = &catalog.managed_services[0].plans[0].prices[0];
+        assert_eq!(price.tiers_mode, Some(TiersMode::Volume));
+    }
+
+    /// A `tiered` price without `tiers_mode` is rejected.
+    #[test]
+    fn rejects_tiered_without_tiers_mode() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: s
+    stripe_product_id: prod_s
+    name: S
+    category: automation
+    chart: { name: s }
+    plans:
+      - slug: p
+        name: P
+        requires_payment: true
+        pricing_model: tiered
+        prices:
+          - lookup_key: p-seat-v1-monthly
+            billing_scheme: tiered
+            currency: eur
+            interval: month
+            tiers:
+              - { up_to: inf, unit_amount_cents: 600 }
+"#;
+
+        // Act
+        let result = Catalog::from_yaml(yaml);
+
+        // Assert
+        assert!(matches!(result, Err(CatalogError::Invalid(_))));
+    }
+
+    /// A `tiered` price whose last tier is finite (no `inf`) is rejected.
+    #[test]
+    fn rejects_tiered_without_inf_last_tier() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: s
+    stripe_product_id: prod_s
+    name: S
+    category: automation
+    chart: { name: s }
+    plans:
+      - slug: p
+        name: P
+        requires_payment: true
+        pricing_model: tiered
+        prices:
+          - lookup_key: p-seat-v1-monthly
+            billing_scheme: tiered
+            tiers_mode: graduated
+            currency: eur
+            interval: month
+            tiers:
+              - { up_to: 100, unit_amount_cents: 1000 }
+              - { up_to: 200, unit_amount_cents: 800 }
+"#;
+
+        // Act
+        let result = Catalog::from_yaml(yaml);
+
+        // Assert
+        assert!(matches!(result, Err(CatalogError::Invalid(_))));
+    }
+
+    /// A `tiered` price whose finite `up_to` bounds are not strictly increasing
+    /// is rejected (Stripe requires ascending tier bounds).
+    #[test]
+    fn rejects_tiered_with_non_increasing_bounds() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: s
+    stripe_product_id: prod_s
+    name: S
+    category: automation
+    chart: { name: s }
+    plans:
+      - slug: p
+        name: P
+        requires_payment: true
+        pricing_model: tiered
+        prices:
+          - lookup_key: p-seat-v1-monthly
+            billing_scheme: tiered
+            tiers_mode: graduated
+            currency: eur
+            interval: month
+            tiers:
+              - { up_to: 100, unit_amount_cents: 1000 }
+              - { up_to: 100, unit_amount_cents: 800 }
+              - { up_to: inf, unit_amount_cents: 600 }
+"#;
+
+        // Act
+        let result = Catalog::from_yaml(yaml);
+
+        // Assert
+        assert!(matches!(result, Err(CatalogError::Invalid(_))));
+    }
+
+    /// A `tiered` price with a top-level `unit_amount_cents` is rejected.
+    #[test]
+    fn rejects_tiered_with_top_level_amount() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: s
+    stripe_product_id: prod_s
+    name: S
+    category: automation
+    chart: { name: s }
+    plans:
+      - slug: p
+        name: P
+        requires_payment: true
+        pricing_model: tiered
+        prices:
+          - lookup_key: p-seat-v1-monthly
+            billing_scheme: tiered
+            tiers_mode: graduated
+            unit_amount_cents: 500
+            currency: eur
+            interval: month
+            tiers:
+              - { up_to: inf, unit_amount_cents: 600 }
+"#;
+
+        // Act
+        let result = Catalog::from_yaml(yaml);
+
+        // Assert
+        assert!(matches!(result, Err(CatalogError::Invalid(_))));
+    }
+
+    /// A `per_unit` price that declares tiers is rejected.
+    #[test]
+    fn rejects_per_unit_with_tiers() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: s
+    stripe_product_id: prod_s
+    name: S
+    category: automation
+    chart: { name: s }
+    plans:
+      - slug: p
+        name: P
+        requires_payment: true
+        pricing_model: per_unit
+        prices:
+          - lookup_key: p-seat-v1-monthly
+            billing_scheme: per_unit
+            unit_amount_cents: 9000
+            currency: eur
+            interval: month
+            tiers:
+              - { up_to: inf, unit_amount_cents: 600 }
+"#;
+
+        // Act
+        let result = Catalog::from_yaml(yaml);
+
+        // Assert
+        assert!(matches!(result, Err(CatalogError::Invalid(_))));
+    }
+
+    /// A `per_unit` price without an amount is rejected.
+    #[test]
+    fn rejects_per_unit_without_amount() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: s
+    stripe_product_id: prod_s
+    name: S
+    category: automation
+    chart: { name: s }
+    plans:
+      - slug: p
+        name: P
+        requires_payment: true
+        pricing_model: per_unit
+        prices:
+          - lookup_key: p-seat-v1-monthly
+            billing_scheme: per_unit
+            currency: eur
+            interval: month
+"#;
+
+        // Act
+        let result = Catalog::from_yaml(yaml);
+
+        // Assert
+        assert!(matches!(result, Err(CatalogError::Invalid(_))));
+    }
+
+    /// A plan whose `pricing_model` disagrees with its price `billing_scheme`
+    /// is rejected (here: a `per_unit` plan carrying a `tiered` price).
+    #[test]
+    fn rejects_plan_price_scheme_mismatch() {
+        // Arrange
+        let yaml = r#"
+managed_services:
+  - slug: s
+    stripe_product_id: prod_s
+    name: S
+    category: automation
+    chart: { name: s }
+    plans:
+      - slug: p
+        name: P
+        requires_payment: true
+        pricing_model: per_unit
+        prices:
+          - lookup_key: p-seat-v1-monthly
+            billing_scheme: tiered
+            tiers_mode: graduated
+            currency: eur
+            interval: month
+            tiers:
+              - { up_to: inf, unit_amount_cents: 600 }
+"#;
+
+        // Act
+        let result = Catalog::from_yaml(yaml);
+
+        // Assert
+        assert!(matches!(result, Err(CatalogError::Invalid(_))));
+    }
+
+    /// Builds a valid tiered plan YAML for the given tiers_mode.
+    fn tiered_yaml(mode: &str) -> String {
+        format!(
+            r#"
+managed_services:
+  - slug: gitlab
+    stripe_product_id: prod_gitlab
+    name: GitLab CE
+    category: automation
+    chart: {{ name: gitlab }}
+    plans:
+      - slug: gitlab-ce
+        name: GitLab CE
+        requires_payment: true
+        pricing_model: tiered
+        prices:
+          - lookup_key: gitlab-ce-seat-v1-monthly
+            billing_scheme: tiered
+            tiers_mode: {mode}
+            currency: eur
+            interval: month
+            tiers:
+              - {{ up_to: 100, unit_amount_cents: 1000 }}
+              - {{ up_to: inf, unit_amount_cents: 600 }}
+"#
+        )
     }
 }

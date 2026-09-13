@@ -399,6 +399,42 @@ managed_services:
             currency: eur
             interval: month
 
+  # Per-seat pricing (FRA-15): a fixed amount per seat (Stripe billing_scheme
+  # per_unit, usage_type licensed). The seat quantity is chosen at checkout and
+  # carried by the subscription — never declared here. First per-seat deal:
+  # Ascor / cal.diy (~900 €/mois at 10 seats).
+  - slug: caldiy
+    stripe_product_id: prod_UjPPsrYB9qAqnC
+    name: Cal.diy
+    description: >-
+      Planification et prise de rendez-vous en marque blanche, hébergée en
+      France. Facturation par siège.
+    category: collaboration
+    deploy_target:
+      availability: fr
+    chart:
+      name: caldiy
+      oci_reference: oci://registry.gitlab.com/getbunker-france-nuage/france-nuage/charts/caldiy
+    plans:
+      - slug: caldiy-team
+        name: Cal.diy Team
+        description: >-
+          Cal.diy managé, facturé par siège. Le nombre de sièges est choisi à la
+          souscription.
+        highlighted: false
+        requires_payment: true
+        pricing_model: per_unit
+        prices:
+          - lookup_key: caldiy-seat-v1-monthly
+            billing_scheme: per_unit
+            unit_amount_cents: 9000
+            currency: eur
+            interval: month
+        entitlements:
+          - { key: seats, label: Facturation, value: Par siège }
+          - { key: whitelabel, label: Marque blanche, value: Domaine et logo personnalisés }
+          - { key: hosting, label: Hébergement, value: France (souverain) }
+
 # Bare Kubernetes resources billed by usage. Customers take a France Nuage
 # namespace and we bill the vCPU / RAM / storage they consume. No Helm chart,
 # not displayed as an installable service.

@@ -91,6 +91,9 @@ pub struct BillingSubscription {
     pub instance_id: Option<Uuid>,
     pub status: SubscriptionStatus,
     pub billing_period: BillingPeriod,
+    /// Declared seat count for a per-seat plan, chosen at checkout and frozen for
+    /// the subscription's lifetime. `None` for flat plans (billed quantity 1).
+    pub seats: Option<i32>,
     pub current_period_start: Option<DateTime<Utc>>,
     pub current_period_end: Option<DateTime<Utc>>,
     pub canceled_at: Option<DateTime<Utc>>,
@@ -153,6 +156,10 @@ pub enum BillingError {
         plan_slug: String,
         period: BillingPeriod,
     },
+    #[error("plan '{plan_slug}' is per-seat: a seat count of at least 1 is required")]
+    SeatsRequired { plan_slug: String },
+    #[error("plan '{plan_slug}' is flat: a seat count is not applicable")]
+    SeatsNotApplicable { plan_slug: String },
     #[error("webhook signature verification failed")]
     InvalidWebhookSignature,
     #[error("duplicate event: {0}")]
@@ -198,20 +205,65 @@ pub const CATALOG_MANAGED_BY_KEY: &str = "managed_by";
 /// Value of [`CATALOG_MANAGED_BY_KEY`] for catalogue-owned objects.
 pub const CATALOG_MANAGED_BY_VALUE: &str = "france-nuage-catalog";
 
+/// Stripe `billing_scheme` for a price.
+///
+/// Stripe only has two schemes; there is no `flat`. Our historical "flat" fees
+/// are `per_unit` prices billed with quantity 1. Per-seat pricing uses either
+/// a fixed `per_unit` amount times the seat quantity, or `tiered` tiers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum StripeBillingScheme {
+    /// Fixed `unit_amount` per unit, multiplied by the line-item quantity.
+    #[default]
+    PerUnit,
+    /// Graduated/volume tiers (`tiers` + `tiers_mode`).
+    Tiered,
+}
+
+/// Stripe `tiers_mode` for a `tiered` price.
+///
+/// `graduated` bills each tier's units at that tier's rate and sums them;
+/// `volume` picks the single tier the total quantity falls into and applies its
+/// rate to every unit.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StripeTiersMode {
+    Graduated,
+    Volume,
+}
+
+/// A single pricing tier for a `tiered` price.
+///
+/// `up_to = None` denotes the unbounded fallback tier (Stripe `inf`), which must
+/// be the last tier. `unit_amount_cents` is the per-seat rate for that tier, in
+/// the currency's smallest unit; it maps to Stripe's `tiers[i][unit_amount]`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PriceTier {
+    /// Inclusive upper bound of this tier, or `None` for the `inf` tier.
+    pub up_to: Option<i64>,
+    /// Per-unit amount in the currency's smallest unit (cents).
+    pub unit_amount_cents: i64,
+}
+
 /// Declarative specification of a recurring price to reconcile into Stripe.
 ///
 /// This is the input to [`StripeClient::ensure_price`]. It carries the desired
-/// state (amount, currency, interval, nickname) plus the stable `lookup_key`
-/// that lets the reconciler find and converge the price idempotently,
-/// independently of Stripe's opaque generated `price_...` id.
+/// state (billing scheme, amount or tiers, currency, interval, nickname) plus
+/// the stable `lookup_key` that lets the reconciler find and converge the price
+/// idempotently, independently of Stripe's opaque generated `price_...` id.
+///
+/// The billing scheme fields are mutually exclusive by construction (enforced by
+/// catalogue validation, see [`crate::managed::Catalog`]):
+/// - `PerUnit`: `unit_amount_cents` is `Some`, `tiers` empty, `tiers_mode` `None`.
+/// - `Tiered`: `unit_amount_cents` is `None`, `tiers` non-empty (last unbounded),
+///   `tiers_mode` `Some`.
 #[derive(Debug, Clone)]
 pub struct PriceSpec {
     /// Stable Stripe lookup key, declared in the catalogue.
     pub lookup_key: String,
     /// Stripe product id the price belongs to.
     pub product_id: String,
-    /// Amount in the currency's smallest unit (e.g. cents).
-    pub unit_amount_cents: i64,
+    /// Fixed per-unit amount in the currency's smallest unit (cents). `Some` for
+    /// a `per_unit` price, `None` for a `tiered` price (amounts live in `tiers`).
+    pub unit_amount_cents: Option<i64>,
     /// Three-letter ISO currency code, lowercase (e.g. `eur`).
     pub currency: String,
     /// Recurring billing interval, or `None` for a one-time price.
@@ -219,6 +271,12 @@ pub struct PriceSpec {
     /// Optional Stripe nickname (internal label, hidden from customers). A
     /// mutable field: changing it updates the existing price without recreating.
     pub nickname: Option<String>,
+    /// Stripe billing scheme (`per_unit` or `tiered`).
+    pub billing_scheme: StripeBillingScheme,
+    /// Tiers mode, set iff `billing_scheme == Tiered`.
+    pub tiers_mode: Option<StripeTiersMode>,
+    /// Pricing tiers, non-empty iff `billing_scheme == Tiered`.
+    pub tiers: Vec<PriceTier>,
 }
 
 /// Result of reconciling a single price into Stripe.
@@ -265,10 +323,16 @@ pub trait StripeClient: Clone + Send + Sync {
         organization_name: &str,
     ) -> Result<String, BillingError>;
 
+    /// Creates a Stripe Checkout Session for a subscription line item.
+    ///
+    /// `quantity` is the resolved line-item quantity: `1` for a flat plan, and
+    /// the declared seat count for a per-seat plan. Stripe multiplies the price
+    /// (per-unit amount or tiered rate) by this quantity.
     async fn create_checkout_session(
         &self,
         customer_id: &str,
         price_id: &str,
+        quantity: u32,
         metadata: CheckoutMetadata,
         success_url: &str,
         cancel_url: &str,

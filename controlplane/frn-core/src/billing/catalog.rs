@@ -16,10 +16,12 @@ use std::collections::HashMap;
 use serde_json::Value;
 
 use crate::authorization::Authorize;
-use crate::billing::{Billing, BillingError, PriceSpec, StripeClient};
+use crate::billing::{
+    Billing, BillingError, PriceSpec, PriceTier, StripeBillingScheme, StripeClient, StripeTiersMode,
+};
 use crate::managed::{
-    BillableProduct, Catalog, CatalogInterval, CatalogPlan, CatalogPrice, ManagedServiceEntry,
-    PlanEntitlement,
+    BillableProduct, BillingScheme as CatalogBillingScheme, Catalog, CatalogInterval, CatalogPlan,
+    CatalogPrice, ManagedServiceEntry, PlanEntitlement, TierUpTo, TiersMode as CatalogTiersMode,
 };
 
 /// Outcome of reconciling the catalogue into Stripe.
@@ -178,6 +180,7 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
                         monthly.as_deref(),
                         yearly.as_deref(),
                         plan.requires_payment,
+                        plan.pricing_model.as_str(),
                     )
                     .await?;
             }
@@ -276,6 +279,9 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
             currency: price.currency.clone(),
             interval: price.interval.map(Into::into),
             nickname: price.nickname.clone(),
+            billing_scheme: billing_scheme_of(price.billing_scheme),
+            tiers_mode: price.tiers_mode.map(tiers_mode_of),
+            tiers: price.tiers.iter().map(tier_of).collect(),
         };
 
         let ensured = self.stripe.ensure_price(&spec).await?;
@@ -286,12 +292,41 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
     }
 }
 
+/// Maps a catalogue [`CatalogBillingScheme`] to the Stripe-domain scheme.
+fn billing_scheme_of(scheme: CatalogBillingScheme) -> StripeBillingScheme {
+    match scheme {
+        CatalogBillingScheme::PerUnit => StripeBillingScheme::PerUnit,
+        CatalogBillingScheme::Tiered => StripeBillingScheme::Tiered,
+    }
+}
+
+/// Maps a catalogue [`CatalogTiersMode`] to the Stripe-domain tiers mode.
+fn tiers_mode_of(mode: CatalogTiersMode) -> StripeTiersMode {
+    match mode {
+        CatalogTiersMode::Graduated => StripeTiersMode::Graduated,
+        CatalogTiersMode::Volume => StripeTiersMode::Volume,
+    }
+}
+
+/// Maps a catalogue tier to a Stripe-domain [`PriceTier`], turning `inf` into
+/// the unbounded (`None`) upper bound Stripe expects.
+fn tier_of(tier: &crate::managed::CatalogTier) -> PriceTier {
+    PriceTier {
+        up_to: match tier.up_to {
+            TierUpTo::Finite(n) => Some(n),
+            TierUpTo::Inf => None,
+        },
+        unit_amount_cents: tier.unit_amount_cents,
+    }
+}
+
 /// Returns the reconciled Stripe price ids for a plan's monthly and yearly
 /// prices, mapping each declared price by its interval.
 ///
 /// Projects the plan's N prices onto the two `stripe_price_id_monthly/yearly`
-/// columns of `managed.service_plan`. See issue #8033 for the flexible-pricing
-/// table that will supersede this projection.
+/// columns of `managed.service_plan`. Per-seat pricing (FRA-15) reuses these two
+/// columns unchanged: the per-seat quantity is carried by the subscription, not
+/// the plan, so no extra pricing column is needed here.
 fn plan_price_ids(
     plan: &CatalogPlan,
     reconciled: &ReconciledCatalog,
@@ -310,11 +345,15 @@ fn plan_price_ids(
 }
 
 /// Returns the plan's amount in cents for a given recurring interval, if declared.
+///
+/// Only `per_unit` prices carry a top-level amount; `tiered` prices have `None`
+/// here (their amounts live in the tiers), so the projected plan amount is left
+/// unset for tiered plans.
 fn plan_amount(plan: &CatalogPlan, interval: CatalogInterval) -> Option<i64> {
     plan.prices
         .iter()
         .find(|p| p.interval == Some(interval))
-        .map(|p| p.unit_amount_cents)
+        .and_then(|p| p.unit_amount_cents)
 }
 
 /// Computes orphan prices: managed prices whose lookup key is missing or no
@@ -368,7 +407,10 @@ mod tests {
     use std::sync::Arc;
     use std::sync::Mutex;
 
-    use crate::billing::{BillingError, EnsurePriceResult, PriceInterval, PriceSpec, StripeClient};
+    use crate::billing::{
+        BillingError, EnsurePriceResult, PriceInterval, PriceSpec, PriceTier, StripeBillingScheme,
+        StripeClient, StripeTiersMode,
+    };
 
     /// A recorded Stripe price in the fake store.
     #[derive(Debug, Clone)]
@@ -376,10 +418,13 @@ mod tests {
         id: String,
         lookup_key: String,
         product_id: String,
-        unit_amount_cents: i64,
+        unit_amount_cents: Option<i64>,
         currency: String,
         interval: Option<PriceInterval>,
         nickname: Option<String>,
+        billing_scheme: StripeBillingScheme,
+        tiers_mode: Option<StripeTiersMode>,
+        tiers: Vec<PriceTier>,
         active: bool,
     }
 
@@ -429,6 +474,7 @@ mod tests {
             &self,
             _: &str,
             _: &str,
+            _: u32,
             _: crate::billing::CheckoutMetadata,
             _: &str,
             _: &str,
@@ -475,8 +521,15 @@ mod tests {
                 .position(|p| p.active && p.lookup_key == spec.lookup_key);
 
             if let Some(idx) = current_idx {
-                let same = state.prices[idx].unit_amount_cents == spec.unit_amount_cents
-                    && state.prices[idx].currency == spec.currency;
+                // Amount/currency are immutable on Stripe, and so are the billing
+                // scheme and tiers: reuse only when all of them match. Any change
+                // (amount, scheme, tiers_mode, tiers) forces a new price.
+                let existing = &state.prices[idx];
+                let same = existing.unit_amount_cents == spec.unit_amount_cents
+                    && existing.currency == spec.currency
+                    && existing.billing_scheme == spec.billing_scheme
+                    && existing.tiers_mode == spec.tiers_mode
+                    && existing.tiers == spec.tiers;
                 if same {
                     // Mutable nickname: update in place, no recreation.
                     state.prices[idx].nickname = spec.nickname.clone();
@@ -485,7 +538,7 @@ mod tests {
                         created: false,
                     });
                 }
-                // Amount changed: transfer_lookup_key + retire old price.
+                // A priced field changed: transfer_lookup_key + retire old price.
                 state.prices[idx].lookup_key = String::new();
                 state.prices[idx].active = false;
             }
@@ -500,6 +553,9 @@ mod tests {
                 currency: spec.currency.clone(),
                 interval: spec.interval,
                 nickname: spec.nickname.clone(),
+                billing_scheme: spec.billing_scheme,
+                tiers_mode: spec.tiers_mode,
+                tiers: spec.tiers.clone(),
                 active: true,
             });
 
@@ -555,10 +611,35 @@ mod tests {
         PriceSpec {
             lookup_key: lookup_key.to_owned(),
             product_id: "gitlab-runner-standard".to_owned(),
-            unit_amount_cents: amount,
+            unit_amount_cents: Some(amount),
             currency: "eur".to_owned(),
             interval: Some(PriceInterval::Month),
             nickname: None,
+            billing_scheme: StripeBillingScheme::PerUnit,
+            tiers_mode: None,
+            tiers: Vec::new(),
+        }
+    }
+
+    /// Builds a tiered price spec with the given mode and tiers.
+    fn tiered_spec(lookup_key: &str, mode: StripeTiersMode, tiers: Vec<PriceTier>) -> PriceSpec {
+        PriceSpec {
+            lookup_key: lookup_key.to_owned(),
+            product_id: "gitlab-ce".to_owned(),
+            unit_amount_cents: None,
+            currency: "eur".to_owned(),
+            interval: Some(PriceInterval::Month),
+            nickname: None,
+            billing_scheme: StripeBillingScheme::Tiered,
+            tiers_mode: Some(mode),
+            tiers,
+        }
+    }
+
+    fn tier(up_to: Option<i64>, cents: i64) -> PriceTier {
+        PriceTier {
+            up_to,
+            unit_amount_cents: cents,
         }
     }
 
@@ -574,7 +655,7 @@ mod tests {
         assert!(result.created);
         let active = stripe.active_prices();
         assert_eq!(active.len(), 1);
-        assert_eq!(active[0].unit_amount_cents, 2500);
+        assert_eq!(active[0].unit_amount_cents, Some(2500));
         assert_eq!(active[0].product_id, "gitlab-runner-standard");
         assert_eq!(active[0].interval, Some(PriceInterval::Month));
     }
@@ -627,7 +708,7 @@ mod tests {
 
         let active = stripe.active_prices();
         assert_eq!(active.len(), 1, "only the new price stays active");
-        assert_eq!(active[0].unit_amount_cents, 3000);
+        assert_eq!(active[0].unit_amount_cents, Some(3000));
         assert_eq!(active[0].lookup_key, "k-monthly");
 
         let all = stripe.all_prices();
@@ -635,6 +716,120 @@ mod tests {
         let old_price = all.iter().find(|p| p.id == old.price_id).unwrap();
         assert!(!old_price.active);
         assert_eq!(old_price.lookup_key, "");
+    }
+
+    #[tokio::test]
+    async fn ensure_price_creates_tiered_price() {
+        // Arrange
+        let stripe = FakeStripeClient::default();
+        let tiers = vec![tier(Some(100), 1000), tier(None, 600)];
+
+        // Act
+        let result = stripe
+            .ensure_price(&tiered_spec(
+                "seat-graduated-monthly",
+                StripeTiersMode::Graduated,
+                tiers.clone(),
+            ))
+            .await
+            .unwrap();
+
+        // Assert
+        assert!(result.created);
+        let active = stripe.active_prices();
+        assert_eq!(active.len(), 1);
+        assert_eq!(active[0].billing_scheme, StripeBillingScheme::Tiered);
+        assert_eq!(active[0].tiers_mode, Some(StripeTiersMode::Graduated));
+        assert_eq!(active[0].tiers, tiers);
+        assert_eq!(active[0].unit_amount_cents, None);
+    }
+
+    #[tokio::test]
+    async fn ensure_price_is_idempotent_for_unchanged_tiers() {
+        // Arrange
+        let stripe = FakeStripeClient::default();
+        let tiers = vec![tier(Some(100), 1000), tier(None, 600)];
+        let first = stripe
+            .ensure_price(&tiered_spec(
+                "seat-monthly",
+                StripeTiersMode::Volume,
+                tiers.clone(),
+            ))
+            .await
+            .unwrap();
+
+        // Act: same scheme, mode and tiers.
+        let second = stripe
+            .ensure_price(&tiered_spec("seat-monthly", StripeTiersMode::Volume, tiers))
+            .await
+            .unwrap();
+
+        // Assert
+        assert!(!second.created);
+        assert_eq!(first.price_id, second.price_id);
+        assert_eq!(stripe.all_prices().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn ensure_price_recreates_when_tiers_change() {
+        // Arrange
+        let stripe = FakeStripeClient::default();
+        let old = stripe
+            .ensure_price(&tiered_spec(
+                "seat-monthly",
+                StripeTiersMode::Graduated,
+                vec![tier(Some(100), 1000), tier(None, 600)],
+            ))
+            .await
+            .unwrap();
+
+        // Act: cheaper last tier -> different tiers -> recreation.
+        let new = stripe
+            .ensure_price(&tiered_spec(
+                "seat-monthly",
+                StripeTiersMode::Graduated,
+                vec![tier(Some(100), 1000), tier(None, 500)],
+            ))
+            .await
+            .unwrap();
+
+        // Assert
+        assert!(new.created);
+        assert_ne!(old.price_id, new.price_id);
+        let active = stripe.active_prices();
+        assert_eq!(active.len(), 1, "only the new tiered price stays active");
+        assert_eq!(
+            active[0].tiers,
+            vec![tier(Some(100), 1000), tier(None, 500)]
+        );
+        assert_eq!(stripe.all_prices().len(), 2);
+    }
+
+    #[tokio::test]
+    async fn ensure_price_recreates_when_scheme_changes() {
+        // Arrange: a per_unit price holds the key.
+        let stripe = FakeStripeClient::default();
+        let old = stripe
+            .ensure_price(&spec("seat-monthly", 9000))
+            .await
+            .unwrap();
+
+        // Act: same key switches to tiered.
+        let new = stripe
+            .ensure_price(&tiered_spec(
+                "seat-monthly",
+                StripeTiersMode::Volume,
+                vec![tier(None, 600)],
+            ))
+            .await
+            .unwrap();
+
+        // Assert: recreated, only the tiered price stays active.
+        assert!(new.created);
+        assert_ne!(old.price_id, new.price_id);
+        let active = stripe.active_prices();
+        assert_eq!(active.len(), 1);
+        assert_eq!(active[0].billing_scheme, StripeBillingScheme::Tiered);
     }
 
     #[tokio::test]

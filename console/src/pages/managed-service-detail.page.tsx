@@ -8,6 +8,7 @@ import {
   Grid,
   HStack,
   Heading,
+  NumberInput,
   SegmentGroup,
   Select,
   Separator,
@@ -16,7 +17,12 @@ import {
   Text,
   useListCollection,
 } from '@chakra-ui/react';
-import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
+import {
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from 'nuqs';
 import {
   FunctionComponent,
   useCallback,
@@ -61,19 +67,28 @@ export const ManagedServiceDetailPage: FunctionComponent = () => {
     (state) => state.application.activeOrganization,
   );
 
-  const [{ billing: billingPeriod, plan: selectedPlanId }, setDeployParams] =
-    useQueryStates({
-      billing: parseAsStringLiteral(['monthly', 'yearly'] as const).withDefault(
-        'monthly',
-      ),
-      plan: parseAsString,
-    });
+  const [
+    { billing: billingPeriod, plan: selectedPlanId, seats },
+    setDeployParams,
+  ] = useQueryStates({
+    billing: parseAsStringLiteral(['monthly', 'yearly'] as const).withDefault(
+      'monthly',
+    ),
+    plan: parseAsString,
+    // Seat quantity for per-seat plans (FRA-15). Defaults to 1; ignored for
+    // flat plans, required (>= 1) at checkout for per_unit/tiered plans.
+    seats: parseAsInteger.withDefault(1),
+  });
   const setSelectedPlanId = useCallback(
     (id: string) => setDeployParams({ plan: id }),
     [setDeployParams],
   );
   const setBillingPeriod = useCallback(
     (value: 'monthly' | 'yearly') => setDeployParams({ billing: value }),
+    [setDeployParams],
+  );
+  const setSeats = useCallback(
+    (value: number) => setDeployParams({ seats: value }),
     [setDeployParams],
   );
   const [selectedVersionId, setSelectedVersionId] = useState<string[]>([]);
@@ -143,6 +158,11 @@ export const ManagedServiceDetailPage: FunctionComponent = () => {
     [plans, selectedPlanId],
   );
 
+  // A per-seat plan (per_unit or tiered) requires a seat quantity at checkout.
+  const isPerSeat =
+    selectedPlan?.pricingModel === 'per_unit' ||
+    selectedPlan?.pricingModel === 'tiered';
+
   const handleDeploy = useCallback(() => {
     if (
       !slug ||
@@ -165,6 +185,7 @@ export const ManagedServiceDetailPage: FunctionComponent = () => {
           organizationSlug: activeOrganization.slug,
           planId: selectedPlanId,
           projectSlug: activeProject.slug,
+          seats: isPerSeat ? seats : undefined,
           secretValues: secretValues || undefined,
           serviceSlug: slug,
           userValues: userValues || undefined,
@@ -208,6 +229,8 @@ export const ManagedServiceDetailPage: FunctionComponent = () => {
     billingPeriod,
     userValues,
     secretValues,
+    isPerSeat,
+    seats,
     dispatch,
     navigate,
   ]);
@@ -287,6 +310,7 @@ export const ManagedServiceDetailPage: FunctionComponent = () => {
                 billingPeriod={billingPeriod}
                 selected={selectedPlanId === plan.id}
                 onSelect={() => setSelectedPlanId(plan.id)}
+                seats={selectedPlanId === plan.id ? seats : undefined}
               />
             ))}
           </Grid>
@@ -309,6 +333,27 @@ export const ManagedServiceDetailPage: FunctionComponent = () => {
               }
               onValueChange={setSelectedVersionId}
             />
+
+            {isPerSeat && (
+              <Box maxW="240px">
+                <Text fontWeight="medium" mb={1}>
+                  Nombre de sièges
+                </Text>
+                <NumberInput.Root
+                  min={1}
+                  value={String(seats)}
+                  onValueChange={(e) =>
+                    setSeats(Math.max(1, e.valueAsNumber || 1))
+                  }
+                >
+                  <NumberInput.Control />
+                  <NumberInput.Input />
+                </NumberInput.Root>
+                <Text fontSize="sm" color="fg.muted" mt={1}>
+                  La facturation est basée sur le nombre de sièges déclaré.
+                </Text>
+              </Box>
+            )}
 
             {valuesSchema && (
               <RjsfDeployForm

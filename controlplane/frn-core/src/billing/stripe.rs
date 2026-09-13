@@ -7,17 +7,18 @@ use stripe_billing::subscription::CancelSubscription;
 use stripe_checkout::checkout_session::{CreateCheckoutSession, CreateCheckoutSessionLineItems};
 use stripe_core::customer::{CreateCustomer, DeleteCustomer};
 use stripe_product::price::{
-    CreatePrice, CreatePriceRecurring, CreatePriceRecurringInterval, ListPrice, UpdatePrice,
+    CreatePrice, CreatePriceRecurring, CreatePriceRecurringInterval, CreatePriceRecurringUsageType,
+    CreatePriceTiers, CreatePriceTiersUpTo, ListPrice, UpdatePrice,
 };
 use stripe_product::product::{CreateProduct, ListProduct, RetrieveProduct, UpdateProduct};
-use stripe_shared::CheckoutSessionMode;
+use stripe_shared::{CheckoutSessionMode, PriceBillingScheme, PriceTiersMode};
 
 use futures::StreamExt;
 
 use crate::billing::{
     BillingError, CATALOG_MANAGED_BY_KEY, CATALOG_MANAGED_BY_VALUE, CheckoutMetadata,
     CheckoutSessionResult, EnsurePriceResult, ManagedPrice, ManagedProduct, PriceInterval,
-    PriceSpec, StripeClient,
+    PriceSpec, PriceTier, StripeBillingScheme, StripeClient, StripeTiersMode,
 };
 
 /// Builds the `managed_by` metadata marking an object as catalogue-owned.
@@ -35,6 +36,77 @@ impl From<PriceInterval> for CreatePriceRecurringInterval {
             PriceInterval::Year => CreatePriceRecurringInterval::Year,
         }
     }
+}
+
+impl From<StripeBillingScheme> for PriceBillingScheme {
+    fn from(scheme: StripeBillingScheme) -> Self {
+        match scheme {
+            StripeBillingScheme::PerUnit => PriceBillingScheme::PerUnit,
+            StripeBillingScheme::Tiered => PriceBillingScheme::Tiered,
+        }
+    }
+}
+
+impl From<StripeTiersMode> for PriceTiersMode {
+    fn from(mode: StripeTiersMode) -> Self {
+        match mode {
+            StripeTiersMode::Graduated => PriceTiersMode::Graduated,
+            StripeTiersMode::Volume => PriceTiersMode::Volume,
+        }
+    }
+}
+
+/// Converts a France Nuage [`PriceTier`] into Stripe's `CreatePriceTiers`,
+/// mapping the unbounded (`None`) upper bound to Stripe's `inf` and our
+/// `unit_amount_cents` to Stripe's `unit_amount`.
+fn create_tier(tier: &PriceTier) -> CreatePriceTiers {
+    let up_to = match tier.up_to {
+        Some(n) => CreatePriceTiersUpTo::I64(n),
+        None => CreatePriceTiersUpTo::Inf,
+    };
+    let mut created = CreatePriceTiers::new(up_to);
+    created.unit_amount = Some(tier.unit_amount_cents);
+    created
+}
+
+/// Returns whether an existing Stripe price already matches the desired spec,
+/// so reconciliation can reuse it instead of creating a new one.
+///
+/// Amount, currency, billing scheme and tiers are immutable on Stripe; only the
+/// nickname is mutable. A mismatch on any priced field means a new price must be
+/// created (with `transfer_lookup_key`).
+fn price_matches(
+    price: &stripe_shared::Price,
+    spec: &PriceSpec,
+    currency: &stripe_types::Currency,
+) -> bool {
+    if price.currency != *currency {
+        return false;
+    }
+    match spec.billing_scheme {
+        StripeBillingScheme::PerUnit => {
+            price.billing_scheme == PriceBillingScheme::PerUnit
+                && price.unit_amount == spec.unit_amount_cents
+        }
+        StripeBillingScheme::Tiered => {
+            price.billing_scheme == PriceBillingScheme::Tiered
+                && price.tiers_mode == spec.tiers_mode.map(Into::into)
+                && tiers_match(price.tiers.as_deref(), &spec.tiers)
+        }
+    }
+}
+
+/// Compares the tiers Stripe returned (requires `expand[]=data.tiers`) with the
+/// desired tiers, matching each `up_to` (Stripe `None` == our `inf`) and rate.
+fn tiers_match(existing: Option<&[stripe_shared::PriceTier]>, desired: &[PriceTier]) -> bool {
+    let Some(existing) = existing else {
+        return desired.is_empty();
+    };
+    existing.len() == desired.len()
+        && existing
+            .iter()
+            .zip(desired)
+            .all(|(e, d)| e.up_to == d.up_to && e.unit_amount == Some(d.unit_amount_cents))
 }
 
 #[derive(Clone)]
@@ -72,6 +144,7 @@ impl StripeClient for HttpStripeClient {
         &self,
         customer_id: &str,
         price_id: &str,
+        quantity: u32,
         metadata: CheckoutMetadata,
         success_url: &str,
         cancel_url: &str,
@@ -87,9 +160,12 @@ impl StripeClient for HttpStripeClient {
             ("organization_slug".to_owned(), metadata.organization_slug),
         ]);
 
+        // Quantity is resolved by the caller: 1 for a flat plan, the declared
+        // seat count for a per-seat plan. Stripe multiplies the price (per-unit
+        // amount or tiered rate) by this quantity.
         let line_item = CreateCheckoutSessionLineItems {
             price: Some(price_id.to_owned()),
-            quantity: Some(1),
+            quantity: Some(quantity.into()),
             ..Default::default()
         };
 
@@ -180,52 +256,71 @@ impl StripeClient for HttpStripeClient {
             .map_err(|_| BillingError::Stripe(format!("invalid currency: {}", spec.currency)))?;
 
         // Find the active price currently carrying this lookup_key, if any.
+        // Expand `data.tiers` so a tiered price's tiers come back and can be
+        // compared for idempotence (Stripe omits `tiers` unless expanded).
         let existing = ListPrice::new()
             .lookup_keys(vec![spec.lookup_key.clone()])
             .active(true)
+            .expand(vec!["data.tiers".to_owned()])
             .send(&self.client)
             .await
             .map_err(|e| BillingError::Stripe(e.to_string()))?;
 
         let current = existing.data.into_iter().next();
 
-        // Reuse when an active price with the same amount/currency already holds
-        // the key. Amount/currency are immutable, but the nickname is not: update
-        // it in place if it changed, without recreating the price.
-        if let Some(price) = &current {
-            let amount_matches = price.unit_amount == Some(spec.unit_amount_cents);
-            let currency_matches = price.currency == currency;
-            if amount_matches && currency_matches {
-                if price.nickname.as_deref() != spec.nickname.as_deref() {
-                    let mut update = UpdatePrice::new(price.id.as_str());
-                    if let Some(nickname) = &spec.nickname {
-                        update = update.nickname(nickname.clone());
-                    }
-                    update
-                        .send(&self.client)
-                        .await
-                        .map_err(|e| BillingError::Stripe(e.to_string()))?;
+        // Reuse when an active price with the same priced fields (amount/currency
+        // for per_unit; tiers_mode/tiers for tiered) already holds the key. Those
+        // fields are immutable, but the nickname is not: update it in place if it
+        // changed, without recreating the price.
+        if let Some(price) = &current
+            && price_matches(price, spec, &currency)
+        {
+            if price.nickname.as_deref() != spec.nickname.as_deref() {
+                let mut update = UpdatePrice::new(price.id.as_str());
+                if let Some(nickname) = &spec.nickname {
+                    update = update.nickname(nickname.clone());
                 }
-                return Ok(EnsurePriceResult {
-                    price_id: price.id.to_string(),
-                    created: false,
-                });
+                update
+                    .send(&self.client)
+                    .await
+                    .map_err(|e| BillingError::Stripe(e.to_string()))?;
             }
+            return Ok(EnsurePriceResult {
+                price_id: price.id.to_string(),
+                created: false,
+            });
         }
 
-        // Amount/currency changed (or first creation): create a new price
-        // carrying the lookup_key. When a stale price holds the key,
-        // transfer_lookup_key moves it onto the new price.
+        // A priced field changed (or first creation): create a new price carrying
+        // the lookup_key. When a stale price holds the key, transfer_lookup_key
+        // moves it onto the new price.
         let mut create = CreatePrice::new(currency)
             .product(spec.product_id.clone())
-            .unit_amount(spec.unit_amount_cents)
+            .billing_scheme(spec.billing_scheme)
             .lookup_key(spec.lookup_key.clone())
             .metadata(managed_by_metadata());
+        // Amounts: a fixed per-unit amount, or the graduated/volume tiers.
+        match spec.billing_scheme {
+            StripeBillingScheme::PerUnit => {
+                if let Some(amount) = spec.unit_amount_cents {
+                    create = create.unit_amount(amount);
+                }
+            }
+            StripeBillingScheme::Tiered => {
+                create = create.tiers(spec.tiers.iter().map(create_tier).collect::<Vec<_>>());
+                if let Some(mode) = spec.tiers_mode {
+                    create = create.tiers_mode(mode);
+                }
+            }
+        }
         // Recurring price when an interval is set; otherwise a one-time price.
+        // Recurring prices are always `licensed` (we bill the declared quantity,
+        // never a metered usage record).
         if let Some(interval) = spec.interval {
-            create = create.recurring(CreatePriceRecurring::new(
-                CreatePriceRecurringInterval::from(interval),
-            ));
+            let mut recurring =
+                CreatePriceRecurring::new(CreatePriceRecurringInterval::from(interval));
+            recurring.usage_type = Some(CreatePriceRecurringUsageType::Licensed);
+            create = create.recurring(recurring);
         }
         if let Some(nickname) = &spec.nickname {
             create = create.nickname(nickname.clone());

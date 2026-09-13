@@ -132,6 +132,10 @@ pub struct ManagedServicePlan {
     pub stripe_price_id_monthly: Option<String>,
     pub stripe_price_id_yearly: Option<String>,
     pub requires_payment: bool,
+    /// Product-level pricing model: `flat` (default), `per_unit` or `tiered`.
+    /// Drives whether a seat quantity is required at checkout and shown in the
+    /// console. Mirrors the catalogue's `pricing_model` on the plan.
+    pub pricing_model: String,
     pub created_at: DateTime<Utc>,
 }
 
@@ -846,14 +850,16 @@ impl<A: Authorize> ManagedServices<A> {
         stripe_price_id_monthly: Option<&str>,
         stripe_price_id_yearly: Option<&str>,
         requires_payment: bool,
+        pricing_model: &str,
     ) -> Result<ManagedServicePlan, ManagedServiceError> {
         // fabrique limitation: ON CONFLICT on non-PK unique constraint (service_id, slug)
         let plan = sqlx::query_as::<_, ManagedServicePlan>(
             r#"INSERT INTO managed.service_plan
                    (id, service_id, slug, name, description, status, highlighted,
                     values_override, entitlements, price_monthly_cents, price_yearly_cents,
-                    stripe_price_id_monthly, stripe_price_id_yearly, requires_payment)
-               VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                    stripe_price_id_monthly, stripe_price_id_yearly, requires_payment,
+                    pricing_model)
+               VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
                ON CONFLICT (service_id, slug) DO UPDATE SET
                    name = EXCLUDED.name,
                    description = EXCLUDED.description,
@@ -865,7 +871,8 @@ impl<A: Authorize> ManagedServices<A> {
                    price_yearly_cents = EXCLUDED.price_yearly_cents,
                    stripe_price_id_monthly = EXCLUDED.stripe_price_id_monthly,
                    stripe_price_id_yearly = EXCLUDED.stripe_price_id_yearly,
-                   requires_payment = EXCLUDED.requires_payment
+                   requires_payment = EXCLUDED.requires_payment,
+                   pricing_model = EXCLUDED.pricing_model
                RETURNING *"#,
         )
         .bind(service_id)
@@ -881,6 +888,7 @@ impl<A: Authorize> ManagedServices<A> {
         .bind(stripe_price_id_monthly)
         .bind(stripe_price_id_yearly)
         .bind(requires_payment)
+        .bind(pricing_model)
         .fetch_one(&mut *conn)
         .await?;
         Ok(plan)

@@ -132,6 +132,7 @@ impl From<&ManagedServicePlan> for ManagedServicePlanProto {
             stripe_price_id_monthly: plan.stripe_price_id_monthly.clone(),
             stripe_price_id_yearly: plan.stripe_price_id_yearly.clone(),
             requires_payment: plan.requires_payment,
+            pricing_model: plan.pricing_model.clone(),
         }
     }
 }
@@ -390,6 +391,10 @@ impl<A: Authorize + 'static> managed_services_server::ManagedServices for Manage
                     entry.stripe_price_id_monthly.as_deref(),
                     entry.stripe_price_id_yearly.as_deref(),
                     entry.requires_payment.unwrap_or(true),
+                    match entry.pricing_model.as_deref() {
+                        None | Some("") => "flat",
+                        Some(model) => model,
+                    },
                 )
                 .await
                 .map_err(managed_error_to_status)?;

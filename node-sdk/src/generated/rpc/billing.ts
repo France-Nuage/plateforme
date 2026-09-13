@@ -54,6 +54,13 @@ export interface BillingSubscriptionProto {
    * @generated from protobuf field: google.protobuf.Timestamp created_at = 11
    */
   createdAt?: Timestamp;
+  /**
+   * Declared seat count for a per-seat plan, frozen at checkout. Absent for
+   * flat plans (billed with quantity 1).
+   *
+   * @generated from protobuf field: optional uint32 seats = 12
+   */
+  seats?: number;
 }
 /**
  * CreateCheckoutSession
@@ -95,6 +102,13 @@ export interface CreateCheckoutSessionRequest {
    * @generated from protobuf field: optional string secret_values = 8
    */
   secretValues?: string;
+  /**
+   * Seat count for a per-seat plan. Required (>= 1) when the plan's
+   * pricing_model is not "flat"; must be omitted for a flat plan.
+   *
+   * @generated from protobuf field: optional uint32 seats = 9
+   */
+  seats?: number;
 }
 /**
  * @generated from protobuf message francenuage.fr.v1.billing.CreateCheckoutSessionResponse
@@ -211,6 +225,13 @@ class BillingSubscriptionProto$Type extends MessageType<BillingSubscriptionProto
       },
       { no: 10, name: 'canceled_at', kind: 'message', T: () => Timestamp },
       { no: 11, name: 'created_at', kind: 'message', T: () => Timestamp },
+      {
+        no: 12,
+        name: 'seats',
+        kind: 'scalar',
+        opt: true,
+        T: 13 /*ScalarType.UINT32*/,
+      },
     ]);
   }
 }
@@ -261,6 +282,13 @@ class CreateCheckoutSessionRequest$Type extends MessageType<CreateCheckoutSessio
         kind: 'scalar',
         opt: true,
         T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 9,
+        name: 'seats',
+        kind: 'scalar',
+        opt: true,
+        T: 13 /*ScalarType.UINT32*/,
       },
     ]);
   }

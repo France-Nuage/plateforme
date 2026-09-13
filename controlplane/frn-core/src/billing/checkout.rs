@@ -23,6 +23,9 @@ pub struct CreateCheckoutRequest {
     pub billing_period: BillingPeriod,
     pub user_values: Option<Value>,
     pub secret_values: Option<Value>,
+    /// Declared seat count for a per-seat plan. Required (>= 1) when the plan's
+    /// `pricing_model` is not `flat`; must be `None`/absent for a flat plan.
+    pub seats: Option<u32>,
 }
 
 pub struct CheckoutResponse {
@@ -76,6 +79,12 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
 
         let price_id = resolve_stripe_price(&plan, &request.billing_period)?;
 
+        // Resolve the line-item quantity from the plan's pricing model. Flat
+        // plans are always billed with quantity 1 and reject a seat count;
+        // per-seat plans require a seat count of at least 1.
+        let seats = resolve_seats(&plan, request.seats)?;
+        let quantity = seats.unwrap_or(1);
+
         let customer = self
             .find_or_create_customer(&mut *conn, &request.organization_slug)
             .await?;
@@ -95,6 +104,7 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
             .create_checkout_session(
                 &customer.stripe_customer_id,
                 &price_id,
+                quantity,
                 metadata,
                 &self.success_url,
                 &self.cancel_url,
@@ -115,6 +125,7 @@ impl<A: Authorize, S: StripeClient> Billing<A, S> {
                 SubscriptionStatus::PendingPayment,
             )
             .set(BillingSubscription::BILLING_PERIOD, request.billing_period)
+            .set(BillingSubscription::SEATS, seats.map(|n| n as i32))
             .returning()
             .first(&mut *conn)
             .await?;
@@ -207,4 +218,123 @@ fn resolve_stripe_price(
             plan_slug: plan.slug.clone(),
             period: *period,
         })
+}
+
+/// Validates and resolves the seat count against the plan's pricing model.
+///
+/// Returns the seat count to persist on the subscription (and to bill as the
+/// line-item quantity):
+/// - flat plan: `None` — a seat count is rejected as not applicable, and the
+///   line item is billed with quantity 1;
+/// - per-seat plan (`per_unit` / `tiered`): the requested seat count, which must
+///   be present and at least 1.
+///
+/// # Errors
+/// [`BillingError::SeatsRequired`] when a per-seat plan is missing a valid seat
+/// count; [`BillingError::SeatsNotApplicable`] when a flat plan is given one.
+fn resolve_seats(
+    plan: &ManagedServicePlan,
+    requested: Option<u32>,
+) -> Result<Option<u32>, BillingError> {
+    let requires_seats = plan.pricing_model != "flat";
+    match (requires_seats, requested) {
+        (true, Some(n)) if n >= 1 => Ok(Some(n)),
+        (true, _) => Err(BillingError::SeatsRequired {
+            plan_slug: plan.slug.clone(),
+        }),
+        (false, None) => Ok(None),
+        (false, Some(_)) => Err(BillingError::SeatsNotApplicable {
+            plan_slug: plan.slug.clone(),
+        }),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use uuid::Uuid;
+
+    use super::resolve_seats;
+    use crate::billing::BillingError;
+    use crate::managed::ManagedServicePlan;
+
+    /// Builds a plan with the given pricing model; other fields are irrelevant
+    /// to seat resolution.
+    fn plan(pricing_model: &str) -> ManagedServicePlan {
+        ManagedServicePlan {
+            id: Uuid::new_v4(),
+            service_id: Uuid::new_v4(),
+            slug: "plan".to_owned(),
+            name: "Plan".to_owned(),
+            description: None,
+            status: "active".to_owned(),
+            highlighted: false,
+            values_override: None,
+            entitlements: serde_json::json!([]),
+            price_monthly_cents: None,
+            price_yearly_cents: None,
+            stripe_price_id_monthly: None,
+            stripe_price_id_yearly: None,
+            requires_payment: true,
+            pricing_model: pricing_model.to_owned(),
+            created_at: Utc::now(),
+        }
+    }
+
+    #[test]
+    fn flat_plan_resolves_no_seats() {
+        // Arrange, Act
+        let resolved = resolve_seats(&plan("flat"), None).unwrap();
+
+        // Assert
+        assert_eq!(resolved, None);
+    }
+
+    #[test]
+    fn flat_plan_rejects_seats() {
+        // Arrange, Act
+        let result = resolve_seats(&plan("flat"), Some(5));
+
+        // Assert
+        assert!(matches!(
+            result,
+            Err(BillingError::SeatsNotApplicable { .. })
+        ));
+    }
+
+    #[test]
+    fn per_seat_plan_resolves_requested_seats() {
+        // Arrange, Act
+        let resolved = resolve_seats(&plan("per_unit"), Some(10)).unwrap();
+
+        // Assert
+        assert_eq!(resolved, Some(10));
+    }
+
+    #[test]
+    fn tiered_plan_resolves_requested_seats() {
+        // Arrange, Act
+        let resolved = resolve_seats(&plan("tiered"), Some(250)).unwrap();
+
+        // Assert
+        assert_eq!(resolved, Some(250));
+    }
+
+    #[test]
+    fn per_seat_plan_rejects_missing_seats() {
+        // Arrange, Act
+        let result = resolve_seats(&plan("per_unit"), None);
+
+        // Assert
+        assert!(matches!(result, Err(BillingError::SeatsRequired { .. })));
+    }
+
+    #[test]
+    fn per_seat_plan_rejects_zero_seats() {
+        // Arrange, Act
+        let result = resolve_seats(&plan("per_unit"), Some(0));
+
+        // Assert
+        assert!(matches!(result, Err(BillingError::SeatsRequired { .. })));
+    }
 }

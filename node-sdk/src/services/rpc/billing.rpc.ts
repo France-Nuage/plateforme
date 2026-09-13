@@ -35,6 +35,7 @@ export class BillingRpcService implements BillingService {
         billingPeriod: data.billingPeriod,
         userValues: data.userValues,
         secretValues: data.secretValues,
+        seats: data.seats,
       })
       .response.then((res) => ({
         subscriptionId: res.subscriptionId,
@@ -79,6 +80,7 @@ function fromRpcSubscription(
     canceledAt: sub.canceledAt
       ? new Date(Number(sub.canceledAt.seconds) * 1000).toISOString()
       : undefined,
+    seats: sub.seats,
     createdAt: sub.createdAt
       ? new Date(Number(sub.createdAt.seconds) * 1000).toISOString()
       : new Date().toISOString(),

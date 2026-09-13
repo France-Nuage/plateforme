@@ -175,6 +175,13 @@ export interface ManagedServicePlanProto {
    * @generated from protobuf field: bool requires_payment = 15
    */
   requiresPayment: boolean;
+  /**
+   * Product-level pricing model: "flat" (default), "per_unit" or "tiered".
+   * The console shows a seat selector when this is not "flat".
+   *
+   * @generated from protobuf field: string pricing_model = 16
+   */
+  pricingModel: string;
 }
 /**
  * ListServices
@@ -368,6 +375,13 @@ export interface SyncPlanEntry {
    * @generated from protobuf field: optional bool requires_payment = 12
    */
   requiresPayment?: boolean;
+  /**
+   * Product-level pricing model ("flat" | "per_unit" | "tiered"). Defaults to
+   * "flat" when empty.
+   *
+   * @generated from protobuf field: optional string pricing_model = 13
+   */
+  pricingModel?: string;
 }
 /**
  * @generated from protobuf message francenuage.fr.v1.managed.SyncPlansResponse
@@ -789,6 +803,12 @@ class ManagedServicePlanProto$Type extends MessageType<ManagedServicePlanProto> 
         kind: 'scalar',
         T: 8 /*ScalarType.BOOL*/,
       },
+      {
+        no: 16,
+        name: 'pricing_model',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
     ]);
   }
 }
@@ -1081,6 +1101,13 @@ class SyncPlanEntry$Type extends MessageType<SyncPlanEntry> {
         kind: 'scalar',
         opt: true,
         T: 8 /*ScalarType.BOOL*/,
+      },
+      {
+        no: 13,
+        name: 'pricing_model',
+        kind: 'scalar',
+        opt: true,
+        T: 9 /*ScalarType.STRING*/,
       },
     ]);
   }

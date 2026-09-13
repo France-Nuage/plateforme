@@ -37,6 +37,7 @@ impl StripeClient for UnreachableStripeClient {
         &self,
         _: &str,
         _: &str,
+        _: u32,
         _: CheckoutMetadata,
         _: &str,
         _: &str,

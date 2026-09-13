@@ -76,6 +76,7 @@ export const managedServicePlan = (
   priceMonthlyCents: faker.number.int({ min: 500, max: 50000 }),
   priceYearlyCents: faker.number.int({ min: 5000, max: 500000 }),
   requiresPayment: true,
+  pricingModel: 'flat',
   createdAt: faker.date.recent().toISOString(),
   ...preset,
 });

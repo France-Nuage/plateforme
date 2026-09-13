@@ -171,6 +171,10 @@ function fromRpcPlan(plan: ManagedServicePlanProto): ManagedServicePlan {
       ? Number(plan.priceYearlyCents)
       : undefined,
     requiresPayment: plan.requiresPayment,
+    pricingModel:
+      plan.pricingModel === 'per_unit' || plan.pricingModel === 'tiered'
+        ? plan.pricingModel
+        : 'flat',
     createdAt: plan.createdAt
       ? new Date(Number(plan.createdAt.seconds) * 1000).toISOString()
       : new Date().toISOString(),

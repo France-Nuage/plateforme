@@ -38,6 +38,7 @@ async fn test_sync_plans_creates_plans(pool: PgPool) -> Result<(), Box<dyn std::
                     requires_payment: Some(false),
                     stripe_price_id_monthly: None,
                     stripe_price_id_yearly: None,
+                    pricing_model: None,
                 }],
             })
             .into_ci(),
@@ -76,6 +77,7 @@ async fn test_sync_plans_upserts_existing_plan(
         requires_payment: Some(false),
         stripe_price_id_monthly: None,
         stripe_price_id_yearly: None,
+        pricing_model: None,
     };
 
     api.managed
