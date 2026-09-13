@@ -144,6 +144,14 @@
         fi
       done
 
+      # On désactive `set -e` le temps du déploiement pour capturer le code de
+      # sortie de helm : en cas d'échec (typiquement « Progress deadline
+      # exceeded », qui ne dit PAS quel pod ni pourquoi), on veut d'abord vider
+      # l'état du cluster dans le log avant de propager l'échec. Sans ça, la
+      # trace CI ne contient aucun événement, statut de pod ni log applicatif —
+      # le namespace éphémère est détruit juste après, le diagnostic est perdu,
+      # et chaque échec de deploy repart d'une boîte noire.
+      set +e
       helm upgrade --install "${RELEASE_NAME}" ./helm/plateforme \
         --namespace "${NAMESPACE}" \
         --values ./helm/plateforme/values-ci.yaml \
@@ -169,6 +177,32 @@
         ${HELM_EXTRA_ARGS:-} \
         --wait \
         --timeout 15m
+      deploy_rc=$?
+      set -e
+
+      if [ "${deploy_rc}" -ne 0 ]; then
+        echo "=================================================================="
+        echo "Le déploiement a échoué (helm rc=${deploy_rc}). Diagnostic cluster :"
+        echo "=================================================================="
+        echo "----- Événements du namespace (ordre chronologique, 80 derniers) -----"
+        kubectl get events -n "${NAMESPACE}" --sort-by=.lastTimestamp 2>&1 | tail -n 80 || true
+        echo "----- Vue d'ensemble des workloads -----"
+        kubectl get pods,deployment,statefulset,job -n "${NAMESPACE}" -o wide 2>&1 || true
+        echo "----- Détail par pod (describe + logs courants et précédents) -----"
+        for pod in $(kubectl get pods -n "${NAMESPACE}" \
+          -o jsonpath='{.items[*].metadata.name}' 2>/dev/null); do
+          echo "########## describe ${pod} ##########"
+          kubectl describe pod "${pod}" -n "${NAMESPACE}" 2>&1 | tail -n 45 || true
+          echo "########## logs ${pod} (courant, 80 dernières) ##########"
+          kubectl logs "${pod}" -n "${NAMESPACE}" --all-containers --tail=80 2>&1 || true
+          echo "########## logs ${pod} (précédent, si crash-loop) ##########"
+          kubectl logs "${pod}" -n "${NAMESPACE}" --all-containers --previous --tail=80 2>&1 || true
+        done
+        echo "=================================================================="
+        echo "Fin du diagnostic — propagation de l'échec (rc=${deploy_rc})."
+        echo "=================================================================="
+        exit "${deploy_rc}"
+      fi
 
 .cleanup_ci_env:
   extends: .helm_qualif_template
