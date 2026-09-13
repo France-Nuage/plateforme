@@ -97,11 +97,59 @@
         -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply --validate=false -f -
       rm -f /tmp/wildcard.crt /tmp/wildcard.key
 
+      # Résolution du tag d'image par composant (issue #8040).
+      #
+      # Le déploiement épinglait `global.imageTag=<slug>-release` pour TOUS les
+      # composants France-Nuage. Or les jobs `build / … / release` sont gardés par
+      # `changes:` : sur une MR partielle (qui ne touche pas tous les composants),
+      # seules les images des composants modifiés sont poussées sous ce tag. Les
+      # autres n'ont aucune image `<slug>-release` → `helm upgrade` tire un tag
+      # inexistant → « Progress deadline exceeded » (le déploiement échouait donc
+      # sur toute MR ne reconstruisant pas l'intégralité du stack).
+      #
+      # Correctif : on prend `master-release` (jeu complet issu du dernier build de
+      # master) comme socle, et on ne surcharge au tag `<slug>-release` que les
+      # composants dont l'image a effectivement été (re)construite sur cette branche
+      # — détecté en interrogeant le registre. Un composant non reconstruit reste
+      # sur son image master, exactement l'état attendu pour une MR qui ne le touche
+      # pas. Chaque composant garde ainsi une image existante et déployable.
+      RELEASE_TAG="${CI_COMMIT_REF_SLUG}-release"
+      REGISTRY_REPO_PATH="${CI_REGISTRY_IMAGE#*/}"
+      COMPONENT_TAG_ARGS=""
+      # Correspondance « nom d'image (registre) : clé de valeur Helm » pour les
+      # composants FN dont le tag dérive de global.imageTag (image.tag vide).
+      for mapping in \
+        "controlplane:controlplane" \
+        "operation-worker:operationWorker" \
+        "synchronizer:synchronizer" \
+        "console:console" \
+        "system-tests:systemTests"; do
+        image_name="${mapping%%:*}"
+        value_key="${mapping##*:}"
+        repo="${REGISTRY_REPO_PATH}/${image_name}"
+        token="$(curl -sS -u "${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}" \
+          "https://${CI_SERVER_HOST}/jwt/auth?service=container_registry&scope=repository:${repo}:pull" \
+          | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')" || true
+        http_code="$(curl -sS -o /dev/null -w '%{http_code}' \
+          -H "Authorization: Bearer ${token}" \
+          -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+          -H "Accept: application/vnd.docker.distribution.manifest.list.v2+json" \
+          -H "Accept: application/vnd.oci.image.index.v1+json" \
+          "https://${CI_REGISTRY}/v2/${repo}/manifests/${RELEASE_TAG}")" || true
+        if [ "${http_code}" = "200" ]; then
+          echo "Image ${image_name}:${RELEASE_TAG} présente → surcharge ${value_key}.image.tag."
+          COMPONENT_TAG_ARGS="${COMPONENT_TAG_ARGS} --set ${value_key}.image.tag=${RELEASE_TAG}"
+        else
+          echo "Image ${image_name}:${RELEASE_TAG} absente (HTTP ${http_code:-000}) → fallback master-release."
+        fi
+      done
+
       helm upgrade --install "${RELEASE_NAME}" ./helm/plateforme \
         --namespace "${NAMESPACE}" \
         --values ./helm/plateforme/values-ci.yaml \
         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
-        --set global.imageTag=${CI_COMMIT_REF_SLUG}-release \
+        --set global.imageTag=master-release \
+        ${COMPONENT_TAG_ARGS} \
         --set global.imagePullPolicy=Always \
         --set ingress.baseDomain="${BASE_DOMAIN}" \
         --set ingress.envId="${ENV_ID}" \
