@@ -163,25 +163,46 @@
       # la résolution échoue, la vraie donnée reste tracée sans attendre le timeout
       # helm de 15 min pour lire le post-mortem.
       echo "----- services candidats pour le hairpin OIDC (#8042) -----"
-      kubectl get svc -A -o wide 2>&1 | grep -iE "ingress|kingress|nginx|nodeport" || true
+      kubectl get svc -A -o wide 2>&1 | grep -iE "ingress|kingress|traefik|nginx|nodeport" || true
 
       OIDC_HAIRPIN_ARGS=""
-      # Table « <ns>/<nom> <clusterIP> <ports…> » restreinte aux services d'ingress
-      # (tout nom contenant « ingress » couvre « kingress »), en excluant les
-      # services annexes (webhook d'admission, métriques, default-backend) qui ne
-      # sont pas le chemin de données de l'ingress.
+      # Table BRUTE « <ns>/<nom> <clusterIP> <ports…> » de TOUS les services. On ne
+      # pré-filtre PAS par « ingress » dans le nom : sur ce cluster le contrôleur
+      # d'ingress est `kube-system/traefik`, dont le nom ne contient pas « ingress »
+      # — un `grep -iE 'ingress'` ne matchait rien, la substitution de commande
+      # sortait en 1, et sous `set -e` le job MOURAIT ici (avant même helm). On
+      # capture donc la table entière (kubectl seul, jamais un grep en fin de pipe)
+      # puis on sélectionne en awk, ce qui ne peut pas avorter le job.
       INGRESS_SVC_TABLE="$(kubectl get svc -A \
-        -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{" "}{.spec.clusterIP}{" "}{.spec.ports[*].port}{"\n"}{end}' 2>/dev/null \
-        | grep -iE 'ingress' \
-        | grep -ivE 'admission|webhook|metrics|default-backend')"
-      # Priorité 1 : un service d'ingress exposant 80/443 avec une vraie ClusterIP.
-      INGRESS_HAIRPIN_IP="$(printf '%s\n' "${INGRESS_SVC_TABLE}" \
-        | awk '$2!="" && $2!="None"{for(i=3;i<=NF;i++) if($i==443||$i==80){print $2; exit}}')"
-      # Priorité 2 (repli) : le premier service d'ingress avec une vraie ClusterIP.
-      if [ -z "${INGRESS_HAIRPIN_IP}" ]; then
-        INGRESS_HAIRPIN_IP="$(printf '%s\n' "${INGRESS_SVC_TABLE}" \
-          | awk '$2!="" && $2!="None"{print $2; exit}')"
-      fi
+        -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{" "}{.spec.clusterIP}{" "}{.spec.ports[*].port}{"\n"}{end}' 2>/dev/null || true)"
+      # Sélection par SCORE du contrôleur d'ingress qui sert l'issuer OIDC public.
+      # On ne devine pas par le nom seul (fragile) : on note chaque Service et on
+      # retient le mieux classé.
+      #   - filtre dur : ClusterIP réelle + exposition du 443 (l'issuer OIDC est en
+      #     https ; le hairpin DOIT router le 443) ;
+      #   - exclusions : services annexes (webhook/admission/metrics/default-backend/
+      #     canary) et namespaces `managed-*` (workloads clients type pangolin, pas
+      #     le chemin de données de l'ingress de la plateforme) ;
+      #   - bonus : exposition conjointe du 80, namespace système d'ingress
+      #     (kube-system/ingress-nginx/traefik/…), nom de contrôleur connu
+      #     (traefik/nginx/ingress/contour/haproxy/kingress).
+      # Ainsi `kube-system/traefik` (80+443) l'emporte sur un éventuel
+      # `managed-*/pangolin-traefik-nodeport` sans coder d'IP en dur.
+      INGRESS_HAIRPIN_IP="$(printf '%s\n' "${INGRESS_SVC_TABLE}" | awk '
+        $2!="" && $2!="None" {
+          split($1, a, "/"); ns=a[1]; name=a[2];
+          if (name ~ /admission|webhook|metrics|default-backend|canary/) next;
+          if (ns ~ /^managed-/) next;
+          has80=0; has443=0;
+          for (i=3; i<=NF; i++) { if ($i==80) has80=1; if ($i==443) has443=1 }
+          if (!has443) next;
+          score=1;
+          if (has80) score+=2;
+          if (ns ~ /^(kube-system|ingress-nginx|ingress|traefik|kingress)$/) score+=4;
+          if (name ~ /ingress|traefik|nginx|kingress|contour|haproxy/) score+=2;
+          if (score>best) { best=score; ip=$2 }
+        }
+        END { if (best>0) print ip }')"
       if [ -n "${INGRESS_HAIRPIN_IP}" ]; then
         echo "Hairpin OIDC : ClusterIP d'ingress découverte = ${INGRESS_HAIRPIN_IP} (surcharge oidcHairpinIp)."
         OIDC_HAIRPIN_ARGS="--set oidcHairpinIp=${INGRESS_HAIRPIN_IP}"
