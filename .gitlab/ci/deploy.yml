@@ -97,6 +97,14 @@
         -n "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply --validate=false -f -
       rm -f /tmp/wildcard.crt /tmp/wildcard.key
 
+      # Run the deploy without `set -e` aborting on the helm exit code: when the
+      # rollout fails (typically "Progress deadline exceeded"), helm prints only
+      # which Deployments are not ready, never *why*. Capture the failure and dump
+      # namespace diagnostics (pod status, events, and per-container logs incl.
+      # init containers) so the job log shows the actual cause — a pod stuck in
+      # Init on a dependency gate looks identical to a CrashLoopBackOff otherwise.
+      # The job still fails (explicit `exit 1`); this only adds a post-mortem.
+      set +e
       helm upgrade --install "${RELEASE_NAME}" ./helm/plateforme \
         --namespace "${NAMESPACE}" \
         --values ./helm/plateforme/values-ci.yaml \
@@ -121,6 +129,26 @@
         ${HELM_EXTRA_ARGS:-} \
         --wait \
         --timeout 15m
+      HELM_RC=$?
+      set -e
+
+      if [ "${HELM_RC}" -ne 0 ]; then
+        echo "===== helm rollout failed (rc=${HELM_RC}); dumping ${NAMESPACE} diagnostics ====="
+        echo "----- pods -----"
+        kubectl get pods -n "${NAMESPACE}" -o wide || true
+        echo "----- recent events -----"
+        kubectl get events -n "${NAMESPACE}" --sort-by=.lastTimestamp 2>/dev/null | tail -60 || true
+        for p in $(kubectl get pods -n "${NAMESPACE}" -o name 2>/dev/null); do
+          echo "===== describe ${p} ====="
+          kubectl describe -n "${NAMESPACE}" "${p}" 2>&1 | sed -n '/^Init Containers:/,/^Conditions:/p' || true
+          echo "----- ${p}: init+app container logs (current) -----"
+          kubectl logs -n "${NAMESPACE}" "${p}" --all-containers --tail=80 2>&1 || true
+          echo "----- ${p}: init+app container logs (previous) -----"
+          kubectl logs -n "${NAMESPACE}" "${p}" --all-containers --previous --tail=80 2>&1 || true
+        done
+        echo "===== end diagnostics ====="
+        exit 1
+      fi
 
 .cleanup_ci_env:
   extends: .helm_qualif_template
