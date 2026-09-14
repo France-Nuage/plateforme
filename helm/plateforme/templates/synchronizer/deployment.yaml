@@ -7,10 +7,6 @@ metadata:
     {{- include "plateforme.labels" . | nindent 4 }}
     app.kubernetes.io/component: synchronizer
 spec:
-  # Same first-boot dependency wait as the control plane (Keycloak + public
-  # OIDC route). Raised on qualif (values-ci) to fit helm's rollout timeout;
-  # defaults to Kubernetes' 600s elsewhere.
-  progressDeadlineSeconds: {{ .Values.synchronizer.progressDeadlineSeconds | default 600 }}
   replicas: {{ .Values.synchronizer.replicas }}
   selector:
     matchLabels:
@@ -32,12 +28,6 @@ spec:
         {{- include "plateforme.waitForSpicedbSchema" . | nindent 8 }}
         {{- if .Values.keycloak.enabled }}
         {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
-        {{- /*
-        Same public-OIDC gate as the control plane: the synchronizer also
-        bootstraps through `App::new` → `OpenID::discover(OIDC_URL)` and would
-        otherwise CrashLoopBackOff until the public route is live. See helper.
-        */}}
-        {{- include "plateforme.waitForPublicOidc" . | nindent 8 }}
         {{- end }}
       containers:
         - name: synchronizer
