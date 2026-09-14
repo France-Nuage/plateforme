@@ -7,8 +7,14 @@ clusterDomain: qual.local
 
 # On qualif the public OIDC URL (auth.<baseDomain>) does not hairpin back to the
 # in-cluster ingress, so the control plane cannot reach Keycloak at startup.
-# Pin the Keycloak host to the kingress-nodeport ClusterIP to keep the lookup
+# Pin the Keycloak host to the ingress controller ClusterIP to keep the lookup
 # in-cluster while preserving the public hostname/issuer.
+#
+# This value is only a fallback: the ingress Service is reprovisioned with a
+# fresh ClusterIP over time, so the deploy job resolves the live ClusterIP at
+# deploy time and overrides this pin (`--set oidcHairpinIp=…`, see the hairpin
+# discovery block in .gitlab/ci/deploy.yml, issue #8042 / FRA-29). It is kept
+# here so the chart still renders a hostAlias if the lookup ever comes up empty.
 oidcHairpinIp: "192.168.250.128"
 
 ingress:

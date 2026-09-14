@@ -144,6 +144,51 @@
         fi
       done
 
+      # Hairpin OIDC — résolution DYNAMIQUE de la ClusterIP d'ingress (#8042 / FRA-29).
+      #
+      # Au bootstrap, le control plane résout l'issuer Keycloak *public*
+      # (server/src/config.rs → OpenID::discover). Cette URL publique ne reboucle
+      # jamais vers l'ingress depuis l'intérieur du cluster de qualif : le chart
+      # épingle donc l'hôte Keycloak sur la ClusterIP du contrôleur d'ingress via
+      # un hostAlias (`oidcHairpinIp`, cf. _helpers.tpl → oidcHairpinHostAliases).
+      # Figer cette IP dans values-ci.yaml POURRIT : le Service d'ingress reçoit
+      # une nouvelle ClusterIP à chaque reprovisionnement, et un pin périmé
+      # (192.168.250.128) envoie la découverte OIDC dans le vide → controlplane en
+      # CrashLoopBackOff sur OpenID::discover → deploy/test-env ROUGE sur toute MR.
+      #
+      # Le job deploy dispose déjà d'un kubeconfig cluster-admin sur la qualif : on
+      # résout ici la ClusterIP vivante et on surcharge le pin. Cela s'auto-répare
+      # à chaque reprovisionnement et supprime la valeur codée en dur comme source
+      # de dérive. On dump d'abord les services candidats (visible en ~1 min) : si
+      # la résolution échoue, la vraie donnée reste tracée sans attendre le timeout
+      # helm de 15 min pour lire le post-mortem.
+      echo "----- services candidats pour le hairpin OIDC (#8042) -----"
+      kubectl get svc -A -o wide 2>&1 | grep -iE "ingress|kingress|nginx|nodeport" || true
+
+      OIDC_HAIRPIN_ARGS=""
+      # Table « <ns>/<nom> <clusterIP> <ports…> » restreinte aux services d'ingress
+      # (tout nom contenant « ingress » couvre « kingress »), en excluant les
+      # services annexes (webhook d'admission, métriques, default-backend) qui ne
+      # sont pas le chemin de données de l'ingress.
+      INGRESS_SVC_TABLE="$(kubectl get svc -A \
+        -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{" "}{.spec.clusterIP}{" "}{.spec.ports[*].port}{"\n"}{end}' 2>/dev/null \
+        | grep -iE 'ingress' \
+        | grep -ivE 'admission|webhook|metrics|default-backend')"
+      # Priorité 1 : un service d'ingress exposant 80/443 avec une vraie ClusterIP.
+      INGRESS_HAIRPIN_IP="$(printf '%s\n' "${INGRESS_SVC_TABLE}" \
+        | awk '$2!="" && $2!="None"{for(i=3;i<=NF;i++) if($i==443||$i==80){print $2; exit}}')"
+      # Priorité 2 (repli) : le premier service d'ingress avec une vraie ClusterIP.
+      if [ -z "${INGRESS_HAIRPIN_IP}" ]; then
+        INGRESS_HAIRPIN_IP="$(printf '%s\n' "${INGRESS_SVC_TABLE}" \
+          | awk '$2!="" && $2!="None"{print $2; exit}')"
+      fi
+      if [ -n "${INGRESS_HAIRPIN_IP}" ]; then
+        echo "Hairpin OIDC : ClusterIP d'ingress découverte = ${INGRESS_HAIRPIN_IP} (surcharge oidcHairpinIp)."
+        OIDC_HAIRPIN_ARGS="--set oidcHairpinIp=${INGRESS_HAIRPIN_IP}"
+      else
+        echo "Hairpin OIDC : aucune ClusterIP d'ingress découverte ; conservation de la valeur épinglée dans values-ci.yaml."
+      fi
+
       # On désactive `set -e` le temps du déploiement pour capturer le code de
       # sortie de helm : en cas d'échec (typiquement « Progress deadline
       # exceeded », qui ne dit PAS quel pod ni pourquoi), on veut d'abord vider
@@ -158,6 +203,7 @@
         --set global.imageRegistry=${CI_REGISTRY_IMAGE} \
         --set global.imageTag=master-release \
         ${COMPONENT_TAG_ARGS} \
+        ${OIDC_HAIRPIN_ARGS} \
         --set global.imagePullPolicy=Always \
         --set ingress.baseDomain="${BASE_DOMAIN}" \
         --set ingress.envId="${ENV_ID}" \
