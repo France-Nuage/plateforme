@@ -321,6 +321,42 @@ appended. Derived from the console host, like the success URL above.
       echo "Keycloak is ready"
 {{- end }}
 
+{{/*
+Waits for the public OIDC discovery endpoint to answer over HTTPS — the exact
+URL the control plane / synchronizer resolve at bootstrap
+(`OpenID::discover(OIDC_URL)`). The `wait-for-keycloak` probe above only proves
+the *in-cluster* Keycloak (`http://…-keycloak:8080`) is up; on qualif the app
+instead reaches Keycloak through its *public* host (to match the token issuer),
+pinned in-cluster by the `oidcHairpinIp` hostAlias. That public route (ingress
+programming + Keycloak serving its public vhost) becomes ready slightly after
+the in-cluster port, so without this gate the main container starts too early,
+`OpenID::discover` fails with `UnreachableOidcProvider`, and the process panics
+into CrashLoopBackOff — whose exponential backoff then pushes the first
+successful start past helm's rollout deadline. Polling the real URL every 5s
+(tight loop, no backoff) lets the container start the instant discovery will
+succeed. `curl -sf` (2xx only) is required: it validates the TLS chain and that
+Keycloak actually serves the realm document, not a transient ingress 503; the
+pod-level hostAlias applies to init containers too, so the public host resolves
+in-cluster here as well. Gated by the caller on `keycloak.enabled` (prod uses an
+always-up external IdP with an explicit `oidcUrl`, so the gate is unnecessary
+there). The URL mirrors the `OIDC_URL` env resolution: the explicit
+`controlplane.config.oidcUrl` when set, otherwise the derived `keycloakOidcUrl`.
+*/}}
+{{- define "plateforme.waitForPublicOidc" -}}
+- name: wait-for-public-oidc
+  image: registry.france-nuage.fr/curlimages/curl:8.11.1
+  command:
+    - sh
+    - -c
+    - |
+      OIDC_URL="{{ .Values.controlplane.config.oidcUrl | default (include "plateforme.keycloakOidcUrl" .) }}"
+      until curl -sf -o /dev/null --max-time 5 "$OIDC_URL"; do
+        echo "waiting for public OIDC discovery endpoint"
+        sleep 5
+      done
+      echo "public OIDC discovery endpoint is ready"
+{{- end }}
+
 {{- define "plateforme.waitForControlplane" -}}
 - name: wait-for-controlplane
   image: registry.france-nuage.fr/library/busybox:1.36

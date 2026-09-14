@@ -57,8 +57,12 @@ postgres:
 
 console:
   enabled: true
+  # Sits just under helm's `--wait --timeout 15m` (900s) so the console rollout,
+  # which waits on the control plane's first boot (Keycloak + public OIDC),
+  # doesn't trip the default 600s deadline before the dependency is ready.
+  progressDeadlineSeconds: 840
   config:
-    apiUrl: "" 
+    apiUrl: ""
 
 systemTests:
   enabled: true
@@ -69,6 +73,11 @@ systemTests:
     storageClass: cephfs
 
 controlplane:
+  # First boot waits on Keycloak (start-dev + realm import) then the public OIDC
+  # route (`wait-for-public-oidc`); raise the rollout budget just under helm's
+  # `--wait --timeout 15m` (900s) so this dependency fits instead of tripping the
+  # default 600s deadline into a false "Progress deadline exceeded".
+  progressDeadlineSeconds: 840
   config:
     consoleUrl: ""
     oidcUrl: ""
@@ -107,5 +116,8 @@ secrets:
   authCookieKey: "eu4dANxmmeT/cx7Y7aMy1RCp9ZgCMuoJlTqSzx92Ppo="
 
 synchronizer:
+  # Same first-boot OIDC dependency as the control plane; align the rollout
+  # budget with helm's timeout (see controlplane above).
+  progressDeadlineSeconds: 840
   config:
     oidcUrl: ""

@@ -7,6 +7,11 @@ metadata:
     {{- include "plateforme.labels" . | nindent 4 }}
     app.kubernetes.io/component: controlplane
 spec:
+  # Rollout progress budget. Defaults to Kubernetes' own 600s but is raised on
+  # qualif (values-ci) so the first-boot dependency wait (Keycloak start-dev +
+  # realm import, then the public OIDC route via `wait-for-public-oidc`) fits
+  # inside helm's `--wait --timeout` instead of tripping the deadline early.
+  progressDeadlineSeconds: {{ .Values.controlplane.progressDeadlineSeconds | default 600 }}
   replicas: {{ .Values.controlplane.replicas }}
   selector:
     matchLabels:
@@ -35,6 +40,12 @@ spec:
         {{- include "plateforme.runSpicedbMigrations" . | nindent 8 }}
         {{- if .Values.keycloak.enabled }}
         {{- include "plateforme.waitForKeycloak" . | nindent 8 }}
+        {{- /*
+        Gate on the *public* OIDC URL too: `App::new` discovers OIDC against it
+        (not the in-cluster port checked above), and starting before that route
+        is live panics the process into CrashLoopBackOff. See helper.
+        */}}
+        {{- include "plateforme.waitForPublicOidc" . | nindent 8 }}
         {{- end }}
       volumes:
         - name: spicedb-schema
