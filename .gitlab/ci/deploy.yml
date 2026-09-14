@@ -136,6 +136,12 @@
         echo "===== helm rollout failed (rc=${HELM_RC}); dumping ${NAMESPACE} diagnostics ====="
         echo "----- pods -----"
         kubectl get pods -n "${NAMESPACE}" -o wide || true
+        echo "----- ingress routes -----"
+        kubectl get ingress -n "${NAMESPACE}" -o wide || true
+        echo "----- services (namespace) -----"
+        kubectl get svc -n "${NAMESPACE}" -o wide || true
+        echo "----- ingress-controller service (compare its ClusterIP with oidcHairpinIp in values-ci) -----"
+        kubectl get svc -A -o wide 2>/dev/null | grep -iE "ingress|nginx|traefik|haproxy|contour|envoy" || true
         echo "----- recent events -----"
         kubectl get events -n "${NAMESPACE}" --sort-by=.lastTimestamp 2>/dev/null | tail -60 || true
         for p in $(kubectl get pods -n "${NAMESPACE}" -o name 2>/dev/null); do

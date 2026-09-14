@@ -350,8 +350,20 @@ there). The URL mirrors the `OIDC_URL` env resolution: the explicit
     - -c
     - |
       OIDC_URL="{{ .Values.controlplane.config.oidcUrl | default (include "plateforme.keycloakOidcUrl" .) }}"
+      i=0
       until curl -sf -o /dev/null --max-time 5 "$OIDC_URL"; do
-        echo "waiting for public OIDC discovery endpoint"
+        i=$((i + 1))
+        # Every ~30s emit a verbose probe so the pod log shows *why* the public
+        # OIDC endpoint is unreachable — the hostAlias resolution (remote_ip),
+        # the HTTP status, or the connection/TLS error curl reports on stderr —
+        # rather than a silent wait. Decisive when the hairpin is misconfigured.
+        if [ $((i % 6)) -eq 1 ]; then
+          curl -sS -o /dev/null --max-time 5 \
+            -w "wait-for-public-oidc: try=$i url=$OIDC_URL remote_ip=%{remote_ip} http=%{http_code} time=%{time_total}s\n" \
+            "$OIDC_URL" 2>&1 || true
+        else
+          echo "waiting for public OIDC discovery endpoint"
+        fi
         sleep 5
       done
       echo "public OIDC discovery endpoint is ready"
