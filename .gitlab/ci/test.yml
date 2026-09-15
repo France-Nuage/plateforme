@@ -217,3 +217,19 @@
     - changes:
         - controlplane/**/*
         - .gitlab-ci.yml
+
+# Garde-fou de régression sur les en-têtes de sécurité de la console : HSTS présent
+# sur toutes les locations servant du contenu (piège d'héritage add_header de nginx).
+# Sans dépendance (busybox) ; ne tourne que si nginx.conf ou le script changent.
+"unit tests / console security headers":
+  stage: unit-tests
+  image: registry.france-nuage.fr/library/alpine:latest
+  services: []
+  needs: []
+  script:
+    - sh console/scripts/check-security-headers.sh
+  rules:
+    - changes:
+        - console/nginx.conf
+        - console/scripts/check-security-headers.sh
+        - .gitlab-ci.yml
